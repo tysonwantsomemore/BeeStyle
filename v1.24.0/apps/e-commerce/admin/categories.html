@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý Danh mục Thời trang | BeeStyle Admin</title>
+
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="../../../assets/img/favicons/favicon.ico">
+  <meta name="theme-color" content="#ffffff">
+  <script src="../../../vendors/simplebar/simplebar.min.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link href="../../../vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="../../../assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="../../../assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+</head>
+
+<body>
+  <main class="main" id="top">
+    <!-- SIDEBAR NAVIGATION -->
+    <nav class="navbar navbar-vertical navbar-expand-lg">
+      <div class="collapse navbar-collapse" id="navbarVerticalCollapse">
+        <div class="navbar-vertical-content">
+          <ul class="navbar-nav flex-column" id="navbarVerticalNav">
+            <!-- DASHBOARD -->
+            <li class="nav-item">
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="../../../index.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="pie-chart"></span></span>
+                    <span class="nav-link-text">Tổng quan (Dashboard)</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+
+            <!-- SẢN PHẨM & KHO -->
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Sản phẩm &amp; Danh mục</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="products.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="shopping-bag"></span></span>
+                    <span class="nav-link-text">Danh sách sản phẩm</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="add-product.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="plus-circle"></span></span>
+                    <span class="nav-link-text">Thêm sản phẩm mới</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link active" href="categories.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="grid"></span></span>
+                    <span class="nav-link-text">Danh mục thời trang</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="brands.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="tag"></span></span>
+                    <span class="nav-link-text">Thương hiệu</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="attributes.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="sliders"></span></span>
+                    <span class="nav-link-text">Thuộc tính (Size/Màu)</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="stocks.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="box"></span></span>
+                    <span class="nav-link-text">Quản lý tồn kho</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+
+            <!-- ĐƠN HÀNG & BÁN HÀNG -->
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Đơn hàng &amp; Giao dịch</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="orders.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="shopping-cart"></span></span>
+                    <span class="nav-link-text">Quản lý đơn hàng</span>
+                    <span class="badge ms-2 badge-phoenix badge-phoenix-primary">6 bước</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="refund.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="rotate-ccw"></span></span>
+                    <span class="nav-link-text">Hoàn tiền / Đổi trả</span>
+                    <span class="badge ms-2 badge-phoenix badge-phoenix-warning">Mới</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+
+            <!-- KHÁCH HÀNG & PHÂN QUYỀN -->
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Khách hàng &amp; Người dùng</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="customers.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="users"></span></span>
+                    <span class="nav-link-text">Quản lý người dùng</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+
+            <!-- MARKETING & ĐÁNH GIÁ -->
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Marketing &amp; Đánh giá</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="coupons.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="percent"></span></span>
+                    <span class="nav-link-text">Mã giảm giá (Coupons)</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="reviews.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="star"></span></span>
+                    <span class="nav-link-text">Đánh giá &amp; Bình luận</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="navbar-vertical-footer">
+        <button class="btn navbar-vertical-toggle border-0 fw-semibold w-100 white-space-nowrap d-flex align-items-center">
+          <span class="uil uil-left-arrow-to-left fs-8"></span>
+          <span class="uil uil-arrow-from-right fs-8"></span>
+          <span class="navbar-vertical-footer-text ms-2">Thu gọn menu</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- TOP NAVBAR -->
+    <nav class="navbar navbar-top fixed-top navbar-expand" id="navbarDefault">
+      <div class="collapse navbar-collapse justify-content-between">
+        <div class="navbar-logo">
+          <button class="btn navbar-toggler navbar-toggler-humburger-icon hover-bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse" aria-expanded="false" aria-label="Toggle Navigation">
+            <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
+          </button>
+          <a class="navbar-brand me-1 me-sm-3" href="../../../index.html">
+            <div class="d-flex align-items-center">
+              <div class="d-flex align-items-center">
+                <span class="fa-solid fa-vest-patches text-warning fs-6 me-2"></span>
+                <h5 class="logo-text ms-1 d-none d-sm-block text-warning fw-bolder">BeeStyle <span class="text-body-highlight fw-normal">Admin</span></h5>
+              </div>
+            </div>
+          </a>
+        </div>
+        <div class="search-box navbar-top-search-box d-none d-lg-block" style="width:25rem;">
+          <form class="position-relative">
+            <input class="form-control search-input rounded-pill form-control-sm" type="search" placeholder="Tìm kiếm danh mục, sản phẩm, đơn hàng..." aria-label="Search" />
+            <span class="fas fa-search search-box-icon"></span>
+          </form>
+        </div>
+        <ul class="navbar-nav navbar-nav-icons flex-row">
+          <li class="nav-item dropdown">
+            <a class="nav-link lh-1 pe-0" id="navbarDropdownUser" href="#!" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <div class="avatar avatar-l">
+                <img class="rounded-circle" src="../../../assets/img/team/40x40/57.webp" alt="Admin BeeStyle" />
+              </div>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end navbar-dropdown-caret py-0 dropdown-profile shadow border" aria-labelledby="navbarDropdownUser">
+              <div class="card position-relative border-0">
+                <div class="card-body p-0">
+                  <div class="text-center pt-4 pb-3">
+                    <div class="avatar avatar-xl">
+                      <img class="rounded-circle" src="../../../assets/img/team/40x40/57.webp" alt="" />
+                    </div>
+                    <h6 class="mt-2 text-body-emphasis">Quản Trị Viên (Admin)</h6>
+                    <span class="badge badge-phoenix badge-phoenix-warning">Chủ cửa hàng BeeStyle</span>
+                  </div>
+                </div>
+                <div class="card-footer p-2 border-top">
+                  <div class="px-2">
+                    <a class="btn btn-phoenix-secondary d-flex flex-center w-100" href="#!"><span class="me-2" data-feather="log-out"></span>Đăng xuất</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div class="content">
+      <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="../../../index.html">Trang chủ</a></li>
+          <li class="breadcrumb-item"><a href="products.html">Sản phẩm &amp; Kho</a></li>
+          <li class="breadcrumb-item active">Danh mục thời trang</li>
+        </ol>
+      </nav>
+
+      <div class="mb-5">
+        <div class="row g-3 justify-content-between align-items-center mb-4">
+          <div class="col-auto">
+            <h2 class="text-bold text-body-emphasis mb-0">Quản lý Danh mục Thời trang</h2>
+            <p class="text-body-tertiary mb-0 fs-9">Cấu hình cây danh mục cha - con (`categories`) đồng bộ theo database</p>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+              <span class="fas fa-plus me-2"></span>Thêm danh mục mới
+            </button>
+          </div>
+        </div>
+
+        <!-- STATS OVERVIEW CARDS -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="card h-100 border border-translucent">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-1">
+                  <span class="fa-solid fa-folder-tree fs-7 text-primary me-2"></span>
+                  <h5 class="mb-0 text-body-secondary">Tổng số danh mục</h5>
+                </div>
+                <h3 class="text-body-emphasis mb-0">16</h3>
+                <span class="fs-10 text-body-quaternary">3 danh mục gốc, 13 danh mục con</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="card h-100 border border-translucent">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-1">
+                  <span class="fa-solid fa-mars fs-7 text-info me-2"></span>
+                  <h5 class="mb-0 text-body-secondary">Thời trang Nam</h5>
+                </div>
+                <h3 class="text-body-emphasis mb-0">142 SP</h3>
+                <span class="fs-10 text-success">Đang hoạt động tốt</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="card h-100 border border-translucent">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-1">
+                  <span class="fa-solid fa-venus fs-7 text-danger me-2"></span>
+                  <h5 class="mb-0 text-body-secondary">Thời trang Nữ</h5>
+                </div>
+                <h3 class="text-body-emphasis mb-0">218 SP</h3>
+                <span class="fs-10 text-success">Danh mục bán chạy nhất</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="card h-100 border border-translucent">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-1">
+                  <span class="fa-solid fa-gem fs-7 text-warning me-2"></span>
+                  <h5 class="mb-0 text-body-secondary">Phụ kiện &amp; Giày dép</h5>
+                </div>
+                <h3 class="text-body-emphasis mb-0">65 SP</h3>
+                <span class="fs-10 text-body-quaternary">Túi, kính, thắt lưng, giày</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CATEGORIES TABLE -->
+        <div class="card border border-translucent">
+          <div class="card-header border-bottom border-translucent p-3">
+            <div class="row justify-content-between align-items-center g-3">
+              <div class="col-12 col-md-4">
+                <div class="search-box">
+                  <input class="form-control form-control-sm search-input" type="search" placeholder="Tìm tên danh mục..." />
+                  <span class="fas fa-search search-box-icon"></span>
+                </div>
+              </div>
+              <div class="col-auto">
+                <select class="form-select form-select-sm">
+                  <option value="all">Tất cả danh mục cha</option>
+                  <option value="1">Thời trang Nam</option>
+                  <option value="2">Thời trang Nữ</option>
+                  <option value="3">Phụ kiện thời trang</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover table-sm fs-9 mb-0">
+                <thead>
+                  <tr class="bg-body-secondary">
+                    <th class="ps-3" style="width: 60px;">ID</th>
+                    <th style="width: 80px;">Icon</th>
+                    <th>Tên danh mục (`name`)</th>
+                    <th>Danh mục cha (`parent_id`)</th>
+                    <th>Số sản phẩm (`category_product`)</th>
+                    <th>Trạng thái (`is_active`)</th>
+                    <th>Thời gian tạo</th>
+                    <th class="text-end pe-3">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody class="list">
+                  <!-- GỐC 1: THỜI TRANG NAM -->
+                  <tr class="table-light fw-bold">
+                    <td class="ps-3 text-body-secondary">#1</td>
+                    <td><span class="badge bg-primary-subtle text-primary p-2 rounded-circle"><i class="fa-solid fa-shirt"></i></span></td>
+                    <td><span class="text-body-emphasis fw-bold">Thời trang Nam</span> <span class="badge badge-phoenix badge-phoenix-primary ms-1">Gốc</span></td>
+                    <td><span class="text-body-tertiary">— (Danh mục gốc)</span></td>
+                    <td><span class="badge bg-secondary-subtle text-secondary fs-10">142 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">10/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1" title="Sửa"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger" title="Xóa mềm"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3 text-body-secondary">#4</td>
+                    <td><span class="badge bg-body-secondary text-body p-2 rounded"><i class="fa-solid fa-tshirt"></i></span></td>
+                    <td class="ps-4">↳ Áo thun nam (T-Shirt &amp; Polo)</td>
+                    <td><span class="text-primary fw-semibold">Thời trang Nam (#1)</span></td>
+                    <td><span class="badge bg-body-tertiary text-body fs-10">58 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">10/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3 text-body-secondary">#5</td>
+                    <td><span class="badge bg-body-secondary text-body p-2 rounded"><i class="fa-solid fa-shirt"></i></span></td>
+                    <td class="ps-4">↳ Áo sơ mi nam (Oxford, Linen)</td>
+                    <td><span class="text-primary fw-semibold">Thời trang Nam (#1)</span></td>
+                    <td><span class="badge bg-body-tertiary text-body fs-10">34 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">11/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3 text-body-secondary">#6</td>
+                    <td><span class="badge bg-body-secondary text-body p-2 rounded"><i class="fa-solid fa-vest"></i></span></td>
+                    <td class="ps-4">↳ Quần Jeans &amp; Kaki Nam</td>
+                    <td><span class="text-primary fw-semibold">Thời trang Nam (#1)</span></td>
+                    <td><span class="badge bg-body-tertiary text-body fs-10">50 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">11/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+
+                  <!-- GỐC 2: THỜI TRANG NỮ -->
+                  <tr class="table-light fw-bold border-top">
+                    <td class="ps-3 text-body-secondary">#2</td>
+                    <td><span class="badge bg-danger-subtle text-danger p-2 rounded-circle"><i class="fa-solid fa-person-dress"></i></span></td>
+                    <td><span class="text-body-emphasis fw-bold">Thời trang Nữ</span> <span class="badge badge-phoenix badge-phoenix-danger ms-1">Gốc</span></td>
+                    <td><span class="text-body-tertiary">— (Danh mục gốc)</span></td>
+                    <td><span class="badge bg-secondary-subtle text-secondary fs-10">218 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">10/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3 text-body-secondary">#7</td>
+                    <td><span class="badge bg-body-secondary text-body p-2 rounded"><i class="fa-solid fa-vest-patches"></i></span></td>
+                    <td class="ps-4">↳ Váy đầm &amp; Đầm công sở</td>
+                    <td><span class="text-danger fw-semibold">Thời trang Nữ (#2)</span></td>
+                    <td><span class="badge bg-body-tertiary text-body fs-10">92 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">10/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3 text-body-secondary">#8</td>
+                    <td><span class="badge bg-body-secondary text-body p-2 rounded"><i class="fa-solid fa-shirt"></i></span></td>
+                    <td class="ps-4">↳ Áo croptop &amp; Áo kiểu nữ</td>
+                    <td><span class="text-danger fw-semibold">Thời trang Nữ (#2)</span></td>
+                    <td><span class="badge bg-body-tertiary text-body fs-10">75 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">11/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3 text-body-secondary">#9</td>
+                    <td><span class="badge bg-body-secondary text-body p-2 rounded"><i class="fa-solid fa-person-dress-burst"></i></span></td>
+                    <td class="ps-4">↳ Chân váy &amp; Quần short nữ</td>
+                    <td><span class="text-danger fw-semibold">Thời trang Nữ (#2)</span></td>
+                    <td><span class="badge bg-body-tertiary text-body fs-10">51 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-warning">Đang ẩn (Tạm khóa)</span></td>
+                    <td class="text-body-tertiary">11/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+
+                  <!-- GỐC 3: PHỤ KIỆN -->
+                  <tr class="table-light fw-bold border-top">
+                    <td class="ps-3 text-body-secondary">#3</td>
+                    <td><span class="badge bg-warning-subtle text-warning p-2 rounded-circle"><i class="fa-solid fa-gem"></i></span></td>
+                    <td><span class="text-body-emphasis fw-bold">Phụ kiện Thời trang</span> <span class="badge badge-phoenix badge-phoenix-warning ms-1">Gốc</span></td>
+                    <td><span class="text-body-tertiary">— (Danh mục gốc)</span></td>
+                    <td><span class="badge bg-secondary-subtle text-secondary fs-10">65 sản phẩm</span></td>
+                    <td><span class="badge badge-phoenix badge-phoenix-success">Đang hiển thị</span></td>
+                    <td class="text-body-tertiary">10/08/2026</td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-phoenix-secondary me-1"><span class="fas fa-edit"></span></button>
+                      <button class="btn btn-sm btn-phoenix-danger"><span class="fas fa-trash"></span></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="footer position-absolute">
+        <div class="row g-0 justify-content-between align-items-center fs-10 pb-3">
+          <div class="col-12 col-sm-auto text-center">
+            <p class="mb-0 mt-2 mt-sm-0 text-body">Hệ thống Quản trị Thời trang <span class="fw-bold text-warning">BeeStyle</span> &copy; 2026</p>
+          </div>
+          <div class="col-12 col-sm-auto text-center">
+            <p class="mb-0 text-body-tertiary">v1.24.0 (Đồng bộ Database Schema)</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- MODAL THÊM DANH MỤC -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Thêm Danh mục Thời trang mới</h5>
+            <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="mb-3">
+                <label class="form-label">Tên danh mục (`name`) <span class="text-danger">*</span></label>
+                <input class="form-control" type="text" placeholder="VD: Áo Blazer Nam Nữ" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Danh mục cha (`parent_id`)</label>
+                <select class="form-select">
+                  <option value="">-- Là danh mục gốc (Không có cha) --</option>
+                  <option value="1">Thời trang Nam (#1)</option>
+                  <option value="2">Thời trang Nữ (#2)</option>
+                  <option value="3">Phụ kiện Thời trang (#3)</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Icon / Mã icon class (`icon`)</label>
+                <input class="form-control" type="text" placeholder="VD: fa-solid fa-vest" />
+              </div>
+              <div class="mb-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="isActiveCat" checked />
+                  <label class="form-check-label" for="isActiveCat">Kích hoạt hiển thị (`is_active = 1`)</label>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Hủy</button>
+            <button class="btn btn-primary" type="button" data-bs-dismiss="modal">Lưu danh mục</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- JAVASCRIPTS -->
+  <script src="../../../vendors/popper/popper.min.js"></script>
+  <script src="../../../vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="../../../vendors/anchorjs/anchor.min.js"></script>
+  <script src="../../../vendors/is/is.min.js"></script>
+  <script src="../../../vendors/fontawesome/all.min.js"></script>
+  <script src="../../../vendors/lodash/lodash.min.js"></script>
+  <script src="../../../vendors/feather-icons/feather.min.js"></script>
+  <script src="../../../assets/js/phoenix.js"></script>
+</body>
+</html>

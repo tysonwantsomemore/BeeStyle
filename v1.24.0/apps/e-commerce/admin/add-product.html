@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="vi" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thêm Sản phẩm Thời trang mới | BeeStyle Admin</title>
+
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="../../../assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../../assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../../assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="../../../assets/img/favicons/favicon.ico">
+  <meta name="theme-color" content="#ffffff">
+  <script src="../../../vendors/simplebar/simplebar.min.js"></script>
+  <script src="../../../assets/js/config.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <link href="../../../vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+  <link href="../../../assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="../../../assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+</head>
+
+<body>
+  <main class="main" id="top">
+    <!-- SIDEBAR NAVIGATION -->
+    <nav class="navbar navbar-vertical navbar-expand-lg">
+      <div class="collapse navbar-collapse" id="navbarVerticalCollapse">
+        <div class="navbar-vertical-content">
+          <ul class="navbar-nav flex-column" id="navbarVerticalNav">
+            <li class="nav-item">
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="../../../index.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="pie-chart"></span></span>
+                    <span class="nav-link-text">Tổng quan (Dashboard)</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Sản phẩm &amp; Danh mục</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="products.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="shopping-bag"></span></span>
+                    <span class="nav-link-text">Danh sách sản phẩm</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link active" href="add-product.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="plus-circle"></span></span>
+                    <span class="nav-link-text">Thêm sản phẩm mới</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="categories.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="grid"></span></span>
+                    <span class="nav-link-text">Danh mục thời trang</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="brands.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="tag"></span></span>
+                    <span class="nav-link-text">Thương hiệu</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="attributes.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="sliders"></span></span>
+                    <span class="nav-link-text">Thuộc tính (Size/Màu)</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="stocks.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="box"></span></span>
+                    <span class="nav-link-text">Quản lý tồn kho</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Đơn hàng &amp; Giao dịch</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="orders.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="shopping-cart"></span></span>
+                    <span class="nav-link-text">Quản lý đơn hàng</span>
+                    <span class="badge ms-2 badge-phoenix badge-phoenix-primary">6 bước</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="refund.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="rotate-ccw"></span></span>
+                    <span class="nav-link-text">Hoàn tiền / Đổi trả</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Khách hàng &amp; Người dùng</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="customers.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="users"></span></span>
+                    <span class="nav-link-text">Quản lý người dùng</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <p class="navbar-vertical-label">Marketing &amp; Đánh giá</p>
+              <hr class="navbar-vertical-line" />
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="coupons.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="percent"></span></span>
+                    <span class="nav-link-text">Mã giảm giá (Coupons)</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link" href="reviews.html">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="star"></span></span>
+                    <span class="nav-link-text">Đánh giá &amp; Bình luận</span>
+                  </div>
+                </a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- TOP NAVBAR -->
+    <nav class="navbar navbar-top fixed-top navbar-expand" id="navbarDefault">
+      <div class="collapse navbar-collapse justify-content-between">
+        <div class="navbar-logo">
+          <button class="btn navbar-toggler navbar-toggler-humburger-icon hover-bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse" aria-controls="navbarVerticalCollapse" aria-expanded="false" aria-label="Toggle Navigation">
+            <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
+          </button>
+          <a class="navbar-brand me-1 me-sm-3" href="../../../index.html">
+            <div class="d-flex align-items-center">
+              <span class="fa-solid fa-vest-patches text-warning fs-6 me-2"></span>
+              <h5 class="logo-text ms-1 d-none d-sm-block text-warning fw-bolder">BeeStyle <span class="text-body-highlight fw-normal">Admin</span></h5>
+            </div>
+          </a>
+        </div>
+        <ul class="navbar-nav navbar-nav-icons flex-row">
+          <li class="nav-item dropdown">
+            <a class="nav-link lh-1 pe-0" href="#!">
+              <div class="avatar avatar-l">
+                <img class="rounded-circle" src="../../../assets/img/team/40x40/57.webp" alt="Admin" />
+              </div>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="content">
+      <nav class="mb-3" aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="../../../index.html">Trang chủ</a></li>
+          <li class="breadcrumb-item"><a href="products.html">Sản phẩm &amp; Kho</a></li>
+          <li class="breadcrumb-item active">Thêm sản phẩm mới</li>
+        </ol>
+      </nav>
+
+      <form class="mb-9">
+        <div class="row g-3 flex-between-end mb-4">
+          <div class="col-auto">
+            <h2 class="mb-2">Thêm Sản phẩm Thời trang mới</h2>
+            <h5 class="text-body-tertiary fw-semibold">Thiết lập thông tin sản phẩm, danh mục, thương hiệu và tạo biến thể (Size/Màu)</h5>
+          </div>
+          <div class="col-auto">
+            <a class="btn btn-phoenix-secondary me-2 mb-2 mb-sm-0" href="products.html">Hủy bỏ</a>
+            <button class="btn btn-primary mb-2 mb-sm-0" type="submit"><span class="fas fa-save me-2"></span>Lưu &amp; Xuất bản sản phẩm</button>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- LEFT COLUMN: MAIN INFORMATION & VARIANTS -->
+          <div class="col-12 col-xl-8">
+            <!-- 1. BASIC INFORMATION -->
+            <div class="card border border-translucent mb-4">
+              <div class="card-header bg-body-tertiary border-bottom">
+                <h4 class="card-title mb-0">1. Thông tin cơ bản (`products`)</h4>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label" for="productName">Tên sản phẩm thời trang (`name`) <span class="text-danger">*</span></label>
+                  <input class="form-control" id="productName" type="text" placeholder="VD: Áo Khoác Bomber BeeStyle Classic Dáng Suông" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="shortDescription">Mô tả ngắn (`short_description`)</label>
+                  <textarea class="form-control" id="shortDescription" rows="2" placeholder="Tóm tắt điểm nổi bật: Vải nỉ chần bông 2 lớp, chống gió và giữ ấm hiệu quả..."></textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="fullDescription">Mô tả chi tiết sản phẩm (`description`)</label>
+                  <textarea class="form-control" id="fullDescription" rows="6" placeholder="Hướng dẫn chọn size, bảng kích cỡ chi tiết, hướng dẫn giặt ủi và bảo quản trang phục..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. PRODUCT TYPE & VARIANTS GENERATOR -->
+            <div class="card border border-translucent mb-4">
+              <div class="card-header bg-body-tertiary border-bottom d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">2. Cấu hình Loại &amp; Biến thể (`product_variants`)</h4>
+                <span class="badge badge-phoenix badge-phoenix-info">Cực kỳ quan trọng</span>
+              </div>
+              <div class="card-body">
+                <div class="mb-4">
+                  <label class="form-label fw-bold">Chọn Loại sản phẩm (`type`):</label>
+                  <div class="d-flex gap-4">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="productType" id="typeVariant" value="variant" checked />
+                      <label class="form-check-label fw-semibold" for="typeVariant">
+                        👕 Sản phẩm có biến thể (`variant`) - Có nhiều Size / Màu sắc
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="productType" id="typeSingle" value="single" />
+                      <label class="form-check-label fw-semibold" for="typeSingle">
+                        🎒 Sản phẩm đơn (`single`) - Không chia size/màu (Freesize)
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- VARIANT SELECTORS -->
+                <div class="p-3 bg-body-tertiary rounded-3 mb-3 border">
+                  <h6 class="text-body-emphasis mb-2"><i class="fa-solid fa-sliders text-primary me-2"></i>Chọn các thuộc tính để tự động sinh bảng Biến thể:</h6>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label fs-9 fw-bold">1. Kích thước (Size):</label>
+                      <div class="d-flex flex-wrap gap-2">
+                        <input class="btn-check" type="checkbox" id="sizeS" checked /><label class="btn btn-sm btn-outline-primary" for="sizeS">Size S</label>
+                        <input class="btn-check" type="checkbox" id="sizeM" checked /><label class="btn btn-sm btn-outline-primary" for="sizeM">Size M</label>
+                        <input class="btn-check" type="checkbox" id="sizeL" checked /><label class="btn btn-sm btn-outline-primary" for="sizeL">Size L</label>
+                        <input class="btn-check" type="checkbox" id="sizeXL" checked /><label class="btn btn-sm btn-outline-primary" for="sizeXL">Size XL</label>
+                        <input class="btn-check" type="checkbox" id="sizeXXL" /><label class="btn btn-sm btn-outline-primary" for="sizeXXL">Size XXL</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label fs-9 fw-bold">2. Màu sắc (Color):</label>
+                      <div class="d-flex flex-wrap gap-2">
+                        <input class="btn-check" type="checkbox" id="colBlack" checked /><label class="btn btn-sm btn-outline-dark" for="colBlack"><span class="badge bg-black rounded-circle me-1" style="width:8px;height:8px;"></span>Đen</label>
+                        <input class="btn-check" type="checkbox" id="colWhite" checked /><label class="btn btn-sm btn-outline-secondary" for="colWhite"><span class="badge bg-light border text-dark rounded-circle me-1" style="width:8px;height:8px;"></span>Trắng</label>
+                        <input class="btn-check" type="checkbox" id="colNavy" /><label class="btn btn-sm btn-outline-info" for="colNavy">Xanh Navy</label>
+                        <input class="btn-check" type="checkbox" id="colBeige" /><label class="btn btn-sm btn-outline-warning" for="colBeige">Màu Be</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- VARIANTS TABLE -->
+                <label class="form-label fw-bold">Danh sách các Biến thể được tạo ra (`product_variants` &amp; `product_stocks`):</label>
+                <div class="table-responsive border rounded">
+                  <table class="table table-sm fs-9 mb-0">
+                    <thead class="bg-body-secondary">
+                      <tr>
+                        <th class="ps-2">Biến thể (Màu / Size)</th>
+                        <th>Mã SKU biến thể</th>
+                        <th>Giá bán lẻ (`price`)</th>
+                        <th>Giá khuyến mãi (`sale_price`)</th>
+                        <th>Tồn kho ban đầu (`stock`)</th>
+                        <th class="text-center">Ảnh riêng</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="ps-2 fw-semibold">
+                          <span class="badge bg-dark text-white">Đen</span> / <span class="badge bg-primary">Size M</span>
+                        </td>
+                        <td><input class="form-control form-control-sm font-monospace" type="text" value="BST-BOMB-BLK-M" /></td>
+                        <td><input class="form-control form-control-sm fw-bold" type="number" value="650000" /></td>
+                        <td><input class="form-control form-control-sm text-danger" type="number" value="550000" /></td>
+                        <td><input class="form-control form-control-sm text-primary fw-bold" type="number" value="50" /></td>
+                        <td class="text-center"><button class="btn btn-xs btn-phoenix-secondary" type="button"><i class="fa-solid fa-camera"></i></button></td>
+                      </tr>
+                      <tr>
+                        <td class="ps-2 fw-semibold">
+                          <span class="badge bg-dark text-white">Đen</span> / <span class="badge bg-primary">Size L</span>
+                        </td>
+                        <td><input class="form-control form-control-sm font-monospace" type="text" value="BST-BOMB-BLK-L" /></td>
+                        <td><input class="form-control form-control-sm fw-bold" type="number" value="650000" /></td>
+                        <td><input class="form-control form-control-sm text-danger" type="number" value="550000" /></td>
+                        <td><input class="form-control form-control-sm text-primary fw-bold" type="number" value="70" /></td>
+                        <td class="text-center"><button class="btn btn-xs btn-phoenix-secondary" type="button"><i class="fa-solid fa-camera"></i></button></td>
+                      </tr>
+                      <tr>
+                        <td class="ps-2 fw-semibold">
+                          <span class="badge border border-secondary text-body">Trắng</span> / <span class="badge bg-primary">Size M</span>
+                        </td>
+                        <td><input class="form-control form-control-sm font-monospace" type="text" value="BST-BOMB-WHT-M" /></td>
+                        <td><input class="form-control form-control-sm fw-bold" type="number" value="650000" /></td>
+                        <td><input class="form-control form-control-sm text-danger" type="number" value="550000" /></td>
+                        <td><input class="form-control form-control-sm text-primary fw-bold" type="number" value="35" /></td>
+                        <td class="text-center"><button class="btn btn-xs btn-phoenix-secondary" type="button"><i class="fa-solid fa-camera"></i></button></td>
+                      </tr>
+                      <tr>
+                        <td class="ps-2 fw-semibold">
+                          <span class="badge border border-secondary text-body">Trắng</span> / <span class="badge bg-primary">Size L</span>
+                        </td>
+                        <td><input class="form-control form-control-sm font-monospace" type="text" value="BST-BOMB-WHT-L" /></td>
+                        <td><input class="form-control form-control-sm fw-bold" type="number" value="650000" /></td>
+                        <td><input class="form-control form-control-sm text-danger" type="number" value="550000" /></td>
+                        <td><input class="form-control form-control-sm text-primary fw-bold" type="number" value="40" /></td>
+                        <td class="text-center"><button class="btn btn-xs btn-phoenix-secondary" type="button"><i class="fa-solid fa-camera"></i></button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. PRODUCT GALLERIES -->
+            <div class="card border border-translucent mb-4">
+              <div class="card-header bg-body-tertiary border-bottom">
+                <h4 class="card-title mb-0">3. Bộ sưu tập ảnh sản phẩm (`product_galleries`)</h4>
+              </div>
+              <div class="card-body">
+                <div class="border border-2 border-dashed rounded-3 p-4 text-center cursor-pointer bg-body-emphasis">
+                  <span class="fa-solid fa-cloud-arrow-up fs-3 text-primary mb-2"></span>
+                  <h6 class="text-body-emphasis mb-1">Kéo thả hoặc nhấn để chọn ảnh tải lên</h6>
+                  <p class="fs-10 text-body-tertiary mb-0">Hỗ trợ JPG, PNG, WebP (Tối đa 10 ảnh chất lượng cao lookbook)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: TAXONOMY, PRICING, SPECS -->
+          <div class="col-12 col-xl-4">
+            <!-- 1. CATEGORY & BRAND -->
+            <div class="card border border-translucent mb-4">
+              <div class="card-header bg-body-tertiary border-bottom">
+                <h5 class="card-title mb-0">Phân loại &amp; Nhãn hàng</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label" for="brandSelect">Thương hiệu (`brands`) <span class="text-danger">*</span></label>
+                  <select class="form-select" id="brandSelect" required>
+                    <option value="1" selected>BeeStyle Original</option>
+                    <option value="2">ZARA</option>
+                    <option value="3">UNIQLO</option>
+                    <option value="4">Levi's</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Danh mục liên kết (`category_product`) <span class="text-danger">*</span></label>
+                  <div class="border rounded p-2" style="max-height: 160px; overflow-y: auto;">
+                    <div class="form-check mb-1">
+                      <input class="form-check-input" type="checkbox" id="cat1" checked />
+                      <label class="form-check-label fs-9" for="cat1">Áo khoác &amp; Bomber Nam</label>
+                    </div>
+                    <div class="form-check mb-1">
+                      <input class="form-check-input" type="checkbox" id="cat2" checked />
+                      <label class="form-check-label fs-9" for="cat2">Thời trang Nam (Gốc)</label>
+                    </div>
+                    <div class="form-check mb-1">
+                      <input class="form-check-input" type="checkbox" id="cat3" />
+                      <label class="form-check-label fs-9" for="cat3">Bộ sưu tập Thu Đông 2026</label>
+                    </div>
+                    <div class="form-check mb-1">
+                      <input class="form-check-input" type="checkbox" id="cat4" />
+                      <label class="form-check-label fs-9" for="cat4">Áo thun &amp; Polo</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. DEFAULT PRICING & SKU -->
+            <div class="card border border-translucent mb-4">
+              <div class="card-header bg-body-tertiary border-bottom">
+                <h5 class="card-title mb-0">Giá gốc &amp; Mã SKU chung</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label" for="baseSku">Mã SKU gốc (`sku`) <span class="text-danger">*</span></label>
+                  <input class="form-control font-monospace" id="baseSku" type="text" value="BST-BOMB-01" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="basePrice">Giá gốc niêm yết (`price`)</label>
+                  <div class="input-group">
+                    <input class="form-control fw-bold" id="basePrice" type="number" value="650000" />
+                    <span class="input-group-text">VNĐ</span>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="salePrice">Giá khuyến mãi (`sale_price`)</label>
+                  <div class="input-group">
+                    <input class="form-control fw-bold text-danger" id="salePrice" type="number" value="550000" />
+                    <span class="input-group-text">VNĐ</span>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="isSaleSwitch" checked />
+                    <label class="form-check-label" for="isSaleSwitch">Gắn nhãn SALE (`is_sale = 1`)</label>
+                  </div>
+                </div>
+                <div class="mb-0">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="isActiveSwitch" checked />
+                    <label class="form-check-label" for="isActiveSwitch">Hiển thị mở bán (`is_active = 1`)</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. TECHNICAL SPECIFICATIONS -->
+            <div class="card border border-translucent mb-4">
+              <div class="card-header bg-body-tertiary border-bottom">
+                <h5 class="card-title mb-0">Thông số kỹ thuật trang phục</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label class="form-label fs-9">Chất liệu vải:</label>
+                  <select class="form-select form-select-sm">
+                    <option selected>Nỉ bông chần 2 lớp cao cấp</option>
+                    <option>Cotton 100% 2 chiều</option>
+                    <option>Linen đũi</option>
+                    <option>Denim co giãn</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fs-9">Form dáng:</label>
+                  <select class="form-select form-select-sm">
+                    <option selected>Oversize Dáng Rộng</option>
+                    <option>Slimfit</option>
+                    <option>Regular Fit</option>
+                  </select>
+                </div>
+                <div class="mb-0">
+                  <label class="form-label fs-9">Độ co giãn &amp; Xuất xứ:</label>
+                  <select class="form-select form-select-sm">
+                    <option selected>Co giãn nhẹ - Made in Vietnam</option>
+                    <option>Co giãn 4 chiều</option>
+                    <option>Không co giãn</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- FOOTER -->
+      <footer class="footer position-absolute">
+        <div class="row g-0 justify-content-between align-items-center fs-10 pb-3">
+          <div class="col-12 col-sm-auto text-center">
+            <p class="mb-0 mt-2 mt-sm-0 text-body">Hệ thống Quản trị Thời trang <span class="fw-bold text-warning">BeeStyle</span> &copy; 2026</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- JAVASCRIPTS -->
+  <script src="../../../vendors/popper/popper.min.js"></script>
+  <script src="../../../vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="../../../vendors/anchorjs/anchor.min.js"></script>
+  <script src="../../../vendors/is/is.min.js"></script>
+  <script src="../../../vendors/fontawesome/all.min.js"></script>
+  <script src="../../../vendors/feather-icons/feather.min.js"></script>
+  <script src="../../../assets/js/phoenix.js"></script>
+</body>
+</html>
