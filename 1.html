@@ -1,0 +1,3565 @@
+<!DOCTYPE html>
+<html lang="vi" dir="ltr" data-navigation-type="default" data-navbar-horizontal-shape="default">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BeeStyle - Nền tảng thời trang & phong cách sống hàng đầu. Sản phẩm chính hãng, ưu đãi độc quyền, giao hàng toàn quốc.">
+  <title>BeeStyle - Thời Trang & Phong Cách Sống | Client Portal</title>
+
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="./v1.24.0/assets/img/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./v1.24.0/assets/img/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./v1.24.0/assets/img/favicons/favicon-16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="./v1.24.0/assets/img/favicons/favicon.ico">
+  <meta name="theme-color" content="#3874ff">
+
+  <!-- Fonts & Core Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Vendor Styles -->
+  <link href="./v1.24.0/vendors/simplebar/simplebar.min.css" rel="stylesheet">
+  <link href="./v1.24.0/vendors/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Phoenix Theme Styles -->
+  <link href="./v1.24.0/assets/css/theme.min.css" type="text/css" rel="stylesheet" id="style-default">
+  <link href="./v1.24.0/assets/css/user.min.css" type="text/css" rel="stylesheet" id="user-style-default">
+
+  <script src="./v1.24.0/assets/js/config.js"></script>
+
+  <!-- Custom Enhanced Aesthetics for BeeStyle Client -->
+  <style>
+    :root {
+      --bs-primary-beestyle: #f59e0b;
+      --bs-primary-beestyle-dark: #d97706;
+      --bs-accent-beestyle: #2563eb;
+    }
+    body {
+      font-family: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+    .brand-gradient {
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-banner-gradient {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%);
+      color: #fff;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      border-radius: 1rem;
+    }
+    [data-bs-theme="dark"] .glass-card {
+      background: rgba(30, 41, 59, 0.85);
+      border-color: rgba(51, 65, 85, 0.8);
+    }
+    .product-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 1rem;
+      overflow: hidden;
+      position: relative;
+    }
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .product-thumb-wrapper {
+      position: relative;
+      background: #f8fafc;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      aspect-ratio: 1/1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    [data-bs-theme="dark"] .product-thumb-wrapper {
+      background: #1e293b;
+    }
+    .product-thumb-wrapper img {
+      max-height: 85%;
+      max-width: 85%;
+      object-fit: contain;
+      transition: transform 0.4s ease;
+    }
+    .product-card:hover .product-thumb-wrapper img {
+      transform: scale(1.08);
+    }
+    .product-action-overlay {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+    }
+    .product-card:hover .product-action-overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .badge-sale {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #ef4444;
+      color: #fff;
+      font-weight: 700;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      z-index: 2;
+    }
+    .badge-stock {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+    }
+    .color-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .color-swatch.active {
+      transform: scale(1.15);
+      border-color: #3874ff;
+      box-shadow: 0 0 0 2px rgba(56, 116, 255, 0.3);
+    }
+    .size-badge {
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.5rem;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .size-badge:hover, .size-badge.active {
+      background-color: #3874ff;
+      color: #fff;
+      border-color: #3874ff;
+    }
+    .stepper-item {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+    .stepper-item::before {
+      position: absolute;
+      content: "";
+      border-bottom: 3px solid #e2e8f0;
+      width: 100%;
+      top: 20px;
+      left: -50%;
+      z-index: 1;
+    }
+    .stepper-item:first-child::before {
+      content: none;
+    }
+    .stepper-item.completed::before, .stepper-item.active::before {
+      border-color: #10b981;
+    }
+    .stepper-circle {
+      position: relative;
+      z-index: 2;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+    .stepper-item.completed .stepper-circle {
+      background: #10b981;
+      color: #fff;
+    }
+    .stepper-item.active .stepper-circle {
+      background: #3874ff;
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(56, 116, 255, 0.2);
+    }
+    .cursor-pointer {
+      cursor: pointer;
+    }
+    .nav-category-link {
+      white-space: nowrap;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #475569;
+      padding: 0.5rem 0.85rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+    .nav-category-link:hover, .nav-category-link.active {
+      color: #3874ff;
+      background: rgba(56, 116, 255, 0.08);
+    }
+    [data-bs-theme="dark"] .nav-category-link {
+      color: #cbd5e1;
+    }
+    [data-bs-theme="dark"] .nav-category-link:hover, [data-bs-theme="dark"] .nav-category-link.active {
+      color: #60a5fa;
+      background: rgba(96, 165, 250, 0.15);
+    }
+    .view-section {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .view-section.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1090;
+    }
+  </style>
+</head>
+
+<body class="bg-body-tertiary">
+  <!-- Toast Feedback Area -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Announcement Bar -->
+  <div class="bg-dark text-white py-1 px-3 fs-9 border-bottom border-dark-subtle">
+    <div class="container-fluid container-xl d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <span><i class="fa-solid fa-bolt text-warning me-1"></i> <strong>FLASH SALE:</strong> Nhập mã <code class="bg-warning text-dark px-1 rounded fw-bold cursor-pointer" onclick="BeeApp.copyCoupon('BEESTYLE50')">BEESTYLE50</code> giảm ngay 50.000đ!</span>
+        <span class="d-none d-md-inline text-secondary">|</span>
+        <span class="d-none d-md-inline"><i class="fa-solid fa-phone-volume me-1 text-info"></i> Hotline: <strong>1900 8899</strong> (8:00 - 22:00)</span>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <span class="cursor-pointer" onclick="BeeApp.navigateTo('view-order-tracking')"><i class="fa-solid fa-truck-fast me-1"></i> Tra cứu đơn hàng</span>
+        <span class="cursor-pointer" onclick="BeeApp.navigateTo('view-refunds')"><i class="fa-solid fa-arrow-rotate-left me-1"></i> Đổi trả / Hoàn tiền</span>
+        <div class="theme-control-toggle d-inline-block">
+          <input class="form-check-input ms-0 theme-control-toggle-input d-none" type="checkbox" data-theme-control="phoenixTheme" value="dark" id="themeControlToggle">
+          <label class="mb-0 theme-control-toggle-label cursor-pointer text-white-50 hover-text-white" for="themeControlToggle" data-bs-toggle="tooltip" title="Chuyển chế độ Sáng/Tối">
+            <span class="fas fa-moon d-dark-none"></span>
+            <span class="fas fa-sun d-light-none text-warning"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Header Navigation -->
+  <header class="navbar navbar-expand-lg navbar-light bg-body-emphasis sticky-top shadow-sm py-2">
+    <div class="container-fluid container-xl">
+      <!-- Brand Logo -->
+      <a class="navbar-brand d-flex align-items-center me-3" href="#home" onclick="BeeApp.navigateTo('view-home')">
+        <div class="bg-warning text-dark p-2 rounded-3 me-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+          <i class="fa-solid fa-cube fs-6"></i>
+        </div>
+        <div>
+          <span class="fw-bolder fs-7 tracking-tight brand-gradient">BeeStyle</span>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-10 ms-1">Client</span>
+        </div>
+      </a>
+
+      <!-- Category Mega Dropdown Button -->
+      <div class="dropdown d-none d-lg-block me-3">
+        <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-2 fs-9" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fa-solid fa-bars"></i>
+          <span>Danh Mục Sản Phẩm</span>
+        </button>
+        <ul class="dropdown-menu shadow-lg border-0 py-2 mt-2 rounded-3" id="headerCategoryDropdown" style="min-width: 240px;">
+          <!-- Dynamically populated from categories table -->
+        </ul>
+      </div>
+
+      <!-- Live Search Box -->
+      <div class="flex-grow-1 mx-lg-3 my-2 my-lg-0" style="max-width: 540px;">
+        <div class="position-relative">
+          <div class="input-group">
+            <input type="text" id="globalSearchInput" class="form-control rounded-pill-start border-end-0 py-2 ps-4 fs-9" placeholder="Tìm kiếm áo polo, giày thể thao, thương hiệu..." oninput="BeeApp.handleLiveSearch(this.value)">
+            <button class="btn btn-primary rounded-pill-end px-4" type="button" onclick="BeeApp.triggerSearch()">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </div>
+          <!-- Live Search Results Dropdown -->
+          <div id="liveSearchResults" class="dropdown-menu w-100 shadow-lg border-0 mt-1 p-2 rounded-3 d-none position-absolute" style="z-index: 1050; max-height: 380px; overflow-y: auto;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Icons (Wishlist, Cart, User) -->
+      <div class="d-flex align-items-center gap-2 ms-auto">
+        <!-- Wishlist Icon -->
+        <button class="btn btn-phoenix-secondary btn-icon position-relative rounded-circle" type="button" onclick="BeeApp.navigateTo('view-wishlist')" data-bs-toggle="tooltip" title="Danh sách yêu thích">
+          <i class="fa-regular fa-heart"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="wishlistCountBadge">0</span>
+        </button>
+
+        <!-- Cart Drawer Toggle -->
+        <button class="btn btn-phoenix-primary btn-icon position-relative rounded-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" data-bs-toggle="tooltip" title="Giỏ hàng">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" id="cartCountBadge">0</span>
+        </button>
+
+        <!-- User Profile Dropdown -->
+        <div class="dropdown ms-1">
+          <button class="btn btn-link p-0 text-decoration-none dropdown-toggle dropdown-caret-none d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="./v1.24.0/assets/img/team/40x40/57.webp" alt="Avatar" id="userNavbarAvatar" class="rounded-circle border border-2 border-primary" width="38" height="38">
+            <div class="d-none d-xl-block text-start lh-1">
+              <div class="fw-bold fs-9 text-body-emphasis" id="userNavbarName">Nguyễn Văn An</div>
+              <small class="text-body-tertiary fs-10" id="userNavbarRole">VIP Customer</small>
+            </div>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2 mt-2 rounded-3" style="min-width: 260px;">
+            <li class="px-3 py-2 border-bottom">
+              <div class="fw-bold text-body-emphasis" id="dropdownFullname">Nguyễn Văn An</div>
+              <div class="text-body-tertiary fs-10" id="dropdownEmail">customer@beestyle.vn</div>
+              <div class="badge bg-warning-subtle text-warning border border-warning-subtle mt-1 fs-10">Tích lũy: 1.250 Điểm</div>
+            </li>
+            <li><a class="dropdown-item py-2 fs-9 cursor-pointer" onclick="BeeApp.navigateTo('view-profile')"><i class="fa-regular fa-user me-2 text-primary"></i> Tài khoản của tôi</a></li>
+            <li><a class="dropdown-item py-2 fs-9 cursor-pointer" onclick="BeeApp.navigateTo('view-order-tracking')"><i class="fa-solid fa-receipt me-2 text-success"></i> Đơn hàng đã mua</a></li>
+            <li><a class="dropdown-item py-2 fs-9 cursor-pointer" onclick="BeeApp.navigateTo('view-refunds')"><i class="fa-solid fa-arrow-rotate-left me-2 text-warning"></i> Yêu cầu hoàn tiền (<span id="userRefundCountBadge">1</span>)</a></li>
+            <li><a class="dropdown-item py-2 fs-9 cursor-pointer" onclick="BeeApp.navigateTo('view-wishlist')"><i class="fa-regular fa-heart me-2 text-danger"></i> Sản phẩm yêu thích</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li class="px-3 py-1 text-muted fs-10 fw-bold text-uppercase">Chuyển đổi Tài khoản (Demo)</li>
+            <li><a class="dropdown-item py-1 fs-10 cursor-pointer" onclick="BeeApp.switchUser(1)"><i class="fa-solid fa-circle-user text-primary me-1"></i> Khách hàng: Nguyễn Văn An</a></li>
+            <li><a class="dropdown-item py-1 fs-10 cursor-pointer" onclick="BeeApp.switchUser(2)"><i class="fa-solid fa-user-shield text-danger me-1"></i> Quản trị viên: Trần Quản Trị</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Category & Quick Links Navigation Bar -->
+  <nav class="bg-body border-bottom py-2 d-none d-md-block">
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between overflow-x-auto">
+      <div class="d-flex align-items-center gap-1 flex-nowrap" id="subHeaderCategoryNav">
+        <!-- Rendered dynamically -->
+        <a class="nav-category-link active cursor-pointer" onclick="BeeApp.navigateTo('view-home')"><i class="fa-solid fa-house me-1"></i> Trang Chủ</a>
+        <a class="nav-category-link cursor-pointer" onclick="BeeApp.navigateTo('view-shop', { filter: 'all' })"><i class="fa-solid fa-store me-1"></i> Cửa Hàng</a>
+        <a class="nav-category-link cursor-pointer text-danger" onclick="BeeApp.navigateTo('view-shop', { filter: 'sale' })"><i class="fa-solid fa-fire me-1"></i> Flash Sale</a>
+        <a class="nav-category-link cursor-pointer" onclick="BeeApp.navigateTo('view-shop', { categoryId: 1 })">Thời Trang Nam</a>
+        <a class="nav-category-link cursor-pointer" onclick="BeeApp.navigateTo('view-shop', { categoryId: 2 })">Thời Trang Nữ</a>
+        <a class="nav-category-link cursor-pointer" onclick="BeeApp.navigateTo('view-shop', { categoryId: 4 })">Giày & Dép</a>
+        <a class="nav-category-link cursor-pointer" onclick="BeeApp.navigateTo('view-shop', { categoryId: 3 })">Phụ Kiện</a>
+        <a class="nav-category-link cursor-pointer" onclick="BeeApp.navigateTo('view-order-tracking')"><i class="fa-solid fa-location-dot me-1"></i> Theo Dõi Đơn</a>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-3">
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fs-10"><i class="fa-solid fa-ticket me-1"></i> 4 Mã Ưu Đãi</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER (DYNAMIC VIEWS) -->
+  <!-- ========================================================================= -->
+  <main class="main-content py-4" id="mainAppContent">
+
+    <!-- ==================== VIEW 1: HOME ==================== -->
+    <section id="view-home" class="view-section active">
+      <div class="container-fluid container-xl">
+        
+        <!-- Hero Carousel Banner -->
+        <div class="row g-3 mb-4">
+          <div class="col-lg-8">
+            <div class="hero-banner-gradient p-4 p-md-5 rounded-4 position-relative overflow-hidden shadow-sm h-100 d-flex flex-column justify-content-center">
+              <div class="position-relative z-1" style="max-width: 560px;">
+                <span class="badge bg-warning text-dark fw-bold mb-3 px-3 py-2 rounded-pill fs-9"><i class="fa-solid fa-star me-1"></i> BỘ SƯU TẬP MỚI 2026</span>
+                <h1 class="display-6 fw-black text-white mb-3">Đẳng Cấp Thời Trang & Phong Cách Tinh Tế</h1>
+                <p class="text-white-50 fs-9 mb-4">Khám phá hàng trăm mẫu thiết kế thời thượng, chất liệu cao cấp và ưu đãi giảm giá đến 40% cho thành viên mới.</p>
+                <div class="d-flex flex-wrap gap-3">
+                  <button class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow" onclick="BeeApp.navigateTo('view-shop')">
+                    <i class="fa-solid fa-bag-shopping me-2"></i> Khám Phá Ngay
+                  </button>
+                  <button class="btn btn-outline-light px-4 py-2 rounded-pill" onclick="BeeApp.navigateTo('view-shop', { filter: 'sale' })">
+                    <i class="fa-solid fa-percent me-2"></i> Siêu Giảm Giá
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Side Promo Cards -->
+          <div class="col-lg-4 d-flex flex-column gap-3">
+            <div class="bg-primary text-white p-4 rounded-4 position-relative overflow-hidden flex-fill d-flex flex-column justify-content-between shadow-sm" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+              <div>
+                <span class="badge bg-white text-primary fw-bold mb-2">VOUCHER 15%</span>
+                <h4 class="text-white fw-bold">Mã Giảm Toàn Sàn</h4>
+                <p class="text-white-50 fs-9 mb-0">Áp dụng cho mọi đơn từ 500k.</p>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <code class="bg-black bg-opacity-25 text-white px-2 py-1 rounded fw-bold">SUMMER15</code>
+                <button class="btn btn-sm btn-light rounded-pill px-3" onclick="BeeApp.copyCoupon('SUMMER15')">Sao Chép</button>
+              </div>
+            </div>
+            <div class="p-4 rounded-4 position-relative overflow-hidden flex-fill d-flex flex-column justify-content-between shadow-sm bg-body-emphasis border">
+              <div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold mb-2">GIAO HÀNG HỎA TỐC</span>
+                <h4 class="fw-bold text-body-emphasis">Freeship Đơn Từ 299k</h4>
+                <p class="text-body-tertiary fs-9 mb-0">Nhận hàng trong 2 giờ tại nội thành Hà Nội & TP.HCM.</p>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <code class="bg-body-secondary text-primary px-2 py-1 rounded fw-bold">FREESHIP</code>
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="BeeApp.copyCoupon('FREESHIP')">Sao Chép</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Featured Categories Grid -->
+        <div class="mb-5">
+          <div class="d-flex justify-content-between align-items-end mb-3">
+            <div>
+              <h3 class="fw-bold text-body-emphasis mb-1"><i class="fa-solid fa-layer-group text-primary me-2"></i> Danh Mục Nổi Bật</h3>
+              <p class="text-body-tertiary fs-9 mb-0">Lựa chọn theo phong cách và sở thích của bạn</p>
+            </div>
+            <a class="btn btn-link text-primary fs-9 p-0 fw-bold" onclick="BeeApp.navigateTo('view-shop')">Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i></a>
+          </div>
+          <div class="row g-3" id="homeCategoriesGrid">
+            <!-- Rendered by JS from categories -->
+          </div>
+        </div>
+
+        <!-- Flash Sale Section -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-5" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-danger text-white px-3 py-2 rounded-3 fw-black fs-8 d-flex align-items-center gap-2 shadow">
+                <i class="fa-solid fa-bolt fa-bounce"></i> FLASH SALE
+              </div>
+              <div class="d-flex align-items-center gap-2" id="flashSaleCountdown">
+                <span class="bg-dark text-white px-2 py-1 rounded fw-bold fs-9" id="timerHours">08</span> :
+                <span class="bg-dark text-white px-2 py-1 rounded fw-bold fs-9" id="timerMinutes">42</span> :
+                <span class="bg-dark text-white px-2 py-1 rounded fw-bold fs-9" id="timerSeconds">19</span>
+              </div>
+            </div>
+            <a class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="BeeApp.navigateTo('view-shop', { filter: 'sale' })">Xem Tất Cả Khuyến Mãi <i class="fa-solid fa-arrow-right ms-1"></i></a>
+          </div>
+          <div class="row g-3" id="homeFlashSaleGrid">
+            <!-- Flash sale products rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Top Viewed & Best Sellers Tabs -->
+        <div class="mb-5">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+              <h3 class="fw-bold text-body-emphasis mb-1"><i class="fa-solid fa-fire text-danger me-2"></i> Sản Phẩm Được Yêu Thích</h3>
+              <p class="text-body-tertiary fs-9 mb-0">Cập nhật xu hướng thời trang và phụ kiện mới nhất</p>
+            </div>
+            <ul class="nav nav-pills bg-body-secondary p-1 rounded-pill fs-9" id="homeProductTabs" role="tablist">
+              <li class="nav-item"><button class="nav-link active rounded-pill px-3 py-1" onclick="BeeApp.filterHomeTab('popular')">Thịnh Hành</button></li>
+              <li class="nav-item"><button class="nav-link rounded-pill px-3 py-1" onclick="BeeApp.filterHomeTab('new')">Mới Nhất</button></li>
+              <li class="nav-item"><button class="nav-link rounded-pill px-3 py-1" onclick="BeeApp.filterHomeTab('views')">Xem Nhiều</button></li>
+            </ul>
+          </div>
+          <div class="row g-3" id="homeProductsGrid">
+            <!-- Product cards rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Partner Brands Carousel -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-body-emphasis">
+          <h5 class="fw-bold text-body-emphasis text-center mb-4"><i class="fa-solid fa-certificate text-warning me-2"></i> THƯƠNG HIỆU ĐỒNG HÀNH CHÍNH HÃNG</h5>
+          <div class="d-flex flex-wrap justify-content-around align-items-center gap-4" id="homeBrandsGrid">
+            <!-- Rendered by JS from brands -->
+          </div>
+        </div>
+
+        <!-- Value Guarantees Banner -->
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-4 bg-body-emphasis border text-center h-100 shadow-sm">
+              <div class="text-primary mb-2 fs-5"><i class="fa-solid fa-shield-halved"></i></div>
+              <h6 class="fw-bold mb-1">100% Chính Hãng</h6>
+              <p class="text-body-tertiary fs-10 mb-0">Cam kết hoàn tiền gấp đôi nếu phát hiện hàng giả</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-4 bg-body-emphasis border text-center h-100 shadow-sm">
+              <div class="text-success mb-2 fs-5"><i class="fa-solid fa-truck-fast"></i></div>
+              <h6 class="fw-bold mb-1">Giao Hàng 2H</h6>
+              <p class="text-body-tertiary fs-10 mb-0">Hỗ trợ giao hỏa tốc mọi khung giờ trong ngày</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-4 bg-body-emphasis border text-center h-100 shadow-sm">
+              <div class="text-warning mb-2 fs-5"><i class="fa-solid fa-arrow-rotate-left"></i></div>
+              <h6 class="fw-bold mb-1">Đổi Trả 7 Ngày</h6>
+              <p class="text-body-tertiary fs-10 mb-0">Thủ tục nhanh gọn, miễn phí ship thu hồi</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded-4 bg-body-emphasis border text-center h-100 shadow-sm">
+              <div class="text-danger mb-2 fs-5"><i class="fa-solid fa-headset"></i></div>
+              <h6 class="fw-bold mb-1">Hỗ Trợ 24/7</h6>
+              <p class="text-body-tertiary fs-10 mb-0">Đội ngũ chuyên viên tư vấn tận tình chu đáo</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: SHOP / CATALOG ==================== -->
+    <section id="view-shop" class="view-section">
+      <div class="container-fluid container-xl">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb fs-9">
+            <li class="breadcrumb-item"><a class="cursor-pointer" onclick="BeeApp.navigateTo('view-home')">Trang Chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Cửa Hàng / Danh Mục Sản Phẩm</li>
+          </ol>
+        </nav>
+
+        <div class="row g-4">
+          <!-- Sidebar Filters -->
+          <div class="col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis position-sticky" style="top: 85px;">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-body-emphasis mb-0"><i class="fa-solid fa-filter text-primary me-2"></i> Bộ Lọc</h5>
+                <button class="btn btn-link text-danger fs-10 p-0 text-decoration-none" onclick="BeeApp.resetFilters()">Đặt lại</button>
+              </div>
+
+              <!-- Category Filter -->
+              <div class="mb-4">
+                <label class="form-label fw-bold fs-9 text-body-emphasis">Danh Mục</label>
+                <div class="d-flex flex-column gap-1" id="shopCategoryFilterList">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+
+              <!-- Brand Filter -->
+              <div class="mb-4">
+                <label class="form-label fw-bold fs-9 text-body-emphasis">Thương Hiệu</label>
+                <div class="d-flex flex-column gap-1" id="shopBrandFilterList">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+
+              <!-- Price Filter -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label fw-bold fs-9 text-body-emphasis mb-0">Mức Giá</label>
+                  <span class="fs-10 text-primary fw-bold" id="shopPriceFilterLabel">Tất cả</span>
+                </div>
+                <input type="range" class="form-range" id="shopPriceRange" min="100000" max="3000000" step="50000" value="3000000" oninput="BeeApp.handlePriceFilter(this.value)">
+                <div class="d-flex justify-content-between fs-10 text-body-tertiary">
+                  <span>100.000đ</span>
+                  <span>3.000.000đ</span>
+                </div>
+              </div>
+
+              <!-- Size Attributes Filter -->
+              <div class="mb-4">
+                <label class="form-label fw-bold fs-9 text-body-emphasis">Kích Cỡ (Size)</label>
+                <div class="d-flex flex-wrap gap-2" id="shopSizeFilterList">
+                  <!-- Size badges rendered by JS -->
+                </div>
+              </div>
+
+              <!-- Color Attributes Filter -->
+              <div class="mb-4">
+                <label class="form-label fw-bold fs-9 text-body-emphasis">Màu Sắc</label>
+                <div class="d-flex flex-wrap gap-2" id="shopColorFilterList">
+                  <!-- Color swatches rendered by JS -->
+                </div>
+              </div>
+
+              <!-- Stock Filter Switch -->
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="shopInStockOnly" onchange="BeeApp.applyShopFilters()">
+                <label class="form-check-label fs-9 fw-semibold" for="shopInStockOnly">Chỉ hiển thị còn hàng</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Catalog Content -->
+          <div class="col-lg-9">
+            <!-- Shop Top Toolbar -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-body-emphasis mb-4">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="fs-9 text-body-secondary">
+                  Hiển thị <strong class="text-body-emphasis" id="shopResultsCount">0</strong> sản phẩm
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fs-9 text-body-secondary text-nowrap">Sắp xếp:</span>
+                    <select class="form-select form-select-sm fs-9 rounded-pill" id="shopSortSelect" onchange="BeeApp.applyShopFilters()" style="min-width: 170px;">
+                      <option value="default">Mặc định</option>
+                      <option value="price_asc">Giá: Thấp đến Cao</option>
+                      <option value="price_desc">Giá: Cao đến Thấp</option>
+                      <option value="views">Xem nhiều nhất</option>
+                      <option value="rating">Đánh giá cao nhất</option>
+                    </select>
+                  </div>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary active" id="btnGridView" onclick="BeeApp.toggleShopLayout('grid')"><i class="fa-solid fa-grip"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" id="btnListView" onclick="BeeApp.toggleShopLayout('list')"><i class="fa-solid fa-list"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="row g-3" id="shopProductsGrid">
+              <!-- Filtered product cards rendered here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center mt-5" id="shopPagination">
+              <nav>
+                <ul class="pagination pagination-sm gap-1">
+                  <li class="page-item disabled"><a class="page-link rounded-circle" href="#"><i class="fa-solid fa-chevron-left"></i></a></li>
+                  <li class="page-item active"><a class="page-link rounded-circle" href="#">1</a></li>
+                  <li class="page-item"><a class="page-link rounded-circle" href="#">2</a></li>
+                  <li class="page-item"><a class="page-link rounded-circle" href="#"><i class="fa-solid fa-chevron-right"></i></a></li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: PRODUCT DETAIL ==================== -->
+    <section id="view-product-detail" class="view-section">
+      <div class="container-fluid container-xl">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+          <ol class="breadcrumb fs-9">
+            <li class="breadcrumb-item"><a class="cursor-pointer" onclick="BeeApp.navigateTo('view-home')">Trang Chủ</a></li>
+            <li class="breadcrumb-item"><a class="cursor-pointer" onclick="BeeApp.navigateTo('view-shop')">Cửa Hàng</a></li>
+            <li class="breadcrumb-item active" id="detailBreadcrumbTitle">Chi Tiết Sản Phẩm</li>
+          </ol>
+        </nav>
+
+        <!-- Main Product Detail Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis mb-5">
+          <div class="row g-4">
+            <!-- Product Images Gallery -->
+            <div class="col-lg-6">
+              <div class="product-thumb-wrapper mb-3 p-4 rounded-4 border bg-body-secondary position-relative" style="aspect-ratio: 4/3;">
+                <img src="" alt="" id="detailMainImage" class="img-fluid" style="max-height: 90%; object-fit: contain;">
+                <span class="badge-sale d-none" id="detailSaleBadge">-20%</span>
+              </div>
+              <!-- Thumbnails row -->
+              <div class="d-flex gap-2 overflow-x-auto pb-2" id="detailThumbnailsRow">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Product Purchase Info -->
+            <div class="col-lg-6 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-10" id="detailBrandName">BeeStyle</span>
+                  <div class="d-flex align-items-center gap-1 text-warning fs-9" id="detailRatingStars">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star-half-stroke"></i>
+                    <span class="text-body-tertiary ms-1">(<span id="detailReviewCount">24</span> đánh giá)</span>
+                  </div>
+                </div>
+
+                <h2 class="fw-bold text-body-emphasis mb-2" id="detailTitle">Tên Sản Phẩm</h2>
+                <div class="text-body-tertiary fs-9 mb-3">Mã SKU: <strong class="text-body-emphasis" id="detailSku">BST-001</strong> | Lượt xem: <span id="detailViews">1.420</span></div>
+
+                <!-- Price Box -->
+                <div class="p-3 rounded-3 bg-body-secondary mb-4 d-flex align-items-baseline gap-3">
+                  <span class="fs-4 fw-black text-danger" id="detailCurrentPrice">0 đ</span>
+                  <span class="fs-7 text-decoration-line-through text-body-tertiary d-none" id="detailOldPrice">0 đ</span>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-10 d-none" id="detailDiscountAmount">Tiết kiệm: 0 đ</span>
+                </div>
+
+                <p class="text-body-secondary fs-9 mb-4" id="detailShortDesc">Mô tả ngắn của sản phẩm...</p>
+
+                <!-- Dynamic Variant Selectors -->
+                <div id="detailVariantContainer">
+                  <!-- Color Swatches -->
+                  <div class="mb-3" id="detailColorSection">
+                    <label class="form-label fw-bold fs-9 text-body-emphasis">Màu Sắc: <span class="text-primary fw-normal" id="detailSelectedColorName">Đen</span></label>
+                    <div class="d-flex gap-2" id="detailColorSwatches">
+                      <!-- Rendered by JS -->
+                    </div>
+                  </div>
+
+                  <!-- Size Badges -->
+                  <div class="mb-4" id="detailSizeSection">
+                    <label class="form-label fw-bold fs-9 text-body-emphasis">Kích Cỡ: <span class="text-primary fw-normal" id="detailSelectedSizeName">L</span></label>
+                    <div class="d-flex gap-2" id="detailSizeBadges">
+                      <!-- Rendered by JS -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stock Count Alert -->
+                <div class="d-flex align-items-center gap-2 mb-4 fs-9">
+                  <i class="fa-solid fa-circle-check text-success" id="detailStockIcon"></i>
+                  <span id="detailStockText">Còn 45 sản phẩm trong kho</span>
+                </div>
+
+                <!-- Quantity & Buttons -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                  <div class="input-group" style="width: 130px;">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="BeeApp.changeDetailQty(-1)"><i class="fa-solid fa-minus"></i></button>
+                    <input type="number" id="detailQuantityInput" class="form-control form-control-sm text-center fw-bold" value="1" min="1" max="99" readonly>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="BeeApp.changeDetailQty(1)"><i class="fa-solid fa-plus"></i></button>
+                  </div>
+                  <button class="btn btn-outline-primary px-4 py-2 rounded-pill fw-bold" onclick="BeeApp.addToCartFromDetail(false)">
+                    <i class="fa-solid fa-cart-plus me-2"></i> Thêm Vào Giỏ
+                  </button>
+                  <button class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow" onclick="BeeApp.addToCartFromDetail(true)">
+                    <i class="fa-solid fa-bolt me-2"></i> Mua Ngay
+                  </button>
+                  <button class="btn btn-phoenix-secondary btn-icon rounded-circle" id="detailWishlistBtn" onclick="BeeApp.toggleWishlistDetail()">
+                    <i class="fa-regular fa-heart"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Product Commitments -->
+              <div class="border-top pt-3 mt-3 d-flex justify-content-between flex-wrap gap-2 fs-10 text-body-tertiary">
+                <span><i class="fa-solid fa-truck text-primary me-1"></i> Miễn phí ship từ 299k</span>
+                <span><i class="fa-solid fa-shield text-success me-1"></i> Bảo hành chính hãng 12 tháng</span>
+                <span><i class="fa-solid fa-arrow-rotate-left text-warning me-1"></i> Đổi size trong 7 ngày</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Tabs (Description, Specs, Reviews, Comments) -->
+        <div class="card border-0 shadow-sm rounded-4 bg-body-emphasis p-4 mb-5">
+          <ul class="nav nav-tabs border-bottom mb-4" id="productDetailTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fw-bold fs-9" id="desc-tab" data-bs-toggle="tab" data-bs-target="#tab-desc" type="button" role="tab">Mô Tả Chi Tiết</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-bold fs-9" id="specs-tab" data-bs-toggle="tab" data-bs-target="#tab-specs" type="button" role="tab">Thông Số Kỹ Thuật</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-bold fs-9" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button" role="tab">Đánh Giá (<span id="detailTabReviewCount">0</span>)</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-bold fs-9" id="comments-tab" data-bs-toggle="tab" data-bs-target="#tab-comments" type="button" role="tab">Hỏi Đáp & Thảo Luận (<span id="detailTabCommentCount">0</span>)</button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="productDetailTabContent">
+            <!-- Tab 1: Description -->
+            <div class="tab-pane fade show active fs-9 text-body-secondary lh-lg" id="tab-desc" role="tabpanel">
+              <div id="detailFullDescription">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Tab 2: Specs -->
+            <div class="tab-pane fade" id="tab-specs" role="tabpanel">
+              <table class="table table-bordered table-striped fs-9" style="max-width: 600px;">
+                <tbody id="detailSpecsTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Tab 3: Reviews -->
+            <div class="tab-pane fade" id="tab-reviews" role="tabpanel">
+              <div class="row g-4">
+                <!-- Review Summary -->
+                <div class="col-md-4 text-center border-end">
+                  <h1 class="display-4 fw-black text-warning mb-1" id="detailAvgRating">4.8</h1>
+                  <div class="text-warning fs-8 mb-2">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                  </div>
+                  <div class="text-body-tertiary fs-9 mb-4">Dựa trên <span id="detailTotalReviews">24</span> nhận xét thực tế</div>
+                  <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="BeeApp.openAddReviewModal()">Viết Đánh Giá Của Bạn</button>
+                </div>
+                <!-- Review List -->
+                <div class="col-md-8">
+                  <div class="d-flex flex-column gap-3" id="detailReviewsList">
+                    <!-- Reviews list rendered by JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 4: Comments -->
+            <div class="tab-pane fade" id="tab-comments" role="tabpanel">
+              <!-- Comment Form -->
+              <div class="p-3 bg-body-secondary rounded-3 mb-4">
+                <h6 class="fw-bold mb-2">Đặt câu hỏi về sản phẩm</h6>
+                <div class="input-group">
+                  <input type="text" id="newCommentInput" class="form-control fs-9" placeholder="Viết câu hỏi của bạn (ví dụ: Áo này có co giãn không?...)">
+                  <button class="btn btn-primary fs-9 px-4" type="button" onclick="BeeApp.submitComment()">Gửi Câu Hỏi</button>
+                </div>
+              </div>
+              <div class="d-flex flex-column gap-3" id="detailCommentsList">
+                <!-- Comments rendered by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related Products Section -->
+        <div>
+          <h4 class="fw-bold text-body-emphasis mb-3"><i class="fa-solid fa-thumbs-up text-primary me-2"></i> Sản Phẩm Tương Tự</h4>
+          <div class="row g-3" id="detailRelatedProductsGrid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: CART ==================== -->
+    <section id="view-cart" class="view-section">
+      <div class="container-fluid container-xl">
+        <h3 class="fw-bold text-body-emphasis mb-4"><i class="fa-solid fa-bag-shopping text-primary me-2"></i> Giỏ Hàng Của Bạn (<span id="cartViewTotalItems">0</span>)</h3>
+
+        <div class="row g-4">
+          <!-- Cart Items List -->
+          <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis mb-4">
+              <div class="table-responsive">
+                <table class="table align-middle fs-9">
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col" style="min-width: 250px;">Sản Phẩm</th>
+                      <th scope="col">Đơn Giá</th>
+                      <th scope="col" class="text-center">Số Lượng</th>
+                      <th scope="col" class="text-end">Tạm Tính</th>
+                      <th scope="col" class="text-center">Xóa</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cartTableBody">
+                    <!-- Cart items rendered by JS -->
+                  </tbody>
+                </table>
+              </div>
+              <div id="cartEmptyState" class="text-center py-5 d-none">
+                <i class="fa-solid fa-cart-arrow-down text-body-tertiary mb-3" style="font-size: 64px;"></i>
+                <h5 class="text-body-emphasis fw-bold">Giỏ hàng của bạn đang trống!</h5>
+                <p class="text-body-tertiary fs-9 mb-4">Hãy dạo qua cửa hàng để chọn những món đồ thời trang ưng ý nhất.</p>
+                <button class="btn btn-primary rounded-pill px-4" onclick="BeeApp.navigateTo('view-shop')">Tiếp Tục Mua Sắm</button>
+              </div>
+            </div>
+            
+            <!-- Quick Voucher Selection -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis">
+              <h6 class="fw-bold mb-3"><i class="fa-solid fa-ticket text-warning me-2"></i> Chọn Nhanh Mã Giảm Giá</h6>
+              <div class="d-flex flex-wrap gap-2" id="cartAvailableCoupons">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Summary Card -->
+          <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis position-sticky" style="top: 85px;">
+              <h5 class="fw-bold text-body-emphasis mb-3">Tóm Tắt Đơn Hàng</h5>
+
+              <!-- Coupon Input Box -->
+              <div class="input-group mb-3">
+                <input type="text" id="cartCouponInput" class="form-control fs-9 text-uppercase" placeholder="Nhập mã ưu đãi...">
+                <button class="btn btn-outline-primary fs-9 fw-bold" type="button" onclick="BeeApp.applyCoupon(document.getElementById('cartCouponInput').value)">Áp Dụng</button>
+              </div>
+              <div id="cartAppliedCouponNotice" class="mb-3 d-none">
+                <div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 fs-9 mb-0">
+                  <span><i class="fa-solid fa-circle-check me-1"></i> <strong id="appliedCouponCode"></strong>: -<span id="appliedCouponAmount">0đ</span></span>
+                  <button type="button" class="btn-close fs-10" onclick="BeeApp.removeCoupon()"></button>
+                </div>
+              </div>
+
+              <!-- Price Breakdown -->
+              <div class="d-flex justify-content-between text-body-secondary fs-9 mb-2">
+                <span>Tạm tính</span>
+                <strong class="text-body-emphasis" id="cartSubtotal">0 đ</strong>
+              </div>
+              <div class="d-flex justify-content-between text-success fs-9 mb-2">
+                <span>Giảm giá khuyến mãi</span>
+                <strong id="cartDiscount">-0 đ</strong>
+              </div>
+              <div class="d-flex justify-content-between text-body-secondary fs-9 mb-3">
+                <span>Phí vận chuyển</span>
+                <strong class="text-body-emphasis" id="cartShippingFee">30.000 đ</strong>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between align-items-baseline mb-4">
+                <span class="fw-bold fs-8 text-body-emphasis">Tổng Thanh Toán</span>
+                <span class="fs-4 fw-black text-danger" id="cartFinalTotal">0 đ</span>
+              </div>
+
+              <button class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow mb-2" onclick="BeeApp.navigateTo('view-checkout')">
+                Tiến Hành Thanh Toán <i class="fa-solid fa-arrow-right ms-2"></i>
+              </button>
+              <button class="btn btn-outline-secondary w-100 py-2 rounded-pill fs-9" onclick="BeeApp.navigateTo('view-shop')">
+                Tiếp Tục Mua Sắm
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 5: CHECKOUT ==================== -->
+    <section id="view-checkout" class="view-section">
+      <div class="container-fluid container-xl">
+        <h3 class="fw-bold text-body-emphasis mb-4"><i class="fa-solid fa-credit-card text-primary me-2"></i> Thanh Toán & Đặt Hàng</h3>
+
+        <div class="row g-4">
+          <!-- Checkout Steps & Forms -->
+          <div class="col-lg-8">
+            <!-- Step 1: Shipping Address Selection -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-body-emphasis mb-0"><i class="fa-solid fa-location-dot text-danger me-2"></i> 1. Địa Chỉ Nhận Hàng</h5>
+                <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="BeeApp.openAddAddressModal()">+ Thêm Địa Chỉ Mới</button>
+              </div>
+              
+              <div class="d-flex flex-column gap-3" id="checkoutAddressList">
+                <!-- User addresses rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Step 2: Payment Method Selection -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis mb-4">
+              <h5 class="fw-bold text-body-emphasis mb-3"><i class="fa-solid fa-wallet text-success me-2"></i> 2. Phương Thức Thanh Toán</h5>
+              <div class="d-flex flex-column gap-3" id="checkoutPaymentMethods">
+                <!-- Payment methods from payments table rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Step 3: Order Note -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis">
+              <h5 class="fw-bold text-body-emphasis mb-3"><i class="fa-solid fa-pen-to-square text-info me-2"></i> 3. Ghi Chú Đơn Hàng</h5>
+              <textarea id="checkoutOrderNote" class="form-control fs-9" rows="3" placeholder="Ví dụ: Giao hàng giờ hành chính, gọi trước khi đến..."></textarea>
+            </div>
+          </div>
+
+          <!-- Checkout Order Review -->
+          <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis position-sticky" style="top: 85px;">
+              <h5 class="fw-bold text-body-emphasis mb-3">Đơn Hàng Của Bạn</h5>
+              <div class="overflow-y-auto mb-3" style="max-height: 280px;" id="checkoutMiniCartItems">
+                <!-- Rendered by JS -->
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between text-body-secondary fs-9 mb-2">
+                <span>Tạm tính</span>
+                <strong id="checkoutSubtotal">0 đ</strong>
+              </div>
+              <div class="d-flex justify-content-between text-success fs-9 mb-2">
+                <span>Giảm giá</span>
+                <strong id="checkoutDiscount">-0 đ</strong>
+              </div>
+              <div class="d-flex justify-content-between text-body-secondary fs-9 mb-3">
+                <span>Phí vận chuyển</span>
+                <strong id="checkoutShipping">30.000 đ</strong>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between align-items-baseline mb-4">
+                <span class="fw-bold fs-8 text-body-emphasis">Tổng Cộng</span>
+                <span class="fs-4 fw-black text-danger" id="checkoutFinalTotal">0 đ</span>
+              </div>
+
+              <button class="btn btn-danger w-100 py-3 rounded-pill fw-black fs-8 shadow" onclick="BeeApp.placeOrder()">
+                <i class="fa-solid fa-shield-check me-2"></i> ĐẶT HÀNG NGAY
+              </button>
+              <p class="text-center text-body-tertiary fs-10 mt-3 mb-0">Bằng việc đặt hàng, bạn đồng ý với Điều khoản dịch vụ của BeeStyle</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 6: ORDER TRACKING ==================== -->
+    <section id="view-order-tracking" class="view-section">
+      <div class="container-fluid container-xl">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+          <div>
+            <h3 class="fw-bold text-body-emphasis mb-1"><i class="fa-solid fa-truck-ramp-box text-primary me-2"></i> Tra Cứu & Theo Dõi Đơn Hàng</h3>
+            <p class="text-body-tertiary fs-9 mb-0">Theo dõi hành trình đơn hàng và lịch sử cập nhật thời gian thực</p>
+          </div>
+          <!-- Order Code Search Input -->
+          <div class="input-group" style="max-width: 380px;">
+            <input type="text" id="orderSearchCodeInput" class="form-control fs-9 text-uppercase" placeholder="Nhập mã đơn (VD: BST-982314)...">
+            <button class="btn btn-primary fs-9 px-4" type="button" onclick="BeeApp.searchOrderTracking(document.getElementById('orderSearchCodeInput').value)">Tra Cứu</button>
+          </div>
+        </div>
+
+        <!-- Orders Navigation Tabs -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-body-emphasis mb-4">
+          <ul class="nav nav-pills gap-2 fs-9" id="orderStatusFilterTabs">
+            <li class="nav-item"><button class="nav-link active rounded-pill" onclick="BeeApp.filterOrdersList('all')">Tất Cả</button></li>
+            <li class="nav-item"><button class="nav-link rounded-pill" onclick="BeeApp.filterOrdersList('pending')">Chờ Xử Lý</button></li>
+            <li class="nav-item"><button class="nav-link rounded-pill" onclick="BeeApp.filterOrdersList('shipping')">Đang Giao Hàng</button></li>
+            <li class="nav-item"><button class="nav-link rounded-pill" onclick="BeeApp.filterOrdersList('completed')">Đã Giao Thành Công</button></li>
+            <li class="nav-item"><button class="nav-link rounded-pill" onclick="BeeApp.filterOrdersList('cancel')">Đã Hủy</button></li>
+          </ul>
+        </div>
+
+        <!-- Active Tracking Detail Card -->
+        <div id="trackingDetailBox" class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis mb-5">
+          <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4 gap-2">
+            <div>
+              <span class="fs-9 text-body-tertiary">Mã Đơn Hàng:</span>
+              <h4 class="fw-bold text-primary mb-0 d-inline ms-2" id="trackOrderCode">BST-982314</h4>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-10 ms-2" id="trackPaymentStatus">Đã Thanh Toán</span>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="BeeApp.openInvoiceModal()"><i class="fa-solid fa-file-invoice me-1"></i> Xem Hóa Đơn</button>
+              <button class="btn btn-success btn-sm rounded-pill" id="btnConfirmReceived" onclick="BeeApp.confirmOrderReceived()"><i class="fa-solid fa-circle-check me-1"></i> Đã Nhận Được Hàng</button>
+              <button class="btn btn-outline-warning btn-sm rounded-pill" id="btnRequestRefund" onclick="BeeApp.openRefundModalForOrder()"><i class="fa-solid fa-arrow-rotate-left me-1"></i> Yêu Cầu Hoàn Tiền</button>
+            </div>
+          </div>
+
+          <!-- Stepper Progress -->
+          <div class="py-4 px-2 mb-4">
+            <div class="d-flex justify-content-between" id="orderTrackingStepper">
+              <div class="stepper-item completed">
+                <div class="stepper-circle"><i class="fa-solid fa-file-invoice"></i></div>
+                <div class="fs-10 fw-bold mt-2">Đã Đặt Hàng</div>
+                <small class="text-muted fs-11" id="stepTime1">10:30 15/08</small>
+              </div>
+              <div class="stepper-item completed">
+                <div class="stepper-circle"><i class="fa-solid fa-box-open"></i></div>
+                <div class="fs-10 fw-bold mt-2">Đã Đóng Gói</div>
+                <small class="text-muted fs-11" id="stepTime2">14:15 15/08</small>
+              </div>
+              <div class="stepper-item active">
+                <div class="stepper-circle"><i class="fa-solid fa-truck"></i></div>
+                <div class="fs-10 fw-bold mt-2">Đang Giao Hàng</div>
+                <small class="text-muted fs-11" id="stepTime3">08:00 16/08</small>
+              </div>
+              <div class="stepper-item">
+                <div class="stepper-circle"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="fs-10 fw-bold mt-2">Hoàn Thành</div>
+                <small class="text-muted fs-11" id="stepTime4">Dự kiến 17/08</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tracking Timeline History & Delivery Evidence -->
+          <div class="row g-4 border-top pt-4">
+            <div class="col-lg-6 border-end">
+              <h6 class="fw-bold text-body-emphasis mb-3"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Lịch Sử Cập Nhật Đơn Hàng (order_order_status)</h6>
+              <div class="timeline-vertical pe-3" id="trackingStatusLogs">
+                <!-- Timeline logs rendered by JS -->
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <h6 class="fw-bold text-body-emphasis mb-3"><i class="fa-solid fa-box-archive text-info me-2"></i> Danh Sách Sản Phẩm Đã Mua</h6>
+              <div class="d-flex flex-column gap-3 mb-4" id="trackOrderItemsList">
+                <!-- Order items rendered by JS -->
+              </div>
+              <div class="p-3 bg-body-secondary rounded-3 fs-9">
+                <div class="d-flex justify-content-between mb-1">
+                  <span>Người nhận:</span> <strong id="trackReceiverName">Nguyễn Văn An</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span>Số điện thoại:</span> <span id="trackReceiverPhone">0987654321</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                  <span>Địa chỉ giao hàng:</span> <span id="trackReceiverAddress">Số 88 Cầu Giấy, Hà Nội</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span>Tổng thanh toán:</span> <strong class="text-danger fs-8" id="trackTotalAmount">1.190.000 đ</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- All Orders List Table -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis">
+          <h5 class="fw-bold text-body-emphasis mb-3">Danh Sách Tất Cả Đơn Hàng Của Bạn</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle fs-9">
+              <thead class="table-light">
+                <tr>
+                  <th>Mã Đơn</th>
+                  <th>Ngày Đặt</th>
+                  <th>Sản Phẩm</th>
+                  <th>Tổng Tiền</th>
+                  <th>Phương Thức</th>
+                  <th>Trạng Thái</th>
+                  <th class="text-end">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="userAllOrdersTableBody">
+                <!-- Orders rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 7: REFUNDS ==================== -->
+    <section id="view-refunds" class="view-section">
+      <div class="container-fluid container-xl">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h3 class="fw-bold text-body-emphasis mb-1"><i class="fa-solid fa-arrow-rotate-left text-warning me-2"></i> Yêu Cầu Đổi Trả & Hoàn Tiền (Refunds)</h3>
+            <p class="text-body-tertiary fs-9 mb-0">Quản lý các yêu cầu đổi trả và nhận hoàn tiền về tài khoản ngân hàng</p>
+          </div>
+          <button class="btn btn-warning fw-bold rounded-pill px-4" onclick="BeeApp.openNewRefundWizard()">
+            <i class="fa-solid fa-plus me-1"></i> Tạo Yêu Cầu Mới
+          </button>
+        </div>
+
+        <!-- Existing Refunds List -->
+        <div class="row g-4 mb-4" id="userRefundsGrid">
+          <!-- Refund cards rendered by JS from refunds & refund_items table -->
+        </div>
+
+        <!-- Refund Policy Notice -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis">
+          <h6 class="fw-bold text-body-emphasis mb-2"><i class="fa-solid fa-circle-info text-primary me-2"></i> Chính Sách Đổi Trả BeeStyle</h6>
+          <ul class="fs-9 text-body-secondary mb-0 ps-3">
+            <li>Khách hàng được yêu cầu hoàn tiền trong vòng <strong>7 ngày</strong> kể từ khi đơn hàng ở trạng thái Hoàn thành.</li>
+            <li>Sản phẩm phải còn nguyên tem mác, chưa qua sử dụng hoặc giặt tẩy.</li>
+            <li>Tiền hoàn sẽ được chuyển trực tiếp về số tài khoản ngân hàng thụ hưởng sau khi sản phẩm được kiểm duyệt thành công.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 8: PROFILE ==================== -->
+    <section id="view-profile" class="view-section">
+      <div class="container-fluid container-xl">
+        <h3 class="fw-bold text-body-emphasis mb-4"><i class="fa-solid fa-user-gear text-primary me-2"></i> Tài Khoản & Sổ Địa Chỉ</h3>
+
+        <div class="row g-4">
+          <!-- Profile Sidebar -->
+          <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis text-center mb-4">
+              <div class="position-relative d-inline-block mx-auto mb-3">
+                <img src="./v1.24.0/assets/img/team/40x40/57.webp" id="profilePageAvatar" alt="Avatar" class="rounded-circle border border-3 border-primary shadow" width="100" height="100">
+                <button class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 p-1" style="width: 32px; height: 32px;" onclick="alert('Tính năng chọn ảnh mới!')"><i class="fa-solid fa-camera"></i></button>
+              </div>
+              <h5 class="fw-bold text-body-emphasis mb-1" id="profilePageFullname">Nguyễn Văn An</h5>
+              <p class="text-body-tertiary fs-9 mb-2" id="profilePageEmail">customer@beestyle.vn</p>
+              <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-1 fs-9">Khách Hàng VIP</span>
+            </div>
+
+            <!-- Profile Menu Nav -->
+            <div class="list-group shadow-sm border-0 rounded-4 overflow-hidden">
+              <button class="list-group-item list-group-item-action active py-3 fs-9 fw-bold" onclick="BeeApp.showProfileTab('info', this)"><i class="fa-solid fa-user me-2"></i> Thông Tin Cá Nhân</button>
+              <button class="list-group-item list-group-item-action py-3 fs-9 fw-bold" onclick="BeeApp.showProfileTab('addresses', this)"><i class="fa-solid fa-address-book me-2"></i> Sổ Địa Chỉ Giao Hàng</button>
+              <button class="list-group-item list-group-item-action py-3 fs-9 fw-bold" onclick="BeeApp.showProfileTab('bank', this)"><i class="fa-solid fa-building-columns me-2"></i> Tài Khoản Ngân Hàng Hoàn Tiền</button>
+              <button class="list-group-item list-group-item-action py-3 fs-9 fw-bold" onclick="BeeApp.showProfileTab('password', this)"><i class="fa-solid fa-lock me-2"></i> Đổi Mật Khẩu</button>
+            </div>
+          </div>
+
+          <!-- Profile Tab Contents -->
+          <div class="col-lg-8">
+            <!-- Tab 1: Personal Info -->
+            <div id="profileTabInfo" class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis profile-tab-content">
+              <h5 class="fw-bold text-body-emphasis mb-4">Cập Nhật Thông Tin Cá Nhân</h5>
+              <form id="profileInfoForm" onsubmit="BeeApp.saveProfileInfo(event)">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fs-9 fw-bold">Họ và Tên</label>
+                    <input type="text" id="profileInputFullname" class="form-control fs-9" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fs-9 fw-bold">Số Điện Thoại</label>
+                    <input type="text" id="profileInputPhone" class="form-control fs-9" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fs-9 fw-bold">Email</label>
+                    <input type="email" id="profileInputEmail" class="form-control fs-9" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fs-9 fw-bold">Ngày Sinh</label>
+                    <input type="date" id="profileInputBirthday" class="form-control fs-9">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fs-9 fw-bold">Giới Tính</label>
+                    <select id="profileInputGender" class="form-select fs-9">
+                      <option value="male">Nam</option>
+                      <option value="female">Nữ</option>
+                      <option value="other">Khác</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 mt-4 fw-bold">Lưu Thay Đổi</button>
+              </form>
+            </div>
+
+            <!-- Tab 2: Addresses -->
+            <div id="profileTabAddresses" class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis profile-tab-content d-none">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold text-body-emphasis mb-0">Sổ Địa Chỉ Giao Hàng</h5>
+                <button class="btn btn-primary btn-sm rounded-pill" onclick="BeeApp.openAddAddressModal()">+ Thêm Địa Chỉ</button>
+              </div>
+              <div class="d-flex flex-column gap-3" id="profileAddressesList">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Tab 3: Bank -->
+            <div id="profileTabBank" class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis profile-tab-content d-none">
+              <h5 class="fw-bold text-body-emphasis mb-4">Tài Khoản Ngân Hàng Nhận Hoàn Tiền</h5>
+              <form id="profileBankForm" onsubmit="BeeApp.saveProfileBank(event)">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fs-9 fw-bold">Ngân Hàng</label>
+                    <input type="text" id="profileInputBankName" class="form-control fs-9" placeholder="VD: Vietcombank, MB Bank...">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fs-9 fw-bold">Số Tài Khoản</label>
+                    <input type="text" id="profileInputBankAccount" class="form-control fs-9" placeholder="VD: 1012345678">
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label fs-9 fw-bold">Tên Chủ Tài Khoản (In hoa không dấu)</label>
+                    <input type="text" id="profileInputUserBankName" class="form-control fs-9 text-uppercase" placeholder="VD: NGUYEN VAN AN">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 mt-4 fw-bold">Lưu Thông Tin Ngân Hàng</button>
+              </form>
+            </div>
+
+            <!-- Tab 4: Password -->
+            <div id="profileTabPassword" class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis profile-tab-content d-none">
+              <h5 class="fw-bold text-body-emphasis mb-4">Đổi Mật Khẩu</h5>
+              <form onsubmit="BeeApp.changePassword(event)">
+                <div class="mb-3">
+                  <label class="form-label fs-9 fw-bold">Mật khẩu hiện tại</label>
+                  <input type="password" class="form-control fs-9" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fs-9 fw-bold">Mật khẩu mới</label>
+                  <input type="password" class="form-control fs-9" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fs-9 fw-bold">Xác nhận mật khẩu mới</label>
+                  <input type="password" class="form-control fs-9" required>
+                </div>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Cập Nhật Mật Khẩu</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 9: WISHLIST ==================== -->
+    <section id="view-wishlist" class="view-section">
+      <div class="container-fluid container-xl">
+        <h3 class="fw-bold text-body-emphasis mb-4"><i class="fa-solid fa-heart text-danger me-2"></i> Danh Sách Yêu Thích Của Bạn (<span id="wishlistTotalItems">0</span>)</h3>
+        <div class="row g-3" id="wishlistProductsGrid">
+          <!-- Wishlist product cards rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER -->
+  <!-- ========================================================================= -->
+  <footer class="bg-body-emphasis border-top py-5 mt-5">
+    <div class="container-fluid container-xl">
+      <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+          <div class="d-flex align-items-center mb-3">
+            <div class="bg-warning text-dark p-2 rounded-3 me-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+              <i class="fa-solid fa-cube fs-6"></i>
+            </div>
+            <span class="fw-bolder fs-6 brand-gradient">BeeStyle E-Commerce</span>
+          </div>
+          <p class="text-body-secondary fs-9 mb-4">Nền tảng thương mại điện tử chuyên nghiệp, mang đến trải nghiệm mua sắm thời trang & phong cách sống đẳng cấp hàng đầu Việt Nam.</p>
+          <div class="d-flex gap-2">
+            <a href="#" class="btn btn-phoenix-secondary btn-icon rounded-circle"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="btn btn-phoenix-secondary btn-icon rounded-circle"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="btn btn-phoenix-secondary btn-icon rounded-circle"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" class="btn btn-phoenix-secondary btn-icon rounded-circle"><i class="fa-brands fa-youtube"></i></a>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h6 class="fw-bold text-body-emphasis mb-3">Về BeeStyle</h6>
+          <ul class="list-unstyled fs-9 d-flex flex-column gap-2">
+            <li><a href="#" class="text-body-secondary text-decoration-none">Giới thiệu công ty</a></li>
+            <li><a href="#" class="text-body-secondary text-decoration-none">Hệ thống cửa hàng</a></li>
+            <li><a href="#" class="text-body-secondary text-decoration-none">Tuyển dụng</a></li>
+            <li><a href="#" class="text-body-secondary text-decoration-none">Tin tức & Sự kiện</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-lg-3">
+          <h6 class="fw-bold text-body-emphasis mb-3">Chính Sách & Hỗ Trợ</h6>
+          <ul class="list-unstyled fs-9 d-flex flex-column gap-2">
+            <li><a href="#" class="text-body-secondary text-decoration-none" onclick="BeeApp.navigateTo('view-order-tracking')">Tra cứu đơn hàng</a></li>
+            <li><a href="#" class="text-body-secondary text-decoration-none" onclick="BeeApp.navigateTo('view-refunds')">Chính sách đổi trả & hoàn tiền</a></li>
+            <li><a href="#" class="text-body-secondary text-decoration-none">Hướng dẫn chọn size</a></li>
+            <li><a href="#" class="text-body-secondary text-decoration-none">Chính sách bảo mật thông tin</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3">
+          <h6 class="fw-bold text-body-emphasis mb-3">Đối Tác Thanh Toán & Vận Chuyển</h6>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge bg-body-secondary text-body px-2 py-1 fs-10 border"><i class="fa-solid fa-money-bill me-1"></i> COD</span>
+            <span class="badge bg-body-secondary text-body px-2 py-1 fs-10 border"><i class="fa-solid fa-qrcode me-1"></i> VNPAY-QR</span>
+            <span class="badge bg-body-secondary text-body px-2 py-1 fs-10 border"><i class="fa-solid fa-wallet me-1"></i> MoMo</span>
+            <span class="badge bg-body-secondary text-body px-2 py-1 fs-10 border"><i class="fa-solid fa-credit-card me-1"></i> Visa / Master</span>
+          </div>
+          <div class="fs-9 text-body-secondary">
+            <div><i class="fa-solid fa-location-dot me-1 text-primary"></i> 88 Cầu Giấy, Quan Hoa, Cầu Giấy, Hà Nội</div>
+            <div><i class="fa-solid fa-envelope me-1 text-primary"></i> support@beestyle.vn</div>
+          </div>
+        </div>
+      </div>
+      <div class="border-top pt-4 text-center fs-10 text-body-tertiary">
+        © 2026 BeeStyle Platform. All rights reserved. Powered by Phoenix Template System.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- MODALS & DRAWERS -->
+  <!-- ========================================================================= -->
+
+  <!-- Offcanvas Cart Drawer -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel" style="width: 420px;">
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel"><i class="fa-solid fa-bag-shopping text-primary me-2"></i> Giỏ Hàng (<span id="drawerCartCount">0</span>)</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column justify-content-between p-3">
+      <div class="overflow-y-auto pe-1" id="drawerCartItemsList" style="max-height: 60vh;">
+        <!-- Cart items rendered by JS -->
+      </div>
+      <div class="border-top pt-3">
+        <div class="d-flex justify-content-between fs-9 mb-2 text-body-secondary">
+          <span>Tạm tính:</span>
+          <strong class="text-body-emphasis fs-8" id="drawerCartSubtotal">0 đ</strong>
+        </div>
+        <button class="btn btn-primary w-100 py-2 rounded-pill fw-bold mb-2 shadow" data-bs-dismiss="offcanvas" onclick="BeeApp.navigateTo('view-cart')">
+          Xem Giỏ Hàng & Thanh Toán
+        </button>
+        <button class="btn btn-outline-secondary w-100 py-2 rounded-pill fs-9" data-bs-dismiss="offcanvas">
+          Tiếp Tục Mua Sắm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Review Modal -->
+  <div class="modal fade" id="addReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-star text-warning me-2"></i> Viết Đánh Giá Sản Phẩm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form onsubmit="BeeApp.submitReview(event)">
+          <div class="modal-body">
+            <div class="mb-3 text-center">
+              <label class="form-label fs-9 fw-bold d-block mb-2">Đánh giá của bạn</label>
+              <div class="fs-4 text-warning cursor-pointer" id="modalStarRating">
+                <i class="fa-solid fa-star star-rate" data-score="1" onclick="BeeApp.setReviewStar(1)"></i>
+                <i class="fa-solid fa-star star-rate" data-score="2" onclick="BeeApp.setReviewStar(2)"></i>
+                <i class="fa-solid fa-star star-rate" data-score="3" onclick="BeeApp.setReviewStar(3)"></i>
+                <i class="fa-solid fa-star star-rate" data-score="4" onclick="BeeApp.setReviewStar(4)"></i>
+                <i class="fa-solid fa-star star-rate" data-score="5" onclick="BeeApp.setReviewStar(5)"></i>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fs-9 fw-bold">Nội dung nhận xét</label>
+              <textarea id="modalReviewText" class="form-control fs-9" rows="4" placeholder="Chia sẻ trải nghiệm về chất liệu, form dáng, độ bền sản phẩm..." required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Hủy</button>
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Gửi Đánh Giá</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Address Modal -->
+  <div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-location-dot text-danger me-2"></i> Thêm Địa Chỉ Nhận Hàng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form onsubmit="BeeApp.saveNewAddress(event)">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fs-9 fw-bold">Họ và Tên Người Nhận</label>
+              <input type="text" id="modalAddressName" class="form-control fs-9" required placeholder="VD: Nguyễn Văn An">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fs-9 fw-bold">Số Điện Thoại</label>
+              <input type="tel" id="modalAddressPhone" class="form-control fs-9" required placeholder="VD: 0987654321">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fs-9 fw-bold">Địa Chỉ Chi Tiết (Số nhà, đường, phường, quận, tỉnh/TP)</label>
+              <textarea id="modalAddressDetail" class="form-control fs-9" rows="3" required placeholder="VD: Số 88 Cầu Giấy, P. Quan Hoa, Q. Cầu Giấy, Hà Nội"></textarea>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="modalAddressDefault">
+              <label class="form-check-label fs-9" for="modalAddressDefault">Đặt làm địa chỉ mặc định</label>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Hủy</button>
+            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Lưu Địa Chỉ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Refund Modal -->
+  <div class="modal fade" id="refundModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-arrow-rotate-left text-warning me-2"></i> Tạo Yêu Cầu Đổi Trả & Hoàn Tiền</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form onsubmit="BeeApp.submitRefundRequest(event)">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fs-9 fw-bold">Chọn Đơn Hàng Hoàn Trả</label>
+                <select id="modalRefundOrderSelect" class="form-select fs-9" required onchange="BeeApp.handleRefundOrderChange(this.value)">
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fs-9 fw-bold">Lý Do Đổi Trả / Hoàn Tiền</label>
+                <select id="modalRefundReasonSelect" class="form-select fs-9" required>
+                  <option value="Sản phẩm lỗi nhà sản xuất">Sản phẩm lỗi nhà sản xuất (rách, hỏng khóa)</option>
+                  <option value="Không vừa size (muốn đổi/hoàn)">Không vừa size (muốn đổi/hoàn)</option>
+                  <option value="Giao sai mẫu mã hoặc màu sắc">Giao sai mẫu mã hoặc màu sắc</option>
+                  <option value="Hàng bị móp méo khi vận chuyển">Hàng bị móp méo khi vận chuyển</option>
+                </select>
+              </div>
+
+              <!-- Refund Items Container -->
+              <div class="col-12">
+                <label class="form-label fs-9 fw-bold">Sản phẩm trong đơn hàng</label>
+                <div class="border rounded-3 p-3 bg-body-secondary" id="modalRefundItemsList">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fs-9 fw-bold">Tên Ngân Hàng Thụ Hưởng</label>
+                <input type="text" id="modalRefundBankName" class="form-control fs-9" required placeholder="VD: Vietcombank">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fs-9 fw-bold">Số Tài Khoản</label>
+                <input type="text" id="modalRefundBankAccount" class="form-control fs-9" required placeholder="VD: 1012345678">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fs-9 fw-bold">Tên Chủ Tài Khoản</label>
+                <input type="text" id="modalRefundUserBankName" class="form-control fs-9 text-uppercase" required placeholder="VD: NGUYEN VAN AN">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fs-9 fw-bold">Mô tả chi tiết & Link/Ảnh minh chứng</label>
+                <textarea id="modalRefundDesc" class="form-control fs-9" rows="2" placeholder="Ghi chú thêm về tình trạng sản phẩm lỗi..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top">
+            <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Hủy</button>
+            <button type="submit" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold">Gửi Yêu Cầu Hoàn Tiền</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice Printable Modal -->
+  <div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-invoice text-primary me-2"></i> Hóa Đơn Bán Hàng Điện Tử</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4" id="invoicePrintArea">
+          <!-- Invoice details rendered by JS -->
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-primary btn-sm rounded-pill" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> In Hóa Đơn</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick View Modal -->
+  <div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-body p-4" id="quickViewContent">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPTS & BEESTYLE DATABASE STATE ENGINE -->
+  <!-- ========================================================================= -->
+  <script src="./v1.24.0/vendors/popper/popper.min.js"></script>
+  <script src="./v1.24.0/vendors/bootstrap/bootstrap.min.js"></script>
+  <script src="./v1.24.0/vendors/fontawesome/all.min.js"></script>
+  <script src="./v1.24.0/assets/js/phoenix.js"></script>
+
+  <!-- Core JavaScript State & Interactivity synced with database.sql -->
+  <script>
+    /**
+     * BeeStyle E-Commerce Client Application Engine
+     * Complete Database Mappings & LocalStorage Synced State
+     */
+    const BeeApp = {
+      // 1. Initial State synchronized with database.sql (24 tables)
+      state: {
+        currentUserId: 1,
+        activeView: 'view-home',
+        selectedProduct: null,
+        selectedVariant: null,
+        selectedAddressId: 1,
+        selectedPaymentId: 1,
+        appliedCoupon: null,
+        reviewRatingScore: 5,
+        filterCategory: null,
+        filterBrand: null,
+        filterMaxPrice: 3000000,
+        filterSize: null,
+        filterColor: null,
+        filterInStockOnly: false,
+        shopSort: 'default',
+        shopLayout: 'grid',
+        searchQuery: '',
+
+        // DATABASE TABLES (Pre-seeded mock data)
+        users: [
+          { id: 1, phone_number: '0987654321', email: 'customer@beestyle.vn', fullname: 'Nguyễn Văn An', avatar: './v1.24.0/assets/img/team/40x40/57.webp', gender: 'male', birthday: '1995-05-12', role: 'customer', status: 'active', bank_name: 'Vietcombank', user_bank_name: 'NGUYEN VAN AN', bank_account: '1012345678' },
+          { id: 2, phone_number: '0912345678', email: 'admin@beestyle.vn', fullname: 'Trần Quản Trị', avatar: './v1.24.0/assets/img/team/40x40/30.webp', gender: 'male', birthday: '1990-01-01', role: 'admin', status: 'active', bank_name: 'Techcombank', user_bank_name: 'TRAN QUAN TRI', bank_account: '19033445566' }
+        ],
+
+        user_addresses: [
+          { id: 1, user_id: 1, fullname: 'Nguyễn Văn An', phone_number: '0987654321', address: 'Số 88 Cầu Giấy, Phường Quan Hoa, Quận Cầu Giấy, Hà Nội', id_default: 1 },
+          { id: 2, user_id: 1, fullname: 'Nguyễn Văn An (Văn phòng)', phone_number: '0987654321', address: 'Tòa Landmark 81, 720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP. Hồ Chí Minh', id_default: 0 }
+        ],
+
+        categories: [
+          { id: 1, parent_id: null, name: 'Thời Trang Nam', icon: 'fa-solid fa-shirt', is_active: 1 },
+          { id: 2, parent_id: null, name: 'Thời Trang Nữ', icon: 'fa-solid fa-person-dress', is_active: 1 },
+          { id: 3, parent_id: null, name: 'Phụ Kiện Cao Cấp', icon: 'fa-solid fa-gem', is_active: 1 },
+          { id: 4, parent_id: null, name: 'Giày & Dép Thể Thao', icon: 'fa-solid fa-shoe-prints', is_active: 1 },
+          { id: 5, parent_id: null, name: 'Đồng Hồ & Kính Mắt', icon: 'fa-solid fa-clock', is_active: 1 },
+          { id: 6, parent_id: null, name: 'Túi Xách & Balo', icon: 'fa-solid fa-bag-shopping', is_active: 1 }
+        ],
+
+        brands: [
+          { id: 1, name: 'BeeStyle Signature', logo: './v1.24.0/assets/img/brand/1.png', is_active: 1 },
+          { id: 2, name: 'Apple Lifestyle', logo: './v1.24.0/assets/img/brands/apple-2.png', is_active: 1 },
+          { id: 3, name: 'Asus ROG Fashion', logo: './v1.24.0/assets/img/brands/asus-rog.png', is_active: 1 },
+          { id: 4, name: 'Dell Premier', logo: './v1.24.0/assets/img/brands/dell.png', is_active: 1 },
+          { id: 5, name: 'Xiaomi Modern', logo: './v1.24.0/assets/img/brands/xiaomi.png', is_active: 1 },
+          { id: 6, name: 'Redragon Style', logo: './v1.24.0/assets/img/brands/redragon.png', is_active: 1 }
+        ],
+
+        attributes: [
+          { id: 1, name: 'Kích cỡ (Size)', is_variant: 1, is_active: 1 },
+          { id: 2, name: 'Màu sắc (Color)', is_variant: 1, is_active: 1 },
+          { id: 3, name: 'Chất liệu (Material)', is_variant: 0, is_active: 1 }
+        ],
+
+        attribute_values: [
+          { id: 1, attribute_id: 1, value: 'S' },
+          { id: 2, attribute_id: 1, value: 'M' },
+          { id: 3, attribute_id: 1, value: 'L' },
+          { id: 4, attribute_id: 1, value: 'XL' },
+          { id: 5, attribute_id: 1, value: 'XXL' },
+          { id: 6, attribute_id: 2, value: 'Đen (#1e293b)' },
+          { id: 7, attribute_id: 2, value: 'Trắng (#ffffff)' },
+          { id: 8, attribute_id: 2, value: 'Xanh Navy (#1e3a8a)' },
+          { id: 9, attribute_id: 2, value: 'Đỏ Ruby (#dc2626)' },
+          { id: 10, attribute_id: 3, value: 'Cotton Compact 100%' },
+          { id: 11, attribute_id: 3, value: 'Linen Tự Nhiên Ý' },
+          { id: 12, attribute_id: 3, value: 'Da Bò Thật Thuộc Cao Cấp' }
+        ],
+
+        products: [
+          {
+            id: 1,
+            brand_id: 1,
+            category_id: 1,
+            name: 'Áo Polo Nam BeeStyle Signature Kháng Khuẩn',
+            sku: 'BST-POLO-01',
+            price: 450000,
+            sale_price: 349000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 2450,
+            thumbnail: 'https://images.unsplash.com/photo-1625910513413-5bc2173663a8?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1625910513413-5bc2173663a8?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Áo polo dệt công nghệ sợi nano thoáng khí, co giãn 4 chiều, chống nhăn hoàn hảo.',
+            description: '<p>Chiếc áo polo <strong>BeeStyle Signature</strong> đại diện cho phong cách thanh lịch hiện đại. Sử dụng chất liệu Cotton Compact 100% kết hợp dệt tổ ong thoáng mát, đem lại cảm giác êm ái, thấm hút mồ hôi tối đa trong mọi hoạt động thường ngày hay công sở.</p><ul><li>Chất liệu: 95% Cotton Compact, 5% Spandex co giãn</li><li>Bo cổ dệt jacquard cao cấp, không bai dão sau 100 lần giặt</li><li>Khuy áo khắc laser logo BeeStyle tinh xảo</li></ul>',
+            specs: { 'Chất liệu': 'Cotton Compact 100%', 'Xuất xứ': 'Việt Nam', 'Form dáng': 'Regular Fit', 'Độ co giãn': '4 Chiều' },
+            stock: 45,
+            rating: 4.9,
+            review_count: 38
+          },
+          {
+            id: 2,
+            brand_id: 1,
+            category_id: 1,
+            name: 'Áo Sơ Mi Nam Oxford Trắng Dài Tay Công Sở',
+            sku: 'BST-SHIRT-02',
+            price: 590000,
+            sale_price: 490000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 1820,
+            thumbnail: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1620012253295-c15c429fccf8?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Vải Oxford cao cấp dày dặn, form chuẩn tôn dáng, dễ ủi và bền màu.',
+            description: '<p>Áo sơ mi Oxford BeeStyle là lựa chọn kinh điển cho các quý ông lịch lãm. Thiết kế cổ bẻ cúc giữ phom đứng, đường may cuộn mép tỉ mỉ chuẩn xuất khẩu.</p>',
+            specs: { 'Chất liệu': '100% Oxford Cotton', 'Xuất xứ': 'Việt Nam', 'Form dáng': 'Slim Fit', 'Màu sắc': 'Trắng Tinh Khôi' },
+            stock: 30,
+            rating: 4.8,
+            review_count: 22
+          },
+          {
+            id: 3,
+            brand_id: 1,
+            category_id: 2,
+            name: 'Đầm Nữ Thiết Kế Xòe Dáng Dài Thanh Lịch',
+            sku: 'BST-DRESS-03',
+            price: 850000,
+            sale_price: 680000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 3100,
+            thumbnail: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Váy đầm tôn dáng nữ tính, chất vải Linen thoáng mát, phù hợp dự tiệc và dạo phố.',
+            description: '<p>Thiết kế tinh tế với phần eo chiết nhẹ nhàng và tà xòe bồng bềnh, giúp tôn vinh vẻ đẹp kiêu sa của phái đẹp trong mọi sự kiện.</p>',
+            specs: { 'Chất liệu': 'Linen Cao Cấp', 'Xuất xứ': 'Việt Nam', 'Chiều dài': 'Qua gối', 'Họa tiết': 'Trơn Màu' },
+            stock: 18,
+            rating: 5.0,
+            review_count: 45
+          },
+          {
+            id: 4,
+            brand_id: 2,
+            category_id: 4,
+            name: 'Giày Sneaker Thể Thao Pro Runner Siêu Nhẹ',
+            sku: 'BST-SHOE-04',
+            price: 1290000,
+            sale_price: 990000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 4500,
+            thumbnail: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Đế đệm khí phản hồi lực êm ái, upper dệt flyknit thoáng khí cực đại.',
+            description: '<p>Đôi giày chạy bộ đa năng Pro Runner sẵn sàng đồng hành cùng bạn trên mọi cung đường tập luyện lẫn dạo phố năng động hàng ngày.</p>',
+            specs: { 'Chất liệu thân': 'Flyknit Mesh', 'Chất liệu đế': 'EVA Foam + Cao su chống trượt', 'Trọng lượng': '230g/chiếc' },
+            stock: 25,
+            rating: 4.7,
+            review_count: 56
+          },
+          {
+            id: 5,
+            brand_id: 3,
+            category_id: 3,
+            name: 'Ví Da Nam Cầm Tay Da Bò Sáp Thật BeeStyle',
+            sku: 'BST-WALLET-05',
+            price: 550000,
+            sale_price: 420000,
+            is_sale: 0,
+            is_active: 1,
+            type: 'variant',
+            views: 1240,
+            thumbnail: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Da bò thuộc nguyên tấm 100%, vân da tự nhiên, nhiều ngăn đựng thẻ và tiền tiện dụng.',
+            description: '<p>Chiếc ví da nam dáng gập thanh mảnh nhưng chứa đựng sức chứa thông minh, bền bỉ theo năm tháng càng dùng da càng bóng đẹp.</p>',
+            specs: { 'Chất liệu': '100% Da bò thật', 'Kích thước': '11.5 x 9.5 cm', 'Số ngăn': '8 ngăn thẻ + 2 ngăn tiền' },
+            stock: 60,
+            rating: 4.9,
+            review_count: 19
+          },
+          {
+            id: 6,
+            brand_id: 4,
+            category_id: 6,
+            name: 'Balo Laptop Chống Nước Đa Năng 15.6 inch',
+            sku: 'BST-BAG-06',
+            price: 790000,
+            sale_price: 590000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 2890,
+            thumbnail: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1577733966973-d680bffd2e80?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Chất liệu vải Oxford chống thấm nước, có ngăn chống sốc laptop chuyên dụng và cổng sạc USB.',
+            description: '<p>Balo phong cách hiện đại cho dân văn phòng và sinh viên, đệm lưng 3D êm ái chống gù lưng hiệu quả.</p>',
+            specs: { 'Chất liệu': 'Vải Oxford 900D', 'Kích thước': '45 x 30 x 15 cm', 'Trọng lượng': '650g' },
+            stock: 35,
+            rating: 4.8,
+            review_count: 31
+          },
+          {
+            id: 7,
+            brand_id: 5,
+            category_id: 5,
+            name: 'Đồng Hồ Nam Dây Da Khung Viền Thép Sapphire',
+            sku: 'BST-WATCH-07',
+            price: 2490000,
+            sale_price: 1990000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 5200,
+            thumbnail: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Mặt kính Sapphire chống xước hoàn hảo, chống nước 5ATM, máy Quartz Nhật Bản chính xác.',
+            description: '<p>Vẻ đẹp vượt thời gian với thiết kế mặt số tối giản và dây da bò dập vân sang trọng, khẳng định vị thế quý ông.</p>',
+            specs: { 'Mặt kính': 'Sapphire Crystal', 'Đường kính mặt': '40mm', 'Chống nước': '50M (5ATM)' },
+            stock: 12,
+            rating: 5.0,
+            review_count: 42
+          },
+          {
+            id: 8,
+            brand_id: 6,
+            category_id: 3,
+            name: 'Kính Mát Unisex Phân Cực Chống Tia UV400',
+            sku: 'BST-GLASS-08',
+            price: 620000,
+            sale_price: 450000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 1950,
+            thumbnail: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Tròng kính Polarized chống lóa mắt khi đi nắng, gọng hợp kim titan siêu nhẹ.',
+            description: '<p>Bảo vệ đôi mắt tối đa trước tác hại của tia cực tím đồng thời mang lại diện mạo thời trang cực chất cho cả nam và nữ.</p>',
+            specs: { 'Chất liệu tròng': 'Polarized UV400', 'Chất liệu gọng': 'Titanium Alloy', 'Bảo hành': '12 tháng' },
+            stock: 40,
+            rating: 4.9,
+            review_count: 27
+          },
+          {
+            id: 9,
+            brand_id: 1,
+            category_id: 1,
+            name: 'Quần Jean Nam Slim Fit Co Giãn Cao Cấp',
+            sku: 'BST-JEAN-09',
+            price: 650000,
+            sale_price: 520000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 2100,
+            thumbnail: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1542272604-780c96856592?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Vải Denim dệt sợi bông tự nhiên co giãn êm ái, bền màu, chuẩn phom ôm gọn gàng.',
+            description: '<p>Quần jean nam BeeStyle mang phong cách bụi bặm nhưng không kém phần thanh lịch, dễ dàng phối hợp với áo thun hay sơ mi.</p>',
+            specs: { 'Chất liệu': '98% Cotton Denim, 2% Elastane', 'Form dáng': 'Slim Fit', 'Màu sắc': 'Xanh Indigo Đậm' },
+            stock: 50,
+            rating: 4.8,
+            review_count: 29
+          },
+          {
+            id: 10,
+            brand_id: 1,
+            category_id: 1,
+            name: 'Áo Khoác Gió Thể Thao 2 Lớp Chống Nước',
+            sku: 'BST-JACKET-10',
+            price: 750000,
+            sale_price: 580000,
+            is_sale: 1,
+            is_active: 1,
+            type: 'variant',
+            views: 3400,
+            thumbnail: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?w=600&auto=format&fit=crop&q=80',
+            gallery: [
+              'https://images.unsplash.com/photo-1548883354-7622d03aca27?w=600&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&auto=format&fit=crop&q=80'
+            ],
+            short_description: 'Chống cản gió và trượt nước tuyệt đối, lớp lót lưới thoáng khí giữ ấm tối ưu.',
+            description: '<p>Áo khoác gió thể thao 2 lớp siêu nhẹ, có mũ trùm đầu giấu cổ và túi có khóa kéo bảo vệ đồ đạc an toàn khi di chuyển.</p>',
+            specs: { 'Chất liệu': 'Polyester Tráng PU Chống Thấm', 'Trọng lượng': '280g', 'Tính năng': 'Chống gió, Chống nước nhẹ' },
+            stock: 35,
+            rating: 4.9,
+            review_count: 41
+          }
+        ],
+
+        product_variants: [
+          // Áo Polo (id: 1)
+          { id: 101, product_id: 1, sku: 'BST-POLO-BLK-L', price: 450000, sale_price: 349000, color: 'Đen', colorHex: '#1e293b', size: 'L', stock: 20, thumbnail: 'https://images.unsplash.com/photo-1625910513413-5bc2173663a8?w=600&auto=format&fit=crop&q=80' },
+          { id: 102, product_id: 1, sku: 'BST-POLO-WHT-L', price: 450000, sale_price: 349000, color: 'Trắng', colorHex: '#ffffff', size: 'L', stock: 15, thumbnail: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=600&auto=format&fit=crop&q=80' },
+          { id: 103, product_id: 1, sku: 'BST-POLO-NAVY-M', price: 450000, sale_price: 349000, color: 'Xanh Navy', colorHex: '#1e3a8a', size: 'M', stock: 10, thumbnail: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&auto=format&fit=crop&q=80' },
+          
+          // Áo Sơ Mi (id: 2)
+          { id: 201, product_id: 2, sku: 'BST-SHIRT-WHT-M', price: 590000, sale_price: 490000, color: 'Trắng', colorHex: '#ffffff', size: 'M', stock: 18, thumbnail: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=80' },
+          { id: 202, product_id: 2, sku: 'BST-SHIRT-WHT-L', price: 590000, sale_price: 490000, color: 'Trắng', colorHex: '#ffffff', size: 'L', stock: 12, thumbnail: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=80' },
+          { id: 203, product_id: 2, sku: 'BST-SHIRT-BLU-L', price: 590000, sale_price: 490000, color: 'Xanh Nhạt', colorHex: '#93c5fd', size: 'L', stock: 8, thumbnail: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&auto=format&fit=crop&q=80' },
+
+          // Đầm Nữ (id: 3)
+          { id: 301, product_id: 3, sku: 'BST-DRESS-RED-S', price: 850000, sale_price: 680000, color: 'Đỏ Ruby', colorHex: '#dc2626', size: 'S', stock: 8, thumbnail: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80' },
+          { id: 302, product_id: 3, sku: 'BST-DRESS-RED-M', price: 850000, sale_price: 680000, color: 'Đỏ Ruby', colorHex: '#dc2626', size: 'M', stock: 10, thumbnail: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80' },
+          { id: 303, product_id: 3, sku: 'BST-DRESS-BLK-M', price: 850000, sale_price: 680000, color: 'Đen', colorHex: '#1e293b', size: 'M', stock: 6, thumbnail: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&auto=format&fit=crop&q=80' },
+          { id: 304, product_id: 3, sku: 'BST-DRESS-WHT-S', price: 850000, sale_price: 680000, color: 'Trắng', colorHex: '#ffffff', size: 'S', stock: 7, thumbnail: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80' },
+
+          // Giày Sneaker (id: 4)
+          { id: 401, product_id: 4, sku: 'BST-SHOE-41', price: 1290000, sale_price: 990000, color: 'Đen', colorHex: '#1e293b', size: '41', stock: 14, thumbnail: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80' },
+          { id: 402, product_id: 4, sku: 'BST-SHOE-42', price: 1290000, sale_price: 990000, color: 'Trắng', colorHex: '#ffffff', size: '42', stock: 11, thumbnail: 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=600&auto=format&fit=crop&q=80' },
+
+          // Ví Da (id: 5)
+          { id: 501, product_id: 5, sku: 'BST-WALLET-BRN', price: 550000, sale_price: 420000, color: 'Nâu Vintage', colorHex: '#78350f', size: 'Tiêu chuẩn', stock: 35, thumbnail: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&auto=format&fit=crop&q=80' },
+          { id: 502, product_id: 5, sku: 'BST-WALLET-BLK', price: 550000, sale_price: 420000, color: 'Đen', colorHex: '#1e293b', size: 'Tiêu chuẩn', stock: 25, thumbnail: 'https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=600&auto=format&fit=crop&q=80' },
+
+          // Balo (id: 6)
+          { id: 601, product_id: 6, sku: 'BST-BAG-GRY', price: 790000, sale_price: 590000, color: 'Xám Đậm', colorHex: '#475569', size: '15.6 inch', stock: 20, thumbnail: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80' },
+          { id: 602, product_id: 6, sku: 'BST-BAG-BLK', price: 790000, sale_price: 590000, color: 'Đen', colorHex: '#1e293b', size: '15.6 inch', stock: 15, thumbnail: 'https://images.unsplash.com/photo-1577733966973-d680bffd2e80?w=600&auto=format&fit=crop&q=80' },
+
+          // Đồng Hồ (id: 7)
+          { id: 701, product_id: 7, sku: 'BST-WATCH-GLD', price: 2490000, sale_price: 1990000, color: 'Dây Nâu Mặt Vàng', colorHex: '#d97706', size: '40mm', stock: 8, thumbnail: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=600&auto=format&fit=crop&q=80' },
+          { id: 702, product_id: 7, sku: 'BST-WATCH-SLV', price: 2490000, sale_price: 1990000, color: 'Dây Đen Mặt Bạc', colorHex: '#1e293b', size: '40mm', stock: 4, thumbnail: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&auto=format&fit=crop&q=80' },
+
+          // Kính Mát (id: 8)
+          { id: 801, product_id: 8, sku: 'BST-GLASS-BLK', price: 620000, sale_price: 450000, color: 'Gọng Đen', colorHex: '#1e293b', size: 'Free Size', stock: 25, thumbnail: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&auto=format&fit=crop&q=80' },
+          { id: 802, product_id: 8, sku: 'BST-GLASS-GLD', price: 620000, sale_price: 450000, color: 'Gọng Vàng', colorHex: '#fbbf24', size: 'Free Size', stock: 15, thumbnail: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop&q=80' },
+
+          // Quần Jean (id: 9)
+          { id: 901, product_id: 9, sku: 'BST-JEAN-IND', price: 650000, sale_price: 520000, color: 'Xanh Indigo', colorHex: '#1e3a8a', size: '30', stock: 30, thumbnail: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80' },
+          { id: 902, product_id: 9, sku: 'BST-JEAN-LGT', price: 650000, sale_price: 520000, color: 'Xanh Nhạt', colorHex: '#60a5fa', size: '31', stock: 20, thumbnail: 'https://images.unsplash.com/photo-1542272604-780c96856592?w=600&auto=format&fit=crop&q=80' },
+
+          // Áo Khoác (id: 10)
+          { id: 1001, product_id: 10, sku: 'BST-JACKET-GRN', price: 750000, sale_price: 580000, color: 'Xanh Rêu', colorHex: '#3f6212', size: 'L', stock: 20, thumbnail: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?w=600&auto=format&fit=crop&q=80' },
+          { id: 1002, product_id: 10, sku: 'BST-JACKET-BLK', price: 750000, sale_price: 580000, color: 'Đen Phối Ghi', colorHex: '#1e293b', size: 'XL', stock: 15, thumbnail: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&auto=format&fit=crop&q=80' }
+        ],
+
+        coupons: [
+          { id: 1, code: 'BEESTYLE50', title: 'Giảm 50.000đ', description: 'Cho đơn hàng thời trang từ 299k', discount_type: 'fix_amount', discount_value: 50000, min_order: 299000, max_discount: 50000, usage_limit: 500, usage_count: 142, is_active: 1 },
+          { id: 2, code: 'SUMMER15', title: 'Giảm 15% Toàn Sàn', description: 'Giảm 15% tối đa 150.000đ cho mọi đơn từ 500k', discount_type: 'percent', discount_value: 15, min_order: 500000, max_discount: 150000, usage_limit: 200, usage_count: 85, is_active: 1 },
+          { id: 3, code: 'FREESHIP', title: 'Miễn Phí Vận Chuyển', description: 'Giảm 30.000đ phí giao hàng toàn quốc', discount_type: 'fix_amount', discount_value: 30000, min_order: 299000, max_discount: 30000, usage_limit: 1000, usage_count: 420, is_active: 1 },
+          { id: 4, code: 'VIPMEMBER', title: 'Ưu Đãi VIP 20%', description: 'Dành riêng cho khách hàng thân thiết BeeStyle', discount_type: 'percent', discount_value: 20, min_order: 1000000, max_discount: 300000, usage_limit: 100, usage_count: 32, is_active: 1 }
+        ],
+
+        payments: [
+          { id: 1, name: 'Thanh toán khi nhận hàng (COD)', logo: 'fa-solid fa-money-bill-wave text-success', description: 'Kiểm tra hàng trước khi thanh toán tiền mặt cho shipper' },
+          { id: 2, name: 'Thanh toán qua VNPAY-QR', logo: 'fa-solid fa-qrcode text-primary', description: 'Quét mã QR qua ứng dụng ngân hàng hoặc ví VNPAY' },
+          { id: 3, name: 'Ví Điện Tử MoMo', logo: 'fa-solid fa-wallet text-danger', description: 'Thanh toán siêu tốc qua ứng dụng MoMo' },
+          { id: 4, name: 'Chuyển Khoản Ngân Hàng 24/7 (VietQR)', logo: 'fa-solid fa-building-columns text-info', description: 'Chuyển khoản tự động duyệt trong 30 giây' }
+        ],
+
+        cart_items: [
+          { id: 1, user_id: 1, product_id: 1, product_variant_id: 101, quantity: 2 },
+          { id: 2, user_id: 1, product_id: 4, product_variant_id: 401, quantity: 1 }
+        ],
+
+        wishlist_items: [2, 7],
+
+        orders: [
+          {
+            id: 1,
+            code: 'BST-982314',
+            user_id: 1,
+            payment_id: 2,
+            phone_number: '0987654321',
+            email: 'customer@beestyle.vn',
+            fullname: 'Nguyễn Văn An',
+            address: 'Số 88 Cầu Giấy, Phường Quan Hoa, Quận Cầu Giấy, Hà Nội',
+            note: 'Giao hàng giờ hành chính',
+            total_amount: 1688000,
+            is_paid: 1,
+            status_id: 3, // shipping
+            status_name: 'shipping',
+            created_at: '2026-08-15 10:30:00',
+            items: [
+              { product_id: 1, name: 'Áo Polo Nam BeeStyle Signature Kháng Khuẩn', variant_name: 'Màu Đen / Size L', price: 349000, quantity: 2, thumbnail: 'https://images.unsplash.com/photo-1625910513413-5bc2173663a8?w=600&auto=format&fit=crop&q=80' },
+              { product_id: 4, name: 'Giày Sneaker Thể Thao Pro Runner Siêu Nhẹ', variant_name: 'Màu Đen / Size 41', price: 990000, quantity: 1, thumbnail: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80' }
+            ]
+          },
+          {
+            id: 2,
+            code: 'BST-773412',
+            user_id: 1,
+            payment_id: 1,
+            phone_number: '0987654321',
+            email: 'customer@beestyle.vn',
+            fullname: 'Nguyễn Văn An',
+            address: 'Số 88 Cầu Giấy, Phường Quan Hoa, Quận Cầu Giấy, Hà Nội',
+            note: 'Gọi trước khi giao',
+            total_amount: 520000,
+            is_paid: 1,
+            status_id: 5, // completed
+            status_name: 'completed',
+            created_at: '2026-08-10 14:20:00',
+            items: [
+              { product_id: 2, name: 'Áo Sơ Mi Nam Oxford Trắng Dài Tay Công Sở', variant_name: 'Màu Trắng / Size L', price: 490000, quantity: 1, thumbnail: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=80' }
+            ]
+          }
+        ],
+
+        order_order_status: [
+          { order_id: 1, order_status_id: 1, status_name: 'Đã Đặt Hàng', note: 'Đơn hàng đã được tiếp nhận trên hệ thống BeeStyle.', created_at: '15/08 10:30' },
+          { order_id: 1, order_status_id: 2, status_name: 'Đã Đóng Gói', note: 'Nhân viên kho đã kiểm tra chất lượng và xuất kho đóng gói.', created_at: '15/08 14:15' },
+          { order_id: 1, order_status_id: 3, status_name: 'Đang Giao Hàng', note: 'Shipper ViettelPost (Lê Văn B - 0911223344) đang giao tới địa chỉ của bạn.', created_at: '16/08 08:00' },
+          { order_id: 2, order_status_id: 5, status_name: 'Giao Thành Công', note: 'Khách hàng đã nhận đủ sản phẩm và ký nhận thành công.', created_at: '12/08 11:30' }
+        ],
+
+        reviews: [
+          { id: 1, product_id: 1, order_id: 1, user_id: 1, user_name: 'Nguyễn Văn An', rating: 5, review_text: 'Áo mặc cực kỳ êm ái, form áo rất chuẩn và đứng dáng. Vải giặt máy không bị nhăn hay dão cổ. Sẽ ủng hộ shop thêm nhiều lần nữa!', created_at: '2 ngày trước' },
+          { id: 2, product_id: 1, order_id: 2, user_id: 2, user_name: 'Hoàng Minh Quân', rating: 5, review_text: 'Giao hàng hỏa tốc trong 2h thật sự ấn tượng. Chất vải mát và sờ rất mịn tay.', created_at: '1 tuần trước' }
+        ],
+
+        comments: [
+          { id: 1, product_id: 1, user_id: 1, user_name: 'Trần Tuấn Anh', content: 'Mình cao 1m75 nặng 68kg thì nên mặc size L hay XL shop ơi?', created_at: 'Hôm qua', reply: 'Chào bạn, với số đo 1m75 - 68kg bạn mặc size L là vừa vặn chuẩn form đẹp nhất bạn nhé!' }
+        ],
+
+        refunds: [
+          {
+            id: 1,
+            code: 'RF-20260810-01',
+            order_id: 2,
+            order_code: 'BST-773412',
+            user_id: 1,
+            total_amount: 490000,
+            bank_name: 'Vietcombank',
+            bank_account: '1012345678',
+            user_bank_name: 'NGUYEN VAN AN',
+            reason: 'Khách mặc hơi rộng vai muốn đổi sang size M hoặc hoàn tiền',
+            status: 'receiving', // pending, receiving, completed, rejected
+            status_text: 'Đang Thẩm Định Sản Phẩm Hoàn',
+            created_at: '13/08/2026'
+          }
+        ]
+      },
+
+      // 2. Initialize App
+      init: function() {
+        this.loadLocalStorage();
+        this.renderCategoriesNav();
+        this.renderHome();
+        this.renderShop();
+        this.updateCartBadges();
+        this.updateWishlistBadges();
+        this.renderProfile();
+        this.renderAllOrdersTable();
+        this.renderRefundsGrid();
+        this.initFlashSaleTimer();
+
+        // Handle URL Hash Navigation
+        window.addEventListener('hashchange', () => {
+          const hash = window.location.hash.replace('#', '');
+          if (hash && document.getElementById(`view-${hash}`)) {
+            this.navigateTo(`view-${hash}`);
+          }
+        });
+      },
+
+      // 3. LocalStorage persistence
+      loadLocalStorage: function() {
+        const savedVersion = localStorage.getItem('beestyle_v');
+        if (savedVersion !== '2.0') {
+          localStorage.removeItem('beestyle_cart');
+          localStorage.removeItem('beestyle_orders');
+          localStorage.setItem('beestyle_v', '2.0');
+        }
+
+        const savedCart = localStorage.getItem('beestyle_cart');
+        if (savedCart) {
+          try { this.state.cart_items = JSON.parse(savedCart); } catch(e) {}
+        }
+        const savedWishlist = localStorage.getItem('beestyle_wishlist');
+        if (savedWishlist) {
+          try { this.state.wishlist_items = JSON.parse(savedWishlist); } catch(e) {}
+        }
+        const savedOrders = localStorage.getItem('beestyle_orders');
+        if (savedOrders) {
+          try { this.state.orders = JSON.parse(savedOrders); } catch(e) {}
+        }
+        const savedAddresses = localStorage.getItem('beestyle_addresses');
+        if (savedAddresses) {
+          try { this.state.user_addresses = JSON.parse(savedAddresses); } catch(e) {}
+        }
+        const savedRefunds = localStorage.getItem('beestyle_refunds');
+        if (savedRefunds) {
+          try { this.state.refunds = JSON.parse(savedRefunds); } catch(e) {}
+        }
+      },
+
+      saveLocalStorage: function() {
+        localStorage.setItem('beestyle_cart', JSON.stringify(this.state.cart_items));
+        localStorage.setItem('beestyle_wishlist', JSON.stringify(this.state.wishlist_items));
+        localStorage.setItem('beestyle_orders', JSON.stringify(this.state.orders));
+        localStorage.setItem('beestyle_addresses', JSON.stringify(this.state.user_addresses));
+        localStorage.setItem('beestyle_refunds', JSON.stringify(this.state.refunds));
+      },
+
+      // 4. View Switcher
+      navigateTo: function(viewId, params = {}) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        const targetView = document.getElementById(viewId);
+        if (targetView) {
+          targetView.classList.add('active');
+          this.state.activeView = viewId;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+          if (viewId === 'view-shop') {
+            if (params.categoryId) this.state.filterCategory = params.categoryId;
+            if (params.filter === 'sale') this.state.filterInStockOnly = false;
+            this.applyShopFilters();
+          } else if (viewId === 'view-cart') {
+            this.renderCartPage();
+          } else if (viewId === 'view-checkout') {
+            this.renderCheckoutPage();
+          } else if (viewId === 'view-order-tracking') {
+            this.renderOrderTracking(params.orderCode || 'BST-982314');
+          } else if (viewId === 'view-refunds') {
+            this.renderRefundsGrid();
+          } else if (viewId === 'view-wishlist') {
+            this.renderWishlistPage();
+          }
+        }
+      },
+
+      // Helper Formatters
+      formatMoney: function(num) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
+      },
+
+      showToast: function(msg, type = 'success') {
+        const id = 'toast_' + Date.now();
+        const icon = type === 'success' ? 'fa-circle-check text-success' : 'fa-circle-exclamation text-danger';
+        const html = `
+          <div id="${id}" class="toast align-items-center text-bg-dark border-0 shadow-lg show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+              <div class="toast-body d-flex align-items-center gap-2 fs-9">
+                <i class="fa-solid ${icon} fs-7"></i>
+                <span>${msg}</span>
+              </div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+          </div>
+        `;
+        const container = document.getElementById('toastContainer');
+        if (container) {
+          container.insertAdjacentHTML('beforeend', html);
+          setTimeout(() => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+          }, 3500);
+        }
+      },
+
+      copyCoupon: function(code) {
+        navigator.clipboard.writeText(code);
+        this.showToast(`Đã sao chép mã ưu đãi: <strong>${code}</strong>! Dùng ngay tại Giỏ Hàng.`);
+      },
+
+      // 5. Render Header Navigation from Categories
+      renderCategoriesNav: function() {
+        const dropdown = document.getElementById('headerCategoryDropdown');
+        if (!dropdown) return;
+        dropdown.innerHTML = this.state.categories.map(c => `
+          <li>
+            <a class="dropdown-item py-2 fs-9 cursor-pointer d-flex align-items-center gap-2" onclick="BeeApp.navigateTo('view-shop', { categoryId: ${c.id} })">
+              <i class="${c.icon} text-primary" style="width: 20px;"></i>
+              <span>${c.name}</span>
+            </a>
+          </li>
+        `).join('');
+      },
+
+      // 6. Home View Renderer
+      renderHome: function() {
+        // Render Categories
+        const catGrid = document.getElementById('homeCategoriesGrid');
+        if (catGrid) {
+          catGrid.innerHTML = this.state.categories.map(c => {
+            const count = this.state.products.filter(p => p.category_id === c.id).length;
+            return `
+              <div class="col-6 col-md-4 col-lg-2">
+                <div class="card border-0 shadow-sm rounded-4 p-3 text-center bg-body-emphasis h-100 cursor-pointer product-card" onclick="BeeApp.navigateTo('view-shop', { categoryId: ${c.id} })">
+                  <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 52px; height: 52px;">
+                    <i class="${c.icon} fs-6"></i>
+                  </div>
+                  <h6 class="fw-bold fs-9 mb-1 text-body-emphasis text-truncate">${c.name}</h6>
+                  <span class="text-body-tertiary fs-11">${count} Sản phẩm</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Render Flash Sale Products
+        const flashGrid = document.getElementById('homeFlashSaleGrid');
+        if (flashGrid) {
+          const saleProducts = this.state.products.filter(p => p.is_sale).slice(0, 4);
+          flashGrid.innerHTML = saleProducts.map(p => this.renderProductCardHtml(p)).join('');
+        }
+
+        // Render Home Tab Products
+        this.filterHomeTab('popular');
+
+        // Render Partner Brands
+        const brandGrid = document.getElementById('homeBrandsGrid');
+        if (brandGrid) {
+          brandGrid.innerHTML = this.state.brands.map(b => `
+            <div class="opacity-75 hover-opacity-100 cursor-pointer text-center p-2" onclick="BeeApp.navigateTo('view-shop', { brandId: ${b.id} })">
+              <span class="fw-bold fs-8 text-body-emphasis border border-2 border-primary-subtle px-3 py-2 rounded-3 bg-body-tertiary"><i class="fa-solid fa-cube text-warning me-1"></i> ${b.name}</span>
+            </div>
+          `).join('');
+        }
+      },
+
+      filterHomeTab: function(type) {
+        const grid = document.getElementById('homeProductsGrid');
+        if (!grid) return;
+        let list = [...this.state.products];
+        if (type === 'new') {
+          list.reverse();
+        } else if (type === 'views') {
+          list.sort((a, b) => b.views - a.views);
+        }
+        grid.innerHTML = list.slice(0, 8).map(p => this.renderProductCardHtml(p)).join('');
+      },
+
+      initFlashSaleTimer: function() {
+        let sec = 19, min = 42, hr = 8;
+        setInterval(() => {
+          sec--;
+          if (sec < 0) { sec = 59; min--; }
+          if (min < 0) { min = 59; hr--; }
+          if (hr < 0) { hr = 24; }
+          const elS = document.getElementById('timerSeconds');
+          const elM = document.getElementById('timerMinutes');
+          const elH = document.getElementById('timerHours');
+          if (elS) elS.innerText = sec < 10 ? '0' + sec : sec;
+          if (elM) elM.innerText = min < 10 ? '0' + min : min;
+          if (elH) elH.innerText = hr < 10 ? '0' + hr : hr;
+        }, 1000);
+      },
+
+      // 7. Product Card HTML Generator
+      renderProductCardHtml: function(p) {
+        const discountPercent = p.is_sale && p.sale_price ? Math.round(((p.price - p.sale_price) / p.price) * 100) : 0;
+        const brand = this.state.brands.find(b => b.id === p.brand_id)?.name || 'BeeStyle';
+        const isWish = this.state.wishlist_items.includes(p.id);
+
+        return `
+          <div class="col-6 col-md-4 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm product-card bg-body-emphasis p-2">
+              <div class="product-thumb-wrapper cursor-pointer" onclick="BeeApp.openProductDetail(${p.id})">
+                ${discountPercent > 0 ? `<span class="badge-sale">-${discountPercent}%</span>` : ''}
+                <span class="badge-stock badge bg-success-subtle text-success border border-success-subtle fs-11">Còn ${p.stock}</span>
+                <img src="${p.thumbnail}" alt="${p.name}" loading="lazy">
+                <div class="product-action-overlay">
+                  <button class="btn btn-sm btn-light rounded-circle shadow" title="Xem nhanh" onclick="event.stopPropagation(); BeeApp.openQuickView(${p.id})">
+                    <i class="fa-solid fa-eye text-primary"></i>
+                  </button>
+                  <button class="btn btn-sm btn-light rounded-circle shadow" title="Yêu thích" onclick="event.stopPropagation(); BeeApp.toggleWishlist(${p.id})">
+                    <i class="${isWish ? 'fa-solid text-danger' : 'fa-regular'} fa-heart"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="card-body p-2 d-flex flex-column justify-content-between">
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <small class="text-body-tertiary fs-11">${brand}</small>
+                    <span class="text-warning fs-11"><i class="fa-solid fa-star"></i> ${p.rating}</span>
+                  </div>
+                  <h6 class="fw-bold fs-9 text-body-emphasis mb-2 text-truncate cursor-pointer" onclick="BeeApp.openProductDetail(${p.id})">${p.name}</h6>
+                </div>
+                <div>
+                  <div class="d-flex align-items-baseline gap-2 mb-2">
+                    <span class="fw-bold text-danger fs-9">${this.formatMoney(p.is_sale ? p.sale_price : p.price)}</span>
+                    ${p.is_sale ? `<span class="text-decoration-line-through text-body-tertiary fs-11">${this.formatMoney(p.price)}</span>` : ''}
+                  </div>
+                  <button class="btn btn-outline-primary btn-sm w-100 rounded-pill fs-10 fw-bold" onclick="BeeApp.quickAddToCart(${p.id})">
+                    <i class="fa-solid fa-cart-plus me-1"></i> Thêm Giỏ Hàng
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+      // 8. Shop / Catalog Functions & Filters
+      renderShop: function() {
+        // Render Categories filter
+        const catFilter = document.getElementById('shopCategoryFilterList');
+        if (catFilter) {
+          catFilter.innerHTML = `
+            <div class="form-check fs-9">
+              <input class="form-check-input" type="radio" name="shopCatRadio" id="catAll" ${!this.state.filterCategory ? 'checked' : ''} onchange="BeeApp.setCategoryFilter(null)">
+              <label class="form-check-label cursor-pointer" for="catAll">Tất Cả Danh Mục</label>
+            </div>
+          ` + this.state.categories.map(c => `
+            <div class="form-check fs-9">
+              <input class="form-check-input" type="radio" name="shopCatRadio" id="cat_${c.id}" ${this.state.filterCategory === c.id ? 'checked' : ''} onchange="BeeApp.setCategoryFilter(${c.id})">
+              <label class="form-check-label cursor-pointer" for="cat_${c.id}">${c.name}</label>
+            </div>
+          `).join('');
+        }
+
+        // Render Brands filter
+        const brandFilter = document.getElementById('shopBrandFilterList');
+        if (brandFilter) {
+          brandFilter.innerHTML = this.state.brands.map(b => `
+            <div class="form-check fs-9">
+              <input class="form-check-input" type="checkbox" id="brand_${b.id}" onchange="BeeApp.setBrandFilter(${b.id}, this.checked)">
+              <label class="form-check-label cursor-pointer" for="brand_${b.id}">${b.name}</label>
+            </div>
+          `).join('');
+        }
+
+        // Render Size filter
+        const sizeFilter = document.getElementById('shopSizeFilterList');
+        if (sizeFilter) {
+          const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+          sizeFilter.innerHTML = sizes.map(s => `
+            <span class="size-badge ${this.state.filterSize === s ? 'active' : ''}" onclick="BeeApp.setSizeFilter('${s}')">${s}</span>
+          `).join('');
+        }
+
+        // Render Color filter
+        const colorFilter = document.getElementById('shopColorFilterList');
+        if (colorFilter) {
+          const colors = [
+            { name: 'Đen', hex: '#1e293b' },
+            { name: 'Trắng', hex: '#ffffff' },
+            { name: 'Xanh Navy', hex: '#1e3a8a' },
+            { name: 'Đỏ', hex: '#dc2626' }
+          ];
+          colorFilter.innerHTML = colors.map(c => `
+            <span class="color-swatch ${this.state.filterColor === c.name ? 'active' : ''}" style="background-color: ${c.hex}; ${c.hex === '#ffffff' ? 'border: 1px solid #cbd5e1' : ''}" title="${c.name}" onclick="BeeApp.setColorFilter('${c.name}')"></span>
+          `).join('');
+        }
+
+        this.applyShopFilters();
+      },
+
+      setCategoryFilter: function(catId) {
+        this.state.filterCategory = catId;
+        this.applyShopFilters();
+      },
+
+      setBrandFilter: function(brandId, isChecked) {
+        this.state.filterBrand = isChecked ? brandId : null;
+        this.applyShopFilters();
+      },
+
+      setSizeFilter: function(size) {
+        this.state.filterSize = this.state.filterSize === size ? null : size;
+        this.renderShop();
+      },
+
+      setColorFilter: function(color) {
+        this.state.filterColor = this.state.filterColor === color ? null : color;
+        this.renderShop();
+      },
+
+      handlePriceFilter: function(val) {
+        this.state.filterMaxPrice = Number(val);
+        document.getElementById('shopPriceFilterLabel').innerText = this.formatMoney(val);
+        this.applyShopFilters();
+      },
+
+      resetFilters: function() {
+        this.state.filterCategory = null;
+        this.state.filterBrand = null;
+        this.state.filterMaxPrice = 3000000;
+        this.state.filterSize = null;
+        this.state.filterColor = null;
+        this.state.filterInStockOnly = false;
+        document.getElementById('shopPriceRange').value = 3000000;
+        document.getElementById('shopPriceFilterLabel').innerText = 'Tất cả';
+        document.getElementById('shopInStockOnly').checked = false;
+        this.renderShop();
+      },
+
+      applyShopFilters: function() {
+        let results = [...this.state.products];
+
+        if (this.state.filterCategory) {
+          results = results.filter(p => p.category_id === this.state.filterCategory);
+        }
+        if (this.state.filterBrand) {
+          results = results.filter(p => p.brand_id === this.state.filterBrand);
+        }
+        if (this.state.filterMaxPrice < 3000000) {
+          results = results.filter(p => (p.is_sale ? p.sale_price : p.price) <= this.state.filterMaxPrice);
+        }
+        const inStockChecked = document.getElementById('shopInStockOnly')?.checked;
+        if (inStockChecked) {
+          results = results.filter(p => p.stock > 0);
+        }
+
+        // Sorting
+        const sortVal = document.getElementById('shopSortSelect')?.value || 'default';
+        if (sortVal === 'price_asc') {
+          results.sort((a, b) => (a.is_sale ? a.sale_price : a.price) - (b.is_sale ? b.sale_price : b.price));
+        } else if (sortVal === 'price_desc') {
+          results.sort((a, b) => (b.is_sale ? b.sale_price : b.price) - (a.is_sale ? a.sale_price : a.price));
+        } else if (sortVal === 'views') {
+          results.sort((a, b) => b.views - a.views);
+        } else if (sortVal === 'rating') {
+          results.sort((a, b) => b.rating - a.rating);
+        }
+
+        const countEl = document.getElementById('shopResultsCount');
+        if (countEl) countEl.innerText = results.length;
+
+        const grid = document.getElementById('shopProductsGrid');
+        if (grid) {
+          if (results.length === 0) {
+            grid.innerHTML = `
+              <div class="col-12 text-center py-5">
+                <i class="fa-solid fa-box-open text-body-tertiary mb-3" style="font-size: 48px;"></i>
+                <h6 class="fw-bold">Không tìm thấy sản phẩm phù hợp</h6>
+                <p class="text-body-tertiary fs-9">Hãy thử thay đổi tiêu chí lọc hoặc tìm kiếm từ khóa khác.</p>
+                <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="BeeApp.resetFilters()">Đặt lại bộ lọc</button>
+              </div>
+            `;
+          } else {
+            grid.innerHTML = results.map(p => this.renderProductCardHtml(p)).join('');
+          }
+        }
+      },
+
+      toggleShopLayout: function(mode) {
+        this.state.shopLayout = mode;
+        document.getElementById('btnGridView').classList.toggle('active', mode === 'grid');
+        document.getElementById('btnListView').classList.toggle('active', mode === 'list');
+        this.applyShopFilters();
+      },
+
+      // 9. Product Detail View & Variant Selector
+      openProductDetail: function(productId) {
+        const product = this.state.products.find(p => p.id === productId);
+        if (!product) return;
+        this.state.selectedProduct = product;
+        
+        // Find default variant
+        const variants = this.state.product_variants.filter(v => v.product_id === product.id);
+        this.state.selectedVariant = variants.length > 0 ? variants[0] : null;
+
+        // Set Details
+        document.getElementById('detailBreadcrumbTitle').innerText = product.name;
+        document.getElementById('detailTitle').innerText = product.name;
+        document.getElementById('detailSku').innerText = this.state.selectedVariant ? this.state.selectedVariant.sku : product.sku;
+        document.getElementById('detailViews').innerText = product.views.toLocaleString();
+        document.getElementById('detailShortDesc').innerText = product.short_description;
+        document.getElementById('detailFullDescription').innerHTML = product.description;
+        document.getElementById('detailMainImage').src = this.state.selectedVariant ? this.state.selectedVariant.thumbnail : product.thumbnail;
+        
+        // Brand & Rating
+        const brand = this.state.brands.find(b => b.id === product.brand_id)?.name || 'BeeStyle';
+        document.getElementById('detailBrandName').innerText = brand;
+        document.getElementById('detailReviewCount').innerText = product.review_count;
+        document.getElementById('detailTabReviewCount').innerText = product.review_count;
+        document.getElementById('detailAvgRating').innerText = product.rating;
+        document.getElementById('detailTotalReviews').innerText = product.review_count;
+
+        // Price setup
+        this.updateDetailPriceAndStock();
+
+        // Thumbnails row
+        const thumbRow = document.getElementById('detailThumbnailsRow');
+        const thumbs = product.gallery && product.gallery.length > 0 
+          ? product.gallery 
+          : (variants.length > 0 ? [...new Set([product.thumbnail, ...variants.map(v => v.thumbnail)])] : [product.thumbnail]);
+        
+        thumbRow.innerHTML = thumbs.map((img, idx) => `
+          <div class="border rounded-3 p-1 cursor-pointer bg-body-emphasis ${idx === 0 ? 'border-primary' : ''}" style="width: 60px; height: 60px;" onclick="BeeApp.switchDetailThumb(this, '${img}')">
+            <img src="${img}" class="img-fluid h-100 w-100 object-fit-cover rounded">
+          </div>
+        `).join('');
+
+        // Variants render
+        this.renderDetailVariants(variants);
+
+        // Specs table
+        const specsTbody = document.getElementById('detailSpecsTableBody');
+        specsTbody.innerHTML = Object.entries(product.specs || {}).map(([k, v]) => `
+          <tr>
+            <th class="bg-body-secondary" style="width: 35%;">${k}</th>
+            <td>${v}</td>
+          </tr>
+        `).join('');
+
+        // Reviews & Comments
+        this.renderDetailReviews(product.id);
+        this.renderDetailComments(product.id);
+
+        // Related products
+        const relatedGrid = document.getElementById('detailRelatedProductsGrid');
+        const related = this.state.products.filter(p => p.category_id === product.category_id && p.id !== product.id).slice(0, 4);
+        relatedGrid.innerHTML = related.map(p => this.renderProductCardHtml(p)).join('');
+
+        this.navigateTo('view-product-detail');
+      },
+
+      switchDetailThumb: function(el, imgSrc) {
+        document.getElementById('detailMainImage').src = imgSrc;
+        document.querySelectorAll('#detailThumbnailsRow > div').forEach(d => d.classList.remove('border-primary'));
+        el.classList.add('border-primary');
+      },
+
+      renderDetailVariants: function(variants) {
+        const colorSection = document.getElementById('detailColorSection');
+        const sizeSection = document.getElementById('detailSizeSection');
+
+        if (variants.length === 0) {
+          colorSection.classList.add('d-none');
+          sizeSection.classList.add('d-none');
+          return;
+        }
+
+        colorSection.classList.remove('d-none');
+        sizeSection.classList.remove('d-none');
+
+        // Extract unique colors and sizes
+        const colors = [...new Set(variants.map(v => JSON.stringify({ name: v.color, hex: v.colorHex })))].map(s => JSON.parse(s));
+        const sizes = [...new Set(variants.map(v => v.size))];
+
+        const swatches = document.getElementById('detailColorSwatches');
+        swatches.innerHTML = colors.map(c => `
+          <span class="color-swatch ${this.state.selectedVariant?.color === c.name ? 'active' : ''}" style="background-color: ${c.hex}; ${c.hex === '#ffffff' ? 'border: 1px solid #cbd5e1' : ''}" onclick="BeeApp.selectDetailColor('${c.name}')"></span>
+        `).join('');
+
+        const badges = document.getElementById('detailSizeBadges');
+        badges.innerHTML = sizes.map(s => `
+          <span class="size-badge ${this.state.selectedVariant?.size === s ? 'active' : ''}" onclick="BeeApp.selectDetailSize('${s}')">${s}</span>
+        `).join('');
+
+        document.getElementById('detailSelectedColorName').innerText = this.state.selectedVariant ? this.state.selectedVariant.color : '';
+        document.getElementById('detailSelectedSizeName').innerText = this.state.selectedVariant ? this.state.selectedVariant.size : '';
+      },
+
+      selectDetailColor: function(colorName) {
+        const variant = this.state.product_variants.find(v => v.product_id === this.state.selectedProduct.id && v.color === colorName);
+        if (variant) {
+          this.state.selectedVariant = variant;
+          document.getElementById('detailMainImage').src = variant.thumbnail;
+          
+          // Match and highlight active thumbnail if present
+          document.querySelectorAll('#detailThumbnailsRow > div').forEach(d => {
+            const img = d.querySelector('img');
+            if (img && img.src === variant.thumbnail) {
+              d.classList.add('border-primary');
+            } else {
+              d.classList.remove('border-primary');
+            }
+          });
+
+          this.renderDetailVariants(this.state.product_variants.filter(v => v.product_id === this.state.selectedProduct.id));
+          this.updateDetailPriceAndStock();
+        }
+      },
+
+      selectDetailSize: function(size) {
+        const variant = this.state.product_variants.find(v => v.product_id === this.state.selectedProduct.id && v.size === size);
+        if (variant) {
+          this.state.selectedVariant = variant;
+          document.getElementById('detailMainImage').src = variant.thumbnail;
+          this.renderDetailVariants(this.state.product_variants.filter(v => v.product_id === this.state.selectedProduct.id));
+          this.updateDetailPriceAndStock();
+        }
+      },
+
+      updateDetailPriceAndStock: function() {
+        const p = this.state.selectedProduct;
+        const v = this.state.selectedVariant;
+        const curPrice = v ? (v.sale_price || v.price) : (p.is_sale ? p.sale_price : p.price);
+        const oldPrice = v ? v.price : p.price;
+        const stock = v ? v.stock : p.stock;
+
+        document.getElementById('detailCurrentPrice').innerText = this.formatMoney(curPrice);
+        if (p.is_sale && oldPrice > curPrice) {
+          document.getElementById('detailOldPrice').innerText = this.formatMoney(oldPrice);
+          document.getElementById('detailOldPrice').classList.remove('d-none');
+          document.getElementById('detailDiscountAmount').innerText = `Tiết kiệm ${this.formatMoney(oldPrice - curPrice)}`;
+          document.getElementById('detailDiscountAmount').classList.remove('d-none');
+          document.getElementById('detailSaleBadge').classList.remove('d-none');
+        } else {
+          document.getElementById('detailOldPrice').classList.add('d-none');
+          document.getElementById('detailDiscountAmount').classList.add('d-none');
+          document.getElementById('detailSaleBadge').classList.add('d-none');
+        }
+
+        document.getElementById('detailStockText').innerText = `Còn ${stock} sản phẩm trong kho`;
+        if (v && v.sku) document.getElementById('detailSku').innerText = v.sku;
+      },
+
+      changeDetailQty: function(delta) {
+        const input = document.getElementById('detailQuantityInput');
+        let val = Number(input.value) + delta;
+        const maxStock = this.state.selectedVariant ? this.state.selectedVariant.stock : this.state.selectedProduct.stock;
+        if (val < 1) val = 1;
+        if (val > maxStock) {
+          val = maxStock;
+          this.showToast(`Chỉ còn tối đa ${maxStock} sản phẩm trong kho!`, 'error');
+        }
+        input.value = val;
+      },
+
+      renderDetailReviews: function(productId) {
+        const list = document.getElementById('detailReviewsList');
+        const revs = this.state.reviews.filter(r => r.product_id === productId);
+        if (revs.length === 0) {
+          list.innerHTML = `<p class="text-body-tertiary fs-9">Chưa có đánh giá nào. Hãy là người đầu tiên nhận xét!</p>`;
+          return;
+        }
+        list.innerHTML = revs.map(r => `
+          <div class="border-bottom pb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-bold fs-9 text-body-emphasis"><i class="fa-solid fa-circle-user text-primary me-1"></i> ${r.user_name}</span>
+              <small class="text-body-tertiary fs-11">${r.created_at}</small>
+            </div>
+            <div class="text-warning fs-10 mb-2">
+              ${'<i class="fa-solid fa-star"></i>'.repeat(r.rating)}
+            </div>
+            <p class="text-body-secondary fs-9 mb-0">${r.review_text}</p>
+          </div>
+        `).join('');
+      },
+
+      renderDetailComments: function(productId) {
+        const list = document.getElementById('detailCommentsList');
+        const comms = this.state.comments.filter(c => c.product_id === productId);
+        document.getElementById('detailTabCommentCount').innerText = comms.length;
+        if (comms.length === 0) {
+          list.innerHTML = `<p class="text-body-tertiary fs-9">Chưa có câu hỏi nào. Đặt câu hỏi ngay bên trên!</p>`;
+          return;
+        }
+        list.innerHTML = comms.map(c => `
+          <div class="p-3 bg-body-emphasis border rounded-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold fs-9 text-body-emphasis"><i class="fa-solid fa-user me-1 text-secondary"></i> ${c.user_name}</span>
+              <small class="text-body-tertiary fs-11">${c.created_at}</small>
+            </div>
+            <p class="text-body-secondary fs-9 mb-2">${c.content}</p>
+            ${c.reply ? `
+              <div class="p-2 bg-primary-subtle border-start border-primary border-3 rounded-2 fs-9">
+                <strong class="text-primary"><i class="fa-solid fa-headset me-1"></i> BeeStyle CSKH:</strong> ${c.reply}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+      },
+
+      submitComment: function() {
+        const input = document.getElementById('newCommentInput');
+        if (!input.value.trim()) return;
+        this.state.comments.unshift({
+          id: Date.now(),
+          product_id: this.state.selectedProduct.id,
+          user_id: this.state.currentUserId,
+          user_name: 'Nguyễn Văn An',
+          content: input.value.trim(),
+          created_at: 'Vừa xong',
+          reply: 'Cảm ơn câu hỏi của bạn! Chuyên viên tư vấn sẽ phản hồi trong ít phút.'
+        });
+        input.value = '';
+        this.renderDetailComments(this.state.selectedProduct.id);
+        this.showToast('Đã gửi câu hỏi của bạn thành công!');
+      },
+
+      openAddReviewModal: function() {
+        const modal = new bootstrap.Modal(document.getElementById('addReviewModal'));
+        modal.show();
+      },
+
+      setReviewStar: function(score) {
+        this.state.reviewRatingScore = score;
+        document.querySelectorAll('#modalStarRating .star-rate').forEach(s => {
+          const sc = Number(s.getAttribute('data-score'));
+          s.className = sc <= score ? 'fa-solid fa-star star-rate' : 'fa-regular fa-star star-rate';
+        });
+      },
+
+      submitReview: function(e) {
+        e.preventDefault();
+        const text = document.getElementById('modalReviewText').value;
+        this.state.reviews.unshift({
+          id: Date.now(),
+          product_id: this.state.selectedProduct.id,
+          order_id: 1,
+          user_id: this.state.currentUserId,
+          user_name: 'Nguyễn Văn An',
+          rating: this.state.reviewRatingScore,
+          review_text: text,
+          created_at: 'Vừa xong'
+        });
+        this.renderDetailReviews(this.state.selectedProduct.id);
+        bootstrap.Modal.getInstance(document.getElementById('addReviewModal')).hide();
+        this.showToast('Cảm ơn bạn đã gửi đánh giá sản phẩm!');
+      },
+
+      // 10. Cart Management & Drawer Engine
+      addToCartFromDetail: function(buyNow = false) {
+        const qty = Number(document.getElementById('detailQuantityInput').value);
+        this.addProductToCart(this.state.selectedProduct.id, this.state.selectedVariant?.id || null, qty);
+        if (buyNow) {
+          this.navigateTo('view-checkout');
+        } else {
+          this.showToast(`Đã thêm <strong>${qty}</strong> sản phẩm vào giỏ hàng!`);
+        }
+      },
+
+      quickAddToCart: function(productId) {
+        this.addProductToCart(productId, null, 1);
+        this.showToast('Đã thêm sản phẩm vào giỏ hàng!');
+      },
+
+      addProductToCart: function(productId, variantId, quantity) {
+        const existing = this.state.cart_items.find(item => item.product_id === productId && item.product_variant_id === variantId);
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          this.state.cart_items.push({
+            id: Date.now(),
+            user_id: this.state.currentUserId,
+            product_id: productId,
+            product_variant_id: variantId,
+            quantity: quantity
+          });
+        }
+        this.saveLocalStorage();
+        this.updateCartBadges();
+      },
+
+      updateCartBadges: function() {
+        const totalQty = this.state.cart_items.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartCountBadge').innerText = totalQty;
+        document.getElementById('drawerCartCount').innerText = totalQty;
+        this.renderDrawerCart();
+      },
+
+      renderDrawerCart: function() {
+        const list = document.getElementById('drawerCartItemsList');
+        if (!list) return;
+
+        if (this.state.cart_items.length === 0) {
+          list.innerHTML = `
+            <div class="text-center py-4 text-body-tertiary">
+              <i class="fa-solid fa-cart-shopping fs-3 mb-2"></i>
+              <p class="fs-9 mb-0">Giỏ hàng chưa có sản phẩm</p>
+            </div>
+          `;
+          document.getElementById('drawerCartSubtotal').innerText = '0 đ';
+          return;
+        }
+
+        let subtotal = 0;
+        list.innerHTML = this.state.cart_items.map(item => {
+          const p = this.state.products.find(x => x.id === item.product_id);
+          if (!p) return '';
+          const v = item.product_variant_id ? this.state.product_variants.find(x => x.id === item.product_variant_id) : null;
+          const price = v ? (v.sale_price || v.price) : (p.is_sale ? p.sale_price : p.price);
+          const itemTotal = price * item.quantity;
+          subtotal += itemTotal;
+
+          return `
+            <div class="d-flex align-items-center gap-3 border-bottom py-2">
+              <img src="${v ? v.thumbnail : p.thumbnail}" class="rounded-3 border object-fit-contain" width="55" height="55">
+              <div class="flex-grow-1">
+                <h6 class="fw-bold fs-10 text-body-emphasis mb-1 text-truncate" style="max-width: 180px;">${p.name}</h6>
+                <small class="text-body-tertiary fs-11 d-block">${v ? `${v.color} / ${v.size}` : 'Tiêu chuẩn'}</small>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                  <span class="fs-10 fw-bold text-danger">${this.formatMoney(price)} x ${item.quantity}</span>
+                  <button class="btn btn-link text-danger p-0 fs-11" onclick="BeeApp.removeFromCart(${item.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('drawerCartSubtotal').innerText = this.formatMoney(subtotal);
+      },
+
+      removeFromCart: function(cartId) {
+        this.state.cart_items = this.state.cart_items.filter(item => item.id !== cartId);
+        this.saveLocalStorage();
+        this.updateCartBadges();
+        if (this.state.activeView === 'view-cart') this.renderCartPage();
+      },
+
+      updateCartQty: function(cartId, delta) {
+        const item = this.state.cart_items.find(x => x.id === cartId);
+        if (item) {
+          item.quantity += delta;
+          if (item.quantity <= 0) {
+            this.removeFromCart(cartId);
+            return;
+          }
+          this.saveLocalStorage();
+          this.updateCartBadges();
+          this.renderCartPage();
+        }
+      },
+
+      renderCartPage: function() {
+        const tbody = document.getElementById('cartTableBody');
+        const emptyState = document.getElementById('cartEmptyState');
+        const totalItemsEl = document.getElementById('cartViewTotalItems');
+
+        const totalQty = this.state.cart_items.reduce((sum, item) => sum + item.quantity, 0);
+        if (totalItemsEl) totalItemsEl.innerText = totalQty;
+
+        if (this.state.cart_items.length === 0) {
+          tbody.innerHTML = '';
+          emptyState.classList.remove('d-none');
+          document.getElementById('cartSubtotal').innerText = '0 đ';
+          document.getElementById('cartFinalTotal').innerText = '0 đ';
+          return;
+        }
+
+        emptyState.classList.add('d-none');
+        let subtotal = 0;
+
+        tbody.innerHTML = this.state.cart_items.map(item => {
+          const p = this.state.products.find(x => x.id === item.product_id);
+          if (!p) return '';
+          const v = item.product_variant_id ? this.state.product_variants.find(x => x.id === item.product_variant_id) : null;
+          const price = v ? (v.sale_price || v.price) : (p.is_sale ? p.sale_price : p.price);
+          const lineTotal = price * item.quantity;
+          subtotal += lineTotal;
+
+          return `
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <img src="${v ? v.thumbnail : p.thumbnail}" class="rounded-3 border object-fit-contain" width="60" height="60">
+                  <div>
+                    <h6 class="fw-bold fs-9 text-body-emphasis mb-1">${p.name}</h6>
+                    <span class="badge bg-body-secondary text-body fs-11">${v ? `Màu ${v.color} / Size ${v.size}` : 'Tiêu chuẩn'}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="fw-bold text-body-emphasis">${this.formatMoney(price)}</td>
+              <td class="text-center">
+                <div class="input-group input-group-sm mx-auto" style="width: 100px;">
+                  <button class="btn btn-outline-secondary" type="button" onclick="BeeApp.updateCartQty(${item.id}, -1)">-</button>
+                  <input type="text" class="form-control text-center fw-bold fs-10 p-0" value="${item.quantity}" readonly>
+                  <button class="btn btn-outline-secondary" type="button" onclick="BeeApp.updateCartQty(${item.id}, 1)">+</button>
+                </div>
+              </td>
+              <td class="text-end fw-black text-danger">${this.formatMoney(lineTotal)}</td>
+              <td class="text-center">
+                <button class="btn btn-phoenix-danger btn-icon btn-sm rounded-circle" onclick="BeeApp.removeFromCart(${item.id})"><i class="fa-solid fa-trash"></i></button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Calculate discount
+        let discount = 0;
+        if (this.state.appliedCoupon) {
+          if (this.state.appliedCoupon.discount_type === 'percent') {
+            discount = Math.min((subtotal * this.state.appliedCoupon.discount_value) / 100, this.state.appliedCoupon.max_discount || 9999999);
+          } else {
+            discount = this.state.appliedCoupon.discount_value;
+          }
+        }
+
+        const shipping = subtotal >= 299000 ? 0 : 30000;
+        const finalTotal = Math.max(0, subtotal - discount + shipping);
+
+        document.getElementById('cartSubtotal').innerText = this.formatMoney(subtotal);
+        document.getElementById('cartDiscount').innerText = `-${this.formatMoney(discount)}`;
+        document.getElementById('cartShippingFee').innerText = shipping === 0 ? 'Miễn Phí (Freeship)' : this.formatMoney(shipping);
+        document.getElementById('cartFinalTotal').innerText = this.formatMoney(finalTotal);
+
+        // Render available coupons
+        const coupBox = document.getElementById('cartAvailableCoupons');
+        if (coupBox) {
+          coupBox.innerHTML = this.state.coupons.map(c => `
+            <div class="border rounded-3 p-2 cursor-pointer bg-body-secondary hover-border-primary" onclick="BeeApp.applyCoupon('${c.code}')">
+              <span class="badge bg-warning text-dark fw-bold">${c.code}</span>
+              <div class="fs-10 fw-bold mt-1">${c.title}</div>
+              <small class="text-body-tertiary fs-11">${c.description}</small>
+            </div>
+          `).join('');
+        }
+      },
+
+      applyCoupon: function(code) {
+        const coupon = this.state.coupons.find(c => c.code.toUpperCase() === code.trim().toUpperCase() && c.is_active);
+        if (!coupon) {
+          this.showToast('Mã giảm giá không tồn tại hoặc đã hết hạn!', 'error');
+          return;
+        }
+        this.state.appliedCoupon = coupon;
+        document.getElementById('cartAppliedCouponNotice')?.classList.remove('d-none');
+        if (document.getElementById('appliedCouponCode')) document.getElementById('appliedCouponCode').innerText = coupon.code;
+        this.showToast(`Đã áp dụng mã giảm giá: <strong>${coupon.code}</strong>`);
+        this.renderCartPage();
+      },
+
+      removeCoupon: function() {
+        this.state.appliedCoupon = null;
+        document.getElementById('cartAppliedCouponNotice')?.classList.add('d-none');
+        this.renderCartPage();
+      },
+
+      // 11. Checkout & Orders Management
+      renderCheckoutPage: function() {
+        // Render Address list
+        const addrList = document.getElementById('checkoutAddressList');
+        addrList.innerHTML = this.state.user_addresses.map(a => `
+          <div class="card p-3 border cursor-pointer ${this.state.selectedAddressId === a.id ? 'border-primary bg-primary-subtle' : 'bg-body-emphasis'}" onclick="BeeApp.selectCheckoutAddress(${a.id})">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong class="text-body-emphasis fs-9">${a.fullname}</strong> | <span class="text-body-secondary fs-9">${a.phone_number}</span>
+                ${a.id_default ? '<span class="badge bg-primary fs-11 ms-2">Mặc Định</span>' : ''}
+                <p class="text-body-secondary fs-10 mb-0 mt-1">${a.address}</p>
+              </div>
+              <input class="form-check-input" type="radio" name="checkoutAddressRadio" ${this.state.selectedAddressId === a.id ? 'checked' : ''}>
+            </div>
+          </div>
+        `).join('');
+
+        // Render Payment Methods
+        const payList = document.getElementById('checkoutPaymentMethods');
+        payList.innerHTML = this.state.payments.map(p => `
+          <div class="card p-3 border cursor-pointer ${this.state.selectedPaymentId === p.id ? 'border-primary bg-primary-subtle' : 'bg-body-emphasis'}" onclick="BeeApp.selectCheckoutPayment(${p.id})">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-3">
+                <i class="${p.logo} fs-5" style="width: 30px;"></i>
+                <div>
+                  <h6 class="fw-bold fs-9 mb-0 text-body-emphasis">${p.name}</h6>
+                  <small class="text-body-tertiary fs-11">${p.description}</small>
+                </div>
+              </div>
+              <input class="form-check-input" type="radio" name="checkoutPaymentRadio" ${this.state.selectedPaymentId === p.id ? 'checked' : ''}>
+            </div>
+          </div>
+        `).join('');
+
+        // Render Mini Cart Summary
+        let subtotal = 0;
+        const miniList = document.getElementById('checkoutMiniCartItems');
+        miniList.innerHTML = this.state.cart_items.map(item => {
+          const p = this.state.products.find(x => x.id === item.product_id);
+          if (!p) return '';
+          const v = item.product_variant_id ? this.state.product_variants.find(x => x.id === item.product_variant_id) : null;
+          const price = v ? (v.sale_price || v.price) : (p.is_sale ? p.sale_price : p.price);
+          const lineTotal = price * item.quantity;
+          subtotal += lineTotal;
+
+          return `
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom fs-9">
+              <div class="d-flex align-items-center gap-2">
+                <img src="${v ? v.thumbnail : p.thumbnail}" width="40" height="40" class="rounded object-fit-contain border">
+                <div>
+                  <div class="fw-bold text-truncate" style="max-width: 160px;">${p.name}</div>
+                  <small class="text-muted">SL: ${item.quantity}</small>
+                </div>
+              </div>
+              <strong class="text-danger">${this.formatMoney(lineTotal)}</strong>
+            </div>
+          `;
+        }).join('');
+
+        // Calculate Totals
+        let discount = 0;
+        if (this.state.appliedCoupon) {
+          if (this.state.appliedCoupon.discount_type === 'percent') {
+            discount = Math.min((subtotal * this.state.appliedCoupon.discount_value) / 100, this.state.appliedCoupon.max_discount || 9999999);
+          } else {
+            discount = this.state.appliedCoupon.discount_value;
+          }
+        }
+        const shipping = subtotal >= 299000 ? 0 : 30000;
+        const finalTotal = Math.max(0, subtotal - discount + shipping);
+
+        document.getElementById('checkoutSubtotal').innerText = this.formatMoney(subtotal);
+        document.getElementById('checkoutDiscount').innerText = `-${this.formatMoney(discount)}`;
+        document.getElementById('checkoutShipping').innerText = shipping === 0 ? 'Miễn Phí' : this.formatMoney(shipping);
+        document.getElementById('checkoutFinalTotal').innerText = this.formatMoney(finalTotal);
+      },
+
+      selectCheckoutAddress: function(id) {
+        this.state.selectedAddressId = id;
+        this.renderCheckoutPage();
+      },
+
+      selectCheckoutPayment: function(id) {
+        this.state.selectedPaymentId = id;
+        this.renderCheckoutPage();
+      },
+
+      placeOrder: function() {
+        if (this.state.cart_items.length === 0) {
+          this.showToast('Giỏ hàng của bạn đang trống!', 'error');
+          return;
+        }
+
+        const address = this.state.user_addresses.find(a => a.id === this.state.selectedAddressId) || this.state.user_addresses[0];
+        const note = document.getElementById('checkoutOrderNote').value;
+        const orderCode = 'BST-' + Math.floor(100000 + Math.random() * 900000);
+
+        // Build Order Items
+        let subtotal = 0;
+        const orderItems = this.state.cart_items.map(item => {
+          const p = this.state.products.find(x => x.id === item.product_id);
+          const v = item.product_variant_id ? this.state.product_variants.find(x => x.id === item.product_variant_id) : null;
+          const price = v ? (v.sale_price || v.price) : (p.is_sale ? p.sale_price : p.price);
+          subtotal += price * item.quantity;
+          return {
+            product_id: p.id,
+            name: p.name,
+            variant_name: v ? `Màu ${v.color} / Size ${v.size}` : 'Tiêu chuẩn',
+            price: price,
+            quantity: item.quantity,
+            thumbnail: v ? v.thumbnail : p.thumbnail
+          };
+        });
+
+        let discount = 0;
+        if (this.state.appliedCoupon) {
+          if (this.state.appliedCoupon.discount_type === 'percent') {
+            discount = Math.min((subtotal * this.state.appliedCoupon.discount_value) / 100, this.state.appliedCoupon.max_discount || 9999999);
+          } else {
+            discount = this.state.appliedCoupon.discount_value;
+          }
+        }
+        const shipping = subtotal >= 299000 ? 0 : 30000;
+        const finalTotal = Math.max(0, subtotal - discount + shipping);
+
+        const newOrder = {
+          id: Date.now(),
+          code: orderCode,
+          user_id: this.state.currentUserId,
+          payment_id: this.state.selectedPaymentId,
+          phone_number: address.phone_number,
+          email: 'customer@beestyle.vn',
+          fullname: address.fullname,
+          address: address.address,
+          note: note,
+          total_amount: finalTotal,
+          is_paid: this.state.selectedPaymentId !== 1 ? 1 : 0,
+          status_id: 1, // pending
+          status_name: 'pending',
+          created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          items: orderItems
+        };
+
+        this.state.orders.unshift(newOrder);
+        this.state.order_order_status.push({
+          order_id: newOrder.id,
+          order_status_id: 1,
+          status_name: 'Đã Đặt Hàng',
+          note: 'Đơn hàng mới tạo thành công trên hệ thống.',
+          created_at: 'Vừa xong'
+        });
+
+        // Clear cart
+        this.state.cart_items = [];
+        this.state.appliedCoupon = null;
+        this.saveLocalStorage();
+        this.updateCartBadges();
+
+        this.showToast(`Đặt hàng thành công! Mã đơn: <strong>${orderCode}</strong>`);
+        this.navigateTo('view-order-tracking', { orderCode: orderCode });
+      },
+
+      // 12. Order Tracking Timeline & Details
+      renderOrderTracking: function(orderCode) {
+        let order = this.state.orders.find(o => o.code === orderCode);
+        if (!order && this.state.orders.length > 0) order = this.state.orders[0];
+        if (!order) return;
+
+        document.getElementById('trackOrderCode').innerText = order.code;
+        document.getElementById('trackPaymentStatus').innerText = order.is_paid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán (COD)';
+        document.getElementById('trackPaymentStatus').className = order.is_paid ? 'badge bg-success-subtle text-success border border-success-subtle fs-10 ms-2' : 'badge bg-warning-subtle text-warning border border-warning-subtle fs-10 ms-2';
+        
+        document.getElementById('trackReceiverName').innerText = order.fullname;
+        document.getElementById('trackReceiverPhone').innerText = order.phone_number;
+        document.getElementById('trackReceiverAddress').innerText = order.address;
+        document.getElementById('trackTotalAmount').innerText = this.formatMoney(order.total_amount);
+
+        // Buttons
+        document.getElementById('btnConfirmReceived').style.display = order.status_name === 'shipping' ? 'inline-block' : 'none';
+        document.getElementById('btnRequestRefund').style.display = order.status_name === 'completed' ? 'inline-block' : 'none';
+
+        // Stepper items
+        const stepperItems = document.querySelectorAll('#orderTrackingStepper .stepper-item');
+        stepperItems.forEach(item => { item.classList.remove('completed', 'active'); });
+        if (order.status_name === 'pending') {
+          stepperItems[0].classList.add('active');
+        } else if (order.status_name === 'processing') {
+          stepperItems[0].classList.add('completed');
+          stepperItems[1].classList.add('active');
+        } else if (order.status_name === 'shipping') {
+          stepperItems[0].classList.add('completed');
+          stepperItems[1].classList.add('completed');
+          stepperItems[2].classList.add('active');
+        } else if (order.status_name === 'completed') {
+          stepperItems.forEach(item => item.classList.add('completed'));
+        }
+
+        // Tracking logs
+        const logBox = document.getElementById('trackingStatusLogs');
+        const logs = this.state.order_order_status.filter(l => l.order_id === order.id || l.order_id === 1);
+        logBox.innerHTML = logs.map(l => `
+          <div class="border-start border-3 border-primary ps-3 pb-3 position-relative">
+            <span class="position-absolute top-0 start-0 translate-middle p-1 bg-primary rounded-circle"></span>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <strong class="fs-9 text-body-emphasis">${l.status_name}</strong>
+              <small class="text-muted fs-11">${l.created_at}</small>
+            </div>
+            <p class="text-body-secondary fs-10 mb-0">${l.note}</p>
+          </div>
+        `).join('');
+
+        // Items list
+        const itemsBox = document.getElementById('trackOrderItemsList');
+        itemsBox.innerHTML = order.items.map(item => `
+          <div class="d-flex justify-content-between align-items-center border-bottom pb-2 fs-9">
+            <div class="d-flex align-items-center gap-2">
+              <img src="${item.thumbnail}" width="45" height="45" class="rounded object-fit-contain border">
+              <div>
+                <strong class="text-body-emphasis">${item.name}</strong>
+                <small class="text-muted d-block">${item.variant_name} x ${item.quantity}</small>
+              </div>
+            </div>
+            <strong class="text-danger">${this.formatMoney(item.price * item.quantity)}</strong>
+          </div>
+        `).join('');
+
+        this.renderAllOrdersTable();
+      },
+
+      searchOrderTracking: function(code) {
+        if (!code.trim()) return;
+        const order = this.state.orders.find(o => o.code.toUpperCase() === code.trim().toUpperCase());
+        if (order) {
+          this.renderOrderTracking(order.code);
+          this.showToast(`Đã tìm thấy đơn hàng <strong>${order.code}</strong>`);
+        } else {
+          this.showToast('Không tìm thấy mã đơn hàng này!', 'error');
+        }
+      },
+
+      confirmOrderReceived: function() {
+        const code = document.getElementById('trackOrderCode').innerText;
+        const order = this.state.orders.find(o => o.code === code);
+        if (order) {
+          order.status_name = 'completed';
+          order.status_id = 5;
+          this.saveLocalStorage();
+          this.renderOrderTracking(code);
+          this.showToast('Cảm ơn bạn đã xác nhận nhận hàng thành công!');
+        }
+      },
+
+      renderAllOrdersTable: function() {
+        const tbody = document.getElementById('userAllOrdersTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = this.state.orders.map(o => `
+          <tr>
+            <td><strong class="text-primary cursor-pointer" onclick="BeeApp.renderOrderTracking('${o.code}')">${o.code}</strong></td>
+            <td>${o.created_at.substring(0, 10)}</td>
+            <td>${o.items.length} món (${o.items[0]?.name || ''}...)</td>
+            <td class="fw-bold text-danger">${this.formatMoney(o.total_amount)}</td>
+            <td>${o.payment_id === 1 ? 'COD' : 'VNPAY/Online'}</td>
+            <td>
+              <span class="badge ${o.status_name === 'completed' ? 'bg-success' : (o.status_name === 'shipping' ? 'bg-primary' : 'bg-warning')} fs-11 text-uppercase">${o.status_name}</span>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-outline-primary btn-sm rounded-pill fs-10" onclick="BeeApp.renderOrderTracking('${o.code}')">Chi Tiết</button>
+            </td>
+          </tr>
+        `).join('');
+      },
+
+      openInvoiceModal: function() {
+        const code = document.getElementById('trackOrderCode').innerText;
+        const order = this.state.orders.find(o => o.code === code) || this.state.orders[0];
+        const modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+
+        document.getElementById('invoicePrintArea').innerHTML = `
+          <div class="text-center mb-4">
+            <h4 class="fw-black brand-gradient mb-1">BeeStyle E-Commerce</h4>
+            <p class="text-muted fs-10 mb-0">HÓA ĐƠN BÁN HÀNG & GIAO VẬN ĐIỆN TỬ</p>
+            <span class="fs-9">Mã đơn: <strong>${order.code}</strong> | Ngày tạo: ${order.created_at}</span>
+          </div>
+          <div class="row g-3 fs-9 mb-4">
+            <div class="col-6">
+              <strong>Khách hàng:</strong> ${order.fullname}<br>
+              <strong>SĐT:</strong> ${order.phone_number}<br>
+              <strong>Địa chỉ:</strong> ${order.address}
+            </div>
+            <div class="col-6 text-end">
+              <strong>Phương thức thanh toán:</strong> ${order.payment_id === 1 ? 'Tiền mặt khi nhận hàng (COD)' : 'VNPAY / Chuyển khoản QR'}<br>
+              <strong>Trạng thái:</strong> ${order.is_paid ? 'Đã Thanh Toán' : 'Chưa Thanh Toán'}
+            </div>
+          </div>
+          <table class="table table-bordered fs-9 mb-4">
+            <thead class="table-light">
+              <tr>
+                <th>STT</th>
+                <th>Tên Sản Phẩm</th>
+                <th>Phân Loại</th>
+                <th>Đơn Giá</th>
+                <th>SL</th>
+                <th class="text-end">Thành Tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.map((it, idx) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td>${it.name}</td>
+                  <td>${it.variant_name}</td>
+                  <td>${this.formatMoney(it.price)}</td>
+                  <td>${it.quantity}</td>
+                  <td class="text-end font-bold">${this.formatMoney(it.price * it.quantity)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="5" class="text-end">Tổng Cộng:</th>
+                <th class="text-end text-danger fs-8">${this.formatMoney(order.total_amount)}</th>
+              </tr>
+            </tfoot>
+          </table>
+          <p class="text-center text-muted fs-10 mb-0">Cảm ơn quý khách đã tin tưởng và mua sắm tại BeeStyle!</p>
+        `;
+        modal.show();
+      },
+
+      // 13. Refunds Management
+      renderRefundsGrid: function() {
+        const grid = document.getElementById('userRefundsGrid');
+        if (!grid) return;
+        if (this.state.refunds.length === 0) {
+          grid.innerHTML = `
+            <div class="col-12 text-center py-5">
+              <i class="fa-solid fa-arrow-rotate-left text-body-tertiary mb-3" style="font-size: 48px;"></i>
+              <h6 class="fw-bold">Bạn chưa có yêu cầu đổi trả / hoàn tiền nào</h6>
+              <p class="text-body-tertiary fs-9">Nếu sản phẩm không vừa ý, bạn có thể tạo yêu cầu hoàn trả dễ dàng.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = this.state.refunds.map(r => `
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-body-emphasis h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-warning text-dark fw-bold">${r.code}</span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-11">${r.status_text}</span>
+              </div>
+              <h6 class="fw-bold text-body-emphasis mb-2">Đơn hàng: <span class="text-primary">${r.order_code}</span></h6>
+              <p class="text-body-secondary fs-9 mb-2"><strong>Lý do:</strong> ${r.reason}</p>
+              <div class="p-3 bg-body-secondary rounded-3 fs-10 mb-3">
+                <div><strong>Ngân hàng:</strong> ${r.bank_name}</div>
+                <div><strong>STK Thụ Hưởng:</strong> ${r.bank_account} (${r.user_bank_name})</div>
+                <div><strong>Số tiền hoàn:</strong> <span class="text-danger fw-bold fs-9">${this.formatMoney(r.total_amount)}</span></div>
+              </div>
+              <small class="text-body-tertiary fs-11">Ngày gửi yêu cầu: ${r.created_at}</small>
+            </div>
+          </div>
+        `).join('');
+      },
+
+      openNewRefundWizard: function() {
+        const orderSelect = document.getElementById('modalRefundOrderSelect');
+        orderSelect.innerHTML = this.state.orders.map(o => `
+          <option value="${o.id}">${o.code} - ${this.formatMoney(o.total_amount)} (${o.status_name})</option>
+        `).join('');
+        this.handleRefundOrderChange(orderSelect.value);
+        new bootstrap.Modal(document.getElementById('refundModal')).show();
+      },
+
+      openRefundModalForOrder: function() {
+        this.openNewRefundWizard();
+      },
+
+      handleRefundOrderChange: function(orderId) {
+        const order = this.state.orders.find(o => o.id == orderId) || this.state.orders[0];
+        const list = document.getElementById('modalRefundItemsList');
+        if (order) {
+          list.innerHTML = order.items.map(it => `
+            <div class="form-check fs-9 mb-1">
+              <input class="form-check-input" type="checkbox" checked id="chk_ref_${it.product_id}">
+              <label class="form-check-label" for="chk_ref_${it.product_id}">
+                ${it.name} (${it.variant_name}) - <strong>${this.formatMoney(it.price * it.quantity)}</strong>
+              </label>
+            </div>
+          `).join('');
+        }
+      },
+
+      submitRefundRequest: function(e) {
+        e.preventDefault();
+        const orderId = document.getElementById('modalRefundOrderSelect').value;
+        const order = this.state.orders.find(o => o.id == orderId) || this.state.orders[0];
+        const reason = document.getElementById('modalRefundReasonSelect').value;
+        const bank = document.getElementById('modalRefundBankName').value;
+        const account = document.getElementById('modalRefundBankAccount').value;
+        const userBank = document.getElementById('modalRefundUserBankName').value;
+
+        const newRefund = {
+          id: Date.now(),
+          code: 'RF-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(10 + Math.random()*90),
+          order_id: order.id,
+          order_code: order.code,
+          user_id: this.state.currentUserId,
+          total_amount: order.total_amount,
+          bank_name: bank,
+          bank_account: account,
+          user_bank_name: userBank,
+          reason: reason,
+          status: 'pending',
+          status_text: 'Chờ Tiếp Nhận Thẩm Định',
+          created_at: new Date().toLocaleDateString('vi-VN')
+        };
+
+        this.state.refunds.unshift(newRefund);
+        this.saveLocalStorage();
+        bootstrap.Modal.getInstance(document.getElementById('refundModal')).hide();
+        this.showToast(`Đã gửi yêu cầu hoàn tiền cho đơn <strong>${order.code}</strong>!`);
+        this.renderRefundsGrid();
+      },
+
+      // 14. User Profile & Address Book
+      renderProfile: function() {
+        const user = this.state.users.find(u => u.id === this.state.currentUserId) || this.state.users[0];
+        document.getElementById('userNavbarName').innerText = user.fullname;
+        document.getElementById('userNavbarRole').innerText = user.role === 'admin' ? 'Quản Trị Viên' : 'VIP Customer';
+        document.getElementById('dropdownFullname').innerText = user.fullname;
+        document.getElementById('dropdownEmail').innerText = user.email;
+
+        // Profile Page inputs
+        document.getElementById('profilePageFullname').innerText = user.fullname;
+        document.getElementById('profilePageEmail').innerText = user.email;
+        document.getElementById('profileInputFullname').value = user.fullname;
+        document.getElementById('profileInputPhone').value = user.phone_number;
+        document.getElementById('profileInputEmail').value = user.email;
+        document.getElementById('profileInputBirthday').value = user.birthday;
+        document.getElementById('profileInputGender').value = user.gender;
+
+        document.getElementById('profileInputBankName').value = user.bank_name || '';
+        document.getElementById('profileInputBankAccount').value = user.bank_account || '';
+        document.getElementById('profileInputUserBankName').value = user.user_bank_name || '';
+
+        // Render Addresses
+        const addrList = document.getElementById('profileAddressesList');
+        if (addrList) {
+          addrList.innerHTML = this.state.user_addresses.map(a => `
+            <div class="card p-3 border bg-body-emphasis rounded-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong class="text-body-emphasis fs-9">${a.fullname}</strong> | <span class="text-body-secondary fs-9">${a.phone_number}</span>
+                  ${a.id_default ? '<span class="badge bg-primary fs-11 ms-2">Mặc Định</span>' : ''}
+                  <p class="text-body-secondary fs-9 mb-0 mt-1">${a.address}</p>
+                </div>
+                <div class="d-flex gap-2">
+                  ${!a.id_default ? `<button class="btn btn-outline-secondary btn-sm fs-11" onclick="BeeApp.setDefaultAddress(${a.id})">Đặt Mặc Định</button>` : ''}
+                  <button class="btn btn-phoenix-danger btn-icon btn-sm" onclick="BeeApp.deleteAddress(${a.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      },
+
+      showProfileTab: function(tabKey, btn) {
+        document.querySelectorAll('.profile-tab-content').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.list-group-item').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (tabKey === 'info') document.getElementById('profileTabInfo').classList.remove('d-none');
+        if (tabKey === 'addresses') document.getElementById('profileTabAddresses').classList.remove('d-none');
+        if (tabKey === 'bank') document.getElementById('profileTabBank').classList.remove('d-none');
+        if (tabKey === 'password') document.getElementById('profileTabPassword').classList.remove('d-none');
+      },
+
+      saveProfileInfo: function(e) {
+        e.preventDefault();
+        const user = this.state.users.find(u => u.id === this.state.currentUserId);
+        if (user) {
+          user.fullname = document.getElementById('profileInputFullname').value;
+          user.phone_number = document.getElementById('profileInputPhone').value;
+          user.email = document.getElementById('profileInputEmail').value;
+          user.birthday = document.getElementById('profileInputBirthday').value;
+          user.gender = document.getElementById('profileInputGender').value;
+          this.renderProfile();
+          this.showToast('Đã lưu thông tin cá nhân thành công!');
+        }
+      },
+
+      saveProfileBank: function(e) {
+        e.preventDefault();
+        const user = this.state.users.find(u => u.id === this.state.currentUserId);
+        if (user) {
+          user.bank_name = document.getElementById('profileInputBankName').value;
+          user.bank_account = document.getElementById('profileInputBankAccount').value;
+          user.user_bank_name = document.getElementById('profileInputUserBankName').value;
+          this.showToast('Đã cập nhật thông tin tài khoản ngân hàng hoàn tiền!');
+        }
+      },
+
+      changePassword: function(e) {
+        e.preventDefault();
+        this.showToast('Đã đổi mật khẩu tài khoản thành công!');
+      },
+
+      openAddAddressModal: function() {
+        new bootstrap.Modal(document.getElementById('addressModal')).show();
+      },
+
+      saveNewAddress: function(e) {
+        e.preventDefault();
+        const name = document.getElementById('modalAddressName').value;
+        const phone = document.getElementById('modalAddressPhone').value;
+        const addr = document.getElementById('modalAddressDetail').value;
+        const isDef = document.getElementById('modalAddressDefault').checked ? 1 : 0;
+
+        if (isDef) {
+          this.state.user_addresses.forEach(a => a.id_default = 0);
+        }
+
+        this.state.user_addresses.push({
+          id: Date.now(),
+          user_id: this.state.currentUserId,
+          fullname: name,
+          phone_number: phone,
+          address: addr,
+          id_default: isDef
+        });
+
+        this.saveLocalStorage();
+        bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+        this.renderProfile();
+        if (this.state.activeView === 'view-checkout') this.renderCheckoutPage();
+        this.showToast('Đã thêm địa chỉ giao hàng mới!');
+      },
+
+      setDefaultAddress: function(id) {
+        this.state.user_addresses.forEach(a => a.id_default = (a.id === id ? 1 : 0));
+        this.saveLocalStorage();
+        this.renderProfile();
+        this.showToast('Đã đặt làm địa chỉ giao hàng mặc định!');
+      },
+
+      deleteAddress: function(id) {
+        if (this.state.user_addresses.length <= 1) {
+          this.showToast('Bạn cần giữ lại ít nhất 1 địa chỉ nhận hàng!', 'error');
+          return;
+        }
+        this.state.user_addresses = this.state.user_addresses.filter(a => a.id !== id);
+        this.saveLocalStorage();
+        this.renderProfile();
+        this.showToast('Đã xóa địa chỉ thành công!');
+      },
+
+      switchUser: function(userId) {
+        this.state.currentUserId = userId;
+        this.renderProfile();
+        this.showToast(`Đã chuyển đổi tài khoản: <strong>${userId === 1 ? 'Khách hàng VIP' : 'Quản trị viên'}</strong>`);
+      },
+
+      // 15. Wishlist
+      toggleWishlist: function(productId) {
+        const idx = this.state.wishlist_items.indexOf(productId);
+        if (idx > -1) {
+          this.state.wishlist_items.splice(idx, 1);
+          this.showToast('Đã bỏ sản phẩm khỏi danh sách yêu thích!');
+        } else {
+          this.state.wishlist_items.push(productId);
+          this.showToast('Đã lưu sản phẩm vào danh sách yêu thích!');
+        }
+        this.saveLocalStorage();
+        this.updateWishlistBadges();
+        this.renderHome();
+        if (this.state.activeView === 'view-shop') this.applyShopFilters();
+        if (this.state.activeView === 'view-wishlist') this.renderWishlistPage();
+      },
+
+      toggleWishlistDetail: function() {
+        if (this.state.selectedProduct) {
+          this.toggleWishlist(this.state.selectedProduct.id);
+        }
+      },
+
+      updateWishlistBadges: function() {
+        const count = this.state.wishlist_items.length;
+        document.getElementById('wishlistCountBadge').innerText = count;
+        const wishTotal = document.getElementById('wishlistTotalItems');
+        if (wishTotal) wishTotal.innerText = count;
+      },
+
+      renderWishlistPage: function() {
+        const grid = document.getElementById('wishlistProductsGrid');
+        const wishProducts = this.state.products.filter(p => this.state.wishlist_items.includes(p.id));
+        if (wishProducts.length === 0) {
+          grid.innerHTML = `
+            <div class="col-12 text-center py-5">
+              <i class="fa-solid fa-heart-crack text-body-tertiary mb-3" style="font-size: 48px;"></i>
+              <h6 class="fw-bold">Danh sách yêu thích đang trống</h6>
+              <p class="text-body-tertiary fs-9">Hãy bấm vào biểu tượng trái tim ở các sản phẩm bạn thích để lưu lại tại đây.</p>
+              <button class="btn btn-primary rounded-pill px-4" onclick="BeeApp.navigateTo('view-shop')">Khám Phá Cửa Hàng</button>
+            </div>
+          `;
+          return;
+        }
+        grid.innerHTML = wishProducts.map(p => this.renderProductCardHtml(p)).join('');
+      },
+
+      // 16. Live Search Bar
+      handleLiveSearch: function(query) {
+        const drop = document.getElementById('liveSearchResults');
+        if (!query.trim()) {
+          drop.classList.add('d-none');
+          return;
+        }
+        const q = query.toLowerCase();
+        const matches = this.state.products.filter(p => p.name.toLowerCase().includes(q) || p.short_description.toLowerCase().includes(q)).slice(0, 5);
+
+        if (matches.length === 0) {
+          drop.innerHTML = `<div class="p-3 text-center text-muted fs-9">Không có kết quả nào cho "${query}"</div>`;
+        } else {
+          drop.innerHTML = matches.map(p => `
+            <div class="d-flex align-items-center gap-3 p-2 hover-bg-body-secondary rounded-2 cursor-pointer" onclick="BeeApp.openProductDetail(${p.id}); document.getElementById('liveSearchResults').classList.add('d-none');">
+              <img src="${p.thumbnail}" width="40" height="40" class="rounded object-fit-contain border">
+              <div class="flex-grow-1">
+                <div class="fw-bold fs-9 text-body-emphasis text-truncate">${p.name}</div>
+                <span class="text-danger fw-bold fs-10">${this.formatMoney(p.is_sale ? p.sale_price : p.price)}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+        drop.classList.remove('d-none');
+      },
+
+      triggerSearch: function() {
+        const val = document.getElementById('globalSearchInput').value;
+        if (val.trim()) {
+          this.navigateTo('view-shop');
+          document.getElementById('liveSearchResults').classList.add('d-none');
+        }
+      },
+
+      // 17. Quick View Modal
+      openQuickView: function(productId) {
+        const product = this.state.products.find(p => p.id === productId);
+        if (!product) return;
+        const brand = this.state.brands.find(b => b.id === product.brand_id)?.name || 'BeeStyle';
+        const price = product.is_sale ? product.sale_price : product.price;
+
+        document.getElementById('quickViewContent').innerHTML = `
+          <div class="row g-4">
+            <div class="col-md-6 text-center">
+              <div class="p-3 bg-body-secondary rounded-4">
+                <img src="${product.thumbnail}" class="img-fluid" style="max-height: 260px; object-fit: contain;">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <span class="badge bg-primary-subtle text-primary mb-2">${brand}</span>
+              <h5 class="fw-bold text-body-emphasis mb-2">${product.name}</h5>
+              <div class="d-flex align-items-baseline gap-2 mb-3">
+                <span class="fs-5 fw-bold text-danger">${this.formatMoney(price)}</span>
+                ${product.is_sale ? `<span class="text-decoration-line-through text-muted fs-9">${this.formatMoney(product.price)}</span>` : ''}
+              </div>
+              <p class="text-body-secondary fs-9 mb-4">${product.short_description}</p>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm rounded-pill px-4" onclick="BeeApp.quickAddToCart(${product.id}); bootstrap.Modal.getInstance(document.getElementById('quickViewModal')).hide();">Thêm Giỏ Hàng</button>
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="BeeApp.openProductDetail(${product.id}); bootstrap.Modal.getInstance(document.getElementById('quickViewModal')).hide();">Xem Chi Tiết</button>
+              </div>
+            </div>
+          </div>
+        `;
+        new bootstrap.Modal(document.getElementById('quickViewModal')).show();
+      }
+    };
+
+    // Auto initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      BeeApp.init();
+    });
+  </script>
+</body>
+</html>

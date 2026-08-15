@@ -1,5 +1,5 @@
 $port = 8080
-$rootDir = "c:\phoenix\v1.24.0"
+$rootDir = "c:\phoenix"
 $listener = New-Object System.Net.HttpListener
 $prefix = "http://localhost:$port/"
 $listener.Prefixes.Add($prefix)
@@ -35,7 +35,7 @@ try {
 
         $urlPath = $request.Url.LocalPath
         if ($urlPath -eq "/" -or [string]::IsNullOrEmpty($urlPath)) {
-            $urlPath = "/index.html"
+            $urlPath = "/1.html"
         }
 
         $decodedPath = [System.Uri]::UnescapeDataString($urlPath.TrimStart('/'))
