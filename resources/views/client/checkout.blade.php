@@ -1,6 +1,6 @@
 @extends('layouts.client')
 
-@section('title', 'Thanh Toán Đơn Hàng | BeeStyle Fashion')
+@section('title', 'Thanh Toán Đơn Hàng | BeeStyle Menswear')
 
 @section('content')
 <div class="container py-4">
@@ -28,57 +28,37 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Họ và tên người nhận <span class="text-danger">*</span></label>
-              <input type="text" name="customer_name" class="form-control form-control-sm" value="Nguyễn Văn Hùng" required placeholder="Nhập đầy đủ họ tên...">
+              <input type="text" name="customer_name" class="form-control form-control-sm" value="{{ old('customer_name', $user->name ?? '') }}" required placeholder="Ví dụ: Nguyễn Văn Hùng">
             </div>
 
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-              <input type="tel" name="customer_phone" class="form-control form-control-sm" value="0987 654 321" required placeholder="Ví dụ: 0987654321">
+              <input type="tel" name="customer_phone" class="form-control form-control-sm" value="{{ old('customer_phone', $user->phone ?? '') }}" required placeholder="Ví dụ: 0987654321">
             </div>
 
             <div class="col-12">
-              <label class="form-label small fw-semibold">Địa chỉ Email (Nhận thông báo đơn hàng)</label>
-              <input type="email" name="customer_email" class="form-control form-control-sm" value="hung.nguyen@gmail.com" placeholder="email@domain.com">
+              <label class="form-label small fw-semibold">Địa chỉ Email (Nhận mã đơn &amp; hóa đơn)</label>
+              <input type="email" name="customer_email" class="form-control form-control-sm" value="{{ old('customer_email', $user->email ?? '') }}" placeholder="email@gmail.com">
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-6">
               <label class="form-label small fw-semibold">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-              <select class="form-select form-select-sm" required>
-                <option value="HCM" selected>TP. Hồ Chí Minh</option>
-                <option value="HN">Hà Nội</option>
-                <option value="DN">Đà Nẵng</option>
-                <option value="HP">Hải Phòng</option>
-                <option value="CT">Cần Thơ</option>
-              </select>
+              <input type="text" name="city" class="form-control form-control-sm" value="{{ old('city', $user->city ?? 'Hồ Chí Minh') }}" required placeholder="Ví dụ: TP. Hồ Chí Minh">
             </div>
 
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Quận / Huyện <span class="text-danger">*</span></label>
-              <select class="form-select form-select-sm" required>
-                <option value="Q1" selected>Quận 1</option>
-                <option value="Q3">Quận 3</option>
-                <option value="Q7">Quận 7</option>
-                <option value="BT">Bình Thạnh</option>
-              </select>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Phường / Xã <span class="text-danger">*</span></label>
-              <select class="form-select form-select-sm" required>
-                <option value="BN" selected>Phường Bến Nghé</option>
-                <option value="BT">Phường Bến Thành</option>
-                <option value="DK">Phường Đa Kao</option>
-              </select>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Quận / Huyện</label>
+              <input type="text" name="district" class="form-control form-control-sm" value="{{ old('district', $user->district ?? 'Quận 1') }}" placeholder="Ví dụ: Quận 1">
             </div>
 
             <div class="col-12">
-              <label class="form-label small fw-semibold">Địa chỉ số nhà, tên đường cụ thể <span class="text-danger">*</span></label>
-              <input type="text" name="customer_address" class="form-control form-control-sm" value="Số 45 Đường Lê Duẩn" required placeholder="Số nhà, ngõ ngách, tên đường...">
+              <label class="form-label small fw-semibold">Địa chỉ chi tiết (Số nhà, tên đường, phường xã) <span class="text-danger">*</span></label>
+              <input type="text" name="shipping_address" class="form-control form-control-sm" value="{{ old('shipping_address', $user->address ?? '') }}" required placeholder="Ví dụ: Số 45 Đường Lê Duẩn, Phường Bến Nghé">
             </div>
 
             <div class="col-12">
               <label class="form-label small fw-semibold">Ghi chú giao hàng (Tùy chọn)</label>
-              <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Ví dụ: Giao hàng vào giờ hành chính, gọi trước khi đến..."></textarea>
+              <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Ví dụ: Giao hàng vào giờ hành chính, gọi trước khi giao 15 phút...">{{ old('notes') }}</textarea>
             </div>
           </div>
         </div>
@@ -92,11 +72,11 @@
           <div class="d-flex flex-column gap-3">
             <!-- Method 1: COD -->
             <div class="form-check p-3 border rounded-3 bg-light-subtle d-flex align-items-center">
-              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_cod" value="COD" checked>
+              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_cod" value="cod" checked>
               <label class="form-check-label d-flex align-items-center justify-content-between flex-grow-1 cursor-pointer" for="pay_cod">
                 <div>
                   <strong class="text-dark d-block">Thanh toán khi nhận hàng (COD)</strong>
-                  <span class="text-muted small">Thanh toán tiền mặt cho bưu tá khi nhận và kiểm tra hàng</span>
+                  <span class="text-muted small">Thanh toán tiền mặt cho bưu tá khi nhận và thử hàng tận nhà</span>
                 </div>
                 <i class="fa-solid fa-hand-holding-dollar fs-4 text-warning"></i>
               </label>
@@ -104,11 +84,11 @@
 
             <!-- Method 2: VietQR -->
             <div class="form-check p-3 border rounded-3 bg-light-subtle d-flex align-items-center">
-              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_vietqr" value="VIETQR">
+              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_vietqr" value="vietqr">
               <label class="form-check-label d-flex align-items-center justify-content-between flex-grow-1 cursor-pointer" for="pay_vietqr">
                 <div>
                   <strong class="text-dark d-block">Chuyển khoản VietQR 24/7 (Khuyên dùng)</strong>
-                  <span class="text-muted small">Quét mã QR qua app ngân hàng - Xác nhận tự động không cần chụp màn hình</span>
+                  <span class="text-muted small">Quét mã QR qua app mọi ngân hàng - Tự động xác nhận giao dịch</span>
                 </div>
                 <i class="fa-solid fa-qrcode fs-4 text-warning"></i>
               </label>
@@ -116,11 +96,11 @@
 
             <!-- Method 3: VNPAY / MoMo -->
             <div class="form-check p-3 border rounded-3 bg-light-subtle d-flex align-items-center">
-              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_vnpay" value="VNPAY">
+              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_vnpay" value="vnpay">
               <label class="form-check-label d-flex align-items-center justify-content-between flex-grow-1 cursor-pointer" for="pay_vnpay">
                 <div>
-                  <strong class="text-dark d-block">Ví điện tử VNPAY / MoMo / Thẻ ATM</strong>
-                  <span class="text-muted small">Cổng thanh toán an toàn, bảo mật thông tin tài khoản</span>
+                  <strong class="text-dark d-block">Ví điện tử VNPAY / MoMo / Thẻ Quốc Tế</strong>
+                  <span class="text-muted small">Cổng thanh toán online an toàn bảo mật tiêu chuẩn quốc tế</span>
                 </div>
                 <i class="fa-solid fa-wallet fs-4 text-info"></i>
               </label>
@@ -160,13 +140,19 @@
               <span class="text-muted">Tạm tính:</span>
               <span class="fw-semibold text-dark">{{ number_format($subtotal, 0, ',', '.') }}₫</span>
             </div>
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Voucher giảm giá (BEESTYLE50):</span>
-              <span class="fw-semibold text-success">-{{ number_format($discount, 0, ',', '.') }}₫</span>
-            </div>
+            @if($discount > 0)
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">Giảm giá voucher ({{ $appliedCoupon->code ?? 'VOUCHER' }}):</span>
+                <span class="fw-semibold text-success">-{{ number_format($discount, 0, ',', '.') }}₫</span>
+              </div>
+            @endif
             <div class="d-flex justify-content-between">
               <span class="text-muted">Phí giao hàng:</span>
-              <span class="fw-semibold text-success">Miễn phí (Freeship)</span>
+              @if($shipping == 0)
+                <span class="fw-semibold text-success">Miễn phí (Freeship)</span>
+              @else
+                <span class="fw-semibold text-dark">{{ number_format($shipping, 0, ',', '.') }}₫</span>
+              @endif
             </div>
           </div>
 
@@ -178,7 +164,7 @@
           </div>
 
           <button type="submit" class="btn btn-bee-primary w-100 py-3 fs-6">
-            <i class="fa-solid fa-lock me-2"></i> Đặt Hàng Ngay
+            <i class="fa-solid fa-lock me-2"></i> Xác Nhận Đặt Hàng
           </button>
 
           <p class="text-muted small text-center mt-3 mb-0">

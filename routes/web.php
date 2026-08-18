@@ -25,10 +25,20 @@ Route::name('client.')->group(function () {
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
     
+    // Cart Routes
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
+    Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
+    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
+    Route::delete('/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
+    
+    // Checkout Routes
     Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
     
+    // Order Tracking & User Profile
     Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
     Route::get('/tai-khoan', [ProfileController::class, 'index'])->name('profile');
 });
@@ -63,4 +73,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Coupons
     Route::get('/coupons', [AdminCouponController::class, 'index'])->name('coupons.index');
+    Route::post('/coupons', [AdminCouponController::class, 'store'])->name('coupons.store');
 });

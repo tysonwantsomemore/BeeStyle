@@ -27,7 +27,7 @@
     <div class="bee-stat-card">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <span class="text-muted small fw-semibold text-uppercase">Doanh Thu Tháng Này</span>
+          <span class="text-muted small fw-semibold text-uppercase">Doanh Thu Hệ Thống</span>
           <h3 class="fw-bold text-dark mb-0 mt-1">{{ number_format($stats['total_revenue'], 0, ',', '.') }}₫</h3>
         </div>
         <div class="bee-stat-icon primary">
@@ -35,7 +35,7 @@
         </div>
       </div>
       <div class="d-flex align-items-center text-success small fw-semibold">
-        <i class="fa-solid fa-arrow-trend-up me-1"></i> {{ $stats['revenue_growth'] }} <span class="text-muted ms-1 font-weight-normal">so với tháng trước</span>
+        <i class="fa-solid fa-arrow-trend-up me-1"></i> {{ $stats['revenue_growth'] }} <span class="text-muted ms-1 font-weight-normal">tăng trưởng tháng này</span>
       </div>
     </div>
   </div>
@@ -53,7 +53,7 @@
         </div>
       </div>
       <div class="d-flex align-items-center text-success small fw-semibold">
-        <i class="fa-solid fa-arrow-trend-up me-1"></i> {{ $stats['orders_growth'] }} <span class="text-muted ms-1 font-weight-normal">đơn mới tuần này</span>
+        <i class="fa-solid fa-arrow-trend-up me-1"></i> {{ $stats['orders_growth'] }} <span class="text-muted ms-1 font-weight-normal">đơn mới cập nhật</span>
       </div>
     </div>
   </div>
@@ -63,7 +63,7 @@
     <div class="bee-stat-card">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <span class="text-muted small fw-semibold text-uppercase">Khách Hàng Mới</span>
+          <span class="text-muted small fw-semibold text-uppercase">Khách Hàng Đăng Ký</span>
           <h3 class="fw-bold text-dark mb-0 mt-1">{{ $stats['total_customers'] }}</h3>
         </div>
         <div class="bee-stat-icon info">
@@ -71,25 +71,25 @@
         </div>
       </div>
       <div class="d-flex align-items-center text-success small fw-semibold">
-        <i class="fa-solid fa-arrow-trend-up me-1"></i> {{ $stats['customers_growth'] }} <span class="text-muted ms-1 font-weight-normal">thành viên đăng ký</span>
+        <i class="fa-solid fa-arrow-trend-up me-1"></i> {{ $stats['customers_growth'] }} <span class="text-muted ms-1 font-weight-normal">thành viên VIP</span>
       </div>
     </div>
   </div>
 
-  <!-- Conversion Rate -->
+  <!-- Total Products -->
   <div class="col-xl-3 col-md-6">
     <div class="bee-stat-card">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <span class="text-muted small fw-semibold text-uppercase">Tỷ Lệ Mua Hàng</span>
-          <h3 class="fw-bold text-dark mb-0 mt-1">{{ $stats['conversion_rate'] }}</h3>
+          <span class="text-muted small fw-semibold text-uppercase">Sản Phẩm Trong Kho</span>
+          <h3 class="fw-bold text-dark mb-0 mt-1">{{ $stats['total_products'] }}</h3>
         </div>
         <div class="bee-stat-icon danger">
-          <i class="fa-solid fa-bolt"></i>
+          <i class="fa-solid fa-shirt"></i>
         </div>
       </div>
       <div class="d-flex align-items-center text-success small fw-semibold">
-        <i class="fa-solid fa-arrow-trend-up me-1"></i> +0.8% <span class="text-muted ms-1 font-weight-normal">tỷ lệ chốt giỏ hàng</span>
+        <i class="fa-solid fa-circle-check me-1"></i> Đang hoạt động <span class="text-muted ms-1 font-weight-normal">trên hệ thống</span>
       </div>
     </div>
   </div>
@@ -99,7 +99,7 @@
 <div class="bee-table-card mb-4">
   <div class="card-header d-flex justify-content-between align-items-center">
     <div>
-      <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-receipt me-2 text-warning"></i> Đơn Hàng Cần Xử Lý</h5>
+      <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-receipt me-2 text-warning"></i> Đơn Hàng Mới Nhất</h5>
     </div>
     <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary btn-sm">Xem tất cả đơn hàng</a>
   </div>
@@ -117,32 +117,38 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($orders as $order)
+        @forelse($orders as $order)
           <tr>
-            <td><span class="font-monospace fw-bold text-primary">{{ $order['order_code'] }}</span></td>
+            <td><span class="font-monospace fw-bold text-primary">{{ $order->order_code }}</span></td>
             <td>
-              <div class="fw-bold text-dark">{{ $order['customer_name'] }}</div>
-              <small class="text-muted">{{ $order['customer_phone'] }}</small>
+              <div class="fw-bold text-dark">{{ $order->customer_name }}</div>
+              <small class="text-muted">{{ $order->customer_phone }}</small>
             </td>
-            <td><span class="badge bg-light text-dark fw-normal border">{{ $order['items_count'] }} mặt hàng</span></td>
-            <td><strong class="text-danger">{{ number_format($order['total_amount'], 0, ',', '.') }}₫</strong></td>
-            <td><span class="small text-muted">{{ $order['payment_method'] }}</span></td>
+            <td><span class="badge bg-light text-dark fw-normal border">{{ $order->items->count() }} mặt hàng</span></td>
+            <td><strong class="text-danger">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong></td>
+            <td><span class="small text-muted">{{ $order->payment_method_name }}</span></td>
             <td>
-              @if($order['status_step'] == 6)
+              @if($order->shipping_status === 'completed')
                 <span class="badge bg-success text-white">Hoàn tất</span>
-              @elseif($order['status_step'] == 4)
+              @elseif($order->shipping_status === 'shipping')
                 <span class="badge bg-warning text-dark">Đang giao hàng</span>
+              @elseif($order->shipping_status === 'cancelled')
+                <span class="badge bg-danger text-white">Đã hủy</span>
               @else
-                <span class="badge bg-info text-white">{{ $order['shipping_status'] }}</span>
+                <span class="badge bg-info text-white">{{ $order->status_label }}</span>
               @endif
             </td>
             <td>
-              <a href="{{ route('admin.orders.show', $order['id']) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold">
+              <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold">
                 Chi Tiết
               </a>
             </td>
           </tr>
-        @endforeach
+        @empty
+          <tr>
+            <td colspan="7" class="text-center py-3 text-muted">Chưa có đơn hàng nào trong hệ thống.</td>
+          </tr>
+        @endforelse
       </tbody>
     </table>
   </div>
@@ -153,7 +159,7 @@
   <div class="col-lg-8">
     <div class="bee-table-card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire me-2 text-danger"></i> Top Sản Phẩm Bán Chạy Nhất</h5>
+        <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire me-2 text-danger"></i> Top Sản Phẩm Trong Cửa Hàng</h5>
         <a href="{{ route('admin.products.index') }}" class="small text-warning text-decoration-none">Quản lý kho</a>
       </div>
       <div class="table-responsive">
@@ -168,20 +174,20 @@
             </tr>
           </thead>
           <tbody>
-            @foreach(array_slice($products, 0, 4) as $p)
+            @foreach($products as $p)
               <tr>
                 <td>
                   <div class="d-flex align-items-center gap-2">
-                    <img src="{{ asset($p['image']) }}" alt="{{ $p['name'] }}" style="width: 40px; height: 40px; object-fit: contain;">
+                    <img src="{{ asset($p->image) }}" alt="{{ $p->name }}" style="width: 40px; height: 40px; object-fit: contain;">
                     <div>
-                      <div class="fw-bold small text-dark text-truncate" style="max-width: 260px;">{{ $p['name'] }}</div>
-                      <small class="text-muted">{{ $p['category'] }}</small>
+                      <div class="fw-bold small text-dark text-truncate" style="max-width: 260px;">{{ $p->name }}</div>
+                      <small class="text-muted">{{ $p->category->name ?? 'Thời trang nam' }}</small>
                     </div>
                   </div>
                 </td>
-                <td><strong>{{ number_format($p['price'], 0, ',', '.') }}₫</strong></td>
-                <td><span class="badge bg-success-subtle text-success fw-bold">{{ $p['sold_count'] }}</span></td>
-                <td><span class="fw-semibold text-dark">{{ $p['stock'] }}</span></td>
+                <td><strong>{{ number_format($p->price, 0, ',', '.') }}₫</strong></td>
+                <td><span class="badge bg-success-subtle text-success fw-bold">{{ $p->sold_count }}</span></td>
+                <td><span class="fw-semibold text-dark">{{ $p->stock }}</span></td>
                 <td><span class="badge bg-success">Đang bán</span></td>
               </tr>
             @endforeach
@@ -198,10 +204,10 @@
         @foreach($categories as $c)
           <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light">
             <div class="d-flex align-items-center gap-2">
-              <i class="{{ $c['icon'] }} text-warning"></i>
-              <span class="small fw-semibold text-dark">{{ $c['name'] }}</span>
+              <i class="{{ $c->icon }} text-warning"></i>
+              <span class="small fw-semibold text-dark">{{ $c->name }}</span>
             </div>
-            <span class="badge bg-white text-dark border">{{ $c['item_count'] }} SP</span>
+            <span class="badge bg-white text-dark border">{{ $c->products_count }} SP</span>
           </div>
         @endforeach
       </div>

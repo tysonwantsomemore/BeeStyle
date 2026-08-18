@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>@yield('title', 'BeeStyle - Thương Hiệu Thời Trang Đẳng Cấp & Thanh Lịch')</title>
+  <title>@yield('title', 'BeeStyle - Thời Trang Nam Đẳng Cấp & Thanh Lịch')</title>
 
   <!-- Favicon -->
   <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/img/favicons/apple-touch-icon.png') }}">
@@ -63,7 +63,7 @@
         <div class="d-none d-lg-block flex-grow-1 mx-4" style="max-width: 540px;">
           <form action="{{ route('client.products.index') }}" method="GET" class="bee-search-wrapper">
             <i class="fa-solid fa-magnifying-glass bee-search-icon"></i>
-            <input type="text" name="q" value="{{ request('q') }}" class="form-control bee-search-input" placeholder="Tìm kiếm áo polo, blazer, đầm nữ, giày da, phụ kiện...">
+            <input type="text" name="q" value="{{ request('q') }}" class="form-control bee-search-input" placeholder="Tìm kiếm áo polo nam, sơ mi, blazer, quần âu, giày da...">
           </form>
         </div>
 
@@ -74,15 +74,15 @@
             <i class="fa-regular fa-user"></i>
           </a>
 
-          <!-- Wishlist -->
-          <a href="{{ route('client.products.index') }}" class="bee-icon-btn" title="Yêu thích">
-            <i class="fa-regular fa-heart"></i>
+          <!-- Wishlist / Shop -->
+          <a href="{{ route('client.products.index') }}" class="bee-icon-btn" title="Tất cả sản phẩm">
+            <i class="fa-solid fa-store"></i>
           </a>
 
           <!-- Cart -->
-          <a href="{{ route('client.cart') }}" class="bee-icon-btn" title="Giỏ hàng">
+          <a href="{{ route('client.cart') }}" class="bee-icon-btn position-relative" title="Giỏ hàng">
             <i class="fa-solid fa-bag-shopping"></i>
-            <span class="bee-badge-count">2</span>
+            <span class="bee-badge-count">{{ \App\Services\CartService::count() }}</span>
           </a>
 
           <!-- Mobile Toggle Button -->
@@ -104,13 +104,13 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'thoi-trang-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'thoi-trang-nam']) }}">
-                Thời Trang Nam
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-polo-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-polo-tshirt-nam']) }}">
+                Áo Polo &amp; T-Shirt
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'thoi-trang-nu' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'thoi-trang-nu']) }}">
-                Thời Trang Nữ
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-so-mi-nam-cong-so' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam-cong-so']) }}">
+                Áo Sơ Mi Nam
               </a>
             </li>
             <li class="nav-item">
@@ -119,18 +119,23 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'giay-dep-cao-cap' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'giay-dep-cao-cap']) }}">
-                Giày Dép
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'quan-au-kaki-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'quan-au-kaki-nam']) }}">
+                Quần Âu &amp; Kaki
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'tui-vi-phu-kien' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'tui-vi-phu-kien']) }}">
-                Túi &amp; Phụ Kiện
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'giay-da-loafer-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'giay-da-loafer-nam']) }}">
+                Giày Da &amp; Loafer
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'that-lung-phu-kien-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'that-lung-phu-kien-nam']) }}">
+                Thắt Lưng &amp; Phụ Kiện
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link bee-nav-link text-danger fw-bold" href="{{ route('client.products.index') }}">
-                <i class="fa-solid fa-fire text-danger me-1"></i> Sale Khủng -50%
+                <i class="fa-solid fa-fire text-danger me-1"></i> BST Mới 2026
               </a>
             </li>
           </ul>
@@ -156,6 +161,29 @@
     </div>
   @endif
 
+  @if(session('error'))
+    <div class="container mt-3">
+      <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center border-0 shadow-sm" role="alert">
+        <i class="fa-solid fa-circle-exclamation fs-5 me-2 text-danger"></i>
+        <div>{{ session('error') }}</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  @endif
+
+  @if($errors->any())
+    <div class="container mt-3">
+      <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <ul class="mb-0 small ps-3">
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  @endif
+
   <!-- MAIN CONTENT SLOT -->
   <main>
     @yield('content')
@@ -172,7 +200,7 @@
             <span class="text-white">Bee<span class="brand-highlight">Style</span></span>
           </div>
           <p class="text-secondary small leading-relaxed pe-lg-4">
-            BeeStyle là thương hiệu thời trang cao cấp hướng tới phong cách tối giản, hiện đại và thanh lịch. Chúng tôi cam kết mang đến sản phẩm chất lượng quốc tế với mức giá phù hợp cho người Việt.
+            BeeStyle là thương hiệu thời trang nam cao cấp định hình phong cách tối giản, chuẩn mực và lịch lãm. Chúng tôi cam kết chất liệu cotton dệt tổ ong, vải lụa bamboo và da bò nguyên tấm chuẩn quốc tế.
           </p>
           <div class="d-flex gap-2 mt-3">
             <a href="#" class="btn btn-sm btn-outline-light rounded-circle" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><i class="fa-brands fa-facebook-f"></i></a>
@@ -184,14 +212,14 @@
 
         <!-- Quick Links -->
         <div class="col-lg-2 col-md-6 col-6">
-          <h6 class="text-white fw-bold mb-3">Danh Mục Mua Sắm</h6>
+          <h6 class="text-white fw-bold mb-3">Danh Mục Nam</h6>
           <ul class="list-unstyled d-flex flex-column gap-2 small">
-            <li><a href="{{ route('client.products.index', ['category' => 'thoi-trang-nam']) }}">Thời trang Nam</a></li>
-            <li><a href="{{ route('client.products.index', ['category' => 'thoi-trang-nu']) }}">Thời trang Nữ</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-polo-tshirt-nam']) }}">Áo Polo &amp; T-Shirt</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam-cong-so']) }}">Áo Sơ Mi Nam</a></li>
             <li><a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer']) }}">Áo khoác &amp; Blazer</a></li>
-            <li><a href="{{ route('client.products.index', ['category' => 'giay-dep-cao-cap']) }}">Giày da &amp; Sneaker</a></li>
-            <li><a href="{{ route('client.products.index', ['category' => 'tui-vi-phu-kien']) }}">Phụ kiện da thật</a></li>
-            <li><a href="{{ route('client.products.index') }}">Hàng mới về</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'quan-au-kaki-nam']) }}">Quần Âu Nam</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'giay-da-loafer-nam']) }}">Giày Da &amp; Loafer</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'that-lung-phu-kien-nam']) }}">Thắt Lưng Da Thật</a></li>
           </ul>
         </div>
 
@@ -201,7 +229,7 @@
           <ul class="list-unstyled d-flex flex-column gap-2 small">
             <li><a href="{{ route('client.order-tracking') }}">Tra cứu hành trình đơn hàng</a></li>
             <li><a href="#">Chính sách đổi trả trong 30 ngày</a></li>
-            <li><a href="#">Hướng dẫn chọn Size chuẩn</a></li>
+            <li><a href="#">Hướng dẫn chọn Size nam chuẩn</a></li>
             <li><a href="#">Chính sách khách hàng VIP</a></li>
             <li><a href="#">Hệ thống cửa hàng toàn quốc</a></li>
             <li><a href="#">Bảo mật thông tin khách hàng</a></li>
@@ -231,7 +259,7 @@
 
       <div class="bee-footer-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="text-secondary">
-          &copy; {{ date('Y') }} <strong>BeeStyle Fashion Group</strong>. Đồ án tốt nghiệp - All Rights Reserved.
+          &copy; {{ date('Y') }} <strong>BeeStyle Menswear Group</strong>. Đồ án tốt nghiệp - All Rights Reserved.
         </div>
         <div class="d-flex gap-3 text-secondary small">
           <a href="#">Điều khoản sử dụng</a>

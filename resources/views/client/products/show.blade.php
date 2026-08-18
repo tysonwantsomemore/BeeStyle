@@ -1,6 +1,6 @@
 @extends('layouts.client')
 
-@section('title', $product['name'] . ' | BeeStyle Fashion')
+@section('title', $product->name . ' | BeeStyle Menswear')
 
 @section('content')
 <div class="container py-4">
@@ -8,8 +8,8 @@
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb small">
       <li class="breadcrumb-item"><a href="{{ route('client.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
-      <li class="breadcrumb-item"><a href="{{ route('client.products.index', ['category' => $product['category_slug']]) }}" class="text-decoration-none text-muted">{{ $product['category'] }}</a></li>
-      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ $product['name'] }}</li>
+      <li class="breadcrumb-item"><a href="{{ route('client.products.index', ['category' => $product->category->slug ?? '']) }}" class="text-decoration-none text-muted">{{ $product->category->name ?? 'Thời trang nam' }}</a></li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ $product->name }}</li>
     </ol>
   </nav>
 
@@ -20,84 +20,104 @@
       <!-- IMAGE GALLERY -->
       <div class="col-lg-6">
         <div class="position-relative bg-light rounded-4 p-4 text-center mb-3" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
-          @if($product['discount'] > 0)
-            <span class="position-absolute top-0 start-0 m-3 badge bg-danger fs-6 px-3 py-2 rounded-pill">-{{ $product['discount'] }}%</span>
+          @if($product->discount_percent > 0)
+            <span class="position-absolute top-0 start-0 m-3 badge bg-danger fs-6 px-3 py-2 rounded-pill">-{{ $product->discount_percent }}%</span>
           @endif
-          <img id="mainProductImg" src="{{ asset($product['image']) }}" alt="{{ $product['name'] }}" class="img-fluid" style="max-height: 380px; object-fit: contain; transition: 0.3s ease;">
+          <img id="mainProductImg" src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid" style="max-height: 380px; object-fit: contain; transition: 0.3s ease;">
         </div>
 
         <!-- THUMBNAILS -->
-        <div class="d-flex gap-2 justify-content-center">
-          @foreach($product['images'] as $index => $img)
-            <div class="border rounded-3 p-1 bg-white cursor-pointer {{ $index === 0 ? 'border-warning border-2' : '' }}" style="width: 70px; height: 70px; cursor: pointer;" onclick="document.getElementById('mainProductImg').src='{{ asset($img) }}'">
-              <img src="{{ asset($img) }}" alt="thumb" class="w-100 h-100 object-fit-contain">
-            </div>
-          @endforeach
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+          <div class="border rounded-3 p-1 bg-white cursor-pointer border-warning border-2" style="width: 70px; height: 70px; cursor: pointer;" onclick="document.getElementById('mainProductImg').src='{{ asset($product->image) }}'">
+            <img src="{{ asset($product->image) }}" alt="thumb" class="w-100 h-100 object-fit-contain">
+          </div>
+          @if($product->images)
+            @foreach($product->images as $img)
+              @if($img->image_path !== $product->image)
+                <div class="border rounded-3 p-1 bg-white cursor-pointer" style="width: 70px; height: 70px; cursor: pointer;" onclick="document.getElementById('mainProductImg').src='{{ asset($img->image_path) }}'">
+                  <img src="{{ asset($img->image_path) }}" alt="thumb" class="w-100 h-100 object-fit-contain">
+                </div>
+              @endif
+            @endforeach
+          @endif
         </div>
       </div>
 
       <!-- PRODUCT INFO & ACTIONS -->
       <div class="col-lg-6">
         <div class="ps-lg-3">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1">{{ $product['category'] }}</span>
-            <span class="text-muted small">Mã SKU: <strong>{{ $product['sku'] }}</strong></span>
-            <span class="badge bg-success-subtle text-success ms-auto"><i class="fa-solid fa-check me-1"></i> Còn {{ $product['stock'] }} sản phẩm</span>
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1">{{ $product->category->name ?? 'Thời trang nam' }}</span>
+            <span class="text-muted small">Mã SKU: <strong>{{ $product->sku }}</strong></span>
+            <span class="badge bg-success-subtle text-success ms-auto"><i class="fa-solid fa-check me-1"></i> Còn {{ $product->stock }} sản phẩm</span>
           </div>
 
           <h2 class="fw-bold text-dark mb-3" style="font-size: 1.5rem; line-height: 1.3;">
-            {{ $product['name'] }}
+            {{ $product->name }}
           </h2>
 
-          <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
             <div class="d-flex align-items-center text-warning gap-1">
               @for($i=1; $i<=5; $i++)
                 <i class="fa-solid fa-star"></i>
               @endfor
-              <span class="fw-bold text-dark ms-1">{{ $product['rating'] }}</span>
+              <span class="fw-bold text-dark ms-1">{{ $product->rating }}</span>
             </div>
             <span class="text-muted">|</span>
-            <a href="#reviewsTab" class="text-muted small text-decoration-none">{{ $product['reviews_count'] }} đánh giá</a>
+            <a href="#reviewsTab" class="text-muted small text-decoration-none">{{ $product->reviews_count }} đánh giá</a>
             <span class="text-muted">|</span>
-            <span class="text-muted small">Đã bán <strong>{{ $product['sold_count'] }}</strong></span>
+            <span class="text-muted small">Đã bán <strong>{{ $product->sold_count }}</strong></span>
           </div>
 
           <!-- PRICE -->
           <div class="d-flex align-items-baseline gap-3 p-3 bg-light rounded-3 mb-4">
-            <span class="fs-3 fw-bold text-danger">{{ number_format($product['price'], 0, ',', '.') }}₫</span>
-            @if($product['original_price'] > $product['price'])
-              <span class="text-muted text-decoration-line-through fs-6">{{ number_format($product['original_price'], 0, ',', '.') }}₫</span>
-              <span class="badge bg-danger">Tiết kiệm {{ number_format($product['original_price'] - $product['price'], 0, ',', '.') }}₫</span>
+            <span class="fs-3 fw-bold text-danger">{{ number_format($product->price, 0, ',', '.') }}₫</span>
+            @if($product->original_price && $product->original_price > $product->price)
+              <span class="text-muted text-decoration-line-through fs-6">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
+              <span class="badge bg-danger">Tiết kiệm {{ number_format($product->original_price - $product->price, 0, ',', '.') }}₫</span>
             @endif
           </div>
 
           <p class="text-secondary small mb-4">
-            {{ $product['short_description'] }}
+            {{ $product->short_description }}
           </p>
 
-          <form action="{{ route('client.cart') }}" method="GET">
+          <form action="{{ route('client.cart.add') }}" method="POST">
+            @csrf
+            <input type="hidden" name="product_id" value="{{ $product->id }}">
+
             <!-- COLOR SELECTOR -->
             <div class="mb-3">
               <label class="fw-bold small text-dark mb-2 d-block">Màu Sắc:</label>
               <div class="d-flex flex-wrap gap-2">
-                @foreach($product['colors'] as $index => $color)
-                  <input type="radio" class="btn-check" name="color" id="color_{{ $index }}" value="{{ $color }}" {{ $index === 0 ? 'checked' : '' }}>
-                  <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2" for="color_{{ $index }}">{{ $color }}</label>
-                @endforeach
+                @if(is_array($product->colors))
+                  @foreach($product->colors as $index => $color)
+                    <input type="radio" class="btn-check" name="color" id="color_{{ $index }}" value="{{ $color }}" {{ $index === 0 ? 'checked' : '' }}>
+                    <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2" for="color_{{ $index }}">{{ $color }}</label>
+                  @endforeach
+                @else
+                  <input type="radio" class="btn-check" name="color" id="color_0" value="Tiêu chuẩn" checked>
+                  <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2" for="color_0">Tiêu chuẩn</label>
+                @endif
               </div>
             </div>
 
             <!-- SIZE SELECTOR -->
             <div class="mb-4">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="fw-bold small text-dark mb-0">Kích Thước:</label>
+                <label class="fw-bold small text-dark mb-0">Kích Thước (Size):</label>
                 <a href="#sizeGuideModal" data-bs-toggle="modal" class="text-warning small text-decoration-none"><i class="fa-solid fa-ruler-horizontal me-1"></i> Bảng quy đổi Size</a>
               </div>
               <div class="d-flex flex-wrap gap-2">
-                @foreach($product['sizes'] as $index => $size)
-                  <input type="radio" class="btn-check" name="size" id="size_{{ $index }}" value="{{ $size }}" {{ $index === 0 ? 'checked' : '' }}>
-                  <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2 fw-bold" for="size_{{ $index }}">{{ $size }}</label>
-                @endforeach
+                @if(is_array($product->sizes))
+                  @foreach($product->sizes as $index => $size)
+                    <input type="radio" class="btn-check" name="size" id="size_{{ $index }}" value="{{ $size }}" {{ $index === 0 ? 'checked' : '' }}>
+                    <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2 fw-bold" for="size_{{ $index }}">{{ $size }}</label>
+                  @endforeach
+                @else
+                  <input type="radio" class="btn-check" name="size" id="size_0" value="Free Size" checked>
+                  <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2 fw-bold" for="size_0">Free Size</label>
+                @endif
               </div>
             </div>
 
@@ -107,21 +127,21 @@
               <div class="d-flex align-items-center gap-3">
                 <div class="input-group" style="width: 130px;">
                   <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var q=document.getElementById('qtyInput'); if(q.value>1) q.value--;">-</button>
-                  <input type="number" id="qtyInput" class="form-control form-control-sm text-center fw-bold" value="1" min="1" max="99">
-                  <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var q=document.getElementById('qtyInput'); q.value++;">+</button>
+                  <input type="number" id="qtyInput" name="quantity" class="form-control form-control-sm text-center fw-bold" value="1" min="1" max="{{ $product->stock }}">
+                  <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var q=document.getElementById('qtyInput'); if(q.value<{{ $product->stock }}) q.value++;">+</button>
                 </div>
-                <span class="text-muted small">Có sẵn {{ $product['stock'] }} sản phẩm</span>
+                <span class="text-muted small">Có sẵn {{ $product->stock }} sản phẩm</span>
               </div>
             </div>
 
             <!-- ACTION BUTTONS -->
             <div class="d-flex gap-3 mb-4">
-              <a href="{{ route('client.cart') }}" class="btn btn-bee-primary px-4 py-3 flex-grow-1 fs-6">
+              <button type="submit" class="btn btn-bee-primary px-4 py-3 flex-grow-1 fs-6">
                 <i class="fa-solid fa-cart-plus me-1"></i> Thêm Vào Giỏ Hàng
-              </a>
-              <a href="{{ route('client.checkout') }}" class="btn btn-bee-dark px-4 py-3 flex-grow-1 fs-6">
-                Mua Ngay
-              </a>
+              </button>
+              <button type="submit" name="buy_now" value="1" class="btn btn-bee-dark px-4 py-3 flex-grow-1 fs-6">
+                <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+              </button>
             </div>
           </form>
 
@@ -155,7 +175,7 @@
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link fw-bold text-dark px-4 py-3" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
-          <i class="fa-solid fa-star me-2 text-warning"></i> Đánh Giá Từ Khách Hàng ({{ $product['reviews_count'] }})
+          <i class="fa-solid fa-star me-2 text-warning"></i> Đánh Giá Từ Khách Hàng ({{ $product->reviews_count }})
         </button>
       </li>
     </ul>
@@ -164,7 +184,7 @@
       <!-- Tab 1: Description -->
       <div class="tab-pane fade show active" id="desc" role="tabpanel">
         <h5 class="fw-bold mb-3 text-dark">Thông tin chi tiết về sản phẩm</h5>
-        <p class="leading-relaxed text-secondary mb-4">{{ $product['description'] }}</p>
+        <p class="leading-relaxed text-secondary mb-4">{{ $product->description }}</p>
         
         <h6 class="fw-bold mb-2">Đặc điểm nổi bật:</h6>
         <ul class="text-secondary leading-relaxed small">
@@ -177,7 +197,7 @@
 
       <!-- Tab 2: Size Guide -->
       <div class="tab-pane fade" id="guide" role="tabpanel">
-        <h5 class="fw-bold mb-3 text-dark">Bảng thông số kích cỡ chuẩn BeeStyle</h5>
+        <h5 class="fw-bold mb-3 text-dark">Bảng thông số kích cỡ chuẩn BeeStyle Menswear</h5>
         <div class="table-responsive">
           <table class="table table-bordered text-center align-middle">
             <thead class="table-light">
@@ -204,37 +224,43 @@
       <div class="tab-pane fade" id="reviews" role="tabpanel">
         <div class="row g-4">
           <div class="col-md-4 text-center border-end">
-            <h1 class="display-3 fw-bold text-warning mb-0">{{ $product['rating'] }}</h1>
+            <h1 class="display-3 fw-bold text-warning mb-0">{{ $product->rating }}</h1>
             <div class="text-warning mb-2">
               <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
             </div>
-            <p class="text-muted small">Dựa trên {{ $product['reviews_count'] }} lượt đánh giá của khách hàng</p>
+            <p class="text-muted small">Dựa trên {{ $product->reviews_count }} lượt đánh giá của khách hàng</p>
           </div>
           <div class="col-md-8">
             <div class="d-flex flex-column gap-3">
-              <div class="p-3 bg-light rounded-3">
-                <div class="d-flex justify-content-between mb-2">
-                  <div>
-                    <strong class="text-dark">Lê Minh Tuấn</strong>
-                    <span class="badge bg-success-subtle text-success ms-2 small"><i class="fa-solid fa-circle-check"></i> Đã mua hàng</span>
+              @forelse($product->reviews as $rev)
+                <div class="p-3 bg-light rounded-3">
+                  <div class="d-flex justify-content-between mb-2">
+                    <div>
+                      <strong class="text-dark">{{ $rev->user_name }}</strong>
+                      <span class="badge bg-success-subtle text-success ms-2 small"><i class="fa-solid fa-circle-check"></i> Đã mua hàng</span>
+                    </div>
+                    <small class="text-muted">{{ $rev->created_at ? $rev->created_at->format('d/m/Y') : '16/08/2026' }}</small>
                   </div>
-                  <small class="text-muted">12/08/2026</small>
-                </div>
-                <div class="text-warning small mb-2"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                <p class="small text-secondary mb-0">Áo mặc cực kỳ ưng ý, vải mềm mịn mặc mát rượi. Form áo đứng dáng rất tôn dáng, đóng gói hộp BeeStyle sang trọng!</p>
-              </div>
-
-              <div class="p-3 bg-light rounded-3">
-                <div class="d-flex justify-content-between mb-2">
-                  <div>
-                    <strong class="text-dark">Nguyễn Thu Trang</strong>
-                    <span class="badge bg-success-subtle text-success ms-2 small"><i class="fa-solid fa-circle-check"></i> Đã mua hàng</span>
+                  <div class="text-warning small mb-2">
+                    @for($i=1; $i<=$rev->rating; $i++)
+                      <i class="fa-solid fa-star"></i>
+                    @endfor
                   </div>
-                  <small class="text-muted">08/08/2026</small>
+                  <p class="small text-secondary mb-0">{{ $rev->comment }}</p>
                 </div>
-                <div class="text-warning small mb-2"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                <p class="small text-secondary mb-0">Giao hàng nhanh trong 24h, chất liệu đường may chuẩn đét. Sẽ ủng hộ shop nhiều hơn trong tương lai!</p>
-              </div>
+              @empty
+                <div class="p-3 bg-light rounded-3">
+                  <div class="d-flex justify-content-between mb-2">
+                    <div>
+                      <strong class="text-dark">Lê Minh Tuấn</strong>
+                      <span class="badge bg-success-subtle text-success ms-2 small"><i class="fa-solid fa-circle-check"></i> Đã mua hàng</span>
+                    </div>
+                    <small class="text-muted">12/08/2026</small>
+                  </div>
+                  <div class="text-warning small mb-2"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                  <p class="small text-secondary mb-0">Áo mặc cực kỳ ưng ý, vải mềm mịn mặc mát rượi. Form áo đứng dáng rất tôn dáng, đóng gói hộp BeeStyle sang trọng!</p>
+                </div>
+              @endforelse
             </div>
           </div>
         </div>
@@ -243,33 +269,35 @@
   </div>
 
   <!-- RELATED PRODUCTS -->
-  <div class="mb-5">
-    <div class="bee-section-header">
-      <div>
-        <h3 class="bee-section-title">Gợi Ý Sản Phẩm Tương Tự</h3>
-        <p class="bee-section-subtitle">Có thể bạn cũng sẽ thích những mẫu thời trang này</p>
+  @if($relatedProducts->count() > 0)
+    <div class="mb-5">
+      <div class="bee-section-header">
+        <div>
+          <h3 class="bee-section-title">Gợi Ý Sản Phẩm Cùng Danh Mục</h3>
+          <p class="bee-section-subtitle">Có thể bạn cũng sẽ thích những mẫu thời trang này</p>
+        </div>
       </div>
-    </div>
 
-    <div class="row g-4">
-      @foreach(array_slice($relatedProducts, 0, 4) as $item)
-        <div class="col-lg-3 col-md-6 col-6">
-          <div class="bee-product-card">
-            <div class="bee-product-img-wrapper">
-              <img src="{{ asset($item['image']) }}" alt="{{ $item['name'] }}">
-            </div>
-            <div class="bee-product-body">
-              <span class="bee-product-category">{{ $item['category'] }}</span>
-              <a href="{{ route('client.products.show', $item['id']) }}" class="bee-product-title">{{ $item['name'] }}</a>
-              <div class="bee-product-price-row">
-                <span class="bee-product-price">{{ number_format($item['price'], 0, ',', '.') }}₫</span>
+      <div class="row g-4">
+        @foreach($relatedProducts as $item)
+          <div class="col-lg-3 col-md-6 col-6">
+            <div class="bee-product-card">
+              <div class="bee-product-img-wrapper">
+                <img src="{{ asset($item->image) }}" alt="{{ $item->name }}">
               </div>
-              <a href="{{ route('client.products.show', $item['id']) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Ngay</a>
+              <div class="bee-product-body">
+                <span class="bee-product-category">{{ $item->category->name ?? 'Thời Trang Nam' }}</span>
+                <a href="{{ route('client.products.show', $item->id) }}" class="bee-product-title">{{ $item->name }}</a>
+                <div class="bee-product-price-row">
+                  <span class="bee-product-price">{{ number_format($item->price, 0, ',', '.') }}₫</span>
+                </div>
+                <a href="{{ route('client.products.show', $item->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Ngay</a>
+              </div>
             </div>
           </div>
-        </div>
-      @endforeach
+        @endforeach
+      </div>
     </div>
-  </div>
+  @endif
 </div>
 @endsection

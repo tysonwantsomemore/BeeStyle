@@ -3,52 +3,114 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Services\EcommerceDataService;
+use App\Models\Coupon;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
     public function index()
     {
-        // Sample cart items
-        $cartItems = [
-            [
-                'id' => 1,
-                'product_id' => 1,
-                'name' => 'Áo Polo Nam BeeStyle Premium Cotton Dệt Tổ Ong',
-                'sku' => 'BS-PL-001',
-                'image' => '/assets/img/products/1.png',
-                'color' => 'Xanh Navy',
-                'size' => 'L',
-                'price' => 389000,
-                'original_price' => 499000,
-                'quantity' => 2
-            ],
-            [
-                'id' => 2,
-                'product_id' => 2,
-                'name' => 'Áo Blazer Nam Form Rộng Phong Cách Hàn Quốc Minimalist',
-                'sku' => 'BS-BLZ-002',
-                'image' => '/assets/img/products/2.png',
-                'color' => 'Đen',
-                'size' => 'L',
-                'price' => 890000,
-                'original_price' => 1150000,
-                'quantity' => 1
-            ]
-        ];
+        $cartData = CartService::getCart();
+        $coupons = Coupon::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->get();
 
-        $subtotal = 0;
-        foreach ($cartItems as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+        return view('client.cart', [
+            'cartItems' => $cartData['items'],
+            'cartCount' => $cartData['count'],
+            'subtotal' => $cartData['subtotal'],
+            'discount' => $cartData['discount'],
+            'shipping' => $cartData['shipping'],
+            'total' => $cartData['total'],
+            'appliedCoupon' => $cartData['coupon'],
+            'coupons' => $coupons,
+        ]);
+    }
+
+    public function add(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|integer|exists:products,id',
+            'quantity' => 'nullable|integer|min:1',
+            'color' => 'nullable|string',
+            'size' => 'nullable|string',
+        ]);
+
+        $result = CartService::add(
+            (int)$request->product_id,
+            (int)($request->quantity ?? 1),
+            $request->color,
+            $request->size
+        );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($result);
         }
 
-        $discount = 50000;
-        $shipping = 0; // Freeship
-        $total = $subtotal - $discount + $shipping;
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
 
-        $coupons = EcommerceDataService::getCoupons();
+        if ($request->has('buy_now')) {
+            return redirect()->route('client.checkout');
+        }
 
-        return view('client.cart', compact('cartItems', 'subtotal', 'discount', 'shipping', 'total', 'coupons'));
+        return back()->with('success', $result['message']);
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'key' => 'required|string',
+            'quantity' => 'required|integer|min:0',
+        ]);
+
+        $result = CartService::update($request->key, (int)$request->quantity);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($result);
+        }
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
+    public function remove($key)
+    {
+        $result = CartService::remove($key);
+        return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    public function clear()
+    {
+        CartService::clear();
+        return redirect()->route('client.cart')->with('success', 'Đã xóa toàn bộ sản phẩm trong giỏ hàng!');
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string',
+        ]);
+
+        $result = CartService::applyCoupon($request->code);
+
+        if (!$result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
+    }
+
+    public function removeCoupon()
+    {
+        CartService::removeCoupon();
+        return back()->with('success', 'Đã hủy áp dụng mã giảm giá!');
     }
 }
