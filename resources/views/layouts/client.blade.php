@@ -38,12 +38,29 @@
       <div class="d-flex align-items-center gap-3">
         <span><i class="fa-solid fa-truck-fast text-warning me-1"></i> Miễn phí vận chuyển toàn quốc cho đơn hàng từ <strong>300.000₫</strong></span>
         <span class="d-none d-md-inline text-secondary">|</span>
-        <span class="d-none d-md-inline"><i class="fa-solid fa-phone me-1 text-warning"></i> Hotline CSKH: <strong>1900 8888</strong> (8:00 - 22:00)</span>
+        <span class="d-none d-md-inline"><i class="fa-solid fa-phone me-1 text-warning"></i> Hotline: <strong>1900 8888</strong> (8:00 - 22:00)</span>
       </div>
       <div class="d-flex align-items-center gap-3">
         <a href="{{ route('client.order-tracking') }}"><i class="fa-solid fa-location-dot me-1"></i> Tra cứu đơn hàng</a>
         <span class="text-secondary">|</span>
-        <a href="{{ route('admin.dashboard') }}" class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-gear me-1"></i> Quản Trị (Admin)</a>
+        @auth
+          @if(Auth::user()->isAdmin())
+            <a href="{{ route('admin.dashboard') }}" class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-gear me-1"></i> Trang Quản Trị (Admin)</a>
+          @else
+            <a href="{{ route('client.profile') }}" class="text-white text-decoration-none"><i class="fa-solid fa-user me-1 text-warning"></i> Chào, <strong>{{ Auth::user()->name }}</strong></a>
+          @endif
+          <span class="text-secondary">|</span>
+          <form action="{{ route('auth.logout') }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-link text-white-50 p-0 fs-11 text-decoration-none hover-white">
+              <i class="fa-solid fa-arrow-right-from-bracket me-1 text-danger"></i> Đăng xuất
+            </button>
+          </form>
+        @else
+          <a href="{{ route('auth.login') }}" class="text-white"><i class="fa-solid fa-arrow-right-to-bracket me-1 text-warning"></i> Đăng nhập</a>
+          <span class="text-secondary">/</span>
+          <a href="{{ route('auth.register') }}" class="text-warning fw-semibold">Đăng ký</a>
+        @endauth
       </div>
     </div>
   </div>
@@ -69,10 +86,56 @@
 
         <!-- RIGHT ACTIONS -->
         <div class="d-flex align-items-center gap-2">
-          <!-- User Profile -->
-          <a href="{{ route('client.profile') }}" class="bee-icon-btn" title="Tài khoản của tôi">
-            <i class="fa-regular fa-user"></i>
-          </a>
+          
+          <!-- USER DROPDOWN -->
+          @auth
+            <div class="dropdown">
+              <button class="btn bee-icon-btn d-flex align-items-center gap-2 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Tài khoản của tôi">
+                <img src="{{ asset(Auth::user()->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ Auth::user()->name }}" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
+                <span class="d-none d-md-inline small fw-semibold text-dark">{{ Str::limit(Auth::user()->name, 12) }}</span>
+                <i class="fa-solid fa-chevron-down fs-10 text-muted"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-3 mt-2" style="border-radius: 14px; min-width: 240px;">
+                <li class="pb-2 mb-2 border-bottom">
+                  <div class="fw-bold text-dark">{{ Auth::user()->name }}</div>
+                  <div class="small text-muted">{{ Auth::user()->email }}</div>
+                  <div class="d-flex align-items-center gap-1 mt-1">
+                    <span class="badge bg-warning-subtle text-dark fs-10 fw-bold">{{ Auth::user()->rank }}</span>
+                    <span class="badge bg-light text-dark fs-10 border">{{ Auth::user()->points }} Điểm</span>
+                  </div>
+                </li>
+                @if(Auth::user()->isAdmin())
+                  <li>
+                    <a class="dropdown-item py-2 rounded-2 text-warning fw-bold" href="{{ route('admin.dashboard') }}">
+                      <i class="fa-solid fa-gauge-high me-2"></i> Bảng Quản Trị Admin
+                    </a>
+                  </li>
+                @endif
+                <li>
+                  <a class="dropdown-item py-2 rounded-2" href="{{ route('client.profile') }}">
+                    <i class="fa-regular fa-user me-2 text-muted"></i> Hồ Sơ &amp; Đơn Hàng
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2 rounded-2" href="{{ route('client.order-tracking') }}">
+                    <i class="fa-solid fa-truck-fast me-2 text-muted"></i> Tra Cứu Đơn Hàng
+                  </a>
+                </li>
+                <li class="pt-2 mt-2 border-top">
+                  <form action="{{ route('auth.logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="dropdown-item py-2 rounded-2 text-danger">
+                      <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng Xuất
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          @else
+            <a href="{{ route('auth.login') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold">
+              <i class="fa-regular fa-user me-1"></i> Đăng Nhập
+            </a>
+          @endauth
 
           <!-- Wishlist / Shop -->
           <a href="{{ route('client.products.index') }}" class="bee-icon-btn" title="Tất cả sản phẩm">

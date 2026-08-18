@@ -37,8 +37,21 @@
             <i class="fa-solid fa-map-location-dot me-2 text-muted"></i> Sổ Địa Chỉ: {{ $user->address ?? 'Quận 1, TP. Hồ Chí Minh' }}
           </a>
           <a href="{{ route('client.products.index') }}" class="list-group-item list-group-item-action text-dark rounded-2 mb-1">
-            <i class="fa-solid fa-bag-shopping me-2 text-muted"></i> Mua Sắm Thêm
+            <i class="fa-solid fa-bag-shopping me-2 text-muted"></i> Tiếp Tục Mua Sắm
           </a>
+          @if($user->isAdmin())
+            <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action text-warning fw-bold rounded-2 mb-1">
+              <i class="fa-solid fa-gauge-high me-2"></i> Quản Trị Hệ Thống (Admin)
+            </a>
+          @endif
+          
+          <!-- LOGOUT BUTTON FORM -->
+          <form action="{{ route('auth.logout') }}" method="POST" class="mt-2 pt-2 border-top">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-2 fw-semibold rounded-2">
+              <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng Xuất Tài Khoản
+            </button>
+          </form>
         </div>
       </div>
     </div>

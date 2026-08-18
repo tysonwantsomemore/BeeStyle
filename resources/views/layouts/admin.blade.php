@@ -95,20 +95,19 @@
                   <div class="d-flex align-items-center">
                     <span class="nav-link-icon"><i class="fa-solid fa-cart-shopping"></i></span>
                     <span class="nav-link-text">Quản Lý Đơn Hàng</span>
-                    <span class="badge ms-auto bg-warning text-dark font-weight-bold">4 mới</span>
                   </div>
                 </a>
               </div>
             </li>
 
-            <!-- KHÁCH HÀNG & KHUYẾN MÃI -->
+            <!-- KHÁCH HÀNG & MARKETING -->
             <li class="nav-item">
-              <p class="navbar-vertical-label">Khách Hàng &amp; Khuyến Mãi</p>
+              <p class="navbar-vertical-label">Khách Hàng &amp; Marketing</p>
               <div class="nav-item-wrapper">
                 <a class="nav-link {{ request()->routeIs('admin.customers.index') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">
                   <div class="d-flex align-items-center">
                     <span class="nav-link-icon"><i class="fa-solid fa-users"></i></span>
-                    <span class="nav-link-text">Quản Lý Khách Hàng</span>
+                    <span class="nav-link-text">Danh Sách Khách Hàng</span>
                   </div>
                 </a>
               </div>
@@ -116,19 +115,18 @@
                 <a class="nav-link {{ request()->routeIs('admin.coupons.index') ? 'active' : '' }}" href="{{ route('admin.coupons.index') }}">
                   <div class="d-flex align-items-center">
                     <span class="nav-link-icon"><i class="fa-solid fa-ticket"></i></span>
-                    <span class="nav-link-text">Mã Giảm Giá (Coupons)</span>
+                    <span class="nav-link-text">Mã Giảm Giá (Voucher)</span>
                   </div>
                 </a>
               </div>
             </li>
 
-            <!-- CỬA HÀNG CLIENT -->
-            <li class="nav-item mt-4">
-              <p class="navbar-vertical-label">Lối Tắt</p>
+            <!-- TRỞ VỀ CỬA HÀNG -->
+            <li class="nav-item mt-3 pt-3 border-top border-secondary">
               <div class="nav-item-wrapper">
                 <a class="nav-link text-warning fw-bold" href="{{ route('client.home') }}" target="_blank">
                   <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                    <span class="nav-link-icon text-warning"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                     <span class="nav-link-text">Xem Website Cửa Hàng</span>
                   </div>
                 </a>
@@ -149,64 +147,41 @@
           </button>
           <a class="navbar-brand me-1 me-sm-3 d-lg-none" href="{{ route('admin.dashboard') }}">
             <div class="d-flex align-items-center">
-              <div class="d-flex align-items-center"><i class="fa-solid fa-gem text-warning fs-4 me-2"></i><p class="logo-text ms-2 d-none d-sm-block">BeeStyle</p></div>
+              <i class="fa-solid fa-gem text-warning fs-4 me-2"></i><p class="logo-text ms-2 d-none d-sm-block">BeeStyle</p>
             </div>
           </a>
         </div>
 
         <div class="search-box navbar-top-search-box d-none d-lg-block" style="width:25rem;">
-          <form class="position-relative">
-            <input class="form-control form-control-sm rounded-pill search-input fuzzy-search" type="search" placeholder="Tìm kiếm đơn hàng, sản phẩm, khách hàng..." />
+          <form action="{{ route('admin.orders.index') }}" method="GET" class="position-relative">
+            <input name="q" class="form-control form-control-sm rounded-pill search-input" type="search" placeholder="Tìm kiếm mã đơn hàng, sản phẩm, SĐT..." />
             <span class="fas fa-search search-box-icon"></span>
           </form>
         </div>
 
         <ul class="navbar-nav navbar-nav-icons flex-row align-items-center gap-3">
-          <!-- Notification -->
-          <li class="nav-item dropdown">
-            <a class="nav-link position-relative px-2" href="#" role="button" data-bs-toggle="dropdown">
-              <i class="fa-regular fa-bell fs-5 text-secondary"></i>
-              <span class="position-absolute top-1 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-            </a>
-            <div class="dropdown-menu dropdown-menu-end shadow-lg py-2 mt-2 border-0" style="min-width: 280px;">
-              <div class="px-3 py-2 border-bottom fw-bold text-dark">Thông báo mới</div>
-              <a class="dropdown-item py-2" href="{{ route('admin.orders.index') }}">
-                <div class="d-flex align-items-center">
-                  <i class="fa-solid fa-bag-shopping text-warning me-2"></i>
-                  <div>
-                    <p class="mb-0 small fw-semibold">Đơn hàng mới #BEE-2026-0816-01</p>
-                    <small class="text-muted">10 phút trước</small>
-                  </div>
-                </div>
-              </a>
-              <a class="dropdown-item py-2" href="{{ route('admin.customers.index') }}">
-                <div class="d-flex align-items-center">
-                  <i class="fa-solid fa-user-plus text-success me-2"></i>
-                  <div>
-                    <p class="mb-0 small fw-semibold">Khách hàng mới: Trần Thị Mai Phương</p>
-                    <small class="text-muted">1 giờ trước</small>
-                  </div>
-                </div>
-              </a>
-            </div>
-          </li>
-
           <!-- User Dropdown -->
           <li class="nav-item dropdown">
             <a class="nav-link lh-1 pe-0 d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
               <div class="avatar avatar-m">
-                <img class="rounded-circle border" src="{{ asset('assets/img/team/40x40/57.webp') }}" alt="Admin" />
+                <img class="rounded-circle border" src="{{ asset(Auth::user()->avatar ?? '/assets/img/team/40x40/57.webp') }}" alt="Admin" style="width: 36px; height: 36px; object-fit: cover;" />
               </div>
               <div class="d-none d-md-block text-start">
-                <div class="fw-bold small text-dark">Admin BeeStyle</div>
-                <div class="text-muted fs-10">Quản trị viên cấp cao</div>
+                <div class="fw-bold small text-dark">{{ Auth::user()->name ?? 'Admin BeeStyle' }}</div>
+                <div class="text-muted fs-10">{{ Auth::user()->email ?? 'admin@beestyle.com' }}</div>
               </div>
+              <i class="fa-solid fa-chevron-down fs-10 text-muted ms-1"></i>
             </a>
-            <div class="dropdown-menu dropdown-menu-end py-1 shadow-lg border-0 mt-2">
-              <a class="dropdown-item" href="{{ route('client.home') }}"><i class="fa-solid fa-store me-2 text-warning"></i> Website Khách hàng</a>
-              <a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-gear me-2 text-secondary"></i> Cài đặt hệ thống</a>
+            <div class="dropdown-menu dropdown-menu-end py-2 shadow-lg border-0 mt-2" style="border-radius: 12px; min-width: 220px;">
+              <a class="dropdown-item py-2" href="{{ route('client.home') }}" target="_blank"><i class="fa-solid fa-store me-2 text-warning"></i> Xem Cửa Hàng Web</a>
+              <a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-chart-pie me-2 text-secondary"></i> Bảng Tổng Quan</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item text-danger" href="#"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng xuất</a>
+              <form action="{{ route('auth.logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="dropdown-item py-2 text-danger">
+                  <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng Xuất Admin
+                </button>
+              </form>
             </div>
           </li>
         </ul>
@@ -224,27 +199,40 @@
         </div>
       @endif
 
+      @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center border-0 shadow-sm mb-4" role="alert">
+          <i class="fa-solid fa-circle-exclamation fs-5 me-2 text-danger"></i>
+          <div>{{ session('error') }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+      @if($errors->any())
+        <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+          <ul class="mb-0 small ps-3">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+      <!-- MAIN PAGE CONTENT -->
       @yield('content')
 
       <!-- ADMIN FOOTER -->
-      <footer class="footer position-absolute">
-        <div class="row g-0 justify-content-between align-items-center h-100">
-          <div class="col-12 col-sm-auto text-center">
-            <p class="mb-0 mt-2 mt-sm-0 text-body">Hệ thống Quản trị Thời trang <strong>BeeStyle</strong> &copy; {{ date('Y') }}</p>
-          </div>
-          <div class="col-12 col-sm-auto text-center">
-            <p class="mb-0 text-body-tertiary text-opacity-85">Phiên bản v2.0 - Laravel 12</p>
-          </div>
-        </div>
+      <footer class="footer position-relative mt-5 pt-3 border-top text-secondary small d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>&copy; {{ date('Y') }} <strong>BeeStyle Menswear</strong> - Hệ thống Quản trị Bán hàng Đồ án Tốt nghiệp.</div>
+        <div>Phiên bản 2.0 • Laravel 13.x • MySQL 8.x</div>
       </footer>
     </div>
   </main>
 
-  <!-- Scripts -->
+  <!-- Core JavaScripts -->
   <script src="{{ asset('vendors/bootstrap/bootstrap.min.js') }}"></script>
   <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
   <script src="{{ asset('vendors/feather-icons/feather.min.js') }}"></script>
-  <script src="{{ asset('vendors/echarts/echarts.min.js') }}"></script>
   <script>
     if (typeof feather !== 'undefined') {
       feather.replace();
