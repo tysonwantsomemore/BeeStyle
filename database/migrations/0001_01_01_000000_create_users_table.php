@@ -15,6 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
+            $table->string('avatar')->nullable();
+            $table->text('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('district')->nullable();
+            $table->string('role')->default('customer'); // 'admin' or 'customer'
+            $table->string('rank')->default('Thành viên Mới');
+            $table->unsignedInteger('points')->default(0);
+            $table->unsignedBigInteger('total_spent')->default(0);
+            $table->string('status')->default('active');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
