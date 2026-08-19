@@ -1,0 +1,88 @@
+@extends('layouts.client')
+
+@section('title', 'Đăng Nhập Tài Khoản | BeeStyle Menswear')
+
+@section('content')
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+      
+      <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: 20px; background: #ffffff;">
+        <div class="text-center mb-4">
+          <div class="beestyle-logo justify-content-center mb-2">
+            <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
+            <span>Bee<span class="brand-highlight">Style</span></span>
+          </div>
+          <h4 class="fw-bold text-dark mb-1">Đăng Nhập Hệ Thống</h4>
+          <p class="text-muted small">Khám phá thế giới thời trang nam cao cấp &amp; ưu đãi VIP</p>
+        </div>
+
+        <form action="{{ route('auth.login.post') }}" method="POST">
+          @csrf
+
+          <!-- Email or Phone -->
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark">Email hoặc Số điện thoại <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-regular fa-envelope"></i></span>
+              <input type="text" name="login_id" class="form-control border-start-0 ps-0" value="{{ old('login_id') }}" placeholder="admin@beestyle.com hoặc SĐT..." required autofocus>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label small fw-semibold text-dark mb-0">Mật khẩu <span class="text-danger">*</span></label>
+              <a href="#" class="small text-warning text-decoration-none">Quên mật khẩu?</a>
+            </div>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+              <input type="password" name="password" id="passwordInput" class="form-control border-start-0 border-end-0 ps-0" placeholder="Nhập mật khẩu của bạn..." required>
+              <button class="input-group-text bg-light border-start-0 text-muted cursor-pointer" type="button" onclick="var p=document.getElementById('passwordInput'); p.type = (p.type==='password'?'text':'password');">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember me -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="remember" id="rememberMe" {{ old('remember') ? 'checked' : '' }}>
+              <label class="form-check-label small text-muted cursor-pointer" for="rememberMe">
+                Ghi nhớ đăng nhập
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit button -->
+          <button type="submit" class="btn btn-bee-primary w-100 py-3 fw-bold fs-6 mb-3">
+            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Đăng Nhập Ngay
+          </button>
+
+          <!-- Register prompt -->
+          <div class="text-center text-muted small mb-4">
+            Chưa có tài khoản BeeStyle? 
+            <a href="{{ route('auth.register') }}" class="text-warning fw-bold text-decoration-none">Đăng ký thành viên mới</a>
+          </div>
+
+          <!-- Quick Test Credentials Box -->
+          <div class="p-3 bg-light rounded-3 border">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="fa-solid fa-key text-warning"></i>
+              <strong class="small text-dark">Tài Khoản Mẫu Đăng Nhập Nhanh:</strong>
+            </div>
+            <div class="small text-muted mb-1">
+              • <strong>Quản Trị Viên (Admin):</strong> <code class="text-dark">admin@beestyle.com</code> / Mật khẩu: <code class="text-dark">password</code>
+            </div>
+            <div class="small text-muted">
+              • <strong>Khách Hàng (Customer):</strong> <code class="text-dark">hung.nguyen@gmail.com</code> / Mật khẩu: <code class="text-dark">password</code>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+@endsection
