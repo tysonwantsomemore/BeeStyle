@@ -61,7 +61,7 @@ class ProductController extends Controller
             'is_best_seller' => 'nullable|boolean',
         ]);
 
-        $imagePath = '/assets/img/products/1.png'; // default fallback
+        $imagePath = '/assets/img/products/1.png'; // Ảnh mặc định dự phòng
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
@@ -92,7 +92,7 @@ class ProductController extends Controller
             'status' => 'active',
         ]);
 
-        // Add to gallery
+        // Lưu vào bộ sưu tập ảnh sản phẩm
         ProductImage::create([
             'product_id' => $product->id,
             'image_path' => $imagePath,

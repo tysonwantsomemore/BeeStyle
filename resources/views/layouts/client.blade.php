@@ -156,56 +156,69 @@
       </div>
     </div>
 
-    <!-- CATEGORY NAVIGATION BAR -->
+    <!-- CATEGORY & BRAND NAVIGATION BAR -->
     <nav class="navbar navbar-expand-lg py-2 mt-2 border-top">
       <div class="container">
         <div class="collapse navbar-collapse" id="beeMainNav">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 align-items-center">
             <li class="nav-item">
               <a class="nav-link bee-nav-link {{ request()->routeIs('client.home') ? 'active' : '' }}" href="{{ route('client.home') }}">
                 <i class="fa-solid fa-house me-1"></i> Trang Chủ
               </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-polo-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-polo-tshirt-nam']) }}">
-                Áo Polo &amp; T-Shirt
+
+            <!-- Dropdown: Áo Nam -->
+            <li class="nav-item dropdown">
+              <a class="nav-link bee-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-shirt me-1"></i> Áo Nam
               </a>
+              <ul class="dropdown-menu border-0 shadow-lg p-2 mt-1" style="border-radius: 12px; min-width: 210px;">
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}"><i class="fa-solid fa-shirt me-2 text-warning"></i> Áo Polo Nam</a></li>
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'ao-so-mi-cong-so']) }}"><i class="fa-solid fa-user-tie me-2 text-warning"></i> Áo Sơ Mi Công Sở</a></li>
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}"><i class="fa-solid fa-vest me-2 text-warning"></i> Áo Khoác &amp; Blazer</a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li><a class="dropdown-item py-2 rounded-2 small text-warning fw-bold" href="{{ route('client.products.index', ['category' => 'ao-nam-thoi-trang']) }}">Tất cả Áo Nam →</a></li>
+              </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-so-mi-nam-cong-so' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam-cong-so']) }}">
-                Áo Sơ Mi Nam
+
+            <!-- Dropdown: Quần Nam -->
+            <li class="nav-item dropdown">
+              <a class="nav-link bee-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-tags me-1"></i> Quần Nam
               </a>
+              <ul class="dropdown-menu border-0 shadow-lg p-2 mt-1" style="border-radius: 12px; min-width: 210px;">
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'quan-au-kaki-nam']) }}"><i class="fa-solid fa-tags me-2 text-warning"></i> Quần Âu &amp; Kaki</a></li>
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'quan-short-the-thao']) }}"><i class="fa-solid fa-person-running me-2 text-warning"></i> Quần Short &amp; Thể Thao</a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li><a class="dropdown-item py-2 rounded-2 small text-warning fw-bold" href="{{ route('client.products.index', ['category' => 'quan-nam-cao-cap']) }}">Tất cả Quần Nam →</a></li>
+              </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-khoac-blazer' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer']) }}">
-                Áo Khoác &amp; Blazer
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'quan-au-kaki-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'quan-au-kaki-nam']) }}">
-                Quần Âu &amp; Kaki
-              </a>
-            </li>
+
+            <!-- Giày & Phụ Kiện -->
             <li class="nav-item">
               <a class="nav-link bee-nav-link {{ request()->get('category') == 'giay-da-loafer-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'giay-da-loafer-nam']) }}">
-                Giày Da &amp; Loafer
+                <i class="fa-solid fa-shoe-prints me-1"></i> Giày Da &amp; Phụ Kiện
               </a>
             </li>
+
+            <!-- Thương Hiệu (Brands) -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'that-lung-phu-kien-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'that-lung-phu-kien-nam']) }}">
-                Thắt Lưng &amp; Phụ Kiện
+              <a class="nav-link bee-nav-link {{ request()->routeIs('client.brands.*') ? 'active' : '' }}" href="{{ route('client.brands.index') }}">
+                <i class="fa-solid fa-crown me-1 text-warning"></i> Thương Hiệu
               </a>
             </li>
+
+            <!-- Tất cả sản phẩm -->
             <li class="nav-item">
               <a class="nav-link bee-nav-link text-danger fw-bold" href="{{ route('client.products.index') }}">
-                <i class="fa-solid fa-fire text-danger me-1"></i> BST Mới 2026
+                <i class="fa-solid fa-fire text-danger me-1"></i> Tất Cả Sản Phẩm
               </a>
             </li>
           </ul>
 
           <div class="d-flex align-items-center gap-3">
             <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-semibold rounded-pill">
-              <i class="fa-solid fa-tags me-1"></i> Mã BEESTYLE50 giảm 50k
+              <i class="fa-solid fa-tags me-1"></i> Mã BEESTYLEVIP giảm 50k
             </span>
           </div>
         </div>

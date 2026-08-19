@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Thực thi khởi tạo bảng người dùng (users), reset mật khẩu và phiên làm việc.
      */
     public function up(): void
     {
@@ -17,14 +17,26 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('avatar')->nullable();
+            $table->string('gender')->nullable()->default('Nam'); // Nam, Nữ, Khác
+            $table->date('dob')->nullable();                      // Ngày sinh
             $table->text('address')->nullable();
             $table->string('city')->nullable();
             $table->string('district')->nullable();
-            $table->string('role')->default('customer'); // 'admin' or 'customer'
+            $table->string('role')->default('customer'); // 'admin': Quản trị viên, 'customer': Khách hàng
             $table->string('rank')->default('Thành viên Mới');
             $table->unsignedInteger('points')->default(0);
             $table->unsignedBigInteger('total_spent')->default(0);
             $table->string('status')->default('active');
+            
+            // Thông tin tài khoản ngân hàng để nhận tiền hoàn trả khi hủy đơn / đổi trả hàng
+            $table->string('bank_name')->nullable();
+            $table->string('bank_account_number')->nullable();
+            $table->string('bank_account_name')->nullable();
+            $table->string('bank_branch')->nullable();
+
+            // Trạng thái bảo mật và thời điểm đổi mật khẩu lần cuối
+            $table->timestamp('password_changed_at')->nullable();
+
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
@@ -48,7 +60,7 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Hoàn tác xóa bảng khi rollback.
      */
     public function down(): void
     {

@@ -7,16 +7,16 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Khởi tạo bảng đơn hàng (orders).
      */
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_code')->unique(); // BEE-20260818-1001
+            $table->string('order_code')->unique(); // Mã đơn hàng định dạng BEE-YYYYMMDD-XXXX
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             
-            // Customer Info
+            // Thông tin người nhận hàng
             $table->string('customer_name');
             $table->string('customer_phone');
             $table->string('customer_email')->nullable();
@@ -25,13 +25,13 @@ return new class extends Migration
             $table->string('district')->nullable();
             $table->text('notes')->nullable();
 
-            // Payment & Shipping
-            $table->string('payment_method')->default('cod'); // cod, vietqr, momo, vnpay
-            $table->string('payment_status')->default('unpaid'); // unpaid, paid, refunded
-            $table->string('shipping_status')->default('pending'); // pending, confirmed, processing, shipping, delivered, completed, cancelled
-            $table->tinyInteger('status_step')->default(1); // 1: Chờ xác nhận, 2: Đã xác nhận, 3: Đang đóng gói, 4: Đang giao hàng, 5: Đã giao, 6: Hoàn tất, 0: Đã hủy
+            // Hình thức thanh toán & Trạng thái giao hàng
+            $table->string('payment_method')->default('cod'); // cod: Tiền mặt khi nhận hàng, vietqr: Chuyển khoản QR, momo: Ví MoMo, vnpay: Cổng VNPAY
+            $table->string('payment_status')->default('unpaid'); // unpaid: Chưa thanh toán, paid: Đã thanh toán, refunded: Đã hoàn tiền
+            $table->string('shipping_status')->default('pending'); // pending: Chờ xác nhận, confirmed: Đã xác nhận, processing: Đang đóng gói, shipping: Đang giao, delivered: Đã giao, completed: Hoàn tất, cancelled: Đã hủy
+            $table->tinyInteger('status_step')->default(1); // Tiến trình 6 bước: 1: Chờ xác nhận, 2: Đã xác nhận, 3: Đang đóng gói, 4: Đang giao hàng, 5: Đã giao, 6: Hoàn tất, 0: Đã hủy
 
-            // Financial amounts
+            // Chi tiết số tiền tài chính của đơn hàng
             $table->unsignedBigInteger('subtotal');
             $table->unsignedBigInteger('discount_amount')->default(0);
             $table->unsignedBigInteger('shipping_fee')->default(0);
@@ -44,7 +44,7 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng khi rollback.
      */
     public function down(): void
     {

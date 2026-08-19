@@ -12,7 +12,7 @@ class CartService
     const COUPON_SESSION_KEY = 'beestyle_applied_coupon';
 
     /**
-     * Get all cart items from session
+     * Lấy toàn bộ danh sách sản phẩm trong giỏ hàng từ session và tính toán tổng tiền
      */
     public static function getCart(): array
     {
@@ -28,7 +28,7 @@ class CartService
             ]);
         }
 
-        // Coupon calculation
+        // Tính toán giảm giá từ mã coupon áp dụng
         $couponData = Session::get(self::COUPON_SESSION_KEY, null);
         $discount = 0;
         $coupon = null;
@@ -43,7 +43,7 @@ class CartService
             }
         }
 
-        // Shipping fee: Free ship for orders >= 300,000đ, otherwise 30,000đ
+        // Phí vận chuyển: Miễn phí giao hàng cho đơn từ 300.000đ trở lên, dưới mức đó phí 30.000đ
         $shipping = ($subtotal >= 300000 || $subtotal == 0) ? 0 : 30000;
         if ($coupon && $coupon->discount_type === 'shipping') {
             $shipping = 0;
@@ -63,7 +63,7 @@ class CartService
     }
 
     /**
-     * Total quantity of items in cart
+     * Tính tổng số lượng tất cả sản phẩm có trong giỏ hàng
      */
     public static function count(): int
     {
@@ -72,61 +72,74 @@ class CartService
     }
 
     /**
-     * Add product to cart
+     * Thêm sản phẩm hoặc biến thể sản phẩm vào giỏ hàng
      */
-    public static function add(int $productId, int $quantity = 1, ?string $color = null, ?string $size = null): array
+    public static function add(int $productId, int $quantity = 1, ?string $color = null, ?string $size = null, ?int $variantId = null): array
     {
-        $product = Product::active()->find($productId);
+        $product = Product::with('variants')->active()->find($productId);
         if (!$product) {
             return ['success' => false, 'message' => 'Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.'];
         }
 
-        if ($product->stock <= 0) {
-            return ['success' => false, 'message' => 'Sản phẩm hiện đã hết hàng trong kho.'];
+        $variant = null;
+        if ($variantId) {
+            $variant = $product->variants()->where('id', $variantId)->where('status', 'active')->first();
+        } elseif ($color && $size) {
+            $variant = $product->variants()->where('color', $color)->where('size', $size)->where('status', 'active')->first();
         }
 
-        $selectedColor = $color ?? ($product->colors[0] ?? 'Mặc định');
-        $selectedSize = $size ?? ($product->sizes[0] ?? 'Free Size');
-        $cartKey = "{$productId}_{$selectedColor}_{$selectedSize}";
+        $price = $variant ? $variant->price : $product->price;
+        $originalPrice = $variant ? ($variant->original_price ?? $product->original_price) : $product->original_price;
+        $stock = $variant ? $variant->stock : $product->stock;
+        $sku = $variant ? $variant->sku : $product->sku;
+        $image = ($variant && $variant->image) ? $variant->image : $product->image;
+        $selectedColor = $variant ? $variant->color : ($color ?? ($product->colors[0] ?? 'Tiêu chuẩn'));
+        $selectedSize = $variant ? $variant->size : ($size ?? ($product->sizes[0] ?? 'Tiêu chuẩn'));
 
+        if ($stock <= 0) {
+            return ['success' => false, 'message' => 'Phiên bản sản phẩm đã chọn hiện đã hết hàng trong kho.'];
+        }
+
+        $cartKey = $variant ? "v_{$variant->id}" : "{$productId}_{$selectedColor}_{$selectedSize}";
         $cart = Session::get(self::CART_SESSION_KEY, []);
 
         if (isset($cart[$cartKey])) {
             $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
-            if ($newQuantity > $product->stock) {
-                return ['success' => false, 'message' => "Số lượng trong kho chỉ còn {$product->stock} sản phẩm."];
+            if ($newQuantity > $stock) {
+                return ['success' => false, 'message' => "Số lượng trong kho chỉ còn {$stock} sản phẩm."];
             }
             $cart[$cartKey]['quantity'] = $newQuantity;
         } else {
-            if ($quantity > $product->stock) {
-                return ['success' => false, 'message' => "Số lượng trong kho chỉ còn {$product->stock} sản phẩm."];
+            if ($quantity > $stock) {
+                return ['success' => false, 'message' => "Số lượng trong kho chỉ còn {$stock} sản phẩm."];
             }
             $cart[$cartKey] = [
                 'key' => $cartKey,
                 'product_id' => $product->id,
+                'variant_id' => $variant ? $variant->id : null,
                 'name' => $product->name,
-                'sku' => $product->sku,
+                'sku' => $sku,
                 'slug' => $product->slug,
-                'image' => $product->image,
-                'price' => $product->price,
-                'original_price' => $product->original_price,
+                'image' => $image,
+                'price' => $price,
+                'original_price' => $originalPrice,
                 'color' => $selectedColor,
                 'size' => $selectedSize,
                 'quantity' => $quantity,
-                'stock' => $product->stock,
+                'stock' => $stock,
             ];
         }
 
         Session::put(self::CART_SESSION_KEY, $cart);
         return [
             'success' => true,
-            'message' => "Đã thêm \"{$product->name}\" vào giỏ hàng!",
+            'message' => "Đã thêm \"{$product->name} ({$selectedColor} - Size {$selectedSize})\" vào giỏ hàng!",
             'cart_count' => self::count()
         ];
     }
 
     /**
-     * Update quantity of an item
+     * Cập nhật số lượng của một mặt hàng trong giỏ hàng
      */
     public static function update(string $cartKey, int $quantity): array
     {
@@ -152,7 +165,7 @@ class CartService
     }
 
     /**
-     * Remove item from cart
+     * Xóa một sản phẩm khỏi giỏ hàng
      */
     public static function remove(string $cartKey): array
     {
@@ -168,7 +181,7 @@ class CartService
     }
 
     /**
-     * Clear the whole cart
+     * Xóa toàn bộ giỏ hàng và hủy mã giảm giá trong session
      */
     public static function clear(): void
     {
@@ -177,7 +190,7 @@ class CartService
     }
 
     /**
-     * Apply coupon
+     * Áp dụng mã giảm giá vào đơn hàng
      */
     public static function applyCoupon(string $code): array
     {
@@ -205,7 +218,7 @@ class CartService
     }
 
     /**
-     * Remove coupon
+     * Hủy áp dụng mã giảm giá
      */
     public static function removeCoupon(): void
     {
