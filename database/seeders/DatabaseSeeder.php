@@ -2,42 +2,54 @@
 
 namespace Database\Seeders;
 
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductVariant;
 use App\Models\Review;
 use App\Models\User;
+use App\Models\UserAddress;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Khởi tạo dữ liệu mẫu cho cơ sở dữ liệu hệ thống BeeStyle.
      */
     public function run(): void
     {
-        // 1. ADMIN & CUSTOMER USERS
+        // 1. TÀI KHOẢN QUẢN TRỊ VIÊN (ADMIN) & KHÁCH HÀNG MẪU
         $admin = User::create([
             'name' => 'Quản Trị Viên BeeStyle',
             'email' => 'admin@beestyle.com',
             'phone' => '0901234567',
+            'gender' => 'Nam',
+            'dob' => '1992-05-15',
             'role' => 'admin',
             'rank' => 'Admin Quản Trị',
             'points' => 9999,
             'total_spent' => 0,
             'status' => 'active',
             'avatar' => '/assets/img/team/40x40/57.webp',
+            'bank_name' => 'Vietcombank',
+            'bank_account_number' => '0071001234567',
+            'bank_account_name' => 'QUAN TRI VIEN BEESTYLE',
+            'bank_branch' => 'Chi nhánh TP. Hồ Chí Minh',
             'password' => Hash::make('password'),
+            'password_changed_at' => now(),
         ]);
 
         $customer1 = User::create([
             'name' => 'Nguyễn Văn Hùng',
             'email' => 'hung.nguyen@gmail.com',
             'phone' => '0987654321',
+            'gender' => 'Nam',
+            'dob' => '1995-10-20',
             'role' => 'customer',
             'rank' => 'Thành viên Bạc (Silver)',
             'points' => 1250,
@@ -47,13 +59,20 @@ class DatabaseSeeder extends Seeder
             'district' => 'Quận 1',
             'status' => 'active',
             'avatar' => '/assets/img/team/40x40/58.webp',
+            'bank_name' => 'Techcombank',
+            'bank_account_number' => '19034567890012',
+            'bank_account_name' => 'NGUYEN VAN HUNG',
+            'bank_branch' => 'Chi nhánh Sài Gòn',
             'password' => Hash::make('password'),
+            'password_changed_at' => now()->subDays(10),
         ]);
 
         $customer2 = User::create([
             'name' => 'Lê Hoàng Long',
             'email' => 'hoanglong.le@gmail.com',
             'phone' => '0903888999',
+            'gender' => 'Nam',
+            'dob' => '1990-03-12',
             'role' => 'customer',
             'rank' => 'Thành viên Vàng (Gold)',
             'points' => 3800,
@@ -63,49 +82,120 @@ class DatabaseSeeder extends Seeder
             'district' => 'Hải Châu',
             'status' => 'active',
             'avatar' => '/assets/img/team/40x40/30.webp',
+            'bank_name' => 'MB Bank (Quân Đội)',
+            'bank_account_number' => '0903888999',
+            'bank_account_name' => 'LE HOANG LONG',
+            'bank_branch' => 'Chi nhánh Đà Nẵng',
             'password' => Hash::make('password'),
+            'password_changed_at' => now()->subDays(30),
         ]);
 
-        $customer3 = User::create([
-            'name' => 'Trần Minh Quang',
-            'email' => 'minhquang.tran@gmail.com',
-            'phone' => '0912345678',
-            'role' => 'customer',
-            'rank' => 'Thành viên Mới',
-            'points' => 200,
-            'total_spent' => 940000,
-            'address' => 'Số 12 Ngõ 88 Phố Láng Hạ, Phường Láng Hạ',
-            'city' => 'Hà Nội',
-            'district' => 'Đống Đa',
-            'status' => 'active',
-            'avatar' => '/assets/img/team/40x40/59.webp',
-            'password' => Hash::make('password'),
+        // Sổ địa chỉ giao hàng mẫu cho khách hàng Nguyễn Văn Hùng
+        UserAddress::create([
+            'user_id' => $customer1->id,
+            'recipient_name' => 'Nguyễn Văn Hùng',
+            'phone' => '0987654321',
+            'city' => 'Hồ Chí Minh',
+            'district' => 'Quận 1',
+            'ward' => 'Phường Bến Nghé',
+            'address' => 'Số 45 Đường Lê Duẩn',
+            'label' => 'Nhà riêng',
+            'is_default' => true,
+            'notes' => 'Giao giờ hành chính hoặc gọi trước khi giao',
         ]);
 
-        // 2. CATEGORIES (Danh mục thời trang nam BeeStyle)
-        $catPolo = Category::create([
-            'name' => 'Áo Polo & T-Shirt Nam',
-            'slug' => 'ao-polo-tshirt-nam',
+        UserAddress::create([
+            'user_id' => $customer1->id,
+            'recipient_name' => 'Nguyễn Văn Hùng (Văn phòng)',
+            'phone' => '0987654321',
+            'city' => 'Hồ Chí Minh',
+            'district' => 'Quận 3',
+            'ward' => 'Phường Võ Thị Sáu',
+            'address' => 'Tòa nhà Bitexco Nam Long, 63 Hai Bà Trưng, Tầng 8',
+            'label' => 'Văn phòng',
+            'is_default' => false,
+            'notes' => 'Chỉ nhận hàng trong giờ làm việc (8h30 - 17h30)',
+        ]);
+
+        // 2. THƯƠNG HIỆU THỜI TRANG (BRANDS)
+        $brandSignature = Brand::create([
+            'name' => 'BeeStyle Signature',
+            'slug' => 'beestyle-signature',
+            'logo' => '/assets/img/icons/icon-1.png',
+            'banner' => '/assets/img/generic/1.png',
+            'description' => 'Dòng thời trang nam cao cấp độc quyền từ BeeStyle, thiết kế tinh xảo theo phong cách thanh lịch hiện đại.',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $brandLuxury = Brand::create([
+            'name' => 'Bee Luxury Line',
+            'slug' => 'bee-luxury-line',
+            'logo' => '/assets/img/icons/icon-2.png',
+            'banner' => '/assets/img/generic/2.png',
+            'description' => 'Bộ sưu tập vest cưới, blazer dự tiệc và sơ mi lụa tơ tằm thượng hạng dành riêng cho quý ông lịch lãm.',
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+
+        $brandUrban = Brand::create([
+            'name' => 'Bee Urban Casual',
+            'slug' => 'bee-urban-casual',
+            'logo' => '/assets/img/icons/icon-3.png',
+            'banner' => '/assets/img/generic/3.png',
+            'description' => 'Phong cách đường phố trẻ trung, tối giản, năng động dành cho các hoạt động thường ngày và dạo phố.',
+            'sort_order' => 3,
+            'is_active' => true,
+        ]);
+
+        $brandSport = Brand::create([
+            'name' => 'Bee Sport Tech',
+            'slug' => 'bee-sport-tech',
+            'logo' => '/assets/img/icons/icon-4.png',
+            'banner' => '/assets/img/generic/4.png',
+            'description' => 'Trang phục thể thao ứng dụng công nghệ làm mát Air-Cool và co giãn 4 chiều vận động tối ưu.',
+            'sort_order' => 4,
+            'is_active' => true,
+        ]);
+
+        // 3. CÂY DANH MỤC PHÂN CẤP (CHA - CON)
+        // Danh mục Cha 1: Áo Nam
+        $parentTop = Category::create([
+            'name' => 'Áo Nam Thời Trang',
+            'slug' => 'ao-nam-thoi-trang',
             'icon' => 'fa-solid fa-shirt',
             'image' => '/assets/img/products/1.png',
-            'description' => 'Áo polo cotton tổ ong dệt kim cao cấp, co giãn 4 chiều, chuẩn phom lịch lãm cho phái mạnh',
+            'description' => 'Bộ sưu tập áo nam cao cấp đa dạng từ áo polo, áo sơ mi đến áo khoác gió & blazer',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $catPolo = Category::create([
+            'parent_id' => $parentTop->id,
+            'name' => 'Áo Polo Nam',
+            'slug' => 'ao-polo-nam',
+            'icon' => 'fa-solid fa-shirt',
+            'image' => '/assets/img/products/1.png',
+            'description' => 'Áo polo cotton dệt tổ ong thoáng khí, co giãn 4 chiều chuẩn phom',
             'sort_order' => 1,
             'is_active' => true,
         ]);
 
         $catShirt = Category::create([
-            'name' => 'Áo Sơ Mi Nam Công Sở',
-            'slug' => 'ao-so-mi-nam-cong-so',
+            'parent_id' => $parentTop->id,
+            'name' => 'Áo Sơ Mi Công Sở',
+            'slug' => 'ao-so-mi-cong-so',
             'icon' => 'fa-solid fa-user-tie',
             'image' => '/assets/img/products/4.png',
-            'description' => 'Sơ mi lụa kháng nhăn cao cấp, phom slimfit tôn dáng tôn da nơi công sở và sự kiện',
+            'description' => 'Sơ mi lụa kháng nhăn cao cấp, phom slimfit tôn dáng tôn da nơi công sở',
             'sort_order' => 2,
             'is_active' => true,
         ]);
 
         $catBlazer = Category::create([
+            'parent_id' => $parentTop->id,
             'name' => 'Áo Khoác & Blazer Nam',
-            'slug' => 'ao-khoac-blazer',
+            'slug' => 'ao-khoac-blazer-nam',
             'icon' => 'fa-solid fa-vest',
             'image' => '/assets/img/products/2.png',
             'description' => 'Blazer phong cách Hàn Quốc tối giản & áo khoác gió trượt nước 2 lớp thời thượng',
@@ -113,428 +203,438 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        // Danh mục Cha 2: Quần Nam
+        $parentBottom = Category::create([
+            'name' => 'Quần Nam Cao Cấp',
+            'slug' => 'quan-nam-cao-cap',
+            'icon' => 'fa-solid fa-tags',
+            'image' => '/assets/img/products/5.png',
+            'description' => 'Tổng hợp các mẫu quần tây, quần kaki, quần short co giãn cao cấp',
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+
         $catPants = Category::create([
-            'name' => 'Quần Âu & Quần Kaki Nam',
+            'parent_id' => $parentBottom->id,
+            'name' => 'Quần Âu & Quần Kaki',
             'slug' => 'quan-au-kaki-nam',
             'icon' => 'fa-solid fa-tags',
             'image' => '/assets/img/products/5.png',
-            'description' => 'Quần âu tuyết mưa cạp tăng đơ thông minh và quần kaki co giãn năng động',
-            'sort_order' => 4,
+            'description' => 'Quần tây cạp âu thông minh tăng giảm 4cm, chất vải chéo Ý không nhăn',
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $catShorts = Category::create([
+            'parent_id' => $parentBottom->id,
+            'name' => 'Quần Short & Thể Thao',
+            'slug' => 'quan-short-the-thao',
+            'icon' => 'fa-solid fa-person-running',
+            'image' => '/assets/img/products/6.png',
+            'description' => 'Quần short đũi thoáng mát & quần đùi thể thao dạo phố trẻ trung',
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+
+        // Danh mục Cha 3: Phụ Kiện Nam
+        $parentAccessories = Category::create([
+            'name' => 'Giày & Phụ Kiện Quý Ông',
+            'slug' => 'giay-phu-kien-quy-ong',
+            'icon' => 'fa-solid fa-glasses',
+            'image' => '/assets/img/products/3.png',
+            'description' => 'Giày da bò nguyên tấm, thắt lưng da, ví da và phụ kiện đẳng cấp',
+            'sort_order' => 3,
             'is_active' => true,
         ]);
 
         $catShoes = Category::create([
+            'parent_id' => $parentAccessories->id,
             'name' => 'Giày Da & Loafer Nam',
             'slug' => 'giay-da-loafer-nam',
             'icon' => 'fa-solid fa-shoe-prints',
-            'image' => '/assets/img/products/6.png',
-            'description' => 'Giày da Oxford, Derby da bò Ý nhập khẩu và Loafer trẻ trung êm chân',
-            'sort_order' => 5,
+            'image' => '/assets/img/products/3.png',
+            'description' => 'Giày tây Oxford & Loafer da bò nhập khẩu đế cao su êm ái chống trơn',
+            'sort_order' => 1,
             'is_active' => true,
         ]);
 
-        $catAccessories = Category::create([
-            'name' => 'Thắt Lưng & Phụ Kiện Nam',
-            'slug' => 'that-lung-phu-kien-nam',
-            'icon' => 'fa-solid fa-bag-shopping',
-            'image' => '/assets/img/products/7.png',
-            'description' => 'Thắt lưng da bò nguyên tấm, ví da khóa mạ vàng 18K và cà vạt lụa sang trọng',
-            'sort_order' => 6,
-            'is_active' => true,
-        ]);
-
-        // 3. PRODUCTS (Sản phẩm áo và thời trang nam BeeStyle)
+        // 4. SẢN PHẨM THỜI TRANG, THÔNG SỐ KỸ THUẬT VÀ BIẾN THỂ (MÀU/SIZE/GIÁ)
         $p1 = Product::create([
             'category_id' => $catPolo->id,
-            'sku' => 'BS-PL-001',
-            'name' => 'Áo Polo Nam BeeStyle Premium Cotton Dệt Tổ Ong Kháng Khuẩn',
-            'slug' => 'ao-polo-nam-beestyle-premium-cotton-det-to-ong',
+            'brand_id' => $brandSignature->id,
+            'sku' => 'BS-POLO-01',
+            'name' => 'Áo Polo Nam Cotton Dệt Tổ Ong Phom Slimfit BeeStyle',
+            'slug' => 'ao-polo-nam-cotton-det-to-ong-phom-slimfit-beestyle',
+            'product_type' => 'variant',
             'price' => 389000,
             'original_price' => 499000,
-            'stock' => 145,
-            'sold_count' => 850,
+            'stock' => 150,
+            'sold_count' => 1240,
             'rating' => 4.9,
-            'reviews_count' => 128,
+            'reviews_count' => 86,
             'image' => '/assets/img/products/1.png',
-            'colors' => ['Đen', 'Trắng', 'Xanh Navy', 'Beige'],
-            'sizes' => ['S', 'M', 'L', 'XL', 'XXL'],
-            'short_description' => 'Chất liệu 100% Cotton dệt tổ ong cao cấp thoáng khí, co giãn 4 chiều mềm mại, phom regular tôn dáng lịch thiệp.',
-            'description' => 'Áo Polo BeeStyle Premium mang phong cách tối giản thanh lịch. Cổ bẻ dệt bo sợi microfiber giữ phom sau 100+ lần giặt. Nẹp cổ 3 nút vỏ trai khắc laser tinh xảo, đường may chuẩn may đo xuất khẩu Châu Âu.',
+            'short_description' => 'Chất liệu 95% Cotton Organic dệt kiểu tổ ong (Pique Waffle) cao cấp, thấm hút mồ hôi vượt trội, co giãn 4 chiều.',
+            'description' => '<p>Áo Polo BeeStyle Signature là sự kết hợp hoàn hảo giữa phong cách thanh lịch công sở và sự năng động thường nhật. Được dệt từ sợi bông Organic cao cấp nhập khẩu, bề mặt vải tổ ong thoáng khí giúp bạn luôn tự tin và dễ chịu suốt cả ngày dài.</p><h6>Đặc điểm nổi bật:</h6><ul><li>Sợi Cotton dệt kim kháng khuẩn, chống tia UV hiệu quả.</li><li>Cổ áo bo dệt chống quăn góc sau nhiều lần giặt.</li><li>Logo ong kim loại mạ vàng sang trọng đính ngực áo.</li></ul>',
+            'colors' => ['Xanh Navy Đậm', 'Trắng Tinh Khôi', 'Đen Sang Trọng', 'Beige Thanh Lịch'],
+            'sizes' => ['M (55-65kg)', 'L (65-75kg)', 'XL (75-85kg)', 'XXL (85-95kg)'],
+            'specifications' => [
+                'Chất liệu' => '95% Cotton Organic Pique, 5% Spandex co giãn',
+                'Phom dáng' => 'Slimfit vừa vặn tôn dáng',
+                'Kiểu cổ áo' => 'Cổ bẻ bo dệt cao cấp 3 cúc',
+                'Họa tiết' => 'Dệt tổ ong vi mô (Micro Waffle)',
+                'Xuất xứ' => 'Việt Nam (Gia công tiêu chuẩn xuất khẩu)',
+                'Hướng dẫn giặt' => 'Giặt máy chế độ nhẹ, không dùng chất tẩy mạnh, ủi ở nhiệt độ dưới 150°C',
+            ],
             'is_new' => true,
             'is_featured' => true,
             'is_best_seller' => true,
             'status' => 'active',
         ]);
 
+        // Danh sách biến thể (Màu sắc / Kích thước) cho Sản phẩm 1
+        $colorsP1 = [
+            ['name' => 'Xanh Navy Đậm', 'hex' => '#1e3a8a', 'price' => 389000],
+            ['name' => 'Trắng Tinh Khôi', 'hex' => '#f8fafc', 'price' => 389000],
+            ['name' => 'Đen Sang Trọng', 'hex' => '#0f172a', 'price' => 389000],
+            ['name' => 'Beige Thanh Lịch', 'hex' => '#d4c5b9', 'price' => 399000],
+        ];
+        $sizesP1 = ['M (55-65kg)', 'L (65-75kg)', 'XL (75-85kg)', 'XXL (85-95kg)'];
+        foreach ($colorsP1 as $cIndex => $col) {
+            foreach ($sizesP1 as $sIndex => $sz) {
+                ProductVariant::create([
+                    'product_id' => $p1->id,
+                    'sku' => "BS-POLO-01-" . ($cIndex + 1) . "-" . substr($sz, 0, 2),
+                    'color' => $col['name'],
+                    'color_code' => $col['hex'],
+                    'size' => $sz,
+                    'price' => $col['price'],
+                    'original_price' => 499000,
+                    'stock' => rand(15, 45),
+                    'image' => '/assets/img/products/1.png',
+                    'status' => 'active',
+                ]);
+            }
+        }
+
         $p2 = Product::create([
-            'category_id' => $catBlazer->id,
-            'sku' => 'BS-BLZ-002',
-            'name' => 'Áo Blazer Nam Form Suông Rộng Phong Cách Hàn Quốc Minimalist',
-            'slug' => 'ao-blazer-nam-form-suong-phong-cach-han-quoc',
-            'price' => 890000,
-            'original_price' => 1150000,
-            'stock' => 52,
-            'sold_count' => 430,
+            'category_id' => $catShirt->id,
+            'brand_id' => $brandLuxury->id,
+            'sku' => 'BS-SHIRT-02',
+            'name' => 'Áo Sơ Mi Nam Lụa Kháng Nhăn Easy-Iron Luxury BeeStyle',
+            'slug' => 'ao-so-mi-nam-lua-khang-nhan-easy-iron-luxury-beestyle',
+            'product_type' => 'variant',
+            'price' => 499000,
+            'original_price' => 650000,
+            'stock' => 120,
+            'sold_count' => 950,
             'rating' => 4.8,
-            'reviews_count' => 96,
+            'reviews_count' => 54,
+            'image' => '/assets/img/products/4.png',
+            'short_description' => 'Vải sợi tre Modal kết hợp lụa chống nhăn 100%, bề mặt sáng bóng mịn màng, thiết kế cổ bẻ chuẩn quý ông.',
+            'description' => '<p>Mẫu sơ mi công sở cao cấp Bee Luxury Line mang đến diện mạo chỉn chu, đĩnh đạc cho các cuộc họp và sự kiện quan trọng. Công nghệ dệt chống nhăn thông minh giúp tiết kiệm thời gian là ủi mỗi sáng.</p>',
+            'colors' => ['Trắng Tinh', 'Xanh Pastel', 'Xám Khói'],
+            'sizes' => ['38 (S)', '39 (M)', '40 (L)', '41 (XL)', '42 (XXL)'],
+            'specifications' => [
+                'Chất liệu' => '70% Sợi tre Bamboo, 30% Silk lụa kháng nhăn',
+                'Phom dáng' => 'Regular fit thoải mái',
+                'Kiểu cổ áo' => 'Cổ áo nhọn Classic Spread',
+                'Họa tiết' => 'Trơn bóng nhẹ sang trọng',
+                'Xuất xứ' => 'Việt Nam',
+                'Hướng dẫn giặt' => 'Nên giặt tay hoặc giặt máy túi giặt, phơi nơi râm mát',
+            ],
+            'is_new' => true,
+            'is_featured' => true,
+            'is_best_seller' => true,
+            'status' => 'active',
+        ]);
+
+        $colorsP2 = [
+            ['name' => 'Trắng Tinh', 'hex' => '#ffffff', 'price' => 499000],
+            ['name' => 'Xanh Pastel', 'hex' => '#93c5fd', 'price' => 499000],
+            ['name' => 'Xám Khói', 'hex' => '#94a3b8', 'price' => 520000],
+        ];
+        $sizesP2 = ['38 (S)', '39 (M)', '40 (L)', '41 (XL)', '42 (XXL)'];
+        foreach ($colorsP2 as $cIndex => $col) {
+            foreach ($sizesP2 as $sIndex => $sz) {
+                ProductVariant::create([
+                    'product_id' => $p2->id,
+                    'sku' => "BS-SHIRT-02-" . ($cIndex + 1) . "-S" . substr($sz, 0, 2),
+                    'color' => $col['name'],
+                    'color_code' => $col['hex'],
+                    'size' => $sz,
+                    'price' => $col['price'],
+                    'original_price' => 650000,
+                    'stock' => rand(10, 30),
+                    'image' => '/assets/img/products/4.png',
+                    'status' => 'active',
+                ]);
+            }
+        }
+
+        $p3 = Product::create([
+            'category_id' => $catBlazer->id,
+            'brand_id' => $brandLuxury->id,
+            'sku' => 'BS-BLAZER-03',
+            'name' => 'Áo Blazer Nam Phong Cách Hàn Quốc 2 Lớp Form Regular Fit',
+            'slug' => 'ao-blazer-nam-phong-cach-han-quoc-2-lop-form-regular-fit',
+            'product_type' => 'variant',
+            'price' => 899000,
+            'original_price' => 1250000,
+            'stock' => 60,
+            'sold_count' => 430,
+            'rating' => 5.0,
+            'reviews_count' => 38,
             'image' => '/assets/img/products/2.png',
-            'colors' => ['Đen', 'Xám Tro', 'Nâu Cafe'],
-            'sizes' => ['M', 'L', 'XL'],
-            'short_description' => 'Vải chéo Hàn 2 lớp đứng dáng không nhăn, đệm vai tự nhiên tôn phom quý ông hiện đại.',
-            'description' => 'Blazer BeeStyle Minimalist thiết kế 2 hàng khuy tinh tế, lớp lót lụa habutai êm ái chống tĩnh điện. Dễ dàng mix cùng áo phông trắng hoặc sơ mi đi tiệc, đi làm, sự kiện.',
+            'short_description' => 'Blazer nam 2 lớp chuẩn form Hàn Quốc, độn vai tự nhiên định hình phom dáng quý ông hiện đại.',
+            'description' => '<p>Áo Blazer BeeStyle thiết kế 2 khuy cài cổ điển, lớp lót lụa cao cấp êm ái thoáng mát không gây bí bách khi mặc cả ngày.</p>',
+            'colors' => ['Đen Nhám', 'Xám Ghi', 'Nâu Tây'],
+            'sizes' => ['M', 'L', 'XL', 'XXL'],
+            'specifications' => [
+                'Chất liệu' => 'Vải Tweed dạ dệt kim cao cấp, lót lụa Habutai',
+                'Phom dáng' => 'Regular fit có đệm vai nhẹ',
+                'Kiểu áo' => 'Blazer 2 khuy cài, xẻ tà sau đôi',
+                'Xuất xứ' => 'Việt Nam',
+            ],
             'is_new' => true,
             'is_featured' => true,
             'is_best_seller' => false,
             'status' => 'active',
         ]);
 
-        $p3 = Product::create([
-            'category_id' => $catShirt->id,
-            'sku' => 'BS-SH-003',
-            'name' => 'Áo Sơ Mi Nam Tay Dài Vải Sợi Tre Bamboo Kháng Nhăn Tuyệt Đối',
-            'slug' => 'ao-so-mi-nam-tay-dai-soi-tre-bamboo-khang-nhan',
-            'price' => 450000,
-            'original_price' => 590000,
-            'stock' => 110,
-            'sold_count' => 620,
-            'rating' => 4.9,
-            'reviews_count' => 74,
-            'image' => '/assets/img/products/4.png',
-            'colors' => ['Trắng Sữa', 'Xanh Nhạt', 'Xanh Navy', 'Ghi Sáng'],
-            'sizes' => ['38', '39', '40', '41', '42'],
-            'short_description' => 'Vải Bamboo dệt từ sợi tre thiên nhiên siêu mịn mát, thấm hút mồ hôi 60% hơn cotton thường, tự phẳng sau khi phơi.',
-            'description' => 'Sơ mi Bamboo BeeStyle với phom dáng Slimfit vừa vặn ôm nhẹ cơ thể, nẹp áo giấu chỉ may cao cấp, cổ áo có nẹp xương giữ cổ đứng suốt ngày dài làm việc.',
-            'is_new' => false,
-            'is_featured' => true,
-            'is_best_seller' => true,
-            'status' => 'active',
-        ]);
+        foreach (['Đen Nhám' => '#18181b', 'Xám Ghi' => '#64748b', 'Nâu Tây' => '#78350f'] as $cName => $cHex) {
+            foreach (['M', 'L', 'XL', 'XXL'] as $sz) {
+                ProductVariant::create([
+                    'product_id' => $p3->id,
+                    'sku' => "BS-BLAZER-03-" . substr($cName, 0, 2) . "-{$sz}",
+                    'color' => $cName,
+                    'color_code' => $cHex,
+                    'size' => $sz,
+                    'price' => 899000,
+                    'original_price' => 1250000,
+                    'stock' => rand(5, 20),
+                    'image' => '/assets/img/products/2.png',
+                    'status' => 'active',
+                ]);
+            }
+        }
 
         $p4 = Product::create([
             'category_id' => $catPants->id,
-            'sku' => 'BS-PNT-004',
-            'name' => 'Quần Tây Nam Dáng Slimfit Cạp Tăng Đơ Co Giãn 3cm BeeStyle Smart',
-            'slug' => 'quan-tay-nam-slimfit-cap-tang-do-co-gian',
-            'price' => 480000,
-            'original_price' => 620000,
-            'stock' => 200,
-            'sold_count' => 980,
-            'rating' => 4.8,
-            'reviews_count' => 150,
+            'brand_id' => $brandSignature->id,
+            'sku' => 'BS-PANT-04',
+            'name' => 'Quần Âu Nam Cạp Tăng Giảm Thông Minh Vải Chéo Ý Co Giãn',
+            'slug' => 'quan-au-nam-cap-tang-giam-thong-minh-vai-cheo-y-co-gian',
+            'product_type' => 'variant',
+            'price' => 450000,
+            'original_price' => 590000,
+            'stock' => 180,
+            'sold_count' => 1520,
+            'rating' => 4.9,
+            'reviews_count' => 120,
             'image' => '/assets/img/products/5.png',
-            'colors' => ['Đen', 'Xám Đậm', 'Xanh Đen', 'Be Sáng'],
+            'short_description' => 'Thiết kế cạp quần ẩn tăng giảm co giãn tự động 4cm, tiện lợi tối đa khi ăn no hay vận động.',
+            'description' => '<p>Quần âu BeeStyle cạp chun sườn thông minh, chất vải chéo Ý đứng dáng, không bám bụi và chống xù lông tuyệt đối.</p>',
+            'colors' => ['Đen', 'Xanh Than', 'Ghi Xám', 'Be'],
             'sizes' => ['29', '30', '31', '32', '33', '34'],
-            'short_description' => 'Vải tuyết mưa dệt cao cấp, cạp thông minh tự co giãn 3cm tạo sự thoải mái tối đa khi đứng ngồi.',
-            'description' => 'Quần tây BeeStyle Smart thiết kế ly chết dập nhiệt công nghệ cao, ống đứng vừa vặn chuẩn công sở, vải dày dặn không bai nhão và chống bám bụi hiệu quả.',
+            'specifications' => [
+                'Chất liệu' => 'Vải chéo Ý 80% Polyester, 18% Rayon, 2% Spandex',
+                'Phom dáng' => 'Slim cropped ôm vừa phải tôn chiều cao',
+                'Cạp quần' => 'Cạp tăng giảm thông minh 4cm',
+                'Xuất xứ' => 'Việt Nam',
+            ],
             'is_new' => false,
             'is_featured' => true,
             'is_best_seller' => true,
             'status' => 'active',
         ]);
+
+        foreach (['Đen' => '#000000', 'Xanh Than' => '#1e293b', 'Ghi Xám' => '#475569', 'Be' => '#d6d3d1'] as $cName => $cHex) {
+            foreach (['29', '30', '31', '32', '33', '34'] as $sz) {
+                ProductVariant::create([
+                    'product_id' => $p4->id,
+                    'sku' => "BS-PANT-04-" . substr($cName, 0, 2) . "-{$sz}",
+                    'color' => $cName,
+                    'color_code' => $cHex,
+                    'size' => "Size {$sz}",
+                    'price' => 450000,
+                    'original_price' => 590000,
+                    'stock' => rand(15, 40),
+                    'image' => '/assets/img/products/5.png',
+                    'status' => 'active',
+                ]);
+            }
+        }
 
         $p5 = Product::create([
             'category_id' => $catShoes->id,
-            'sku' => 'BS-OXF-005',
-            'name' => 'Giày Da Nam Derby Classic Da Bò Ý Nhập Khẩu Đế Khâu McKay',
-            'slug' => 'giay-da-nam-derby-classic-da-bo-y-nhap-khau',
+            'brand_id' => $brandLuxury->id,
+            'sku' => 'BS-SHOE-05',
+            'name' => 'Giày Tây Nam Loafer Da Bò Ý Dập Họa Tiết Quý Tộc BeeStyle',
+            'slug' => 'giay-tay-nam-loafer-da-bo-y-dap-hoa-tiet-quy-toc-beestyle',
+            'product_type' => 'variant',
             'price' => 1250000,
-            'original_price' => 1650000,
+            'original_price' => 1800000,
             'stock' => 45,
             'sold_count' => 310,
-            'rating' => 4.9,
-            'reviews_count' => 88,
-            'image' => '/assets/img/products/6.png',
-            'colors' => ['Đen Bóng', 'Nâu Hạt Dẻ'],
+            'rating' => 5.0,
+            'reviews_count' => 29,
+            'image' => '/assets/img/products/3.png',
+            'short_description' => 'Da bò nguyên tấm Full-grain nhập khẩu Ý, đệm lót memory foam êm chân, đế cao su khâu viền chắc chắn.',
+            'description' => '<p>Giày Loafer da bò thật 100% đánh màu thủ công Patina sang trọng, thiết kế ôm chân và chống mỏi tối đa.</p>',
+            'colors' => ['Đen Bóng Derby', 'Nâu Hạt Dẻ Patina'],
             'sizes' => ['39', '40', '41', '42', '43'],
-            'short_description' => '100% da bò lớp đầu (Full-grain Leather), đế cao su đúc nguyên khối khâu viền McKay chắc chắn.',
-            'description' => 'Giày Derby BeeStyle thể hiện đẳng cấp quý ông với lót da cừu êm ái chống hôi chân, đế đúc chống trơn trượt trên mọi bề mặt.',
+            'specifications' => [
+                'Chất liệu' => 'Da bò tự nhiên Full-grain loại 1',
+                'Đế giày' => 'Đế cao su nhiệt dẻo khâu chỉ dù chống trơn',
+                'Lót trong' => 'Da cừu khử mùi êm ái',
+                'Xuất xứ' => 'Việt Nam (Thủ công mỹ nghệ da)',
+            ],
             'is_new' => true,
             'is_featured' => true,
             'is_best_seller' => false,
             'status' => 'active',
         ]);
 
+        foreach (['Đen Bóng Derby' => '#111827', 'Nâu Hạt Dẻ Patina' => '#5c2c16'] as $cName => $cHex) {
+            foreach (['39', '40', '41', '42', '43'] as $sz) {
+                ProductVariant::create([
+                    'product_id' => $p5->id,
+                    'sku' => "BS-SHOE-05-" . substr($cName, 0, 2) . "-{$sz}",
+                    'color' => $cName,
+                    'color_code' => $cHex,
+                    'size' => "Size {$sz}",
+                    'price' => 1250000,
+                    'original_price' => 1800000,
+                    'stock' => rand(5, 15),
+                    'image' => '/assets/img/products/3.png',
+                    'status' => 'active',
+                ]);
+            }
+        }
+
         $p6 = Product::create([
-            'category_id' => $catBlazer->id,
-            'sku' => 'BS-JKT-006',
-            'name' => 'Áo Khoác Gió Nam 2 Lớp Chống Thấm Nước Khóa YKK BeeStyle Shield',
-            'slug' => 'ao-khoac-gio-nam-2-lop-chong-nuoc-beestyle-shield',
-            'price' => 350000,
-            'original_price' => 450000,
-            'stock' => 350,
-            'sold_count' => 2100,
+            'category_id' => $catShorts->id,
+            'brand_id' => $brandUrban->id,
+            'sku' => 'BS-SHORT-06',
+            'name' => 'Quần Short Kaki Nam Co Giãn 4 Chiều Phong Cách Dạo Phố',
+            'slug' => 'quan-short-kaki-nam-co-gian-4-chieu-phong-cach-dao-pho',
+            'product_type' => 'variant',
+            'price' => 289000,
+            'original_price' => 380000,
+            'stock' => 110,
+            'sold_count' => 780,
             'rating' => 4.7,
-            'reviews_count' => 312,
-            'image' => '/assets/img/products/8.png',
-            'colors' => ['Đen', 'Xanh Rêu', 'Ghi Sáng', 'Xanh Dương'],
-            'sizes' => ['S', 'M', 'L', 'XL', 'XXL'],
-            'short_description' => 'Công nghệ trượt nước Teflon chống mưa nhẹ và gió lạnh, lót lưới tản nhiệt thoáng khí.',
-            'description' => 'Áo khoác gió thông minh BeeStyle Shield trang bị khóa kéo YKK chính hãng chống kẹt, mũ tháo rời linh hoạt, túi trong có khóa an toàn đựng điện thoại ví tiền.',
+            'reviews_count' => 45,
+            'image' => '/assets/img/products/6.png',
+            'short_description' => 'Quần short kaki đùi dài ngang gối, chất liệu mềm mại, cạp chun thoải mái.',
+            'description' => '<p>Mẫu short kaki thích hợp cho các chuyến du lịch, dạo phố hoặc thể thao cuối tuần cùng bạn bè.</p>',
+            'colors' => ['Xanh Rêu', 'Đen', 'Be Sáng'],
+            'sizes' => ['M (29-30)', 'L (31-32)', 'XL (33-34)'],
+            'specifications' => [
+                'Chất liệu' => 'Kaki Cotton 98%, 2% Spandex',
+                'Phom dáng' => 'Ngang gối trẻ trung',
+                'Xuất xứ' => 'Việt Nam',
+            ],
             'is_new' => false,
-            'is_featured' => true,
+            'is_featured' => false,
             'is_best_seller' => true,
             'status' => 'active',
         ]);
 
-        $p7 = Product::create([
-            'category_id' => $catPolo->id,
-            'sku' => 'BS-TS-007',
-            'name' => 'Áo Phông Nam Cổ Tròn Cotton 100% 250GSM Dày Dặn Phom Boxy',
-            'slug' => 'ao-phong-nam-co-tron-cotton-250gsm-phom-boxy',
-            'price' => 249000,
-            'original_price' => 320000,
-            'stock' => 180,
-            'sold_count' => 950,
-            'rating' => 4.8,
-            'reviews_count' => 140,
-            'image' => '/assets/img/products/3.png',
-            'colors' => ['Trắng', 'Đen', 'Xám Khói', 'Nâu Đất'],
-            'sizes' => ['M', 'L', 'XL', 'XXL'],
-            'short_description' => 'Định lượng 250GSM dày dặn đứng phom, bo cổ dệt dày 3cm không lo bai gião.',
-            'description' => 'Áo phông nam trơn phom Boxy streetwear hiện đại, chất cotton chải kỹ mịn màng không xù lông sau giặt.',
-            'is_new' => true,
-            'is_featured' => true,
-            'is_best_seller' => false,
-            'status' => 'active',
-        ]);
-
-        $p8 = Product::create([
-            'category_id' => $catAccessories->id,
-            'sku' => 'BS-BLT-008',
-            'name' => 'Thắt Lưng Nam Da Bò Thật Khóa Tự Động Hợp Kim Cao Cấp',
-            'slug' => 'that-lung-nam-da-bo-that-khoa-tu-dong-hop-kim',
-            'price' => 390000,
-            'original_price' => 520000,
-            'stock' => 90,
-            'sold_count' => 420,
-            'rating' => 4.9,
-            'reviews_count' => 65,
-            'image' => '/assets/img/products/7.png',
-            'colors' => ['Đen Khóa Bạc', 'Đen Khóa Vàng Gold', 'Nâu Khóa Đồng'],
-            'sizes' => ['115cm', '120cm', '125cm'],
-            'short_description' => 'Da bò nguyên tấm dập vân Saffiano chống xước, mặt khóa hợp kim không gỉ sắc sảo.',
-            'description' => 'Thắt lưng nam BeeStyle khóa ray trượt tự động điều chỉnh độ ôm theo vòng bụng mà không cần bấm lỗ mất thẩm mỹ.',
-            'is_new' => true,
-            'is_featured' => false,
-            'is_best_seller' => false,
-            'status' => 'active',
-        ]);
-
-        // 4. PRODUCT IMAGES GALLERY
-        $productsList = [$p1, $p2, $p3, $p4, $p5, $p6, $p7, $p8];
-        foreach ($productsList as $index => $prod) {
-            ProductImage::create([
-                'product_id' => $prod->id,
-                'image_path' => $prod->image,
-                'sort_order' => 1,
-            ]);
-            // Thêm 2 ảnh phụ mẫu
-            $nextImgIndex = (($index + 1) % 8) + 1;
-            ProductImage::create([
-                'product_id' => $prod->id,
-                'image_path' => "/assets/img/products/{$nextImgIndex}.png",
-                'sort_order' => 2,
-            ]);
-        }
-
-        // 5. COUPONS / VOUCHERS
+        // 5. MÃ GIẢM GIÁ (COUPONS) KHUYẾN MÃI VÀ VẬN CHUYỂN
         Coupon::create([
-            'code' => 'BEESTYLE50',
-            'title' => 'Giảm 50.000₫ cho đơn hàng thời trang từ 499.000₫',
+            'code' => 'BEESTYLEVIP',
+            'title' => 'Giảm 50.000₫ cho đơn hàng từ 499.000₫',
             'discount_type' => 'fixed',
             'discount_value' => 50000,
             'min_order_value' => 499000,
-            'total_limit' => 1000,
-            'used_count' => 420,
-            'expires_at' => now()->addMonths(6),
+            'max_discount_value' => 50000,
+            'total_limit' => 500,
+            'used_count' => 125,
             'is_active' => true,
+            'expires_at' => now()->addMonths(6),
         ]);
 
         Coupon::create([
-            'code' => 'FREESHIPMAX',
-            'title' => 'Miễn phí vận chuyển toàn quốc cho đơn từ 300.000₫',
+            'code' => 'FREESHIP',
+            'title' => 'Miễn phí vận chuyển toàn quốc cho đơn từ 299.000₫',
             'discount_type' => 'shipping',
             'discount_value' => 30000,
-            'min_order_value' => 300000,
-            'total_limit' => 2000,
-            'used_count' => 850,
-            'expires_at' => now()->addMonths(6),
+            'min_order_value' => 299000,
+            'max_discount_value' => 30000,
+            'total_limit' => 1000,
+            'used_count' => 340,
             'is_active' => true,
+            'expires_at' => now()->addMonths(12),
         ]);
 
         Coupon::create([
-            'code' => 'VIPBEE15',
-            'title' => 'Giảm 15% tổng hóa đơn cho thành viên thân thiết (Tối đa 200k)',
+            'code' => 'GIAM10',
+            'title' => 'Giảm 10% tổng giá trị đơn hàng từ 1.000.000₫',
             'discount_type' => 'percent',
-            'discount_value' => 15,
+            'discount_value' => 10,
             'min_order_value' => 1000000,
             'max_discount_value' => 200000,
-            'total_limit' => 500,
-            'used_count' => 118,
+            'total_limit' => 200,
+            'used_count' => 60,
+            'is_active' => true,
             'expires_at' => now()->addMonths(3),
-            'is_active' => true,
         ]);
 
-        Coupon::create([
-            'code' => 'WELCOMEBEE',
-            'title' => 'Giảm 30.000₫ cho khách hàng mới mua đơn đầu tiên từ 299.000₫',
-            'discount_type' => 'fixed',
-            'discount_value' => 30000,
-            'min_order_value' => 299000,
-            'total_limit' => 5000,
-            'used_count' => 1240,
-            'expires_at' => now()->addYear(),
-            'is_active' => true,
-        ]);
-
-        // 6. ORDERS & ORDER ITEMS
+        // 6. ĐƠN HÀNG MẪU VỚI CÁC TRẠNG THÁI GIAO HÀNG KHÁC NHAU
         $order1 = Order::create([
-            'order_code' => 'BEE-2026-0816-01',
             'user_id' => $customer1->id,
-            'customer_name' => 'Nguyễn Văn Hùng',
-            'customer_phone' => '0987654321',
-            'customer_email' => 'hung.nguyen@gmail.com',
-            'shipping_address' => 'Số 45 Đường Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
+            'order_code' => 'BS-' . strtoupper(substr(md5(uniqid()), 0, 8)),
+            'customer_name' => $customer1->name,
+            'customer_phone' => $customer1->phone,
+            'customer_email' => $customer1->email,
+            'shipping_address' => 'Số 45 Đường Lê Duẩn, Phường Bến Nghé, Quận 1',
             'city' => 'Hồ Chí Minh',
             'district' => 'Quận 1',
-            'notes' => 'Giao hàng trong giờ hành chính, gọi trước khi giao',
-            'payment_method' => 'cod',
-            'payment_status' => 'unpaid',
-            'shipping_status' => 'shipping',
-            'status_step' => 4, // 1: Chờ xác nhận, 2: Đã xác nhận, 3: Đang đóng gói, 4: Đang giao hàng, 5: Đã giao, 6: Hoàn tất
-            'subtotal' => 1668000,
-            'discount_amount' => 50000,
+            'total_amount' => 839000,
+            'subtotal' => 839000,
             'shipping_fee' => 0,
-            'total_amount' => 1618000,
-            'coupon_code' => 'BEESTYLE50',
-            'created_at' => now()->subDays(2),
+            'discount_amount' => 0,
+            'payment_method' => 'cod',
+            'payment_status' => 'paid',
+            'shipping_status' => 'completed',
+            'status_step' => 6,
+            'notes' => 'Giao hàng giờ hành chính',
         ]);
 
         OrderItem::create([
             'order_id' => $order1->id,
             'product_id' => $p1->id,
             'product_name' => $p1->name,
-            'product_sku' => $p1->sku,
-            'color' => 'Xanh Navy',
-            'size' => 'L',
-            'price' => 389000,
-            'quantity' => 2,
-            'subtotal' => 778000,
+            'product_sku' => 'BS-POLO-01',
             'image' => $p1->image,
+            'price' => $p1->price,
+            'quantity' => 1,
+            'subtotal' => 389000,
+            'color' => 'Xanh Navy Đậm',
+            'size' => 'L (65-75kg)',
         ]);
 
         OrderItem::create([
             'order_id' => $order1->id,
-            'product_id' => $p2->id,
-            'product_name' => $p2->name,
-            'product_sku' => $p2->sku,
-            'color' => 'Đen',
-            'size' => 'L',
-            'price' => 890000,
-            'quantity' => 1,
-            'subtotal' => 890000,
-            'image' => $p2->image,
-        ]);
-
-        $order2 = Order::create([
-            'order_code' => 'BEE-2026-0816-02',
-            'user_id' => $customer3->id,
-            'customer_name' => 'Trần Minh Quang',
-            'customer_phone' => '0912345678',
-            'customer_email' => 'minhquang.tran@gmail.com',
-            'shipping_address' => 'Số 12 Ngõ 88 Phố Láng Hạ, Phường Láng Hạ, Quận Đống Đa, Hà Nội',
-            'city' => 'Hà Nội',
-            'district' => 'Đống Đa',
-            'notes' => 'Giao hàng tận tay người nhận',
-            'payment_method' => 'vietqr',
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 3,
-            'subtotal' => 930000,
-            'discount_amount' => 50000,
-            'shipping_fee' => 0,
-            'total_amount' => 880000,
-            'coupon_code' => 'BEESTYLE50',
-            'created_at' => now()->subDay(),
-        ]);
-
-        OrderItem::create([
-            'order_id' => $order2->id,
-            'product_id' => $p3->id,
-            'product_name' => $p3->name,
-            'product_sku' => $p3->sku,
-            'color' => 'Trắng Sữa',
-            'size' => '40',
-            'price' => 450000,
-            'quantity' => 1,
-            'subtotal' => 450000,
-            'image' => $p3->image,
-        ]);
-
-        OrderItem::create([
-            'order_id' => $order2->id,
             'product_id' => $p4->id,
             'product_name' => $p4->name,
-            'product_sku' => $p4->sku,
-            'color' => 'Đen',
-            'size' => '31',
-            'price' => 480000,
-            'quantity' => 1,
-            'subtotal' => 480000,
+            'product_sku' => 'BS-PANT-04',
             'image' => $p4->image,
-        ]);
-
-        $order3 = Order::create([
-            'order_code' => 'BEE-2026-0815-99',
-            'user_id' => $customer2->id,
-            'customer_name' => 'Lê Hoàng Long',
-            'customer_phone' => '0903888999',
-            'customer_email' => 'hoanglong.le@gmail.com',
-            'shipping_address' => '24 Nguyễn Văn Linh, Phường Nam Dương, Quận Hải Châu, Đà Nẵng',
-            'city' => 'Đà Nẵng',
-            'district' => 'Hải Châu',
-            'notes' => '',
-            'payment_method' => 'vnpay',
-            'payment_status' => 'paid',
-            'shipping_status' => 'completed',
-            'status_step' => 6,
-            'subtotal' => 1250000,
-            'discount_amount' => 187500,
-            'shipping_fee' => 0,
-            'total_amount' => 1062500,
-            'coupon_code' => 'VIPBEE15',
-            'created_at' => now()->subDays(3),
-        ]);
-
-        OrderItem::create([
-            'order_id' => $order3->id,
-            'product_id' => $p5->id,
-            'product_name' => $p5->name,
-            'product_sku' => $p5->sku,
-            'color' => 'Nâu Hạt Dẻ',
-            'size' => '41',
-            'price' => 1250000,
+            'price' => $p4->price,
             'quantity' => 1,
-            'subtotal' => 1250000,
-            'image' => $p5->image,
+            'subtotal' => 450000,
+            'color' => 'Đen',
+            'size' => 'Size 31',
         ]);
 
-        // 7. SAMPLE REVIEWS
+        // 7. ĐÁNH GIÁ & PHẢN HỒI MẪU TỪ KHÁCH HÀNG
         Review::create([
             'product_id' => $p1->id,
             'user_id' => $customer1->id,
-            'user_name' => 'Nguyễn Văn Hùng',
+            'user_name' => $customer1->name,
             'rating' => 5,
-            'comment' => 'Áo polo mặc cực kỳ tôn dáng, chất vải tổ ong dày dặn nhưng mặc rất mát và thấm mồ hôi. Đã mua 3 màu!',
-            'status' => 'approved',
-        ]);
-
-        Review::create([
-            'product_id' => $p2->id,
-            'user_id' => $customer2->id,
-            'user_name' => 'Lê Hoàng Long',
-            'rating' => 5,
-            'comment' => 'Blazer form Hàn Quốc rất đẹp, vai đệm tự nhiên không bị cứng nhắc. Phối với áo thun hay sơ mi đều chuẩn soái ca.',
+            'comment' => 'Áo polo mặc cực kỳ êm và đứng phom, vải dệt tổ ong thoáng mát không bị nhăn sau khi giặt máy. Rất đáng tiền!',
             'status' => 'approved',
         ]);
     }

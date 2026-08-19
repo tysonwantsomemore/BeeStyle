@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AdminMiddleware
 {
     /**
-     * Handle an incoming request.
+     * Xử lý kiểm tra quyền truy cập của Quản trị viên (Admin)
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
