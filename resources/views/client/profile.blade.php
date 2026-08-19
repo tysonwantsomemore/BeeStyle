@@ -191,21 +191,48 @@
               <div class="row g-3">
                 <div class="col-12">
                   <label class="form-label small fw-bold text-dark">Mật khẩu hiện tại <span class="text-danger">*</span></label>
-                  <input type="password" name="current_password" class="form-control" required placeholder="Nhập mật khẩu bạn đang dùng...">
+                  <div class="input-group">
+                    <input type="password" name="current_password" id="inputCurrentPassword" class="form-control @error('current_password') is-invalid @enderror" required placeholder="Nhập mật khẩu bạn đang dùng...">
+                    <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-target="inputCurrentPassword" title="Hiện/ẩn mật khẩu">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    @error('current_password')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
                 </div>
 
                 <div class="col-md-6">
                   <label class="form-label small fw-bold text-dark">Mật khẩu mới <span class="text-danger">*</span></label>
-                  <input type="password" name="password" class="form-control" required minlength="6" placeholder="Tối thiểu 6 ký tự...">
+                  <div class="input-group">
+                    <input type="password" name="password" id="inputNewPassword" class="form-control @error('password') is-invalid @enderror" required minlength="6" placeholder="Tối thiểu 6 ký tự...">
+                    <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-target="inputNewPassword" title="Hiện/ẩn mật khẩu">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    @error('password')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
+                  <div class="form-text small text-muted">
+                    <i class="fa-solid fa-circle-info me-1"></i> Mật khẩu phải có tối thiểu 6 ký tự và khác mật khẩu cũ.
+                  </div>
                 </div>
 
                 <div class="col-md-6">
                   <label class="form-label small fw-bold text-dark">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
-                  <input type="password" name="password_confirmation" class="form-control" required minlength="6" placeholder="Nhập lại mật khẩu mới...">
+                  <div class="input-group">
+                    <input type="password" name="password_confirmation" id="inputConfirmPassword" class="form-control @error('password_confirmation') is-invalid @enderror" required minlength="6" placeholder="Nhập lại mật khẩu mới...">
+                    <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-target="inputConfirmPassword" title="Hiện/ẩn mật khẩu">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    @error('password_confirmation')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
                 </div>
 
                 <div class="col-12 mt-4">
-                  <button type="submit" class="btn btn-bee-primary px-4 py-2 fw-bold">
+                  <button type="submit" class="btn btn-bee-primary px-4 py-2 fw-bold shadow-sm">
                     <i class="fa-solid fa-key me-1"></i> Cập Nhật Mật Khẩu Mới
                   </button>
                 </div>
@@ -534,3 +561,30 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Password visibility toggle logic
+    document.querySelectorAll('.toggle-password-btn').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var targetId = this.getAttribute('data-target');
+        var input = document.getElementById(targetId);
+        var icon = this.querySelector('i');
+        if (input) {
+          if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+          } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+          }
+        }
+      });
+    });
+  });
+</script>
+@endpush
+

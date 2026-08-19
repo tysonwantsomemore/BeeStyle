@@ -29,7 +29,18 @@ class ProfileController extends Controller
 
         $orders = Order::with('items')->where('user_id', $user->id)->latest()->get();
         $addresses = UserAddress::where('user_id', $user->id)->orderBy('is_default', 'desc')->latest()->get();
-        $activeTab = $request->query('tab', 'profile');
+        $activeTab = $request->query('tab');
+        if (!$activeTab) {
+            if ($request->session()->has('errors') && ($request->session()->get('errors')->has('current_password') || $request->session()->get('errors')->has('password') || $request->session()->get('errors')->has('password_confirmation'))) {
+                $activeTab = 'security';
+            } elseif ($request->session()->has('errors') && ($request->session()->get('errors')->has('bank_name') || $request->session()->get('errors')->has('bank_account_number') || $request->session()->get('errors')->has('bank_account_name'))) {
+                $activeTab = 'bank';
+            } elseif ($request->session()->has('errors') && ($request->session()->get('errors')->has('recipient_name') || $request->session()->get('errors')->has('city') || $request->session()->get('errors')->has('district') || $request->session()->get('errors')->has('address'))) {
+                $activeTab = 'addresses';
+            } else {
+                $activeTab = 'profile';
+            }
+        }
 
         return view('client.profile', compact('user', 'orders', 'addresses', 'activeTab'));
     }
@@ -98,7 +109,9 @@ class ProfileController extends Controller
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withInput()->with('error', 'Mật khẩu hiện tại không chính xác.');
+            return redirect()->route('client.profile', ['tab' => 'security'])
+                ->withInput()
+                ->with('error', 'Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại!');
         }
 
         $user->update([
