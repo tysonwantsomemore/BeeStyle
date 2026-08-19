@@ -58,7 +58,7 @@
             <td><span class="font-monospace fw-bold text-secondary">{{ $product->sku }}</span></td>
             <td>
               <div class="d-flex align-items-center gap-2">
-                <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" style="width: 45px; height: 45px; object-fit: contain;" class="border rounded bg-light">
+                <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" style="width: 45px; height: 45px; object-fit: cover;" class="border rounded bg-light">
                 <div>
                   <a href="{{ route('client.products.show', $product->id) }}" target="_blank" class="fw-bold small text-dark text-decoration-none">
                     {{ $product->name }}

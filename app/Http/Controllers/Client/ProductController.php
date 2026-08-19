@@ -15,6 +15,12 @@ class ProductController extends Controller
             ->withCount(['products' => fn($q) => $q->where('status', 'active')])
             ->orderBy('sort_order', 'asc')
             ->get();
+        // Update count for BST Mới
+        foreach ($categories as $c) {
+            if ($c->slug === 'bo-suu-tap-ao-moi') {
+                $c->products_count = Product::active()->where('is_new', true)->count();
+            }
+        }
 
         $categorySlug = $request->query('category');
         $search = $request->query('q');
@@ -25,7 +31,9 @@ class ProductController extends Controller
         $query = Product::with('category')->active();
 
         // Filter Category
-        if ($categorySlug) {
+        if ($categorySlug === 'bo-suu-tap-ao-moi') {
+            $query->where('is_new', true);
+        } elseif ($categorySlug) {
             $query->whereHas('category', function ($q) use ($categorySlug) {
                 $q->where('slug', $categorySlug);
             });

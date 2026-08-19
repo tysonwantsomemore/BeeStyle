@@ -14,28 +14,30 @@
   </nav>
 
   <!-- PRODUCT MAIN SECTION -->
-  <div class="card border-0 shadow-sm p-4 mb-5" style="border-radius: 16px;">
-    <div class="row g-4">
+  <div class="card border-0 shadow-sm p-4 p-md-5 mb-5" style="border-radius: 20px; background: #ffffff;">
+    <div class="row g-4 g-lg-5">
       
       <!-- IMAGE GALLERY -->
       <div class="col-lg-6">
-        <div class="position-relative bg-light rounded-4 p-4 text-center mb-3" style="min-height: 400px; display: flex; align-items: center; justify-content: center;">
+        <div class="position-relative bg-light rounded-4 p-4 text-center mb-3" style="min-height: 420px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--bee-border);">
           @if($product->discount_percent > 0)
-            <span class="position-absolute top-0 start-0 m-3 badge bg-danger fs-6 px-3 py-2 rounded-pill">-{{ $product->discount_percent }}%</span>
+            <span class="position-absolute top-0 start-0 m-3 bee-product-badge sale fs-6 px-3 py-2">-{{ $product->discount_percent }}%</span>
+          @elseif($product->is_new)
+            <span class="position-absolute top-0 start-0 m-3 bee-product-badge new fs-6 px-3 py-2">NEW ARRIVAL</span>
           @endif
-          <img id="mainProductImg" src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid" style="max-height: 380px; object-fit: contain; transition: 0.3s ease;">
+          <img id="mainProductImg" src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded-3 shadow-sm" style="max-height: 380px; width: 100%; object-fit: cover; transition: transform 0.3s ease;">
         </div>
 
         <!-- THUMBNAILS -->
         <div class="d-flex gap-2 justify-content-center flex-wrap">
-          <div class="border rounded-3 p-1 bg-white cursor-pointer border-warning border-2" style="width: 70px; height: 70px; cursor: pointer;" onclick="document.getElementById('mainProductImg').src='{{ asset($product->image) }}'">
-            <img src="{{ asset($product->image) }}" alt="thumb" class="w-100 h-100 object-fit-contain">
+          <div class="border rounded-3 p-1 bg-white cursor-pointer border-warning border-2" style="width: 72px; height: 72px; cursor: pointer;" onclick="document.getElementById('mainProductImg').src='{{ asset($product->image) }}'">
+            <img src="{{ asset($product->image) }}" alt="thumb" class="w-100 h-100 object-fit-cover rounded-2">
           </div>
           @if($product->images)
             @foreach($product->images as $img)
               @if($img->image_path !== $product->image)
-                <div class="border rounded-3 p-1 bg-white cursor-pointer" style="width: 70px; height: 70px; cursor: pointer;" onclick="document.getElementById('mainProductImg').src='{{ asset($img->image_path) }}'">
-                  <img src="{{ asset($img->image_path) }}" alt="thumb" class="w-100 h-100 object-fit-contain">
+                <div class="border rounded-3 p-1 bg-white cursor-pointer" style="width: 72px; height: 72px; cursor: pointer;" onclick="document.getElementById('mainProductImg').src='{{ asset($img->image_path) }}'">
+                  <img src="{{ asset($img->image_path) }}" alt="thumb" class="w-100 h-100 object-fit-cover rounded-2">
                 </div>
               @endif
             @endforeach
@@ -45,16 +47,16 @@
 
       <!-- PRODUCT INFO & ACTIONS -->
       <div class="col-lg-6">
-        <div class="ps-lg-3">
+        <div class="ps-lg-2">
           <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-            <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1">{{ $product->category->name ?? 'Thời trang nam' }}</span>
+            <span class="badge bg-warning-subtle text-dark fw-bold px-3 py-1 rounded-pill">{{ $product->category->name ?? 'Thời trang nam' }}</span>
             <span class="text-muted small">Mã SKU: <strong>{{ $product->sku }}</strong></span>
-            <span class="badge bg-success-subtle text-success ms-auto"><i class="fa-solid fa-check me-1"></i> Còn {{ $product->stock }} sản phẩm</span>
+            <span class="badge bg-success-subtle text-success ms-auto"><i class="fa-solid fa-circle-check me-1"></i> Còn {{ $product->stock }} sản phẩm</span>
           </div>
 
-          <h2 class="fw-bold text-dark mb-3" style="font-size: 1.5rem; line-height: 1.3;">
+          <h1 class="fw-bold text-dark mb-3" style="font-size: 1.65rem; line-height: 1.35; letter-spacing: -0.02em;">
             {{ $product->name }}
-          </h2>
+          </h1>
 
           <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
             <div class="d-flex align-items-center text-warning gap-1">
@@ -63,22 +65,22 @@
               @endfor
               <span class="fw-bold text-dark ms-1">{{ $product->rating }}</span>
             </div>
-            <span class="text-muted">|</span>
-            <a href="#reviewsTab" class="text-muted small text-decoration-none">{{ $product->reviews_count }} đánh giá</a>
-            <span class="text-muted">|</span>
+            <span class="text-secondary">|</span>
+            <a href="#reviewsTab" class="text-muted small text-decoration-none">{{ $product->reviews_count }} đánh giá từ khách mua</a>
+            <span class="text-secondary">|</span>
             <span class="text-muted small">Đã bán <strong>{{ $product->sold_count }}</strong></span>
           </div>
 
-          <!-- PRICE -->
-          <div class="d-flex align-items-baseline gap-3 p-3 bg-light rounded-3 mb-4">
-            <span class="fs-3 fw-bold text-danger">{{ number_format($product->price, 0, ',', '.') }}₫</span>
+          <!-- PRICE ROW -->
+          <div class="d-flex align-items-baseline gap-3 p-3 bg-light rounded-3 mb-4 border">
+            <span class="fs-2 fw-bold text-danger">{{ number_format($product->price, 0, ',', '.') }}₫</span>
             @if($product->original_price && $product->original_price > $product->price)
               <span class="text-muted text-decoration-line-through fs-6">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
-              <span class="badge bg-danger">Tiết kiệm {{ number_format($product->original_price - $product->price, 0, ',', '.') }}₫</span>
+              <span class="badge bg-danger rounded-pill px-2 py-1">Tiết kiệm {{ number_format($product->original_price - $product->price, 0, ',', '.') }}₫</span>
             @endif
           </div>
 
-          <p class="text-secondary small mb-4">
+          <p class="text-secondary small mb-4 leading-relaxed">
             {{ $product->short_description }}
           </p>
 
@@ -87,17 +89,23 @@
             <input type="hidden" name="product_id" value="{{ $product->id }}">
 
             <!-- COLOR SELECTOR -->
-            <div class="mb-3">
-              <label class="fw-bold small text-dark mb-2 d-block">Màu Sắc:</label>
+            <div class="mb-4">
+              <label class="fw-bold small text-dark mb-2 d-block">1. Chọn Màu Sắc:</label>
               <div class="d-flex flex-wrap gap-2">
                 @if(is_array($product->colors))
                   @foreach($product->colors as $index => $color)
-                    <input type="radio" class="btn-check" name="color" id="color_{{ $index }}" value="{{ $color }}" {{ $index === 0 ? 'checked' : '' }}>
-                    <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2" for="color_{{ $index }}">{{ $color }}</label>
+                    <div>
+                      <input type="radio" class="bee-color-radio" name="color" id="color_{{ $index }}" value="{{ $color }}" {{ $index === 0 ? 'checked' : '' }}>
+                      <label class="bee-color-label" for="color_{{ $index }}">
+                        <i class="fa-solid fa-circle text-warning fs-11"></i> {{ $color }}
+                      </label>
+                    </div>
                   @endforeach
                 @else
-                  <input type="radio" class="btn-check" name="color" id="color_0" value="Tiêu chuẩn" checked>
-                  <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2" for="color_0">Tiêu chuẩn</label>
+                  <div>
+                    <input type="radio" class="bee-color-radio" name="color" id="color_0" value="Tiêu chuẩn" checked>
+                    <label class="bee-color-label" for="color_0">Tiêu chuẩn</label>
+                  </div>
                 @endif
               </div>
             </div>
@@ -105,32 +113,36 @@
             <!-- SIZE SELECTOR -->
             <div class="mb-4">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <label class="fw-bold small text-dark mb-0">Kích Thước (Size):</label>
-                <a href="#sizeGuideModal" data-bs-toggle="modal" class="text-warning small text-decoration-none"><i class="fa-solid fa-ruler-horizontal me-1"></i> Bảng quy đổi Size</a>
+                <label class="fw-bold small text-dark mb-0">2. Chọn Kích Thước (Size Chuẩn):</label>
+                <a href="#sizeGuideModal" data-bs-toggle="modal" class="text-warning small text-decoration-none fw-semibold"><i class="fa-solid fa-ruler-horizontal me-1"></i> Bảng quy đổi Size</a>
               </div>
               <div class="d-flex flex-wrap gap-2">
                 @if(is_array($product->sizes))
                   @foreach($product->sizes as $index => $size)
-                    <input type="radio" class="btn-check" name="size" id="size_{{ $index }}" value="{{ $size }}" {{ $index === 0 ? 'checked' : '' }}>
-                    <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2 fw-bold" for="size_{{ $index }}">{{ $size }}</label>
+                    <div>
+                      <input type="radio" class="bee-size-radio" name="size" id="size_{{ $index }}" value="{{ $size }}" {{ $index === 0 ? 'checked' : '' }}>
+                      <label class="bee-size-label" for="size_{{ $index }}">{{ $size }}</label>
+                    </div>
                   @endforeach
                 @else
-                  <input type="radio" class="btn-check" name="size" id="size_0" value="Free Size" checked>
-                  <label class="btn btn-outline-secondary btn-sm px-3 py-2 rounded-2 fw-bold" for="size_0">Free Size</label>
+                  <div>
+                    <input type="radio" class="bee-size-radio" name="size" id="size_0" value="Free Size" checked>
+                    <label class="bee-size-label" for="size_0">Free Size</label>
+                  </div>
                 @endif
               </div>
             </div>
 
             <!-- QUANTITY -->
             <div class="mb-4">
-              <label class="fw-bold small text-dark mb-2 d-block">Số Lượng:</label>
+              <label class="fw-bold small text-dark mb-2 d-block">3. Số Lượng Mua:</label>
               <div class="d-flex align-items-center gap-3">
                 <div class="input-group" style="width: 130px;">
                   <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var q=document.getElementById('qtyInput'); if(q.value>1) q.value--;">-</button>
                   <input type="number" id="qtyInput" name="quantity" class="form-control form-control-sm text-center fw-bold" value="1" min="1" max="{{ $product->stock }}">
                   <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var q=document.getElementById('qtyInput'); if(q.value<{{ $product->stock }}) q.value++;">+</button>
                 </div>
-                <span class="text-muted small">Có sẵn {{ $product->stock }} sản phẩm</span>
+                <span class="text-muted small">Kho hàng: <strong>{{ $product->stock }}</strong> sản phẩm</span>
               </div>
             </div>
 
@@ -148,10 +160,10 @@
           <!-- VALUE PROPOSITIONS -->
           <div class="border rounded-3 p-3 bg-light-subtle">
             <div class="row g-2 small">
-              <div class="col-6"><i class="fa-solid fa-shield-check text-warning me-2"></i> Cam kết 100% chính hãng</div>
-              <div class="col-6"><i class="fa-solid fa-truck text-warning me-2"></i> Giao hoả tốc 24h - 48h</div>
+              <div class="col-6"><i class="fa-solid fa-shield-halved text-warning me-2"></i> Cam kết 100% chính hãng</div>
+              <div class="col-6"><i class="fa-solid fa-truck-fast text-warning me-2"></i> Giao hỏa tốc 24h - 48h</div>
               <div class="col-6"><i class="fa-solid fa-box-open text-warning me-2"></i> Kiểm tra hàng trước khi nhận</div>
-              <div class="col-6"><i class="fa-solid fa-arrows-rotate text-warning me-2"></i> Đổi size miễn phí 30 ngày</div>
+              <div class="col-6"><i class="fa-solid fa-arrows-rotate text-warning me-2"></i> Đổi size tận nhà trong 30 ngày</div>
             </div>
           </div>
 
@@ -170,12 +182,12 @@
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link fw-bold text-dark px-4 py-3" id="guide-tab" data-bs-toggle="tab" data-bs-target="#guide" type="button" role="tab">
-          <i class="fa-solid fa-ruler-combined me-2 text-warning"></i> Hướng Dẫn Chọn Size
+          <i class="fa-solid fa-ruler-combined me-2 text-warning"></i> Bảng Thông Số Size
         </button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link fw-bold text-dark px-4 py-3" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
-          <i class="fa-solid fa-star me-2 text-warning"></i> Đánh Giá Từ Khách Hàng ({{ $product->reviews_count }})
+          <i class="fa-solid fa-star me-2 text-warning"></i> Đánh Giá Khách Mua ({{ $product->reviews_count }})
         </button>
       </li>
     </ul>
@@ -189,7 +201,7 @@
         <h6 class="fw-bold mb-2">Đặc điểm nổi bật:</h6>
         <ul class="text-secondary leading-relaxed small">
           <li>Chất liệu sợi tự nhiên cao cấp được xử lý chống co rút, kháng nhăn và thoáng khí tối đa.</li>
-          <li>Kỹ thuật dệt vi sợi hiện đại giúp sản phẩm luôn giữ được form dáng chuẩn sau nhiều lần giặt.</li>
+          <li>Kỹ thuật may đúp tỉ mỉ giúp sản phẩm luôn giữ được form dáng chuẩn sau nhiều lần giặt.</li>
           <li>Đường may kép tỉ mỉ, bo cổ và tay áo tinh tế, không bai dão theo thời gian.</li>
           <li>Dễ dàng phối đồ linh hoạt: đi làm công sở, dự sự kiện, dạo phố hay gặp gỡ bạn bè.</li>
         </ul>
@@ -291,7 +303,7 @@
                 <div class="bee-product-price-row">
                   <span class="bee-product-price">{{ number_format($item->price, 0, ',', '.') }}₫</span>
                 </div>
-                <a href="{{ route('client.products.show', $item->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Ngay</a>
+                <a href="{{ route('client.products.show', $item->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Chi Tiết</a>
               </div>
             </div>
           </div>
@@ -299,5 +311,39 @@
       </div>
     </div>
   @endif
+</div>
+
+<!-- SIZE GUIDE MODAL -->
+<div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-ruler-horizontal text-warning me-2"></i> Bảng Quy Đổi Size Nam Chuẩn BeeStyle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="small text-muted mb-3">Thông số được đo chuẩn theo thể trạng người Việt Nam. Nếu bạn phân vân giữa 2 size, nên chọn size lớn hơn để mặc thoải mái.</p>
+        <div class="table-responsive">
+          <table class="table table-bordered text-center align-middle small mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>Size</th>
+                <th>Chiều Cao</th>
+                <th>Cân Nặng</th>
+                <th>Dáng Người</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong class="text-warning">S</strong></td><td>1m55 - 1m65</td><td>48 - 55 kg</td><td>Gầy / Nhỏ</td></tr>
+              <tr><td><strong class="text-warning">M</strong></td><td>1m64 - 1m72</td><td>56 - 65 kg</td><td>Cân đối</td></tr>
+              <tr><td><strong class="text-warning">L</strong></td><td>1m70 - 1m78</td><td>66 - 74 kg</td><td>Đậm người / Cao</td></tr>
+              <tr><td><strong class="text-warning">XL</strong></td><td>1m75 - 1m83</td><td>75 - 82 kg</td><td>To cao</td></tr>
+              <tr><td><strong class="text-warning">XXL</strong></td><td>1m80 - 1m90</td><td>83 - 92 kg</td><td>Ngoại cỡ</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 @endsection

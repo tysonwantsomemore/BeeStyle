@@ -7,14 +7,14 @@
   <div class="row justify-content-center">
     <div class="col-lg-5 col-md-7">
       
-      <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: 20px; background: #ffffff;">
+      <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
         <div class="text-center mb-4">
           <div class="beestyle-logo justify-content-center mb-2">
             <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-            <span>Bee<span class="brand-highlight">Style</span></span>
+            <span>BEE<span class="brand-highlight">STYLE</span></span>
           </div>
-          <h4 class="fw-bold text-dark mb-1">Đăng Nhập Hệ Thống</h4>
-          <p class="text-muted small">Khám phá thế giới thời trang nam cao cấp &amp; ưu đãi VIP</p>
+          <h4 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">ĐĂNG NHẬP HỆ THỐNG</h4>
+          <p class="text-muted small">Khám phá thế giới thời trang nam cao cấp &amp; ưu đãi thành viên</p>
         </div>
 
         <form action="{{ route('auth.login.post') }}" method="POST">
@@ -33,11 +33,11 @@
           <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <label class="form-label small fw-semibold text-dark mb-0">Mật khẩu <span class="text-danger">*</span></label>
-              <a href="#" class="small text-warning text-decoration-none">Quên mật khẩu?</a>
+              <a href="#" class="small text-danger text-decoration-none">Quên mật khẩu?</a>
             </div>
             <div class="input-group">
               <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-              <input type="password" name="password" id="passwordInput" class="form-control border-start-0 border-end-0 ps-0" placeholder="Nhập mật khẩu của bạn..." required>
+              <input type="password" name="password" id="passwordInput" class="form-control border-start-0 border-end-0 ps-0" placeholder="Nhập mật khẩu..." required>
               <button class="input-group-text bg-light border-start-0 text-muted cursor-pointer" type="button" onclick="var p=document.getElementById('passwordInput'); p.type = (p.type==='password'?'text':'password');">
                 <i class="fa-regular fa-eye"></i>
               </button>
@@ -55,21 +55,21 @@
           </div>
 
           <!-- Submit button -->
-          <button type="submit" class="btn btn-bee-primary w-100 py-3 fw-bold fs-6 mb-3">
-            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Đăng Nhập Ngay
+          <button type="submit" class="btn btn-bee-primary w-100 py-3 mb-3">
+            <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> ĐĂNG NHẬP NGAY
           </button>
 
           <!-- Register prompt -->
           <div class="text-center text-muted small mb-4">
             Chưa có tài khoản BeeStyle? 
-            <a href="{{ route('auth.register') }}" class="text-warning fw-bold text-decoration-none">Đăng ký thành viên mới</a>
+            <a href="{{ route('auth.register') }}" class="text-danger fw-bold text-decoration-none">Đăng ký thành viên mới</a>
           </div>
 
           <!-- Quick Test Credentials Box -->
           <div class="p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
-              <i class="fa-solid fa-key text-warning"></i>
-              <strong class="small text-dark">Tài Khoản Mẫu Đăng Nhập Nhanh:</strong>
+              <i class="fa-solid fa-key text-danger"></i>
+              <strong class="small text-dark text-uppercase">Tài Khoản Mẫu Đăng Nhập:</strong>
             </div>
             <div class="small text-muted mb-1">
               • <strong>Quản Trị Viên (Admin):</strong> <code class="text-dark">admin@beestyle.com</code> / Mật khẩu: <code class="text-dark">password</code>

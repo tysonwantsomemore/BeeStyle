@@ -124,7 +124,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('client.profile')
+        return redirect()->intended(route('client.profile'))
             ->with('success', "Chúc mừng bạn đã tạo tài khoản BeeStyle thành công! Bạn nhận được 100 điểm thưởng chào mừng.");
     }
 
