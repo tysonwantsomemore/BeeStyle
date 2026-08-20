@@ -130,7 +130,7 @@
         </div>
         <div>
           <label class="form-label small fw-semibold">Hoặc đường dẫn ảnh (URL/Asset):</label>
-          <input type="text" name="image_url" class="form-control form-control-sm" value="/assets/img/products/1.png" placeholder="/assets/img/products/1.png">
+          <input type="text" name="image_url" class="form-control form-control-sm" value="/assets/img/products/polo_1.jpg" placeholder="/assets/img/products/polo_1.jpg">
         </div>
       </div>
 

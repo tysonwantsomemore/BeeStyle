@@ -7,22 +7,22 @@
   <div class="row justify-content-center">
     <div class="col-lg-6 col-md-8">
       
-      <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: 20px; background: #ffffff;">
+      <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
         <div class="text-center mb-4">
           <div class="beestyle-logo justify-content-center mb-2">
             <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-            <span>Bee<span class="brand-highlight">Style</span></span>
+            <span>BEE<span class="brand-highlight">STYLE</span></span>
           </div>
-          <h4 class="fw-bold text-dark mb-1">Đăng Ký Tài Khoản Mới</h4>
-          <p class="text-muted small">Nhận ngay <strong>100 điểm thưởng</strong> và ưu đãi giảm giá đặc quyền</p>
+          <h4 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">ĐĂNG KÝ THÀNH VIÊN</h4>
+          <p class="text-muted small">Nhận ngay <strong>100 điểm tích lũy</strong> và ưu đãi giảm giá độc quyền</p>
         </div>
 
         <!-- WELCOME GIFT PROMO -->
-        <div class="alert alert-warning border-0 d-flex align-items-center gap-3 p-3 mb-4 rounded-3">
-          <i class="fa-solid fa-gift fs-2 text-warning"></i>
+        <div class="alert alert-danger border-0 d-flex align-items-center gap-3 p-3 mb-4 rounded-3" style="background: #ffe4e6; color: #be123c;">
+          <i class="fa-solid fa-gift fs-2"></i>
           <div class="small">
-            <strong class="text-dark d-block">Quà Tặng Thành Viên Mới:</strong>
-            <span class="text-muted">Tặng 100 điểm tích lũy + Voucher freeship toàn quốc cho đơn đầu tiên.</span>
+            <strong class="d-block text-uppercase">Quà Tặng Chào Mừng:</strong>
+            <span>Tặng 100 điểm thưởng + Mã freeship toàn quốc cho đơn hàng đầu tiên.</span>
           </div>
         </div>
 
@@ -89,19 +89,19 @@
           <div class="form-check mb-4">
             <input class="form-check-input" type="checkbox" name="terms" value="1" id="termsCheck" required checked>
             <label class="form-check-label small text-muted cursor-pointer" for="termsCheck">
-              Tôi đồng ý với <a href="#" class="text-warning">Điều khoản sử dụng</a> &amp; <a href="#" class="text-warning">Chính sách bảo mật</a> của BeeStyle.
+              Tôi đồng ý với <a href="#" class="text-danger">Điều khoản sử dụng</a> &amp; <a href="#" class="text-danger">Chính sách bảo mật</a> của BeeStyle.
             </label>
           </div>
 
           <!-- Submit -->
-          <button type="submit" class="btn btn-bee-primary w-100 py-3 fw-bold fs-6 mb-3">
-            <i class="fa-solid fa-user-plus me-2"></i> Hoàn Tất Đăng Ký
+          <button type="submit" class="btn btn-bee-primary w-100 py-3 mb-3">
+            <i class="fa-solid fa-user-plus me-2"></i> HOÀN TẤT ĐĂNG KÝ
           </button>
 
           <!-- Login prompt -->
           <div class="text-center text-muted small">
             Đã có tài khoản? 
-            <a href="{{ route('auth.login') }}" class="text-warning fw-bold text-decoration-none">Đăng nhập tại đây</a>
+            <a href="{{ route('auth.login') }}" class="text-danger fw-bold text-decoration-none">Đăng nhập tại đây</a>
           </div>
 
         </form>

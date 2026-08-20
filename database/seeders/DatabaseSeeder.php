@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. TÀI KHOẢN QUẢN TRỊ VIÊN (ADMIN) & KHÁCH HÀNG MẪU
+        // 1. TÀI KHOẢN QUẢN TRỊ VIÊN (ADMIN), NHÂN VIÊN & KHÁCH HÀNG MẪU
         $admin = User::create([
             'name' => 'Quản Trị Viên BeeStyle',
             'email' => 'admin@beestyle.com',
@@ -31,9 +31,7 @@ class DatabaseSeeder extends Seeder
             'gender' => 'Nam',
             'dob' => '1992-05-15',
             'role' => 'admin',
-            'rank' => 'Admin Quản Trị',
-            'points' => 9999,
-            'total_spent' => 0,
+            'address' => 'Tòa nhà BeeStyle Center, Cầu Giấy, Hà Nội',
             'status' => 'active',
             'avatar' => '/assets/img/team/40x40/57.webp',
             'bank_name' => 'Vietcombank',
@@ -42,6 +40,21 @@ class DatabaseSeeder extends Seeder
             'bank_branch' => 'Chi nhánh TP. Hồ Chí Minh',
             'password' => Hash::make('password'),
             'password_changed_at' => now(),
+            'points' => 0,
+        ]);
+
+        $staff = User::create([
+            'name' => 'Nhân Viên Bán Hàng',
+            'email' => 'staff@beestyle.vn',
+            'phone' => '0977777777',
+            'gender' => 'Nữ',
+            'dob' => '1996-08-20',
+            'role' => 'admin',
+            'address' => 'Cửa hàng BeeStyle Flagship, Đống Đa, Hà Nội',
+            'status' => 'active',
+            'password' => Hash::make('password'),
+            'password_changed_at' => now(),
+            'points' => 0,
         ]);
 
         $customer1 = User::create([
@@ -51,12 +64,7 @@ class DatabaseSeeder extends Seeder
             'gender' => 'Nam',
             'dob' => '1995-10-20',
             'role' => 'customer',
-            'rank' => 'Thành viên Bạc (Silver)',
-            'points' => 1250,
-            'total_spent' => 4580000,
-            'address' => 'Số 45 Đường Lê Duẩn, Phường Bến Nghé, Quận 1',
-            'city' => 'Hồ Chí Minh',
-            'district' => 'Quận 1',
+            'address' => 'Số 18 Phố Huế, Hoàn Kiếm, Hà Nội',
             'status' => 'active',
             'avatar' => '/assets/img/team/40x40/58.webp',
             'bank_name' => 'Techcombank',
@@ -65,6 +73,7 @@ class DatabaseSeeder extends Seeder
             'bank_branch' => 'Chi nhánh Sài Gòn',
             'password' => Hash::make('password'),
             'password_changed_at' => now()->subDays(10),
+            'points' => 1250,
         ]);
 
         $customer2 = User::create([
@@ -74,12 +83,7 @@ class DatabaseSeeder extends Seeder
             'gender' => 'Nam',
             'dob' => '1990-03-12',
             'role' => 'customer',
-            'rank' => 'Thành viên Vàng (Gold)',
-            'points' => 3800,
-            'total_spent' => 8950000,
-            'address' => '24 Nguyễn Văn Linh, Phường Nam Dương',
-            'city' => 'Đà Nẵng',
-            'district' => 'Hải Châu',
+            'address' => 'Toà Park 7 Times City, Hai Bà Trưng, Hà Nội',
             'status' => 'active',
             'avatar' => '/assets/img/team/40x40/30.webp',
             'bank_name' => 'MB Bank (Quân Đội)',
@@ -88,6 +92,21 @@ class DatabaseSeeder extends Seeder
             'bank_branch' => 'Chi nhánh Đà Nẵng',
             'password' => Hash::make('password'),
             'password_changed_at' => now()->subDays(30),
+            'points' => 480,
+        ]);
+
+        $customer3 = User::create([
+            'name' => 'Lê Tuấn Anh',
+            'email' => 'tuananh.le@gmail.com',
+            'phone' => '0945678901',
+            'gender' => 'Nam',
+            'dob' => '1993-12-05',
+            'role' => 'customer',
+            'address' => '45 Lê Duẩn, Quận 1, TP. Hồ Chí Minh',
+            'status' => 'active',
+            'password' => Hash::make('password'),
+            'password_changed_at' => now()->subDays(5),
+            'points' => 890,
         ]);
 
         // Sổ địa chỉ giao hàng mẫu cho khách hàng Nguyễn Văn Hùng
@@ -158,8 +177,7 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // 3. CÂY DANH MỤC PHÂN CẤP (CHA - CON)
-        // Danh mục Cha 1: Áo Nam
+        // 3. CÂY DANH MỤC PHÂN CẤP (CHA - CON) & BST MỚI
         $parentTop = Category::create([
             'name' => 'Áo Nam Thời Trang',
             'slug' => 'ao-nam-thoi-trang',
@@ -184,7 +202,7 @@ class DatabaseSeeder extends Seeder
         $catShirt = Category::create([
             'parent_id' => $parentTop->id,
             'name' => 'Áo Sơ Mi Công Sở',
-            'slug' => 'ao-so-mi-cong-so',
+            'slug' => 'ao-so-mi-nam',
             'icon' => 'fa-solid fa-user-tie',
             'image' => '/assets/img/products/4.png',
             'description' => 'Sơ mi lụa kháng nhăn cao cấp, phom slimfit tôn dáng tôn da nơi công sở',
@@ -203,7 +221,16 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Danh mục Cha 2: Quần Nam
+        $catCollection = Category::create([
+            'name' => 'BST Áo Mới 2026',
+            'slug' => 'bo-suu-tap-ao-moi',
+            'icon' => 'fa-solid fa-fire',
+            'image' => '/assets/img/products/somi_01.jpg',
+            'description' => 'Bộ sưu tập áo nam thiết kế độc quyền mới nhất theo xu hướng Casual hiện đại',
+            'sort_order' => 4,
+            'is_active' => true,
+        ]);
+
         $parentBottom = Category::create([
             'name' => 'Quần Nam Cao Cấp',
             'slug' => 'quan-nam-cao-cap',
@@ -236,7 +263,6 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Danh mục Cha 3: Phụ Kiện Nam
         $parentAccessories = Category::create([
             'name' => 'Giày & Phụ Kiện Quý Ông',
             'slug' => 'giay-phu-kien-quy-ong',
@@ -274,7 +300,7 @@ class DatabaseSeeder extends Seeder
             'reviews_count' => 86,
             'image' => '/assets/img/products/1.png',
             'short_description' => 'Chất liệu 95% Cotton Organic dệt kiểu tổ ong (Pique Waffle) cao cấp, thấm hút mồ hôi vượt trội, co giãn 4 chiều.',
-            'description' => '<p>Áo Polo BeeStyle Signature là sự kết hợp hoàn hảo giữa phong cách thanh lịch công sở và sự năng động thường nhật. Được dệt từ sợi bông Organic cao cấp nhập khẩu, bề mặt vải tổ ong thoáng khí giúp bạn luôn tự tin và dễ chịu suốt cả ngày dài.</p><h6>Đặc điểm nổi bật:</h6><ul><li>Sợi Cotton dệt kim kháng khuẩn, chống tia UV hiệu quả.</li><li>Cổ áo bo dệt chống quăn góc sau nhiều lần giặt.</li><li>Logo ong kim loại mạ vàng sang trọng đính ngực áo.</li></ul>',
+            'description' => '<p>Áo Polo BeeStyle Signature là sự kết hợp hoàn hảo giữa phong cách thanh lịch công sở và sự năng động thường nhật. Được dệt từ sợi bông Organic cao cấp nhập khẩu, bề mặt vải tổ ong thoáng khí giúp bạn luôn tự tin và dễ chịu suốt cả ngày dài.</p>',
             'colors' => ['Xanh Navy Đậm', 'Trắng Tinh Khôi', 'Đen Sang Trọng', 'Beige Thanh Lịch'],
             'sizes' => ['M (55-65kg)', 'L (65-75kg)', 'XL (75-85kg)', 'XXL (85-95kg)'],
             'specifications' => [
@@ -282,8 +308,7 @@ class DatabaseSeeder extends Seeder
                 'Phom dáng' => 'Slimfit vừa vặn tôn dáng',
                 'Kiểu cổ áo' => 'Cổ bẻ bo dệt cao cấp 3 cúc',
                 'Họa tiết' => 'Dệt tổ ong vi mô (Micro Waffle)',
-                'Xuất xứ' => 'Việt Nam (Gia công tiêu chuẩn xuất khẩu)',
-                'Hướng dẫn giặt' => 'Giặt máy chế độ nhẹ, không dùng chất tẩy mạnh, ủi ở nhiệt độ dưới 150°C',
+                'Xuất xứ' => 'Việt Nam',
             ],
             'is_new' => true,
             'is_featured' => true,
@@ -291,7 +316,12 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // Danh sách biến thể (Màu sắc / Kích thước) cho Sản phẩm 1
+        ProductImage::create([
+            'product_id' => $p1->id,
+            'image_path' => $p1->image,
+            'sort_order' => 1,
+        ]);
+
         $colorsP1 = [
             ['name' => 'Xanh Navy Đậm', 'hex' => '#1e3a8a', 'price' => 389000],
             ['name' => 'Trắng Tinh Khôi', 'hex' => '#f8fafc', 'price' => 389000],
@@ -300,7 +330,7 @@ class DatabaseSeeder extends Seeder
         ];
         $sizesP1 = ['M (55-65kg)', 'L (65-75kg)', 'XL (75-85kg)', 'XXL (85-95kg)'];
         foreach ($colorsP1 as $cIndex => $col) {
-            foreach ($sizesP1 as $sIndex => $sz) {
+            foreach ($sizesP1 as $sz) {
                 ProductVariant::create([
                     'product_id' => $p1->id,
                     'sku' => "BS-POLO-01-" . ($cIndex + 1) . "-" . substr($sz, 0, 2),
@@ -331,21 +361,24 @@ class DatabaseSeeder extends Seeder
             'reviews_count' => 54,
             'image' => '/assets/img/products/4.png',
             'short_description' => 'Vải sợi tre Modal kết hợp lụa chống nhăn 100%, bề mặt sáng bóng mịn màng, thiết kế cổ bẻ chuẩn quý ông.',
-            'description' => '<p>Mẫu sơ mi công sở cao cấp Bee Luxury Line mang đến diện mạo chỉn chu, đĩnh đạc cho các cuộc họp và sự kiện quan trọng. Công nghệ dệt chống nhăn thông minh giúp tiết kiệm thời gian là ủi mỗi sáng.</p>',
+            'description' => '<p>Mẫu sơ mi công sở cao cấp Bee Luxury Line mang đến diện mạo chỉn chu, đĩnh đạc cho các cuộc họp và sự kiện quan trọng.</p>',
             'colors' => ['Trắng Tinh', 'Xanh Pastel', 'Xám Khói'],
             'sizes' => ['38 (S)', '39 (M)', '40 (L)', '41 (XL)', '42 (XXL)'],
             'specifications' => [
                 'Chất liệu' => '70% Sợi tre Bamboo, 30% Silk lụa kháng nhăn',
                 'Phom dáng' => 'Regular fit thoải mái',
-                'Kiểu cổ áo' => 'Cổ áo nhọn Classic Spread',
-                'Họa tiết' => 'Trơn bóng nhẹ sang trọng',
                 'Xuất xứ' => 'Việt Nam',
-                'Hướng dẫn giặt' => 'Nên giặt tay hoặc giặt máy túi giặt, phơi nơi râm mát',
             ],
             'is_new' => true,
             'is_featured' => true,
             'is_best_seller' => true,
             'status' => 'active',
+        ]);
+
+        ProductImage::create([
+            'product_id' => $p2->id,
+            'image_path' => $p2->image,
+            'sort_order' => 1,
         ]);
 
         $colorsP2 = [
@@ -355,7 +388,7 @@ class DatabaseSeeder extends Seeder
         ];
         $sizesP2 = ['38 (S)', '39 (M)', '40 (L)', '41 (XL)', '42 (XXL)'];
         foreach ($colorsP2 as $cIndex => $col) {
-            foreach ($sizesP2 as $sIndex => $sz) {
+            foreach ($sizesP2 as $sz) {
                 ProductVariant::create([
                     'product_id' => $p2->id,
                     'sku' => "BS-SHIRT-02-" . ($cIndex + 1) . "-S" . substr($sz, 0, 2),
@@ -386,19 +419,24 @@ class DatabaseSeeder extends Seeder
             'reviews_count' => 38,
             'image' => '/assets/img/products/2.png',
             'short_description' => 'Blazer nam 2 lớp chuẩn form Hàn Quốc, độn vai tự nhiên định hình phom dáng quý ông hiện đại.',
-            'description' => '<p>Áo Blazer BeeStyle thiết kế 2 khuy cài cổ điển, lớp lót lụa cao cấp êm ái thoáng mát không gây bí bách khi mặc cả ngày.</p>',
+            'description' => '<p>Áo Blazer BeeStyle thiết kế 2 khuy cài cổ điển, lớp lót lụa cao cấp êm ái thoáng mát.</p>',
             'colors' => ['Đen Nhám', 'Xám Ghi', 'Nâu Tây'],
             'sizes' => ['M', 'L', 'XL', 'XXL'],
             'specifications' => [
                 'Chất liệu' => 'Vải Tweed dạ dệt kim cao cấp, lót lụa Habutai',
                 'Phom dáng' => 'Regular fit có đệm vai nhẹ',
-                'Kiểu áo' => 'Blazer 2 khuy cài, xẻ tà sau đôi',
                 'Xuất xứ' => 'Việt Nam',
             ],
             'is_new' => true,
             'is_featured' => true,
             'is_best_seller' => false,
             'status' => 'active',
+        ]);
+
+        ProductImage::create([
+            'product_id' => $p3->id,
+            'image_path' => $p3->image,
+            'sort_order' => 1,
         ]);
 
         foreach (['Đen Nhám' => '#18181b', 'Xám Ghi' => '#64748b', 'Nâu Tây' => '#78350f'] as $cName => $cHex) {
@@ -433,19 +471,24 @@ class DatabaseSeeder extends Seeder
             'reviews_count' => 120,
             'image' => '/assets/img/products/5.png',
             'short_description' => 'Thiết kế cạp quần ẩn tăng giảm co giãn tự động 4cm, tiện lợi tối đa khi ăn no hay vận động.',
-            'description' => '<p>Quần âu BeeStyle cạp chun sườn thông minh, chất vải chéo Ý đứng dáng, không bám bụi và chống xù lông tuyệt đối.</p>',
+            'description' => '<p>Quần âu BeeStyle cạp chun sườn thông minh, chất vải chéo Ý đứng dáng.</p>',
             'colors' => ['Đen', 'Xanh Than', 'Ghi Xám', 'Be'],
             'sizes' => ['29', '30', '31', '32', '33', '34'],
             'specifications' => [
                 'Chất liệu' => 'Vải chéo Ý 80% Polyester, 18% Rayon, 2% Spandex',
-                'Phom dáng' => 'Slim cropped ôm vừa phải tôn chiều cao',
-                'Cạp quần' => 'Cạp tăng giảm thông minh 4cm',
+                'Phom dáng' => 'Slim cropped ôm vừa phải',
                 'Xuất xứ' => 'Việt Nam',
             ],
             'is_new' => false,
             'is_featured' => true,
             'is_best_seller' => true,
             'status' => 'active',
+        ]);
+
+        ProductImage::create([
+            'product_id' => $p4->id,
+            'image_path' => $p4->image,
+            'sort_order' => 1,
         ]);
 
         foreach (['Đen' => '#000000', 'Xanh Than' => '#1e293b', 'Ghi Xám' => '#475569', 'Be' => '#d6d3d1'] as $cName => $cHex) {
@@ -480,19 +523,24 @@ class DatabaseSeeder extends Seeder
             'reviews_count' => 29,
             'image' => '/assets/img/products/3.png',
             'short_description' => 'Da bò nguyên tấm Full-grain nhập khẩu Ý, đệm lót memory foam êm chân, đế cao su khâu viền chắc chắn.',
-            'description' => '<p>Giày Loafer da bò thật 100% đánh màu thủ công Patina sang trọng, thiết kế ôm chân và chống mỏi tối đa.</p>',
+            'description' => '<p>Giày Loafer da bò thật 100% đánh màu thủ công Patina sang trọng.</p>',
             'colors' => ['Đen Bóng Derby', 'Nâu Hạt Dẻ Patina'],
             'sizes' => ['39', '40', '41', '42', '43'],
             'specifications' => [
                 'Chất liệu' => 'Da bò tự nhiên Full-grain loại 1',
                 'Đế giày' => 'Đế cao su nhiệt dẻo khâu chỉ dù chống trơn',
-                'Lót trong' => 'Da cừu khử mùi êm ái',
-                'Xuất xứ' => 'Việt Nam (Thủ công mỹ nghệ da)',
+                'Xuất xứ' => 'Việt Nam',
             ],
             'is_new' => true,
             'is_featured' => true,
             'is_best_seller' => false,
             'status' => 'active',
+        ]);
+
+        ProductImage::create([
+            'product_id' => $p5->id,
+            'image_path' => $p5->image,
+            'sort_order' => 1,
         ]);
 
         foreach (['Đen Bóng Derby' => '#111827', 'Nâu Hạt Dẻ Patina' => '#5c2c16'] as $cName => $cHex) {
@@ -527,7 +575,7 @@ class DatabaseSeeder extends Seeder
             'reviews_count' => 45,
             'image' => '/assets/img/products/6.png',
             'short_description' => 'Quần short kaki đùi dài ngang gối, chất liệu mềm mại, cạp chun thoải mái.',
-            'description' => '<p>Mẫu short kaki thích hợp cho các chuyến du lịch, dạo phố hoặc thể thao cuối tuần cùng bạn bè.</p>',
+            'description' => '<p>Mẫu short kaki thích hợp cho các chuyến du lịch, dạo phố hoặc thể thao cuối tuần.</p>',
             'colors' => ['Xanh Rêu', 'Đen', 'Be Sáng'],
             'sizes' => ['M (29-30)', 'L (31-32)', 'XL (33-34)'],
             'specifications' => [
@@ -540,6 +588,29 @@ class DatabaseSeeder extends Seeder
             'is_best_seller' => true,
             'status' => 'active',
         ]);
+
+        ProductImage::create([
+            'product_id' => $p6->id,
+            'image_path' => $p6->image,
+            'sort_order' => 1,
+        ]);
+
+        foreach (['Xanh Rêu' => '#3f6212', 'Đen' => '#000000', 'Be Sáng' => '#fef08a'] as $cName => $cHex) {
+            foreach (['M (29-30)', 'L (31-32)', 'XL (33-34)'] as $sz) {
+                ProductVariant::create([
+                    'product_id' => $p6->id,
+                    'sku' => "BS-SHORT-06-" . substr($cName, 0, 2) . "-{$sz}",
+                    'color' => $cName,
+                    'color_code' => $cHex,
+                    'size' => $sz,
+                    'price' => 289000,
+                    'original_price' => 380000,
+                    'stock' => rand(10, 25),
+                    'image' => '/assets/img/products/6.png',
+                    'status' => 'active',
+                ]);
+            }
+        }
 
         // 5. MÃ GIẢM GIÁ (COUPONS) KHUYẾN MÃI VÀ VẬN CHUYỂN
         Coupon::create([
@@ -636,6 +707,7 @@ class DatabaseSeeder extends Seeder
             'rating' => 5,
             'comment' => 'Áo polo mặc cực kỳ êm và đứng phom, vải dệt tổ ong thoáng mát không bị nhăn sau khi giặt máy. Rất đáng tiền!',
             'status' => 'approved',
+            'created_at' => now()->subHours(8),
         ]);
     }
 }

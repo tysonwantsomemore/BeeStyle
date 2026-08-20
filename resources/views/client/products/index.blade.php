@@ -8,9 +8,12 @@
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb small">
       <li class="breadcrumb-item"><a href="{{ route('client.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
-      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Thời trang nam</li>
+      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Áo nam cao cấp</li>
       @if($categorySlug)
-        <li class="breadcrumb-item active text-warning fw-semibold">{{ $categorySlug }}</li>
+        @php
+          $activeCat = $categories->firstWhere('slug', $categorySlug);
+        @endphp
+        <li class="breadcrumb-item active text-warning fw-semibold">{{ $activeCat->name ?? $categorySlug }}</li>
       @endif
       @if($brandSlug)
         <li class="breadcrumb-item active text-warning fw-semibold">Thương hiệu: {{ $brandSlug }}</li>
@@ -21,7 +24,7 @@
   <div class="row g-4">
     <!-- FILTER SIDEBAR -->
     <div class="col-lg-3">
-      <div class="card border-0 shadow-sm p-4" style="border-radius: 14px; position: sticky; top: 100px;">
+      <div class="card border-0 shadow-sm p-4" style="border-radius: 12px; position: sticky; top: 90px; background: #ffffff;">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-sliders me-2 text-warning"></i> Bộ Lọc</h5>
           @if($categorySlug || $brandSlug || request('q') || request('sort') || request('price_range') || request('size') || request('color'))
@@ -33,7 +36,7 @@
 
         <hr class="my-2 border-secondary-subtle">
 
-        <!-- 1. HIERARCHICAL CATEGORIES FILTER (Cha - Con) -->
+        <!-- 1. HIERARCHICAL CATEGORIES FILTER (Phân Cấp Cha - Con) -->
         <div class="mb-4">
           <h6 class="fw-bold text-dark small text-uppercase mb-3">
             <i class="fa-solid fa-layer-group me-1 text-warning"></i> Danh Mục Phân Cấp
@@ -74,7 +77,6 @@
             <h6 class="fw-bold text-dark small text-uppercase mb-0">
               <i class="fa-solid fa-crown me-1 text-warning"></i> Thương Hiệu
             </h6>
-            <a href="{{ route('client.brands.index') }}" class="small text-muted text-decoration-none">Tất cả</a>
           </div>
           <div class="d-flex flex-column gap-2 small">
             @foreach($brands as $b)
@@ -93,7 +95,7 @@
 
         <!-- 3. PRICE RANGE FILTER -->
         <div class="mb-4">
-          <h6 class="fw-bold text-dark small text-uppercase mb-3">Khoảng Giá</h6>
+          <h6 class="fw-bold text-dark small text-uppercase mb-3">Khoảng Giá (VNĐ)</h6>
           <div class="d-flex flex-column gap-2 small">
             <a href="{{ route('client.products.index', array_merge(request()->except(['price_range', 'page']), ['price_range' => (request('price_range') === 'under_500' ? null : 'under_500')])) }}" class="text-decoration-none {{ request('price_range') === 'under_500' ? 'text-warning fw-bold' : 'text-muted' }}">
               <i class="fa-regular {{ request('price_range') === 'under_500' ? 'fa-circle-dot text-warning' : 'fa-circle text-secondary' }} me-1"></i> Dưới 500.000₫
@@ -126,7 +128,7 @@
     <!-- PRODUCTS GRID -->
     <div class="col-lg-9">
       <!-- TOP TOOLBAR -->
-      <div class="card border-0 shadow-sm p-3 mb-4" style="border-radius: 14px;">
+      <div class="card border-0 shadow-sm p-3 mb-4" style="border-radius: 12px; background: #ffffff;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
           <div>
             <span class="text-muted small">Hiển thị <strong>{{ $products->count() }}</strong> trên tổng <strong>{{ $products->total() }}</strong> sản phẩm</span>
@@ -197,7 +199,7 @@
             <i class="fa-solid fa-box-open text-muted fs-1 mb-3"></i>
             <h5 class="fw-bold text-dark">Không tìm thấy sản phẩm nào</h5>
             <p class="text-muted small">Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc để xem toàn bộ sản phẩm.</p>
-            <a href="{{ route('client.products.index') }}" class="btn btn-bee-primary btn-sm px-4">Xóa Bộ Lọc</a>
+            <a href="{{ route('client.products.index') }}" class="btn btn-warning btn-sm px-4 fw-bold">Xóa Bộ Lọc</a>
           </div>
         @endforelse
       </div>

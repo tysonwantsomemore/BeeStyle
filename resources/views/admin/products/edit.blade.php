@@ -138,7 +138,7 @@
 
       <div class="card border-0 shadow-sm p-4 mb-4 text-center" style="border-radius: 16px;">
         <h5 class="fw-bold text-dark mb-3 text-start">4. Ảnh Đại Diện</h5>
-        <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded border p-2 bg-light mb-3" style="max-height: 180px; object-fit: contain;">
+        <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded border p-1 bg-light mb-3" style="max-height: 220px; width: 100%; object-fit: cover;">
         <input type="file" name="image" class="form-control form-control-sm mb-2" accept="image/*">
         <input type="text" name="image_url" class="form-control form-control-sm" value="{{ $product->image }}" placeholder="Hoặc nhập URL ảnh">
       </div>

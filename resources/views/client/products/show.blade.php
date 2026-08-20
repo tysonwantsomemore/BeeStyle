@@ -32,8 +32,8 @@
   @endif
 
   <!-- PRODUCT MAIN SECTION -->
-  <div class="card border-0 shadow-sm p-4 mb-5" style="border-radius: 16px;">
-    <div class="row g-4">
+  <div class="card border-0 shadow-sm p-4 p-md-5 mb-5" style="border-radius: 20px; background: #ffffff;">
+    <div class="row g-4 g-lg-5">
       
       <!-- IMAGE GALLERY -->
       <div class="col-lg-6">
@@ -41,7 +41,7 @@
           @if($product->discount_percent > 0)
             <span class="position-absolute top-0 start-0 m-3 badge bg-danger fs-6 px-3 py-2 rounded-pill shadow-sm" id="discountBadge">-{{ $product->discount_percent }}%</span>
           @endif
-          <img id="mainProductImg" src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid" style="max-height: 380px; object-fit: contain; transition: 0.3s ease;">
+          <img id="mainProductImg" src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded-3 shadow-sm" style="max-height: 380px; width: 100%; object-fit: cover; transition: transform 0.3s ease;">
         </div>
 
         <!-- THUMBNAILS -->
@@ -136,6 +136,7 @@
               <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <label class="fw-bold small text-dark mb-0">Kích Thước (Size): <span class="text-warning fw-bold" id="selectedSizeText">{{ $product->sizes[0] }}</span></label>
+                  <a href="#sizeGuideModal" data-bs-toggle="modal" class="text-warning small text-decoration-none fw-semibold"><i class="fa-solid fa-ruler-horizontal me-1"></i> Bảng quy đổi Size</a>
                 </div>
                 <div class="d-flex flex-wrap gap-2" id="sizeOptionGroup">
                   @foreach($product->sizes as $index => $size)
@@ -343,6 +344,40 @@
     </div>
   @endif
 
+</div>
+
+<!-- SIZE GUIDE MODAL -->
+<div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-ruler-horizontal text-warning me-2"></i> Bảng Quy Đổi Size Nam Chuẩn BeeStyle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="small text-muted mb-3">Thông số được đo chuẩn theo thể trạng người Việt Nam. Nếu bạn phân vân giữa 2 size, nên chọn size lớn hơn để mặc thoải mái.</p>
+        <div class="table-responsive">
+          <table class="table table-bordered text-center align-middle small mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>Size</th>
+                <th>Chiều Cao</th>
+                <th>Cân Nặng</th>
+                <th>Dáng Người</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong class="text-warning">S</strong></td><td>1m55 - 1m65</td><td>48 - 55 kg</td><td>Gầy / Nhỏ</td></tr>
+              <tr><td><strong class="text-warning">M</strong></td><td>1m64 - 1m72</td><td>56 - 65 kg</td><td>Cân đối</td></tr>
+              <tr><td><strong class="text-warning">L</strong></td><td>1m70 - 1m78</td><td>66 - 74 kg</td><td>Đậm người / Cao</td></tr>
+              <tr><td><strong class="text-warning">XL</strong></td><td>1m75 - 1m83</td><td>75 - 82 kg</td><td>To cao</td></tr>
+              <tr><td><strong class="text-warning">XXL</strong></td><td>1m80 - 1m90</td><td>83 - 92 kg</td><td>Ngoại cỡ</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- JAVASCRIPT FOR DYNAMIC VARIANT SWITCHER -->
