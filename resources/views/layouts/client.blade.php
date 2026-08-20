@@ -70,7 +70,7 @@
     <div class="container">
       <div class="d-flex align-items-center justify-content-between gap-3">
         
-        <!-- LOGO (ATINO STYLE) -->
+        <!-- LOGO -->
         <a href="{{ route('client.home') }}" class="beestyle-logo">
           <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
           <span>BEE<span class="brand-highlight">STYLE</span></span>
@@ -100,8 +100,8 @@
                   <div class="fw-bold text-dark">{{ Auth::user()->name }}</div>
                   <div class="small text-muted">{{ Auth::user()->email }}</div>
                   <div class="d-flex align-items-center gap-1 mt-1">
-                    <span class="badge bg-danger-subtle text-danger fs-10 fw-bold">{{ Auth::user()->rank }}</span>
-                    <span class="badge bg-light text-dark fs-10 border">{{ Auth::user()->points }} Điểm</span>
+                    <span class="badge bg-danger-subtle text-danger fs-10 fw-bold">{{ Auth::user()->rank ?? 'Thành viên' }}</span>
+                    <span class="badge bg-light text-dark fs-10 border">{{ Auth::user()->points ?? 0 }} Điểm</span>
                   </div>
                 </li>
                 @if(Auth::user()->isAdmin())
@@ -137,7 +137,7 @@
             </a>
           @endauth
 
-          <!-- Wishlist / Shop -->
+          <!-- Shop -->
           <a href="{{ route('client.products.index') }}" class="bee-icon-btn" title="Tất cả sản phẩm">
             <i class="fa-solid fa-store"></i>
           </a>
@@ -156,41 +156,59 @@
       </div>
     </div>
 
-    <!-- CATEGORY NAVIGATION BAR -->
+    <!-- CATEGORY & BRAND NAVIGATION BAR -->
     <nav class="navbar navbar-expand-lg py-2 mt-2 border-top">
       <div class="container">
         <div class="collapse navbar-collapse" id="beeMainNav">
-             <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 align-items-center">
             <li class="nav-item">
               <a class="nav-link bee-nav-link {{ request()->routeIs('client.home') ? 'active' : '' }}" href="{{ route('client.home') }}">
                 TRANG CHỦ
               </a>
             </li>
+
+            <!-- Dropdown: Áo Nam -->
+            <li class="nav-item dropdown">
+              <a class="nav-link bee-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-shirt me-1"></i> Áo Nam
+              </a>
+              <ul class="dropdown-menu border-0 shadow-lg p-2 mt-1" style="border-radius: 12px; min-width: 210px;">
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}"><i class="fa-solid fa-shirt me-2 text-warning"></i> Áo Polo Nam</a></li>
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'ao-so-mi-cong-so']) }}"><i class="fa-solid fa-user-tie me-2 text-warning"></i> Áo Sơ Mi Công Sở</a></li>
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}"><i class="fa-solid fa-vest me-2 text-warning"></i> Áo Khoác &amp; Blazer</a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li><a class="dropdown-item py-2 rounded-2 small text-warning fw-bold" href="{{ route('client.products.index', ['category' => 'ao-nam-thoi-trang']) }}">Tất cả Áo Nam →</a></li>
+              </ul>
+            </li>
+
+            <!-- Dropdown: Quần Nam -->
+            <li class="nav-item dropdown">
+              <a class="nav-link bee-nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-tags me-1"></i> Quần Nam
+              </a>
+              <ul class="dropdown-menu border-0 shadow-lg p-2 mt-1" style="border-radius: 12px; min-width: 210px;">
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'quan-au-kaki-nam']) }}"><i class="fa-solid fa-tags me-2 text-warning"></i> Quần Âu &amp; Kaki</a></li>
+                <li><a class="dropdown-item py-2 rounded-2 small fw-semibold" href="{{ route('client.products.index', ['category' => 'quan-short-the-thao']) }}"><i class="fa-solid fa-person-running me-2 text-warning"></i> Quần Short &amp; Thể Thao</a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li><a class="dropdown-item py-2 rounded-2 small text-warning fw-bold" href="{{ route('client.products.index', ['category' => 'quan-nam-cao-cap']) }}">Tất cả Quần Nam →</a></li>
+              </ul>
+            </li>
+
+            <!-- Giày Da & Phụ Kiện -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-polo-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}">
-                ÁO POLO NAM
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'giay-da-loafer-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'giay-da-loafer-nam']) }}">
+                <i class="fa-solid fa-shoe-prints me-1"></i> Giày Da &amp; Phụ Kiện
               </a>
             </li>
+
+            <!-- Thương Hiệu (Brands) -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-so-mi-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}">
-                ÁO SƠ MI NAM
+              <a class="nav-link bee-nav-link {{ request()->routeIs('client.brands.*') ? 'active' : '' }}" href="{{ route('client.brands.index') }}">
+                <i class="fa-solid fa-crown me-1 text-warning"></i> Thương Hiệu
               </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-phong-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-phong-tshirt-nam']) }}">
-                ÁO PHÔNG &amp; T-SHIRT
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-khoac-blazer-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}">
-                ÁO KHOÁC &amp; BLAZER
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-sweater-ni-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-sweater-ni-nam']) }}">
-                ÁO SWEATER &amp; NỈ
-              </a>
-            </li>
+
+            <!-- Tất cả sản phẩm / BST Mới -->
             <li class="nav-item">
               <a class="nav-link bee-nav-link text-danger fw-bold {{ request()->get('category') == 'bo-suu-tap-ao-moi' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'bo-suu-tap-ao-moi']) }}">
                 <i class="fa-solid fa-fire text-danger me-1"></i> BST ÁO MỚI 2026
@@ -199,58 +217,14 @@
           </ul>
 
           <div class="d-flex align-items-center gap-3">
-            <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-bold rounded-pill">
-              <i class="fa-solid fa-tags me-1"></i> VOUCHER: BEESTYLE50
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-semibold rounded-pill">
+              <i class="fa-solid fa-tags me-1"></i> VOUCHER: BEESTYLEVIP
             </span>
           </div>
         </div>
       </div>
     </nav>
   </header>
-
-  <!-- FLASH MESSAGES -->
-  @if(session('success'))
-    <div class="container mt-3">
-      <div class="alert alert-success alert-dismissible fade show d-flex align-items-center border-0 shadow-sm" role="alert">
-        <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
-        <div>{{ session('success') }}</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    </div>
-  @endif
-
-  @if(session('error'))
-    <div class="container mt-3">
-      <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center border-0 shadow-sm" role="alert">
-        <i class="fa-solid fa-circle-exclamation fs-5 me-2 text-danger"></i>
-        <div>{{ session('error') }}</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    </div>
-  @endif
-
-  @if(session('info') || session('warning'))
-    <div class="container mt-3">
-      <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center border-0 shadow-sm" role="alert">
-        <i class="fa-solid fa-circle-info fs-5 me-2 text-warning"></i>
-        <div>{{ session('info') ?? session('warning') }}</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    </div>
-  @endif
-
-  @if($errors->any())
-    <div class="container mt-3">
-      <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm" role="alert">
-        <ul class="mb-0 small ps-3">
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    </div>
-  @endif
 
   <!-- MAIN CONTENT -->
   <main class="bee-main-content">

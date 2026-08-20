@@ -175,6 +175,7 @@
             <div class="dropdown-menu dropdown-menu-end py-2 shadow-lg border-0 mt-2" style="border-radius: 12px; min-width: 220px;">
               <a class="dropdown-item py-2" href="{{ route('client.home') }}" target="_blank"><i class="fa-solid fa-store me-2 text-warning"></i> Xem Cửa Hàng Web</a>
               <a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-chart-pie me-2 text-secondary"></i> Bảng Tổng Quan</a>
+              <a class="dropdown-item py-2" href="{{ route('client.profile', ['tab' => 'security']) }}"><i class="fa-solid fa-key me-2 text-primary"></i> Đổi Mật Khẩu</a>
               <div class="dropdown-divider"></div>
               <form action="{{ route('auth.logout') }}" method="POST">
                 @csrf

@@ -11,6 +11,7 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = [
+        'parent_id',
         'name',
         'slug',
         'icon',
@@ -39,6 +40,21 @@ class Category extends Model
         });
     }
 
+    public function parent()
+    {
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Category::class, 'parent_id')->orderBy('sort_order', 'asc');
+    }
+
+    public function activeChildren()
+    {
+        return $this->hasMany(Category::class, 'parent_id')->where('is_active', true)->orderBy('sort_order', 'asc');
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class);
@@ -47,5 +63,15 @@ class Category extends Model
     public function activeProducts()
     {
         return $this->hasMany(Product::class)->where('status', 'active');
+    }
+
+    public function scopeParents($query)
+    {
+        return $query->whereNull('parent_id')->where('is_active', true)->orderBy('sort_order', 'asc');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)->orderBy('sort_order', 'asc');
     }
 }

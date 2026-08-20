@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Khởi tạo bảng đánh giá sản phẩm (reviews).
      */
     public function up(): void
     {
@@ -18,13 +18,13 @@ return new class extends Migration
             $table->string('user_name');
             $table->unsignedTinyInteger('rating')->default(5);
             $table->text('comment');
-            $table->string('status')->default('approved'); // approved, pending, hidden
+            $table->string('status')->default('approved'); // approved: Đã duyệt, pending: Chờ duyệt, hidden: Ẩn
             $table->timestamps();
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng khi rollback.
      */
     public function down(): void
     {

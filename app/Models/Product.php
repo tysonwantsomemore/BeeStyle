@@ -12,9 +12,11 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'brand_id',
         'sku',
         'name',
         'slug',
+        'product_type',
         'price',
         'original_price',
         'discount_percent',
@@ -27,6 +29,7 @@ class Product extends Model
         'description',
         'colors',
         'sizes',
+        'specifications',
         'is_new',
         'is_featured',
         'is_best_seller',
@@ -45,6 +48,7 @@ class Product extends Model
             'reviews_count' => 'integer',
             'colors' => 'array',
             'sizes' => 'array',
+            'specifications' => 'array',
             'is_new' => 'boolean',
             'is_featured' => 'boolean',
             'is_best_seller' => 'boolean',
@@ -70,6 +74,21 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('id', 'asc');
+    }
+
+    public function activeVariants()
+    {
+        return $this->hasMany(ProductVariant::class)->where('status', 'active')->orderBy('id', 'asc');
+    }
+
     public function images()
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order', 'asc');
@@ -85,7 +104,12 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    // Scopes
+    public function hasVariants(): bool
+    {
+        return $this->product_type === 'variant' && $this->variants()->exists();
+    }
+
+    // Phạm vi truy vấn (Scopes)
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
