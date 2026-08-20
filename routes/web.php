@@ -9,6 +9,7 @@ use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\CheckoutController;
 use App\Http\Controllers\Client\OrderTrackingController;
 use App\Http\Controllers\Client\ProfileController;
+use App\Http\Controllers\Client\ReviewController;
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -42,6 +43,9 @@ Route::name('client.')->group(function () {
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
     
+    // Product Review (BẮT BUỘC ĐÃ MUA HÀNG VÀ ĐĂNG NHẬP)
+    Route::post('/san-pham/{id}/danh-gia', [ReviewController::class, 'store'])->middleware('auth')->name('products.review');
+
     // Cart Routes (Khách vãng lai và Thành viên đều tự do thêm/sửa/xóa sản phẩm vào giỏ hàng)
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
     Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
@@ -60,8 +64,12 @@ Route::name('client.')->group(function () {
     // Order Tracking (Public)
     Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
 
-    // Customer Account Profile (Protected by Auth)
-    Route::get('/tai-khoan', [ProfileController::class, 'index'])->middleware('auth')->name('profile');
+    // Customer Account Profile & Settings (Protected by Auth)
+    Route::middleware('auth')->group(function () {
+        Route::get('/tai-khoan', [ProfileController::class, 'index'])->name('profile');
+        Route::put('/tai-khoan/cap-nhat', [ProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/tai-khoan/doi-mat-khau', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    });
 });
 
 /*

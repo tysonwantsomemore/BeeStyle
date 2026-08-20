@@ -235,42 +235,117 @@
       <!-- Tab 3: Reviews -->
       <div class="tab-pane fade" id="reviews" role="tabpanel">
         <div class="row g-4">
-          <div class="col-md-4 text-center border-end">
-            <h1 class="display-3 fw-bold text-warning mb-0">{{ $product->rating }}</h1>
-            <div class="text-warning mb-2">
-              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          <!-- Left Column: Rating Overview & Review Form -->
+          <div class="col-lg-4 col-md-5 border-end-md pe-lg-4">
+            <div class="text-center p-3 bg-light rounded-3 mb-4">
+              <h1 class="display-3 fw-bold text-warning mb-0">{{ number_format($product->rating, 1) }}</h1>
+              <div class="text-warning mb-2 fs-5">
+                @for($i=1; $i<=5; $i++)
+                  <i class="fa-solid fa-star {{ $i <= round($product->rating) ? 'text-warning' : 'text-secondary-subtle' }}"></i>
+                @endfor
+              </div>
+              <p class="text-muted small mb-0">Dựa trên <strong>{{ $product->reviews_count }}</strong> lượt đánh giá từ khách hàng</p>
             </div>
-            <p class="text-muted small">Dựa trên {{ $product->reviews_count }} lượt đánh giá của khách hàng</p>
+
+            <!-- REVIEW SUBMISSION FORM BOX -->
+            <div class="card border-0 shadow-sm p-3 rounded-3" style="background: #ffffff; border: 1px solid var(--atino-border) !important;">
+              <h6 class="fw-bold text-dark mb-3 text-uppercase" style="font-family: var(--atino-font-heading);">
+                <i class="fa-solid fa-pen-nib me-2 text-danger"></i> Viết Nhận Xét Sản Phẩm
+              </h6>
+
+              @auth
+                @if($userHasPurchased)
+                  <form action="{{ route('client.products.review', $product->id) }}" method="POST">
+                    @csrf
+                    <!-- Star Rating Choice -->
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold text-dark mb-1">1. Đánh giá chất lượng:</label>
+                      <div class="d-flex align-items-center gap-2">
+                        @for($s=5; $s>=1; $s--)
+                          <input type="radio" class="btn-check" name="rating" id="star_{{ $s }}" value="{{ $s }}" {{ old('rating', $userReview->rating ?? 5) == $s ? 'checked' : '' }} required>
+                          <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2 py-1" for="star_{{ $s }}">
+                            {{ $s }} <i class="fa-solid fa-star text-warning"></i>
+                          </label>
+                        @endfor
+                      </div>
+                    </div>
+
+                    <!-- Comment textarea -->
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold text-dark mb-1">2. Chia sẻ cảm nhận của bạn:</label>
+                      <textarea name="comment" class="form-control form-control-sm" rows="3" placeholder="Chất liệu vải, form dáng, độ vừa vặn khi mặc..." required>{{ old('comment', $userReview->comment ?? '') }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-bee-primary btn-sm w-100 py-2">
+                      <i class="fa-solid fa-paper-plane me-1"></i> {{ $userReview ? 'CẬP NHẬT ĐÁNH GIÁ' : 'GỬI ĐÁNH GIÁ NGAY' }}
+                    </button>
+                    @if($userReview)
+                      <small class="d-block text-center text-success mt-1 fs-11"><i class="fa-solid fa-circle-check"></i> Bạn đã đánh giá sản phẩm này</small>
+                    @endif
+                  </form>
+                @else
+                  <div class="alert alert-warning border-0 p-3 mb-0 rounded-3 small">
+                    <div class="d-flex align-items-start gap-2">
+                      <i class="fa-solid fa-shield-halved text-warning fs-5 mt-1"></i>
+                      <div>
+                        <strong>Xác thực người mua:</strong>
+                        <p class="mb-0 text-muted mt-1">Để đảm bảo tính khách quan và trung thực, chỉ khách hàng <strong>đã từng mua sản phẩm này</strong> mới có thể viết đánh giá.</p>
+                      </div>
+                    </div>
+                  </div>
+                @endif
+              @else
+                <div class="text-center py-3 bg-light rounded-3">
+                  <i class="fa-solid fa-user-lock fs-3 text-muted mb-2"></i>
+                  <p class="small text-muted mb-3">Vui lòng đăng nhập với tài khoản đã mua hàng để gửi nhận xét.</p>
+                  <a href="{{ route('auth.login') }}" class="btn btn-bee-primary btn-sm px-4">
+                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng Nhập Để Đánh Giá
+                  </a>
+                </div>
+              @endauth
+            </div>
           </div>
-          <div class="col-md-8">
+
+          <!-- Right Column: List of Reviews -->
+          <div class="col-lg-8 col-md-7 ps-lg-4">
+            <h5 class="fw-bold text-dark mb-3" style="font-family: var(--atino-font-heading);">
+              Nhận Xét Từ Khách Hàng ({{ $product->reviews->count() }})
+            </h5>
+
             <div class="d-flex flex-column gap-3">
               @forelse($product->reviews as $rev)
-                <div class="p-3 bg-light rounded-3">
-                  <div class="d-flex justify-content-between mb-2">
-                    <div>
-                      <strong class="text-dark">{{ $rev->user_name }}</strong>
-                      <span class="badge bg-success-subtle text-success ms-2 small"><i class="fa-solid fa-circle-check"></i> Đã mua hàng</span>
+                <div class="p-3 bg-light rounded-3 border">
+                  <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">
+                        {{ mb_substr($rev->user_name ?? 'KH', 0, 1) }}
+                      </div>
+                      <div>
+                        <strong class="text-dark fs-9">{{ $rev->user_name }}</strong>
+                        <span class="badge bg-success-subtle text-success ms-2 small" style="font-size: 0.75rem;">
+                          <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+                        </span>
+                      </div>
                     </div>
-                    <small class="text-muted">{{ $rev->created_at ? $rev->created_at->format('d/m/Y') : '16/08/2026' }}</small>
+                    <small class="text-muted">{{ $rev->created_at ? $rev->created_at->format('d/m/Y H:i') : 'Vừa xong' }}</small>
                   </div>
+
                   <div class="text-warning small mb-2">
-                    @for($i=1; $i<=$rev->rating; $i++)
-                      <i class="fa-solid fa-star"></i>
+                    @for($i=1; $i<=5; $i++)
+                      <i class="fa-solid fa-star {{ $i <= $rev->rating ? 'text-warning' : 'text-secondary-subtle' }}"></i>
                     @endfor
+                    <span class="text-dark fw-bold ms-1">({{ $rev->rating }}/5)</span>
                   </div>
-                  <p class="small text-secondary mb-0">{{ $rev->comment }}</p>
+
+                  <p class="small text-secondary mb-0 leading-relaxed">
+                    {{ $rev->comment }}
+                  </p>
                 </div>
               @empty
-                <div class="p-3 bg-light rounded-3">
-                  <div class="d-flex justify-content-between mb-2">
-                    <div>
-                      <strong class="text-dark">Lê Minh Tuấn</strong>
-                      <span class="badge bg-success-subtle text-success ms-2 small"><i class="fa-solid fa-circle-check"></i> Đã mua hàng</span>
-                    </div>
-                    <small class="text-muted">12/08/2026</small>
-                  </div>
-                  <div class="text-warning small mb-2"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                  <p class="small text-secondary mb-0">Áo mặc cực kỳ ưng ý, vải mềm mịn mặc mát rượi. Form áo đứng dáng rất tôn dáng, đóng gói hộp BeeStyle sang trọng!</p>
+                <div class="p-4 bg-light rounded-3 text-center border">
+                  <i class="fa-regular fa-comment-dots fs-1 text-muted mb-2"></i>
+                  <p class="text-dark fw-semibold mb-1">Chưa có đánh giá nào cho sản phẩm này</p>
+                  <p class="small text-muted mb-0">Hãy là người đầu tiên mua và trải nghiệm chất lượng thời trang của BeeStyle!</p>
                 </div>
               @endforelse
             </div>
@@ -346,4 +421,34 @@
     </div>
   </div>
 </div>
+
+@push('scripts')
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Tự động kích hoạt Tab Đánh giá và cuộn xuống nếu URL có hash #reviews hoặc param review=1
+    if (window.location.hash === '#reviews' || window.location.search.includes('review=1')) {
+      const reviewTabBtn = document.getElementById('reviews-tab');
+      if (reviewTabBtn) {
+        const tabTrigger = new bootstrap.Tab(reviewTabBtn);
+        tabTrigger.show();
+        
+        setTimeout(() => {
+          const reviewSection = document.getElementById('reviews');
+          if (reviewSection) {
+            reviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Focus vào ô textarea nếu có
+            const commentInput = reviewSection.querySelector('textarea[name="comment"]');
+            if (commentInput) {
+              commentInput.focus();
+              commentInput.style.boxShadow = '0 0 0 4px rgba(225, 29, 72, 0.25)';
+              commentInput.style.borderColor = '#e11d48';
+            }
+          }
+        }, 300);
+      }
+    }
+  });
+</script>
+@endpush
 @endsection

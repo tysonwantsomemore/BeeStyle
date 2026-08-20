@@ -90,6 +90,19 @@ class ProductController extends Controller
 
         $categories = Category::where('is_active', true)->orderBy('sort_order', 'asc')->get();
 
-        return view('client.products.show', compact('product', 'relatedProducts', 'categories'));
+        $userHasPurchased = false;
+        $userReview = null;
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $userHasPurchased = \App\Models\Order::where('user_id', $user->id)
+                ->whereHas('items', function ($q) use ($id) {
+                    $q->where('product_id', $id);
+                })
+                ->exists();
+
+            $userReview = \App\Models\Review::where('product_id', $id)->where('user_id', $user->id)->first();
+        }
+
+        return view('client.products.show', compact('product', 'relatedProducts', 'categories', 'userHasPurchased', 'userReview'));
     }
 }
