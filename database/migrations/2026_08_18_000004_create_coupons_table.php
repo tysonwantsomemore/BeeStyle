@@ -7,16 +7,16 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Khởi tạo bảng mã giảm giá (coupons).
      */
     public function up(): void
     {
         Schema::create('coupons', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique(); // BEESTYLE50, FREESHIPMAX, VIPBEE15
+            $table->string('code')->unique(); // Ví dụ: BEESTYLE50, FREESHIPMAX, VIPBEE15
             $table->string('title');
-            $table->string('discount_type')->default('fixed'); // fixed, percent, shipping
-            $table->unsignedBigInteger('discount_value'); // 50000 hoặc 15 (%)
+            $table->string('discount_type')->default('fixed'); // 'fixed': Giảm số tiền cố định, 'percent': Giảm theo %, 'shipping': Miễn phí vận chuyển
+            $table->unsignedBigInteger('discount_value'); // Giá trị giảm: 50.000₫ hoặc 15 (%)
             $table->unsignedBigInteger('min_order_value')->default(0);
             $table->unsignedBigInteger('max_discount_value')->nullable();
             $table->unsignedInteger('total_limit')->default(1000);
@@ -29,7 +29,7 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Xóa bảng khi rollback.
      */
     public function down(): void
     {

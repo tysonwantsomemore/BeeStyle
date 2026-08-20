@@ -25,15 +25,49 @@
             <i class="fa-solid fa-location-dot me-2 text-warning"></i> 1. Thông Tin Nhận Hàng
           </h5>
 
+          @if(isset($addresses) && $addresses->count() > 0)
+            <div class="mb-3 p-3 bg-light rounded-3 border">
+              <label class="form-label small fw-bold text-dark mb-2">
+                <i class="fa-solid fa-address-book me-1 text-warning"></i> Chọn nhanh từ sổ địa chỉ đã lưu:
+              </label>
+              <div class="d-flex flex-column gap-2">
+                @foreach($addresses as $addr)
+                  <div class="form-check p-2 border rounded-2 bg-white d-flex align-items-center">
+                    <input class="form-check-input ms-1 me-2 saved-address-radio" type="radio" name="saved_address_picker" id="addr_pick_{{ $addr->id }}"
+                      data-name="{{ $addr->recipient_name }}"
+                      data-phone="{{ $addr->phone }}"
+                      data-address="{{ $addr->address }}"
+                      data-city="{{ $addr->city }}"
+                      data-district="{{ $addr->district }}"
+                      data-ward="{{ $addr->ward }}"
+                      data-notes="{{ $addr->notes }}"
+                      {{ $addr->is_default ? 'checked' : '' }}
+                      onchange="applySavedAddress(this)">
+                    <label class="form-check-label small d-flex justify-content-between align-items-center flex-grow-1 cursor-pointer" for="addr_pick_{{ $addr->id }}">
+                      <div>
+                        <strong>{{ $addr->recipient_name }}</strong> ({{ $addr->phone }})
+                        <span class="badge bg-secondary ms-1">{{ $addr->label ?? 'Nhà riêng' }}</span>
+                        @if($addr->is_default)
+                          <span class="badge bg-warning text-dark ms-1">Mặc định</span>
+                        @endif
+                        <div class="text-muted" style="font-size: 0.75rem;">{{ $addr->full_address }}</div>
+                      </div>
+                    </label>
+                  </div>
+                @endforeach
+              </div>
+            </div>
+          @endif
+
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Họ và tên người nhận <span class="text-danger">*</span></label>
-              <input type="text" name="customer_name" class="form-control form-control-sm" value="{{ old('customer_name', $user->name ?? '') }}" required placeholder="Ví dụ: Nguyễn Văn Hùng">
+              <input type="text" name="customer_name" id="input_customer_name" class="form-control form-control-sm" value="{{ old('customer_name', $defaultAddress->recipient_name ?? $user->name ?? '') }}" required placeholder="Ví dụ: Nguyễn Văn Hùng">
             </div>
 
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-              <input type="tel" name="customer_phone" class="form-control form-control-sm" value="{{ old('customer_phone', $user->phone ?? '') }}" required placeholder="Ví dụ: 0987654321">
+              <input type="tel" name="customer_phone" id="input_customer_phone" class="form-control form-control-sm" value="{{ old('customer_phone', $defaultAddress->phone ?? $user->phone ?? '') }}" required placeholder="Ví dụ: 0987654321">
             </div>
 
             <div class="col-12">
@@ -43,22 +77,22 @@
 
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-              <input type="text" name="city" class="form-control form-control-sm" value="{{ old('city', $user->city ?? 'Hồ Chí Minh') }}" required placeholder="Ví dụ: TP. Hồ Chí Minh">
+              <input type="text" name="city" id="input_city" class="form-control form-control-sm" value="{{ old('city', $defaultAddress->city ?? $user->city ?? 'Hồ Chí Minh') }}" required placeholder="Ví dụ: TP. Hồ Chí Minh">
             </div>
 
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Quận / Huyện</label>
-              <input type="text" name="district" class="form-control form-control-sm" value="{{ old('district', $user->district ?? 'Quận 1') }}" placeholder="Ví dụ: Quận 1">
+              <input type="text" name="district" id="input_district" class="form-control form-control-sm" value="{{ old('district', $defaultAddress->district ?? $user->district ?? 'Quận 1') }}" placeholder="Ví dụ: Quận 1">
             </div>
 
             <div class="col-12">
               <label class="form-label small fw-semibold">Địa chỉ chi tiết (Số nhà, tên đường, phường xã) <span class="text-danger">*</span></label>
-              <input type="text" name="shipping_address" class="form-control form-control-sm" value="{{ old('shipping_address', $user->address ?? '') }}" required placeholder="Ví dụ: Số 45 Đường Lê Duẩn, Phường Bến Nghé">
+              <input type="text" name="shipping_address" id="input_shipping_address" class="form-control form-control-sm" value="{{ old('shipping_address', $defaultAddress->address ?? $user->address ?? '') }}" required placeholder="Ví dụ: Số 45 Đường Lê Duẩn, Phường Bến Nghé">
             </div>
 
             <div class="col-12">
               <label class="form-label small fw-semibold">Ghi chú giao hàng (Tùy chọn)</label>
-              <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Ví dụ: Giao hàng vào giờ hành chính, gọi trước khi giao 15 phút...">{{ old('notes') }}</textarea>
+              <textarea name="notes" id="input_notes" class="form-control form-control-sm" rows="2" placeholder="Ví dụ: Giao hàng vào giờ hành chính, gọi trước khi giao 15 phút...">{{ old('notes', $defaultAddress->notes ?? '') }}</textarea>
             </div>
           </div>
         </div>
@@ -175,4 +209,25 @@
     </div>
   </form>
 </div>
+
+@push('scripts')
+<script>
+  function applySavedAddress(el) {
+    if (!el) return;
+    const name = el.getAttribute('data-name');
+    const phone = el.getAttribute('data-phone');
+    const addr = el.getAttribute('data-address');
+    const city = el.getAttribute('data-city');
+    const district = el.getAttribute('data-district');
+    const notes = el.getAttribute('data-notes');
+
+    if (name) document.getElementById('input_customer_name').value = name;
+    if (phone) document.getElementById('input_customer_phone').value = phone;
+    if (addr) document.getElementById('input_shipping_address').value = addr;
+    if (city) document.getElementById('input_city').value = city;
+    if (district) document.getElementById('input_district').value = district;
+    if (notes) document.getElementById('input_notes').value = notes;
+  }
+</script>
+@endpush
 @endsection

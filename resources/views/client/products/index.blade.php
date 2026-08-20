@@ -13,7 +13,10 @@
         @php
           $activeCat = $categories->firstWhere('slug', $categorySlug);
         @endphp
-        <li class="breadcrumb-item active text-danger fw-semibold">{{ $activeCat->name ?? $categorySlug }}</li>
+        <li class="breadcrumb-item active text-warning fw-semibold">{{ $activeCat->name ?? $categorySlug }}</li>
+      @endif
+      @if($brandSlug)
+        <li class="breadcrumb-item active text-warning fw-semibold">Thương hiệu: {{ $brandSlug }}</li>
       @endif
     </ol>
   </nav>
@@ -23,28 +26,66 @@
     <div class="col-lg-3">
       <div class="card border-0 shadow-sm p-4" style="border-radius: 12px; position: sticky; top: 90px; background: #ffffff;">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="fw-bold text-dark mb-0 fs-6 text-uppercase" style="font-family: var(--atino-font-heading);">
-            <i class="fa-solid fa-sliders me-2 text-danger"></i> Bộ Lọc Tìm Kiếm
-          </h5>
-          @if($categorySlug || request('q') || request('sort') || request('price_range') || request('size'))
-            <a href="{{ route('client.products.index') }}" class="small text-danger text-decoration-none fw-bold">Xóa lọc</a>
+          <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-sliders me-2 text-warning"></i> Bộ Lọc</h5>
+          @if($categorySlug || $brandSlug || request('q') || request('sort') || request('price_range') || request('size') || request('color'))
+            <a href="{{ route('client.products.index') }}" class="small text-danger text-decoration-none fw-semibold">
+              <i class="fa-solid fa-xmark me-1"></i> Xóa lọc
+            </a>
           @endif
         </div>
 
         <hr class="my-2 border-secondary-subtle">
 
-        <!-- CATEGORIES FILTER -->
+        <!-- 1. HIERARCHICAL CATEGORIES FILTER (Phân Cấp Cha - Con) -->
         <div class="mb-4">
-          <h6 class="fw-bold text-dark small text-uppercase mb-3" style="font-family: var(--atino-font-heading);">Danh Mục Áo Nam</h6>
-          <div class="d-flex flex-column gap-2">
-            <a href="{{ route('client.products.index', array_merge(request()->except(['category', 'page']))) }}" class="d-flex justify-content-between align-items-center text-decoration-none {{ empty($categorySlug) ? 'fw-bold text-danger' : 'text-muted' }} small">
-              <span>Tất cả sản phẩm</span>
-              <span class="badge bg-light text-dark rounded-pill">{{ $products->total() }}</span>
+          <h6 class="fw-bold text-dark small text-uppercase mb-3">
+            <i class="fa-solid fa-layer-group me-1 text-warning"></i> Danh Mục Phân Cấp
+          </h6>
+          <div class="d-flex flex-column gap-2 small">
+            <a href="{{ route('client.products.index', array_merge(request()->except(['category', 'page']))) }}" class="d-flex justify-content-between align-items-center text-decoration-none {{ empty($categorySlug) ? 'fw-bold text-warning' : 'text-muted' }}">
+              <span><i class="fa-solid fa-border-all me-1"></i> Tất cả danh mục</span>
             </a>
-            @foreach($categories as $cat)
-              <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['category' => $cat->slug])) }}" class="d-flex justify-content-between align-items-center text-decoration-none {{ $categorySlug === $cat->slug ? 'fw-bold text-danger' : 'text-muted' }} small">
-                <span>{{ $cat->name }}</span>
-                <span class="badge bg-light text-dark rounded-pill">{{ $cat->products_count }}</span>
+
+            @foreach($categories as $parent)
+              <div class="category-tree-item">
+                <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['category' => $parent->slug])) }}" class="d-flex justify-content-between align-items-center text-decoration-none fw-semibold {{ $categorySlug === $parent->slug ? 'text-warning' : 'text-dark' }} py-1">
+                  <span><i class="{{ $parent->icon ?? 'fa-solid fa-shirt' }} me-1 text-secondary"></i> {{ $parent->name }}</span>
+                  <span class="badge bg-light text-dark rounded-pill">{{ $parent->products_count }}</span>
+                </a>
+
+                <!-- Sub-categories (Con) -->
+                @if($parent->activeChildren && $parent->activeChildren->count() > 0)
+                  <div class="ps-3 d-flex flex-column gap-1 border-start ms-2 my-1">
+                    @foreach($parent->activeChildren as $child)
+                      <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['category' => $child->slug])) }}" class="d-flex justify-content-between align-items-center text-decoration-none {{ $categorySlug === $child->slug ? 'fw-bold text-warning' : 'text-muted' }} py-0.5">
+                        <span>— {{ $child->name }}</span>
+                        <span class="badge bg-light text-secondary rounded-pill" style="font-size: 0.7rem;">{{ $child->products_count }}</span>
+                      </a>
+                    @endforeach
+                  </div>
+                @endif
+              </div>
+            @endforeach
+          </div>
+        </div>
+
+        <hr class="my-2 border-secondary-subtle">
+
+        <!-- 2. BRANDS FILTER -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-dark small text-uppercase mb-0">
+              <i class="fa-solid fa-crown me-1 text-warning"></i> Thương Hiệu
+            </h6>
+          </div>
+          <div class="d-flex flex-column gap-2 small">
+            @foreach($brands as $b)
+              <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['brand' => (request('brand') === $b->slug ? null : $b->slug)])) }}" class="d-flex justify-content-between align-items-center text-decoration-none {{ request('brand') === $b->slug ? 'text-warning fw-bold' : 'text-muted' }}">
+                <span>
+                  <i class="fa-regular {{ request('brand') === $b->slug ? 'fa-square-check text-warning' : 'fa-square text-secondary' }} me-1"></i>
+                  {{ $b->name }}
+                </span>
+                <span class="badge bg-light text-dark rounded-pill">{{ $b->products_count }}</span>
               </a>
             @endforeach
           </div>
@@ -52,41 +93,34 @@
 
         <hr class="my-2 border-secondary-subtle">
 
-        <!-- PRICE RANGE FILTER -->
+        <!-- 3. PRICE RANGE FILTER -->
         <div class="mb-4">
-          <h6 class="fw-bold text-dark small text-uppercase mb-3" style="font-family: var(--atino-font-heading);">Khoảng Giá (VNĐ)</h6>
+          <h6 class="fw-bold text-dark small text-uppercase mb-3">Khoảng Giá (VNĐ)</h6>
           <div class="d-flex flex-column gap-2 small">
-            <a href="{{ route('client.products.index', array_merge(request()->except(['price_range', 'page']), ['price_range' => 'under_500'])) }}" class="text-decoration-none {{ request('price_range') === 'under_500' ? 'text-danger fw-bold' : 'text-muted' }}">
-              <i class="fa-regular {{ request('price_range') === 'under_500' ? 'fa-circle-dot text-danger' : 'fa-circle text-secondary' }} me-1"></i> Dưới 500.000₫
+            <a href="{{ route('client.products.index', array_merge(request()->except(['price_range', 'page']), ['price_range' => (request('price_range') === 'under_500' ? null : 'under_500')])) }}" class="text-decoration-none {{ request('price_range') === 'under_500' ? 'text-warning fw-bold' : 'text-muted' }}">
+              <i class="fa-regular {{ request('price_range') === 'under_500' ? 'fa-circle-dot text-warning' : 'fa-circle text-secondary' }} me-1"></i> Dưới 500.000₫
             </a>
-            <a href="{{ route('client.products.index', array_merge(request()->except(['price_range', 'page']), ['price_range' => '500_1000'])) }}" class="text-decoration-none {{ request('price_range') === '500_1000' ? 'text-danger fw-bold' : 'text-muted' }}">
-              <i class="fa-regular {{ request('price_range') === '500_1000' ? 'fa-circle-dot text-danger' : 'fa-circle text-secondary' }} me-1"></i> 500.000₫ - 1.000.000₫
+            <a href="{{ route('client.products.index', array_merge(request()->except(['price_range', 'page']), ['price_range' => (request('price_range') === '500_1000' ? null : '500_1000')])) }}" class="text-decoration-none {{ request('price_range') === '500_1000' ? 'text-warning fw-bold' : 'text-muted' }}">
+              <i class="fa-regular {{ request('price_range') === '500_1000' ? 'fa-circle-dot text-warning' : 'fa-circle text-secondary' }} me-1"></i> 500.000₫ - 1.000.000₫
             </a>
-            <a href="{{ route('client.products.index', array_merge(request()->except(['price_range', 'page']), ['price_range' => 'over_1000'])) }}" class="text-decoration-none {{ request('price_range') === 'over_1000' ? 'text-danger fw-bold' : 'text-muted' }}">
-              <i class="fa-regular {{ request('price_range') === 'over_1000' ? 'fa-circle-dot text-danger' : 'fa-circle text-secondary' }} me-1"></i> Trên 1.000.000₫
+            <a href="{{ route('client.products.index', array_merge(request()->except(['price_range', 'page']), ['price_range' => (request('price_range') === 'over_1000' ? null : 'over_1000')])) }}" class="text-decoration-none {{ request('price_range') === 'over_1000' ? 'text-warning fw-bold' : 'text-muted' }}">
+              <i class="fa-regular {{ request('price_range') === 'over_1000' ? 'fa-circle-dot text-warning' : 'fa-circle text-secondary' }} me-1"></i> Trên 1.000.000₫
             </a>
           </div>
         </div>
 
         <hr class="my-2 border-secondary-subtle">
 
-        <!-- SIZE FILTER -->
-        <div class="mb-4">
-          <h6 class="fw-bold text-dark small text-uppercase mb-3" style="font-family: var(--atino-font-heading);">Kích Thước (Size)</h6>
+        <!-- 4. SIZE FILTER -->
+        <div class="mb-3">
+          <h6 class="fw-bold text-dark small text-uppercase mb-3">Kích Thước Size</h6>
           <div class="d-flex flex-wrap gap-2">
-            @foreach(['S', 'M', 'L', 'XL', 'XXL', '39', '40', '41', '42'] as $size)
-              <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['size' => (request('size') === $size ? null : $size)])) }}" class="bee-size-label text-decoration-none {{ request('size') === $size ? 'bg-dark text-white' : '' }}">
+            @foreach(['M', 'L', 'XL', 'XXL', '29', '30', '31', '32', '33', '34', '39', '40', '41', '42'] as $size)
+              <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['size' => (request('size') === $size ? null : $size)])) }}" class="btn btn-sm {{ request('size') === $size ? 'btn-warning text-dark fw-bold' : 'btn-outline-secondary' }} px-2 py-1 fw-semibold" style="border-radius: 6px; font-size: 0.8rem;">
                 {{ $size }}
               </a>
             @endforeach
           </div>
-        </div>
-
-        <!-- BANNER PROMO SIDEBAR -->
-        <div class="card border-0 p-3 text-white text-center" style="background: linear-gradient(135deg, #111827, #1f2937); border-radius: 10px;">
-          <small class="text-danger fw-bold text-uppercase">ƯU ĐÃI VIP</small>
-          <h6 class="fw-bold text-white my-1" style="font-family: var(--atino-font-heading);">Giảm 50k Đơn Từ 499k</h6>
-          <p class="small text-white-50 mb-0">Mã: <strong class="text-warning">BEESTYLE50</strong></p>
         </div>
       </div>
     </div>
@@ -99,7 +133,10 @@
           <div>
             <span class="text-muted small">Hiển thị <strong>{{ $products->count() }}</strong> trên tổng <strong>{{ $products->total() }}</strong> sản phẩm</span>
             @if(request('q'))
-              <span class="badge bg-danger-subtle text-danger ms-2">Từ khóa: "{{ request('q') }}"</span>
+              <span class="badge bg-warning-subtle text-dark ms-2">Tìm kiếm: "{{ request('q') }}"</span>
+            @endif
+            @if(request('brand'))
+              <span class="badge bg-dark text-white ms-1">Brand: {{ request('brand') }}</span>
             @endif
             @if(request('size'))
               <span class="badge bg-dark text-white ms-1">Size: {{ request('size') }}</span>
@@ -107,93 +144,70 @@
           </div>
 
           <div class="d-flex align-items-center gap-2">
-            <label class="small text-muted mb-0 text-nowrap">Sắp xếp:</label>
-            <form action="{{ route('client.products.index') }}" method="GET" class="d-inline">
-              @if($categorySlug)
-                <input type="hidden" name="category" value="{{ $categorySlug }}">
-              @endif
-              @if(request('q'))
-                <input type="hidden" name="q" value="{{ request('q') }}">
-              @endif
-              @if(request('price_range'))
-                <input type="hidden" name="price_range" value="{{ request('price_range') }}">
-              @endif
-              @if(request('size'))
-                <input type="hidden" name="size" value="{{ request('size') }}">
-              @endif
-              <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 175px; border-radius: 8px; font-weight: 500;">
-                <option value="popular" {{ $sort === 'popular' ? 'selected' : '' }}>Phổ biến nhất</option>
-                <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Mới nhất</option>
-                <option value="price_asc" {{ $sort === 'price_asc' ? 'selected' : '' }}>Giá: Thấp đến Cao</option>
-                <option value="price_desc" {{ $sort === 'price_desc' ? 'selected' : '' }}>Giá: Cao đến Thấp</option>
-              </select>
-            </form>
+            <label class="small text-muted text-nowrap">Sắp xếp:</label>
+            <select class="form-select form-select-sm" style="width: 170px;" onchange="location = this.value;">
+              <option value="{{ request()->fullUrlWithQuery(['sort' => 'popular']) }}" {{ request('sort') === 'popular' ? 'selected' : '' }}>Bán chạy nhất</option>
+              <option value="{{ request()->fullUrlWithQuery(['sort' => 'newest']) }}" {{ request('sort') === 'newest' ? 'selected' : '' }}>Mới nhất</option>
+              <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_asc']) }}" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>Giá: Thấp đến Cao</option>
+              <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_desc']) }}" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Giá: Cao đến Thấp</option>
+            </select>
           </div>
         </div>
       </div>
 
-      <!-- PRODUCTS LIST -->
-      @if($products->count() > 0)
-        <div class="row g-4">
-          @foreach($products as $product)
-            <div class="col-lg-4 col-md-6 col-6">
-              <div class="bee-product-card">
-                @if($product->is_new)
-                  <span class="bee-product-badge new">MỚI</span>
-                @elseif($product->discount_percent > 0)
-                  <span class="bee-product-badge sale">-{{ $product->discount_percent }}%</span>
+      <!-- PRODUCT CARDS -->
+      <div class="row g-3">
+        @forelse($products as $product)
+          <div class="col-6 col-md-4">
+            <div class="card h-100 border-0 shadow-sm transition-all hover-lift" style="border-radius: 14px; overflow: hidden; background: #ffffff;">
+              <div class="position-relative bg-light p-3 text-center" style="height: 230px; display: flex; align-items: center; justify-content: center;">
+                @if($product->discount_percent > 0)
+                  <span class="position-absolute top-0 start-0 m-2 badge bg-danger rounded-pill">-{{ $product->discount_percent }}%</span>
                 @endif
-                
-                <div class="bee-product-actions">
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                @if($product->brand)
+                  <span class="position-absolute top-0 end-0 m-2 badge bg-dark text-warning small">{{ $product->brand->name }}</span>
+                @endif
+                <a href="{{ route('client.products.show', $product->id) }}">
+                  <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid" style="max-height: 200px; object-fit: contain;">
+                </a>
+              </div>
+              <div class="card-body p-3 d-flex flex-column justify-content-between">
+                <div>
+                  <small class="text-warning fw-bold d-block mb-1">{{ $product->category->name ?? 'Thời trang nam' }}</small>
+                  <h6 class="fw-bold text-dark text-truncate-2 mb-2" style="font-size: 0.9rem; min-height: 42px;">
+                    <a href="{{ route('client.products.show', $product->id) }}" class="text-decoration-none text-dark hover-warning">
+                      {{ $product->name }}
+                    </a>
+                  </h6>
                 </div>
-
-                <div class="bee-product-img-wrapper">
-                  <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
-                </div>
-
-                <div class="bee-product-body">
-                  <span class="bee-product-category">{{ $product->category->name ?? 'Thời Trang Nam' }}</span>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="bee-product-title">
-                    {{ $product->name }}
-                  </a>
-
-                  <div class="bee-product-rating">
-                    <i class="fa-solid fa-star text-warning"></i>
-                    <span class="fw-bold text-dark">{{ $product->rating }}</span>
-                    <span class="text-muted ms-auto small d-none d-sm-inline">Đã bán {{ $product->sold_count }}</span>
-                  </div>
-
-                  <div class="bee-product-price-row">
-                    <span class="bee-product-price">{{ number_format($product->price, 0, ',', '.') }}₫</span>
+                <div>
+                  <div class="d-flex align-items-baseline gap-2 mb-2">
+                    <strong class="text-danger fw-bold fs-6">{{ number_format($product->price, 0, ',', '.') }}₫</strong>
                     @if($product->original_price && $product->original_price > $product->price)
-                      <span class="bee-product-old-price">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
+                      <small class="text-muted text-decoration-line-through">{{ number_format($product->original_price, 0, ',', '.') }}₫</small>
                     @endif
                   </div>
-
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-primary btn-sm w-100 mt-2">
-                    <i class="fa-solid fa-cart-shopping me-1"></i> XEM CHI TIẾT
+                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-outline-warning text-dark btn-sm w-100 fw-bold rounded-2">
+                    Xem Chi Tiết &amp; Biến Thể
                   </a>
                 </div>
               </div>
             </div>
-          @endforeach
-        </div>
+          </div>
+        @empty
+          <div class="col-12 text-center py-5">
+            <i class="fa-solid fa-box-open text-muted fs-1 mb-3"></i>
+            <h5 class="fw-bold text-dark">Không tìm thấy sản phẩm nào</h5>
+            <p class="text-muted small">Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc để xem toàn bộ sản phẩm.</p>
+            <a href="{{ route('client.products.index') }}" class="btn btn-warning btn-sm px-4 fw-bold">Xóa Bộ Lọc</a>
+          </div>
+        @endforelse
+      </div>
 
-        <!-- PAGINATION -->
-        <div class="d-flex justify-content-center mt-5">
-          {{ $products->links('pagination::bootstrap-5') }}
-        </div>
-      @else
-        <div class="text-center py-5">
-          <i class="fa-solid fa-magnifying-glass fs-1 text-muted mb-3"></i>
-          <h5 class="fw-bold text-dark">Không tìm thấy sản phẩm phù hợp</h5>
-          <p class="text-muted small">Hãy thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc hiện tại.</p>
-          <a href="{{ route('client.products.index') }}" class="btn btn-bee-primary btn-sm">Xem tất cả sản phẩm</a>
-        </div>
-      @endif
-
+      <!-- PAGINATION -->
+      <div class="d-flex justify-content-center mt-5">
+        {{ $products->links('pagination::bootstrap-5') }}
+      </div>
     </div>
   </div>
 </div>

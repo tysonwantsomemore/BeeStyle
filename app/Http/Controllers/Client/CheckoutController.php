@@ -26,6 +26,8 @@ class CheckoutController extends Controller
         }
 
         $user = Auth::user();
+        $addresses = $user ? $user->addresses : collect();
+        $defaultAddress = $user ? ($user->defaultAddress ?? $addresses->first()) : null;
 
         return view('client.checkout', [
             'cartItems' => $cartData['items'],
@@ -36,6 +38,8 @@ class CheckoutController extends Controller
             'total' => $cartData['total'],
             'appliedCoupon' => $cartData['coupon'],
             'user' => $user,
+            'addresses' => $addresses,
+            'defaultAddress' => $defaultAddress,
         ]);
     }
 
@@ -64,7 +68,7 @@ class CheckoutController extends Controller
             'payment_method.required' => 'Vui lòng chọn hình thức thanh toán.',
         ]);
 
-        // Generate unique order code
+        // Tạo mã đơn hàng duy nhất theo định dạng BEE-YYYYMMDD-XXXX
         $datePrefix = date('Ymd');
         $randomCode = strtoupper(Str::random(4));
         $orderCode = "BEE-{$datePrefix}-{$randomCode}";
@@ -94,7 +98,7 @@ class CheckoutController extends Controller
                 'coupon_code' => $cartData['coupon'] ? $cartData['coupon']->code : null,
             ]);
 
-            // Save order items & deduct stock
+            // Lưu chi tiết từng món hàng trong đơn và trừ tồn kho
             foreach ($cartData['items'] as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -109,7 +113,7 @@ class CheckoutController extends Controller
                     'image' => $item['image'],
                 ]);
 
-                // Update product stock and sold count
+                // Cập nhật tồn kho sản phẩm và tăng số lượng đã bán
                 $product = Product::find($item['product_id']);
                 if ($product) {
                     $product->decrement('stock', $item['quantity']);
@@ -117,7 +121,7 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Update coupon usage if applicable
+            // Cập nhật số lượt sử dụng mã giảm giá (nếu có)
             if ($cartData['coupon']) {
                 $coupon = Coupon::find($cartData['coupon']->id);
                 if ($coupon) {
@@ -125,7 +129,7 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Reward user points and total spent
+            // Tích điểm thưởng và cộng dồn tổng tiền mua sắm cho thành viên
             if ($user) {
                 $earnedPoints = (int)floor($cartData['total'] / 10000);
                 $user->increment('points', $earnedPoints);
@@ -134,7 +138,7 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // Clear session cart
+            // Xóa sạch giỏ hàng trong session sau khi hoàn tất đặt hàng
             CartService::clear();
 
             return redirect()->route('client.order-tracking', ['code' => $orderCode])

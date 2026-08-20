@@ -16,7 +16,7 @@ class OrderTrackingController extends Controller
         if ($code) {
             $currentOrder = Order::with(['items.product', 'user'])->where('order_code', $code)->first();
         } else {
-            // Default show the latest order for demonstration if available
+            // Mặc định hiển thị đơn hàng mới nhất nếu không truyền mã (phục vụ trải nghiệm)
             $currentOrder = Order::with(['items.product', 'user'])->latest()->first();
             if ($currentOrder) {
                 $code = $currentOrder->order_code;

@@ -17,9 +17,16 @@ class User extends Authenticatable
         'email',
         'phone',
         'avatar',
+        'gender',
+        'dob',
         'address',
         'city',
         'district',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_name',
+        'bank_branch',
+        'password_changed_at',
         'role',
         'rank',
         'points',
@@ -37,6 +44,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'password_changed_at' => 'datetime',
+            'dob' => 'date',
             'password' => 'hashed',
             'points' => 'integer',
             'total_spent' => 'integer',
@@ -48,6 +57,16 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class)->orderBy('is_default', 'desc')->orderBy('created_at', 'desc');
+    }
+
+    public function defaultAddress()
+    {
+        return $this->hasOne(UserAddress::class)->where('is_default', true);
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class)->orderBy('created_at', 'desc');
@@ -56,5 +75,10 @@ class User extends Authenticatable
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function hasChangedPassword(): bool
+    {
+        return !is_null($this->password_changed_at);
     }
 }

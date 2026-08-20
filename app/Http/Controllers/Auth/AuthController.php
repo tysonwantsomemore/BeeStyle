@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
-     * Display Login form
+     * Hiển thị form đăng nhập cho khách hàng và quản trị viên
      */
     public function showLoginForm()
     {
@@ -26,7 +26,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle Login submission
+     * Xử lý xác thực và đăng nhập tài khoản
      */
     public function login(Request $request)
     {
@@ -42,7 +42,7 @@ class AuthController extends Controller
         $password = $credentials['password'];
         $remember = $request->boolean('remember');
 
-        // Check if loginId is email or phone
+        // Kiểm tra thông tin đăng nhập là định dạng Email hay Số điện thoại
         $fieldType = filter_var($loginId, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
         if (Auth::attempt([$fieldType => $loginId, 'password' => $password], $remember)) {
@@ -68,7 +68,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Display Register form
+     * Hiển thị form đăng ký tài khoản thành viên mới
      */
     public function showRegisterForm()
     {
@@ -80,7 +80,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle Register submission
+     * Xử lý đăng ký tài khoản khách hàng mới
      */
     public function register(Request $request)
     {
@@ -113,14 +113,14 @@ class AuthController extends Controller
             'city' => $validated['city'] ?? 'Hồ Chí Minh',
             'role' => 'customer',
             'rank' => 'Thành viên Mới',
-            'points' => 100, // Welcome bonus points
+            'points' => 100, // Điểm thưởng chào mừng thành viên mới
             'total_spent' => 0,
             'status' => 'active',
             'avatar' => '/assets/img/team/40x40/58.webp',
             'password' => Hash::make($validated['password']),
         ]);
 
-        // Auto login
+        // Tự động đăng nhập người dùng vừa đăng ký
         Auth::login($user);
         $request->session()->regenerate();
 
@@ -129,7 +129,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle Logout
+     * Xử lý đăng xuất và hủy phiên làm việc
      */
     public function logout(Request $request)
     {
