@@ -12,7 +12,7 @@ class CustomerController extends Controller
     {
         $search = $request->query('q');
 
-        $query = User::where('role', 'customer')->withCount('orders')->latest();
+        $query = User::where('role', 'customer')->withCount(['orders', 'reviews'])->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -26,4 +26,19 @@ class CustomerController extends Controller
 
         return view('admin.customers.index', compact('customers', 'search'));
     }
+
+    /**
+     * Xem thông tin chi tiết tài khoản khách hàng, lịch sử mua hàng và các đánh giá
+     */
+    public function show($id)
+    {
+        $customer = User::with([
+            'orders' => fn($q) => $q->with('items')->latest(),
+            'reviews' => fn($q) => $q->with('product')->latest(),
+            'addresses'
+        ])->where('role', 'customer')->findOrFail($id);
+
+        return view('admin.customers.show', compact('customer'));
+    }
 }
+

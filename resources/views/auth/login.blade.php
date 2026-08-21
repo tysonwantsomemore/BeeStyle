@@ -65,17 +65,29 @@
             <a href="{{ route('auth.register') }}" class="text-danger fw-bold text-decoration-none">Đăng ký thành viên mới</a>
           </div>
 
-          <!-- Quick Test Credentials Box -->
+          <!-- Quick Test Credentials Box with 1-Click Fill -->
           <div class="p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-2">
               <i class="fa-solid fa-key text-danger"></i>
-              <strong class="small text-dark text-uppercase">Tài Khoản Mẫu Đăng Nhập:</strong>
+              <strong class="small text-dark text-uppercase">Tài Khoản Mẫu Trải Nghiệm:</strong>
             </div>
-            <div class="small text-muted mb-1">
-              • <strong>Quản Trị Viên (Admin):</strong> <code class="text-dark">admin@beestyle.com</code> / Mật khẩu: <code class="text-dark">password</code>
-            </div>
-            <div class="small text-muted">
-              • <strong>Khách Hàng (Customer):</strong> <code class="text-dark">hung.nguyen@gmail.com</code> / Mật khẩu: <code class="text-dark">password</code>
+            
+            <div class="d-flex flex-column gap-2">
+              <button type="button" class="btn btn-outline-dark btn-sm text-start py-2 d-flex justify-content-between align-items-center" onclick="document.querySelector('input[name=login_id]').value='admin@beestyle.com'; document.querySelector('input[name=password]').value='password';">
+                <div>
+                  <span class="badge bg-danger text-white me-1">ADMIN</span>
+                  <strong>admin@beestyle.com</strong>
+                </div>
+                <span class="small text-muted">Pass: <code>password</code> (Bấm để điền)</span>
+              </button>
+
+              <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 d-flex justify-content-between align-items-center" onclick="document.querySelector('input[name=login_id]').value='hung.nguyen@gmail.com'; document.querySelector('input[name=password]').value='password';">
+                <div>
+                  <span class="badge bg-secondary text-white me-1">KHÁCH</span>
+                  <strong>hung.nguyen@gmail.com</strong>
+                </div>
+                <span class="small text-muted">Pass: <code>password</code> (Bấm để điền)</span>
+              </button>
             </div>
           </div>
 

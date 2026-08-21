@@ -82,6 +82,24 @@
         @endforeach
       </div>
 
+      <!-- COMPLETED ORDER REVIEW NOTIFICATION BANNER -->
+      @if($currentOrder->status_step >= 5 || in_array($currentOrder->shipping_status, ['delivered', 'completed']))
+        <div class="alert alert-success border-0 shadow-sm p-3 p-md-4 my-4 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 5px solid #10b981 !important;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
+              <i class="fa-solid fa-gift fs-4"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold text-success mb-1 fs-6">ĐƠN HÀNG ĐÃ GIAO THÀNH CÔNG!</h6>
+              <p class="mb-0 text-muted small">Cảm ơn bạn đã mua sắm tại BeeStyle! Hãy dành 1 phút đánh giá chất lượng sản phẩm để nhận ngay <strong>+20 điểm thưởng VIP</strong> nhé.</p>
+            </div>
+          </div>
+          <a href="{{ route('client.products.show', $currentOrder->items->first()->product_id ?? 1) }}#reviews" class="btn btn-bee-primary px-4 py-2 text-nowrap">
+            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM NGAY
+          </a>
+        </div>
+      @endif
+
       <!-- ORDER DETAILS & CUSTOMER INFO -->
       <div class="row g-4 pt-3 border-top">
         <div class="col-md-6 border-end">
@@ -111,10 +129,30 @@
                     <small class="text-muted">{{ $item->color ?? 'Tiêu chuẩn' }} / Size {{ $item->size ?? 'M' }} • x{{ $item->quantity }}</small>
                   </div>
                 </div>
-                <div class="fw-bold small text-dark">{{ number_format($item->subtotal ?? ($item->price * $item->quantity), 0, ',', '.') }}₫</div>
+                <div class="text-end">
+                  <div class="fw-bold small text-dark">{{ number_format($item->subtotal ?? ($item->price * $item->quantity), 0, ',', '.') }}₫</div>
+                  @if($currentOrder->status_step >= 5 || in_array($currentOrder->shipping_status, ['delivered', 'completed']))
+                    @php
+                      $isReviewed = false;
+                      if (Auth::check()) {
+                        $isReviewed = \App\Models\Review::where('product_id', $item->product_id)->where('user_id', Auth::id())->exists();
+                      }
+                    @endphp
+                    @if($isReviewed)
+                      <span class="badge bg-success-subtle text-success py-1 px-2 mt-1 small" style="font-size: 0.72rem;">
+                        <i class="fa-solid fa-circle-check me-1"></i> Đã đánh giá
+                      </span>
+                    @else
+                      <a href="{{ route('client.products.show', $item->product_id ?? 1) }}#reviews" class="btn btn-sm btn-outline-danger py-0 px-2 text-nowrap mt-1 fw-bold" style="font-size: 0.75rem;">
+                        <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá
+                      </a>
+                    @endif
+                  @endif
+                </div>
               </div>
             @endforeach
           </div>
+
 
           <div class="mt-3 pt-2 border-top small">
             <div class="d-flex justify-content-between text-muted">

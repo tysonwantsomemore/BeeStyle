@@ -29,6 +29,7 @@ class Order extends Model
         'total_amount',
         'coupon_code',
         'admin_notes',
+        'review_notified',
     ];
 
     protected $casts = [
@@ -37,7 +38,9 @@ class Order extends Model
         'discount_amount' => 'integer',
         'shipping_fee' => 'integer',
         'total_amount' => 'integer',
+        'review_notified' => 'boolean',
     ];
+
 
     public function user()
     {

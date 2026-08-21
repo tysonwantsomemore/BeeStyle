@@ -6,68 +6,147 @@
 <div class="mb-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
-      <h3 class="fw-bold text-dark mb-1">Mã Giảm Giá &amp; Ưu Đãi</h3>
-      <p class="text-muted small mb-0">Quản lý các chương trình voucher, mã giảm giá và chiến dịch khuyến mãi</p>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">MARKETING</span>
+        <h3 class="fw-bold text-dark mb-0">Mã Giảm Giá &amp; Chiến Dịch Khuyến Mãi</h3>
+      </div>
+      <p class="text-muted small mb-0">Quản lý các chương trình voucher, mã giảm giá trực tiếp và ưu đãi vận chuyển Freeship</p>
     </div>
-    <button type="button" class="btn btn-bee-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCouponModal">
-      <i class="fa-solid fa-plus me-1"></i> Tạo Voucher Mới
+    <button type="button" class="btn btn-bee-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addCouponModal">
+      <i class="fa-solid fa-plus me-1.5"></i> Tạo Voucher Mới
     </button>
   </div>
 </div>
 
 <div class="bee-table-card">
   <div class="table-responsive">
-    <table class="table mb-0">
+    <table class="table align-middle mb-0">
       <thead>
         <tr>
           <th>Mã Voucher</th>
           <th>Tên Chương Trình</th>
-          <th>Mức Giảm</th>
+          <th>Mức Ưu Đãi</th>
           <th>Đơn Tối Thiểu</th>
           <th>Lượt Đã Dùng</th>
           <th>Hạn Sử Dụng</th>
           <th>Trạng Thái</th>
+          <th class="text-end">Hành Động</th>
         </tr>
       </thead>
       <tbody>
         @forelse($coupons as $coupon)
           <tr>
             <td>
-              <span class="badge bg-warning-subtle text-dark font-monospace fw-bold fs-9 px-2 py-1">
+              <span class="badge bg-warning-subtle text-dark font-monospace fw-bold fs-9 px-2.5 py-1 border border-warning">
                 {{ $coupon->code }}
               </span>
             </td>
-            <td><strong class="text-dark">{{ $coupon->title }}</strong></td>
+            <td><strong class="text-dark small">{{ $coupon->title }}</strong></td>
             <td>
               @if($coupon->discount_type === 'percent')
-                <span class="badge bg-danger">Giảm {{ $coupon->discount_value }}%</span>
+                <span class="badge bg-danger-subtle text-danger fw-bold py-1 px-2">Giảm {{ $coupon->discount_value }}%</span>
               @elseif($coupon->discount_type === 'shipping')
-                <span class="badge bg-info">Freeship ({{ number_format($coupon->discount_value, 0, ',', '.') }}₫)</span>
+                <span class="badge bg-info-subtle text-info fw-bold py-1 px-2">Freeship ({{ number_format($coupon->discount_value, 0, ',', '.') }}₫)</span>
               @else
-                <span class="badge bg-success">Giảm {{ number_format($coupon->discount_value, 0, ',', '.') }}₫</span>
+                <span class="badge bg-success-subtle text-success fw-bold py-1 px-2">Giảm {{ number_format($coupon->discount_value, 0, ',', '.') }}₫</span>
               @endif
             </td>
-            <td><span>{{ number_format($coupon->min_order_value, 0, ',', '.') }}₫</span></td>
+            <td><strong class="text-dark small">{{ number_format($coupon->min_order_value, 0, ',', '.') }}₫</strong></td>
             <td>
               <div class="d-flex align-items-center gap-2">
                 <span class="small fw-semibold">{{ $coupon->used_count }} / {{ $coupon->total_limit }}</span>
-                <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
+                <div class="progress flex-grow-1" style="height: 6px; width: 80px; border-radius: 99px;">
                   <div class="progress-bar bg-warning" style="width: {{ $coupon->total_limit > 0 ? min(100, ($coupon->used_count / $coupon->total_limit) * 100) : 0 }}%"></div>
                 </div>
               </div>
             </td>
-            <td><small class="text-muted">{{ $coupon->expires_at ? $coupon->expires_at->format('d/m/Y') : 'Vô thời hạn' }}</small></td>
+            <td><small class="text-muted text-nowrap">{{ $coupon->expires_at ? $coupon->expires_at->format('d/m/Y') : 'Vô thời hạn' }}</small></td>
             <td>
               @if($coupon->is_active)
-                <span class="badge bg-success-subtle text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Đang diễn ra</span>
+                <span class="badge bg-success-subtle text-success fw-bold py-1 px-2"><i class="fa-solid fa-circle-check me-1"></i> Đang diễn ra</span>
               @else
-                <span class="badge bg-secondary-subtle text-secondary fw-bold">Đã dừng</span>
+                <span class="badge bg-secondary-subtle text-muted fw-bold py-1 px-2">Đã dừng</span>
               @endif
             </td>
+            <td class="text-end">
+              <div class="d-flex align-items-center justify-content-end gap-1.5">
+                <button type="button" class="btn btn-sm btn-outline-dark py-1 px-2.5 fw-bold" data-bs-toggle="modal" data-bs-target="#editCouponModal_{{ $coupon->id }}" title="Chỉnh sửa">
+                  <i class="fa-solid fa-pen-to-square me-1"></i> Sửa
+                </button>
+                <form action="{{ route('admin.coupons.destroy', $coupon->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã voucher này?');">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Xóa voucher">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
           </tr>
+
+          <!-- MODAL EDIT COUPON -->
+          <div class="modal fade" id="editCouponModal_{{ $coupon->id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-bottom">
+                  <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Sửa Mã: {{ $coupon->code }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('admin.coupons.update', $coupon->id) }}" method="POST">
+                  @csrf
+                  @method('PUT')
+                  <div class="modal-body p-4 text-start">
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Mã code <span class="text-danger">*</span></label>
+                      <input type="text" name="code" class="form-control form-control-sm font-monospace" value="{{ old('code', $coupon->code) }}" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Tiêu đề chương trình <span class="text-danger">*</span></label>
+                      <input type="text" name="title" class="form-control form-control-sm" value="{{ old('title', $coupon->title) }}" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                      <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Loại giảm giá</label>
+                        <select name="discount_type" class="form-select form-select-sm">
+                          <option value="fixed" {{ $coupon->discount_type === 'fixed' ? 'selected' : '' }}>Tiền mặt cố định (VNĐ)</option>
+                          <option value="percent" {{ $coupon->discount_type === 'percent' ? 'selected' : '' }}>Phần trăm (%)</option>
+                          <option value="shipping" {{ $coupon->discount_type === 'shipping' ? 'selected' : '' }}>Miễn phí ship</option>
+                        </select>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Giá trị giảm <span class="text-danger">*</span></label>
+                        <input type="number" name="discount_value" class="form-control form-control-sm fw-bold" value="{{ old('discount_value', $coupon->discount_value) }}" required>
+                      </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                      <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Đơn hàng tối thiểu</label>
+                        <input type="number" name="min_order_value" class="form-control form-control-sm" value="{{ old('min_order_value', $coupon->min_order_value) }}">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Tổng lượt phát hành</label>
+                        <input type="number" name="total_limit" class="form-control form-control-sm" value="{{ old('total_limit', $coupon->total_limit) }}">
+                      </div>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="is_active" value="1" id="couponActive_{{ $coupon->id }}" {{ $coupon->is_active ? 'checked' : '' }}>
+                      <label class="form-check-label small" for="couponActive_{{ $coupon->id }}">Kích hoạt đang áp dụng</label>
+                    </div>
+                  </div>
+                  <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-bee-primary btn-sm px-3">Lưu Thay Đổi</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         @empty
           <tr>
-            <td colspan="7" class="text-center py-4 text-muted">Chưa có mã giảm giá nào.</td>
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="fa-solid fa-ticket fs-2 text-muted mb-2 d-block"></i>
+              Chưa có mã giảm giá nào được tạo.
+            </td>
           </tr>
         @endforelse
       </tbody>
@@ -88,16 +167,16 @@
         <div class="modal-body p-4">
           <div class="mb-3">
             <label class="form-label small fw-semibold">Mã code <span class="text-danger">*</span></label>
-            <input type="text" name="code" class="form-control font-monospace" placeholder="Ví dụ: SALE50K, FREESHIP..." required>
+            <input type="text" name="code" class="form-control form-control-sm font-monospace" placeholder="Ví dụ: SALE50K, FREESHIP..." required>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Tiêu đề chương trình <span class="text-danger">*</span></label>
-            <input type="text" name="title" class="form-control" placeholder="Ví dụ: Giảm 50.000đ cho đơn từ 499.000đ..." required>
+            <input type="text" name="title" class="form-control form-control-sm" placeholder="Ví dụ: Giảm 50.000đ cho đơn từ 499.000đ..." required>
           </div>
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Loại giảm giá</label>
-              <select name="discount_type" class="form-select">
+              <select name="discount_type" class="form-select form-select-sm">
                 <option value="fixed">Tiền mặt cố định (VNĐ)</option>
                 <option value="percent">Phần trăm (%)</option>
                 <option value="shipping">Miễn phí ship</option>
@@ -105,17 +184,17 @@
             </div>
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Giá trị giảm <span class="text-danger">*</span></label>
-              <input type="number" name="discount_value" class="form-control fw-bold" placeholder="50000 hoặc 15" required>
+              <input type="number" name="discount_value" class="form-control form-control-sm fw-bold" placeholder="50000 hoặc 15" required>
             </div>
           </div>
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Đơn hàng tối thiểu</label>
-              <input type="number" name="min_order_value" class="form-control" value="0" placeholder="499000">
+              <input type="number" name="min_order_value" class="form-control form-control-sm" value="0" placeholder="499000">
             </div>
             <div class="col-md-6">
               <label class="form-label small fw-semibold">Tổng lượt phát hành</label>
-              <input type="number" name="total_limit" class="form-control" value="1000" placeholder="1000">
+              <input type="number" name="total_limit" class="form-control form-control-sm" value="1000" placeholder="1000">
             </div>
           </div>
         </div>

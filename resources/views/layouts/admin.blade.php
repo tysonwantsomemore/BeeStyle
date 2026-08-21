@@ -38,100 +38,93 @@
         <div class="navbar-vertical-content">
           <ul class="navbar-nav flex-column" id="navbarVerticalNav">
             
-            <!-- ADMIN LOGO -->
-            <li class="nav-item mb-3 px-3 pt-2">
-              <a href="{{ route('admin.dashboard') }}" class="beestyle-logo text-white">
-                <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-                <span class="text-white">Bee<span class="brand-highlight">Style</span> <small class="badge bg-warning text-dark fs-10 px-1 py-0 ms-1">ADMIN</small></span>
+            <!-- ADMIN UNIFIED LOGO -->
+            <li class="nav-item mb-4 px-3 pt-3">
+              <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
+                <span class="fs-4 fw-black text-white" style="letter-spacing: 1.5px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 900;">
+                  BEE<span class="text-warning">STYLE</span>
+                </span>
               </a>
             </li>
 
-            <!-- DASHBOARD -->
+
+            <!-- TỔNG QUAN HỆ THỐNG -->
             <li class="nav-item">
+              <p class="navbar-vertical-label">Tổng Quan Hệ Thống</p>
               <div class="nav-item-wrapper">
                 <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-chart-pie"></i></span>
-                    <span class="nav-link-text">Tổng Quan (Dashboard)</span>
-                  </div>
+                  <span class="nav-link-icon"><i class="fa-solid fa-chart-pie"></i></span>
+                  <span class="nav-link-text">Bảng Điều Khiển (Dashboard)</span>
                 </a>
               </div>
             </li>
 
-            <!-- SẢN PHẨM & DANH MỤC -->
+            <!-- SẢN PHẨM & KHO HÀNG -->
             <li class="nav-item">
-              <p class="navbar-vertical-label">Sản Phẩm &amp; Danh Mục</p>
+              <p class="navbar-vertical-label">Sản Phẩm &amp; Kho Hàng</p>
               <div class="nav-item-wrapper">
                 <a class="nav-link {{ request()->routeIs('admin.products.index') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-shirt"></i></span>
-                    <span class="nav-link-text">Danh Sách Sản Phẩm</span>
-                  </div>
+                  <span class="nav-link-icon"><i class="fa-solid fa-shirt"></i></span>
+                  <span class="nav-link-text">Tất Cả Sản Phẩm</span>
                 </a>
               </div>
               <div class="nav-item-wrapper">
                 <a class="nav-link {{ request()->routeIs('admin.products.create') ? 'active' : '' }}" href="{{ route('admin.products.create') }}">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-plus-circle"></i></span>
-                    <span class="nav-link-text">Thêm Mới Sản Phẩm</span>
-                  </div>
+                  <span class="nav-link-icon"><i class="fa-solid fa-square-plus"></i></span>
+                  <span class="nav-link-text">Thêm Sản Phẩm Mới</span>
                 </a>
               </div>
               <div class="nav-item-wrapper">
-                <a class="nav-link {{ request()->routeIs('admin.categories.index') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-layer-group"></i></span>
-                    <span class="nav-link-text">Danh Mục Thời Trang</span>
-                  </div>
+                <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-layer-group"></i></span>
+                  <span class="nav-link-text">Danh Mục Áo Nam</span>
                 </a>
               </div>
             </li>
 
             <!-- ĐƠN HÀNG & GIAO DỊCH -->
             <li class="nav-item">
-              <p class="navbar-vertical-label">Đơn Hàng &amp; Giao Dịch</p>
+              <p class="navbar-vertical-label">Đơn Hàng &amp; Vận Chuyển</p>
               <div class="nav-item-wrapper">
                 <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-cart-shopping"></i></span>
-                    <span class="nav-link-text">Quản Lý Đơn Hàng</span>
-                  </div>
+                  <span class="nav-link-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+                  <span class="nav-link-text">Quản Lý Đơn Hàng</span>
                 </a>
               </div>
             </li>
 
-            <!-- KHÁCH HÀNG & MARKETING -->
+            <!-- KHÁCH HÀNG & PHẢN HỒI -->
             <li class="nav-item">
-              <p class="navbar-vertical-label">Khách Hàng &amp; Marketing</p>
+              <p class="navbar-vertical-label">Khách Hàng &amp; Đánh Giá</p>
               <div class="nav-item-wrapper">
-                <a class="nav-link {{ request()->routeIs('admin.customers.index') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-users"></i></span>
-                    <span class="nav-link-text">Danh Sách Khách Hàng</span>
-                  </div>
+                <a class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-users"></i></span>
+                  <span class="nav-link-text">Tài Khoản Khách Hàng</span>
                 </a>
               </div>
               <div class="nav-item-wrapper">
-                <a class="nav-link {{ request()->routeIs('admin.coupons.index') ? 'active' : '' }}" href="{{ route('admin.coupons.index') }}">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon"><i class="fa-solid fa-ticket"></i></span>
-                    <span class="nav-link-text">Mã Giảm Giá (Voucher)</span>
-                  </div>
+                <a class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}" href="{{ route('admin.reviews.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-star"></i></span>
+                  <span class="nav-link-text">Đánh Giá &amp; Nhận Xét</span>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}" href="{{ route('admin.coupons.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-tags"></i></span>
+                  <span class="nav-link-text">Mã Giảm Giá (Voucher)</span>
                 </a>
               </div>
             </li>
 
             <!-- TRỞ VỀ CỬA HÀNG -->
-            <li class="nav-item mt-3 pt-3 border-top border-secondary">
-              <div class="nav-item-wrapper">
-                <a class="nav-link text-warning fw-bold" href="{{ route('client.home') }}" target="_blank">
-                  <div class="d-flex align-items-center">
-                    <span class="nav-link-icon text-warning"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-                    <span class="nav-link-text">Xem Website Cửa Hàng</span>
-                  </div>
-                </a>
-              </div>
+            <li class="nav-item mt-4 pt-3 border-top border-secondary border-opacity-25 px-2">
+              <a class="btn btn-bee-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2" href="{{ route('client.home') }}" target="_blank">
+                <i class="fa-solid fa-store"></i>
+                <span>Xem Cửa Hàng Web</span>
+                <i class="fa-solid fa-arrow-up-right-from-square fs-11"></i>
+              </a>
             </li>
+
 
           </ul>
         </div>
@@ -147,9 +140,10 @@
           </button>
           <a class="navbar-brand me-1 me-sm-3 d-lg-none" href="{{ route('admin.dashboard') }}">
             <div class="d-flex align-items-center">
-              <i class="fa-solid fa-gem text-warning fs-4 me-2"></i><p class="logo-text ms-2 d-none d-sm-block">BeeStyle</p>
+              <span class="fs-5 fw-black text-dark" style="letter-spacing: 1px;">BEE<span class="text-warning">STYLE</span></span>
             </div>
           </a>
+
         </div>
 
         <div class="search-box navbar-top-search-box d-none d-lg-block" style="width:25rem;">
@@ -175,8 +169,9 @@
             <div class="dropdown-menu dropdown-menu-end py-2 shadow-lg border-0 mt-2" style="border-radius: 12px; min-width: 220px;">
               <a class="dropdown-item py-2" href="{{ route('client.home') }}" target="_blank"><i class="fa-solid fa-store me-2 text-warning"></i> Xem Cửa Hàng Web</a>
               <a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-chart-pie me-2 text-secondary"></i> Bảng Tổng Quan</a>
-              <a class="dropdown-item py-2" href="{{ route('client.profile', ['tab' => 'security']) }}"><i class="fa-solid fa-key me-2 text-primary"></i> Đổi Mật Khẩu</a>
+              <a class="dropdown-item py-2" href="{{ route('client.profile', ['tab' => 'password']) }}"><i class="fa-solid fa-key me-2 text-primary"></i> Đổi Mật Khẩu</a>
               <div class="dropdown-divider"></div>
+
               <form action="{{ route('auth.logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="dropdown-item py-2 text-danger">
@@ -208,7 +203,7 @@
         </div>
       @endif
 
-      @if($errors->any())
+      @if(isset($errors) && $errors->any())
         <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
           <ul class="mb-0 small ps-3">
             @foreach ($errors->all() as $error)
@@ -218,6 +213,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
       @endif
+
 
       <!-- MAIN PAGE CONTENT -->
       @yield('content')
