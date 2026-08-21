@@ -229,17 +229,23 @@
                         {{ $order->payment_status_label }}
                       </span>
                     </div>
-                    <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
                       <div>
                         <span class="small text-muted">Tổng tiền: </span>
                         <strong class="text-danger fs-6">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong>
                       </div>
+                      @if($order->payment_method === 'vietqr' && $order->payment_status !== 'paid')
+                        <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="btn btn-sm btn-bee-primary fw-bold px-3">
+                          <i class="fa-solid fa-qrcode me-1"></i> Quét Mã VietQR
+                        </a>
+                      @endif
                       <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="btn btn-sm btn-bee-outline">
                         <i class="fa-solid fa-truck-fast me-1"></i> Tra Cứu Vận Chuyển
                       </a>
                     </div>
                   </div>
                 </div>
+
               @empty
                 <div class="text-center py-5">
                   <i class="fa-solid fa-bag-shopping fs-1 text-muted mb-2"></i>

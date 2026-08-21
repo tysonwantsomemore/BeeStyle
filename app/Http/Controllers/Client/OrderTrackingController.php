@@ -25,4 +25,20 @@ class OrderTrackingController extends Controller
 
         return view('client.order-tracking', compact('currentOrder', 'code'));
     }
+
+    /**
+     * Khách hàng xác nhận đã chuyển khoản VietQR thành công
+     */
+    public function confirmTransfer($code)
+    {
+        $order = Order::where('order_code', $code)->firstOrFail();
+        
+        $order->update([
+            'payment_status' => 'paid',
+        ]);
+
+        return redirect()->route('client.order-tracking', ['code' => $code])
+            ->with('success', "Thành công! BeeStyle đã nhận được xác nhận thanh toán VietQR cho đơn hàng #{$code}. Chúng tôi đang chuẩn bị gửi hàng cho bạn!");
+    }
 }
+

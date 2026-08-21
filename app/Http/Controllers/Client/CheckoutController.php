@@ -88,8 +88,9 @@ class CheckoutController extends Controller
                 'district' => $validated['district'] ?? '',
                 'notes' => $validated['notes'],
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => ($validated['payment_method'] === 'cod') ? 'unpaid' : 'paid',
+                'payment_status' => in_array($validated['payment_method'], ['cod', 'vietqr']) ? 'unpaid' : 'paid',
                 'shipping_status' => 'pending',
+
                 'status_step' => 1,
                 'subtotal' => $cartData['subtotal'],
                 'discount_amount' => $cartData['discount'],

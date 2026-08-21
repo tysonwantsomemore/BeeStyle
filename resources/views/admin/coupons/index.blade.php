@@ -124,14 +124,25 @@
                         <input type="number" name="min_order_value" class="form-control form-control-sm" value="{{ old('min_order_value', $coupon->min_order_value) }}">
                       </div>
                       <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Giảm tối đa (VNĐ)</label>
+                        <input type="number" name="max_discount_value" class="form-control form-control-sm" value="{{ old('max_discount_value', $coupon->max_discount_value) }}" placeholder="Bỏ trống nếu không giới hạn">
+                      </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                      <div class="col-md-6">
                         <label class="form-label small fw-semibold">Tổng lượt phát hành</label>
                         <input type="number" name="total_limit" class="form-control form-control-sm" value="{{ old('total_limit', $coupon->total_limit) }}">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Hạn sử dụng</label>
+                        <input type="date" name="expires_at" class="form-control form-control-sm" value="{{ $coupon->expires_at ? $coupon->expires_at->format('Y-m-d') : '' }}">
                       </div>
                     </div>
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" name="is_active" value="1" id="couponActive_{{ $coupon->id }}" {{ $coupon->is_active ? 'checked' : '' }}>
-                      <label class="form-check-label small" for="couponActive_{{ $coupon->id }}">Kích hoạt đang áp dụng</label>
+                      <label class="form-check-label small" for="couponActive_{{ $coupon->id }}">Kích hoạt đang áp dụng (Hiển thị cho khách hàng)</label>
                     </div>
+
                   </div>
                   <div class="modal-footer border-top">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>

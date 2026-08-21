@@ -19,6 +19,9 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\RevenueController as AdminRevenueController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -74,6 +77,8 @@ Route::name('client.')->group(function () {
     
     // Order Tracking (Public)
     Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
+    Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
+
 
     // Customer Account Profile & Settings (Protected by Auth)
     Route::middleware('auth')->group(function () {
@@ -92,6 +97,10 @@ Route::name('client.')->group(function () {
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/revenue-data', [DashboardController::class, 'getRevenueData'])->name('dashboard.revenueData');
+    Route::get('/revenue/monthly', [AdminRevenueController::class, 'monthly'])->name('revenue.monthly');
+
+
     
     // Products Management
     Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
