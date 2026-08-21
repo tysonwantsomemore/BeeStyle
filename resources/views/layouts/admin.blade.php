@@ -91,7 +91,14 @@
                   <span class="nav-link-text">Quản Lý Đơn Hàng</span>
                 </a>
               </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.revenue.*') ? 'active' : '' }}" href="{{ route('admin.revenue.monthly') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-sack-dollar text-warning"></i></span>
+                  <span class="nav-link-text">Doanh Thu Tháng Này</span>
+                </a>
+              </div>
             </li>
+
 
             <!-- KHÁCH HÀNG & PHẢN HỒI -->
             <li class="nav-item">
@@ -226,6 +233,9 @@
     </div>
   </main>
 
+  <!-- Chart.js for Admin Analytics Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Core JavaScripts -->
   <script src="{{ asset('vendors/bootstrap/bootstrap.min.js') }}"></script>
   <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
@@ -238,3 +248,4 @@
   @stack('scripts')
 </body>
 </html>
+

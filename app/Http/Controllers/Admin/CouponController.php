@@ -53,7 +53,9 @@ class CouponController extends Controller
             'discount_type' => 'required|string|in:fixed,percent,shipping',
             'discount_value' => 'required|numeric|min:1',
             'min_order_value' => 'nullable|numeric|min:0',
+            'max_discount_value' => 'nullable|numeric|min:0',
             'total_limit' => 'nullable|integer|min:1',
+            'expires_at' => 'nullable|date',
             'is_active' => 'nullable|boolean',
         ]);
 
@@ -63,12 +65,15 @@ class CouponController extends Controller
             'discount_type' => $validated['discount_type'],
             'discount_value' => $validated['discount_value'],
             'min_order_value' => $validated['min_order_value'] ?? 0,
+            'max_discount_value' => $validated['max_discount_value'] ?? $coupon->max_discount_value,
             'total_limit' => $validated['total_limit'] ?? $coupon->total_limit,
+            'expires_at' => $validated['expires_at'] ?? $coupon->expires_at,
             'is_active' => $request->has('is_active') ? (bool)$request->is_active : $coupon->is_active,
         ]);
 
         return redirect()->route('admin.coupons.index')->with('success', 'Đã cập nhật mã giảm giá thành công!');
     }
+
 
     public function destroy($id)
     {
