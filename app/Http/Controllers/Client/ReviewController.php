@@ -12,7 +12,69 @@ use Illuminate\Support\Facades\Auth;
 class ReviewController extends Controller
 {
     /**
-     * Store a product review from a verified buyer.
+     * Lấy dữ liệu chi tiết sản phẩm và toàn bộ đánh giá của khách hàng
+     */
+    public function getProductReviewsData($id)
+    {
+        $product = Product::active()->findOrFail($id);
+        $user = Auth::user();
+
+        $userReview = null;
+        $userHasPurchased = false;
+
+        if ($user) {
+            $userHasPurchased = Order::where('user_id', $user->id)
+                ->whereHas('items', fn($q) => $q->where('product_id', $product->id))
+                ->exists();
+
+            $userReview = Review::where('product_id', $product->id)
+                ->where('user_id', $user->id)
+                ->first();
+        }
+
+        $reviews = Review::where('product_id', $product->id)
+            ->where('status', 'approved')
+            ->with('user')
+            ->latest()
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'user_name' => $r->user_name,
+                    'user_avatar' => asset($r->user->avatar ?? '/assets/img/team/40x40/58.webp'),
+                    'rating' => $r->rating,
+                    'comment' => $r->comment,
+                    'created_at' => $r->created_at ? $r->created_at->format('d/m/Y H:i') : '',
+                    'time_ago' => $r->created_at ? $r->created_at->diffForHumans() : 'Vừa xong',
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'image' => asset($product->image),
+                'price' => number_format($product->price, 0, ',', '.') . '₫',
+                'raw_price' => $product->price,
+                'rating' => (float)$product->rating,
+                'reviews_count' => (int)$product->reviews_count,
+                'category_name' => $product->category->name ?? 'Thời Trang Nam',
+                'url' => route('client.products.show', $product->id),
+            ],
+            'user_has_purchased' => $userHasPurchased,
+            'user_review' => $userReview ? [
+                'rating' => $userReview->rating,
+                'comment' => $userReview->comment,
+                'updated_at' => $userReview->updated_at ? $userReview->updated_at->format('d/m/Y H:i') : '',
+            ] : null,
+            'reviews' => $reviews,
+        ]);
+    }
+
+    /**
+     * Store or update a product review from a verified buyer.
      */
     public function store(Request $request, $id)
     {
@@ -27,6 +89,12 @@ class ReviewController extends Controller
             ->exists();
 
         if (!$hasPurchased) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Chức năng đánh giá chỉ dành cho khách hàng đã từng đặt mua sản phẩm này tại BeeStyle!'
+                ], 403);
+            }
             return back()->with('error', 'Chức năng đánh giá chỉ dành cho khách hàng đã từng đặt mua sản phẩm này tại BeeStyle!');
         }
 
@@ -43,8 +111,12 @@ class ReviewController extends Controller
             'comment.max' => 'Nội dung nhận xét tối đa 1000 ký tự.',
         ]);
 
-        // 3. Lưu hoặc Cập nhật đánh giá của user đối với sản phẩm này
-        Review::updateOrCreate(
+        // 3. Kiểm tra xem đã từng đánh giá sản phẩm này chưa
+        $existingReview = Review::where('product_id', $product->id)->where('user_id', $user->id)->first();
+        $isFirstTime = !$existingReview;
+
+        // Lưu hoặc Cập nhật đánh giá của user đối với sản phẩm này
+        $review = Review::updateOrCreate(
             [
                 'product_id' => $product->id,
                 'user_id' => $user->id,
@@ -57,6 +129,11 @@ class ReviewController extends Controller
             ]
         );
 
+        // Cộng 20 điểm thưởng VIP nếu đánh giá lần đầu
+        if ($isFirstTime) {
+            $user->increment('points', 20);
+        }
+
         // 4. Tính toán lại điểm Rating trung bình & Tổng số lượt đánh giá của sản phẩm
         $approvedReviews = Review::where('product_id', $product->id)->where('status', 'approved');
         $avgRating = $approvedReviews->avg('rating') ?: 5.0;
@@ -67,6 +144,38 @@ class ReviewController extends Controller
             'reviews_count' => $reviewsCount,
         ]);
 
-        return back()->with('success', 'Cảm ơn bạn đã gửi đánh giá & nhận xét về sản phẩm "' . $product->name . '"!');
+        $msg = $isFirstTime 
+            ? 'Cảm ơn bạn đã đánh giá sản phẩm "' . $product->name . '"! Bạn nhận được +20 điểm thưởng VIP.' 
+            : 'Đã cập nhật đánh giá & nhận xét của bạn về sản phẩm "' . $product->name . '" thành công!';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'is_first_time' => $isFirstTime,
+                'rating' => (int)$validated['rating'],
+                'comment' => $validated['comment'],
+                'product_rating' => round($avgRating, 1),
+                'product_reviews_count' => $reviewsCount,
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Đánh dấu các đơn hàng đã được hiển thị thông báo đánh giá 1 lần duy nhất
+     */
+    public function dismissNotification(Request $request)
+    {
+        $orderIds = $request->input('order_ids', []);
+        if (Auth::check() && !empty($orderIds)) {
+            Auth::user()->markOrdersAsReviewNotified((array)$orderIds);
+        }
+
+        return response()->json(['success' => true]);
     }
 }
+
+
+

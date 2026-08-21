@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
+use App\Models\Order; 
 use Illuminate\Http\Request;
 
 class OrderTrackingController extends Controller

@@ -109,7 +109,22 @@ class Product extends Model
         return $this->product_type === 'variant' && $this->variants()->exists();
     }
 
+    /**
+     * Accessor tính toán % giảm giá chính xác
+     */
+    public function getDiscountPercentAttribute($value)
+    {
+        if ($value && $value > 0) {
+            return (int)$value;
+        }
+        if ($this->original_price && $this->original_price > $this->price) {
+            return (int)round((($this->original_price - $this->price) / $this->original_price) * 100);
+        }
+        return 0;
+    }
+
     // Phạm vi truy vấn (Scopes)
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

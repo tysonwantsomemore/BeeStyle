@@ -12,7 +12,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::parents()
+        $categories = Category::active()
             ->with(['activeChildren' => function($q) {
                 $q->withCount(['products' => fn($p) => $p->where('status', 'active')]);
             }])
@@ -22,13 +22,6 @@ class ProductController extends Controller
         $brands = Brand::active()
             ->withCount(['products' => fn($q) => $q->where('status', 'active')])
             ->get();
-            
-        // Update count for BST Mới
-        foreach ($categories as $c) {
-            if ($c->slug === 'bo-suu-tap-ao-moi') {
-                $c->products_count = Product::active()->where('is_new', true)->count();
-            }
-        }
 
         $categorySlug = $request->query('category');
         $brandSlug = $request->query('brand');
@@ -40,10 +33,8 @@ class ProductController extends Controller
 
         $query = Product::with(['category', 'brand', 'variants'])->active();
 
-        // Bộ lọc Danh mục (Kết hợp: Xử lý BST Mới + Phân cấp danh mục cha/con)
-        if ($categorySlug === 'bo-suu-tap-ao-moi') {
-            $query->where('is_new', true);
-        } elseif ($categorySlug) {
+        // Bộ lọc Danh mục
+        if ($categorySlug) {
             $cat = Category::where('slug', $categorySlug)->first();
             if ($cat) {
                 if ($cat->children()->exists()) {

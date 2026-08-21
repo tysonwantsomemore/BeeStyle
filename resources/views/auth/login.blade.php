@@ -73,10 +73,10 @@
             </div>
             
             <div class="d-flex flex-column gap-2">
-              <button type="button" class="btn btn-outline-dark btn-sm text-start py-2 d-flex justify-content-between align-items-center" onclick="document.querySelector('input[name=login_id]').value='admin@beestyle.vn'; document.querySelector('input[name=password]').value='password';">
+              <button type="button" class="btn btn-outline-dark btn-sm text-start py-2 d-flex justify-content-between align-items-center" onclick="document.querySelector('input[name=login_id]').value='admin@beestyle.com'; document.querySelector('input[name=password]').value='password';">
                 <div>
                   <span class="badge bg-danger text-white me-1">ADMIN</span>
-                  <strong>admin@beestyle.vn</strong>
+                  <strong>admin@beestyle.com</strong>
                 </div>
                 <span class="small text-muted">Pass: <code>password</code> (Bấm để điền)</span>
               </button>

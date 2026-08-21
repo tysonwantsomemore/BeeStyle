@@ -36,10 +36,10 @@
 
         <hr class="my-2 border-secondary-subtle">
 
-        <!-- 1. HIERARCHICAL CATEGORIES FILTER (Phân Cấp Cha - Con) -->
+        <!-- 1. CATEGORIES FILTER -->
         <div class="mb-4">
           <h6 class="fw-bold text-dark small text-uppercase mb-3">
-            <i class="fa-solid fa-layer-group me-1 text-warning"></i> Danh Mục Phân Cấp
+            <i class="fa-solid fa-layer-group me-1 text-warning"></i> Danh Mục Sản Phẩm
           </h6>
           <div class="d-flex flex-column gap-2 small">
             <a href="{{ route('client.products.index', array_merge(request()->except(['category', 'page']))) }}" class="d-flex justify-content-between align-items-center text-decoration-none {{ empty($categorySlug) ? 'fw-bold text-warning' : 'text-muted' }}">
@@ -112,16 +112,36 @@
         <hr class="my-2 border-secondary-subtle">
 
         <!-- 4. SIZE FILTER -->
-        <div class="mb-3">
-          <h6 class="fw-bold text-dark small text-uppercase mb-3">Kích Thước Size</h6>
+        <div class="mb-4">
+          <h6 class="fw-bold text-dark small text-uppercase mb-3">
+            <i class="fa-solid fa-ruler-combined me-1 text-warning"></i> Kích Thước (Size Áo)
+          </h6>
           <div class="d-flex flex-wrap gap-2">
-            @foreach(['M', 'L', 'XL', 'XXL', '29', '30', '31', '32', '33', '34', '39', '40', '41', '42'] as $size)
-              <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['size' => (request('size') === $size ? null : $size)])) }}" class="btn btn-sm {{ request('size') === $size ? 'btn-warning text-dark fw-bold' : 'btn-outline-secondary' }} px-2 py-1 fw-semibold" style="border-radius: 6px; font-size: 0.8rem;">
+            @foreach(['S', 'M', 'L', 'XL', 'XXL', '3XL'] as $size)
+              <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['size' => (request('size') === $size ? null : $size)])) }}" class="btn btn-sm {{ request('size') === $size ? 'btn-bee-primary text-white fw-bold' : 'btn-outline-secondary' }} px-3 py-1 fw-semibold rounded-2" style="font-size: 0.8rem;">
                 {{ $size }}
               </a>
             @endforeach
           </div>
         </div>
+
+        <hr class="my-2 border-secondary-subtle">
+
+        <!-- 5. COLOR FILTER -->
+        <div class="mb-3">
+          <h6 class="fw-bold text-dark small text-uppercase mb-3">
+            <i class="fa-solid fa-palette me-1 text-warning"></i> Gam Màu Phổ Biến
+          </h6>
+          <div class="d-flex flex-wrap gap-1.5">
+            @foreach(['Đen', 'Trắng', 'Xanh Navy', 'Xám', 'Xanh Rêu', 'Beige'] as $col)
+              <a href="{{ route('client.products.index', array_merge(request()->except('page'), ['color' => (request('color') === $col ? null : $col)])) }}" class="badge {{ request('color') === $col ? 'bg-dark text-warning border-warning' : 'bg-light text-dark border' }} py-1.5 px-2 text-decoration-none fw-semibold rounded-pill" style="font-size: 0.75rem;">
+                <i class="fa-solid fa-circle me-1 {{ $col === 'Trắng' ? 'text-secondary' : ($col === 'Đen' ? 'text-dark' : ($col === 'Xanh Navy' ? 'text-primary' : 'text-warning')) }}"></i>
+                {{ $col }}
+              </a>
+            @endforeach
+          </div>
+        </div>
+
       </div>
     </div>
 

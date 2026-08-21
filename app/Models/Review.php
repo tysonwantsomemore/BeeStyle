@@ -22,6 +22,19 @@ class Review extends Model
         'rating' => 'integer',
     ];
 
+    protected $appends = [
+        'user_avatar_url',
+    ];
+
+    public function getUserAvatarUrlAttribute(): string
+    {
+        if ($this->user) {
+            return $this->user->avatar_url;
+        }
+        $name = urlencode($this->user_name ?: 'Khách Hàng');
+        return "https://ui-avatars.com/api/?name={$name}&background=f59e0b&color=111827&bold=true&size=128";
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -31,4 +44,5 @@ class Review extends Model
     {
         return $this->belongsTo(User::class);
     }
+
 }

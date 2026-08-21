@@ -37,4 +37,39 @@ class CategoryController extends Controller
 
         return redirect()->route('admin.categories.index')->with('success', 'Đã thêm danh mục thời trang mới thành công!');
     }
+
+    public function update(Request $request, $id)
+    {
+        $category = Category::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'icon' => 'nullable|string|max:100',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $category->update([
+            'name' => $validated['name'],
+            'slug' => Str::slug($validated['name']),
+            'icon' => $validated['icon'] ?? $category->icon,
+            'description' => $validated['description'] ?? $category->description,
+            'is_active' => $request->has('is_active') ? (bool)$request->is_active : true,
+        ]);
+
+        return redirect()->route('admin.categories.index')->with('success', 'Đã cập nhật thông tin danh mục thành công!');
+    }
+
+    public function destroy($id)
+    {
+        $category = Category::withCount('products')->findOrFail($id);
+
+        if ($category->products_count > 0) {
+            return redirect()->route('admin.categories.index')->with('error', 'Không thể xóa danh mục đang có chứa ' . $category->products_count . ' sản phẩm!');
+        }
+
+        $category->delete();
+
+        return redirect()->route('admin.categories.index')->with('success', 'Đã xóa danh mục thành công!');
+    }
 }
