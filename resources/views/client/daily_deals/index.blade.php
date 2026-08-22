@@ -166,7 +166,7 @@
           $isRunning = $deal->is_running;
         @endphp
         @if($product)
-          <div class="col-lg-3 col-md-4 col-6">
+          <div class="col-lg-3 col-md-4 col-6" id="deal-card-{{ $deal->id }}">
             <div class="bee-product-card h-100 d-flex flex-column position-relative shadow-xs" style="border: 1px solid #ffe4e6;">
               
               <!-- BADGE GIẢM GIÁ -->

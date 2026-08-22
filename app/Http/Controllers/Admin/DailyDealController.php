@@ -15,7 +15,14 @@ class DailyDealController extends Controller
         $search = $request->query('q');
         $dateFilter = $request->query('date');
 
-        $query = DailyDeal::with(['product.category', 'product.brand'])->latest('id');
+        $query = DailyDeal::with([
+            'product.category',
+            'product.brand',
+            'product.allReviews.user',
+            'product.orderItems' => function($q) {
+                $q->with('order.user')->latest('id');
+            }
+        ])->latest('id');
 
         // Tìm kiếm theo tên sản phẩm hoặc mã SKU
         if ($search) {
@@ -40,6 +47,10 @@ class DailyDealController extends Controller
         // Lọc theo trạng thái
         if ($statusFilter === 'running') {
             $query->runningNow();
+        } elseif ($statusFilter === 'today') {
+            $query->forToday();
+        } elseif ($statusFilter === 'sold') {
+            $query->where('sold_count', '>', 0)->reorder('sold_count', 'desc');
         } elseif ($statusFilter === 'upcoming') {
             $query->upcomingToday();
         } elseif ($statusFilter === 'inactive') {
@@ -59,6 +70,7 @@ class DailyDealController extends Controller
         $runningDealsCount = DailyDeal::runningNow()->count();
         $todayDealsCount = DailyDeal::forToday()->count();
         $totalSoldInDeals = DailyDeal::sum('sold_count');
+        $totalDealRevenue = DailyDeal::all()->sum(fn($d) => $d->sold_count * $d->deal_price);
 
         return view('admin.daily_deals.index', compact(
             'deals',
@@ -69,7 +81,8 @@ class DailyDealController extends Controller
             'totalDeals',
             'runningDealsCount',
             'todayDealsCount',
-            'totalSoldInDeals'
+            'totalSoldInDeals',
+            'totalDealRevenue'
         ));
     }
 
