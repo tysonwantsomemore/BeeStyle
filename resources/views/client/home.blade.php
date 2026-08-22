@@ -339,7 +339,7 @@
       </div>
 
       <div class="row g-3">
-        @foreach($runningDailyDeals->take(4) as $deal)
+        @foreach($runningDailyDeals as $deal)
           @php
             $product = $deal->product;
           @endphp

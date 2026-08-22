@@ -99,6 +99,11 @@ class Product extends Model
         return $this->hasMany(Review::class)->where('status', 'approved')->orderBy('created_at', 'desc');
     }
 
+    public function allReviews()
+    {
+        return $this->hasMany(Review::class)->orderBy('created_at', 'desc');
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
