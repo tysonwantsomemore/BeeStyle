@@ -93,6 +93,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Quản lý danh mục sản phẩm
     Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{id}', [AdminCategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::patch('/categories/{id}/toggle-status', [AdminCategoryController::class, 'toggleStatus'])->name('categories.toggleStatus');
 
     // Quản lý đơn hàng
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
