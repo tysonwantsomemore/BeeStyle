@@ -121,6 +121,13 @@
                   <span class="nav-link-text">Mã Giảm Giá (Voucher)</span>
                 </a>
               </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.daily-deals.*') ? 'active' : '' }}" href="{{ route('admin.daily-deals.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-bolt text-warning"></i></span>
+                  <span class="nav-link-text">Ưu Đãi Trong Ngày</span>
+                  <span class="badge bg-danger ms-auto fs-10 px-1.5 py-0.5 rounded-pill">HOT</span>
+                </a>
+              </div>
             </li>
 
             <!-- TRỞ VỀ CỬA HÀNG -->

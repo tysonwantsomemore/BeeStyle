@@ -615,5 +615,8 @@ class DatabaseSeeder extends Seeder
             'status' => 'approved',
             'created_at' => now()->subHours(4),
         ]);
+
+        // 8. ƯU ĐÃI TRONG NGÀY (DAILY DEALS)
+        $this->call(DailyDealSeeder::class);
     }
 }

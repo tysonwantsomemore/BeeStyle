@@ -120,6 +120,14 @@ class CheckoutController extends Controller
                     $product->decrement('stock', $item['quantity']);
                     $product->increment('sold_count', $item['quantity']);
                 }
+
+                // Cập nhật số lượng đã bán của chương trình Ưu Đãi Trong Ngày (Daily Deal)
+                if (!empty($item['deal_id'])) {
+                    $deal = \App\Models\DailyDeal::find($item['deal_id']);
+                    if ($deal) {
+                        $deal->increment('sold_count', $item['quantity']);
+                    }
+                }
             }
 
             // Cập nhật số lượt sử dụng mã giảm giá (nếu có)

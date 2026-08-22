@@ -1,5 +1,5 @@
 <?php
-
+ 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 
@@ -12,12 +12,14 @@ use App\Http\Controllers\Client\OrderTrackingController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\ReviewController;
 
+use App\Http\Controllers\Client\WishlistController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Admin\DailyDealController as AdminDailyDealController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\RevenueController as AdminRevenueController;
 
@@ -47,8 +49,11 @@ Route::name('auth.')->group(function () {
 */
 Route::name('client.')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/uu-dai-trong-ngay', [ClientProductController::class, 'dailyDeals'])->name('daily-deals.index');
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
+    Route::get('/san-pham/api-quick-view/{id}', [ClientProductController::class, 'getQuickViewData'])->name('products.quickView');
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
+
     
     // Brands
     Route::get('/thuong-hieu', [ClientBrandController::class, 'index'])->name('brands.index');
@@ -60,34 +65,39 @@ Route::name('client.')->group(function () {
     Route::post('/danh-dau-thong-bao-danh-gia', [ReviewController::class, 'dismissNotification'])->middleware('auth')->name('reviews.dismissNotification');
 
 
-    // Cart Routes (Khách vãng lai và Thành viên đều tự do thêm/sửa/xóa sản phẩm vào giỏ hàng)
-    Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
-    Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
-    Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
-    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-    Route::delete('/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
-    
-    // Checkout Routes (BẮT BUỘC ĐĂNG NHẬP: Khách hàng phải đăng nhập mới được tiến hành thanh toán & lưu đơn hàng)
+    // CÁC TÍNH NĂNG BẮT BUỘC ĐĂNG NHẬP: YÊU THÍCH, GIỎ HÀNG, THANH TOÁN, TRA CỨU ĐƠN HÀNG, TÀI KHOẢN
     Route::middleware('auth')->group(function () {
+        // Wishlist Routes (Sản phẩm yêu thích)
+        Route::get('/san-pham-yeu-thich', [WishlistController::class, 'index'])->name('wishlist.index');
+        Route::post('/san-pham-yeu-thich/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+        Route::delete('/san-pham-yeu-thich/xoa/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+        Route::post('/san-pham-yeu-thich/xoa-tat-ca', [WishlistController::class, 'clear'])->name('wishlist.clear');
+
+        // Cart Routes (Giỏ hàng & Thao tác)
+        Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
+        Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
+        Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
+        Route::delete('/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+        Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
+        Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
+        Route::delete('/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
+        
+        // Checkout Routes (Thanh toán đơn hàng)
         Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
         Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
-    });
-    
-    // Order Tracking (Public)
-    Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
-    Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
+        
+        // Order Tracking (Tra cứu đơn hàng)
+        Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
+        Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
 
-
-    // Customer Account Profile & Settings (Protected by Auth)
-    Route::middleware('auth')->group(function () {
+        // Customer Account Profile & Settings
         Route::get('/tai-khoan', [ProfileController::class, 'index'])->name('profile');
         Route::put('/tai-khoan/cap-nhat', [ProfileController::class, 'updateProfile'])->name('profile.update');
         Route::put('/tai-khoan/doi-mat-khau', [ProfileController::class, 'updatePassword'])->name('profile.password');
         Route::post('/tai-khoan/dia-chi', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
         Route::delete('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'deleteAddress'])->name('profile.address.delete');
     });
+
 });
 
 /*
@@ -129,6 +139,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::post('/reviews/{id}/status', [AdminReviewController::class, 'updateStatus'])->name('reviews.updateStatus');
     Route::delete('/reviews/{id}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Daily Deals / Ưu Đãi Trong Ngày Management
+    Route::get('/daily-deals', [AdminDailyDealController::class, 'index'])->name('daily-deals.index');
+    Route::post('/daily-deals', [AdminDailyDealController::class, 'store'])->name('daily-deals.store');
+    Route::put('/daily-deals/{id}', [AdminDailyDealController::class, 'update'])->name('daily-deals.update');
+    Route::delete('/daily-deals/{id}', [AdminDailyDealController::class, 'destroy'])->name('daily-deals.destroy');
+    Route::post('/daily-deals/{id}/toggle', [AdminDailyDealController::class, 'toggleStatus'])->name('daily-deals.toggle');
+    Route::post('/daily-deals/{id}/renew', [AdminDailyDealController::class, 'renew'])->name('daily-deals.renew');
 
     // Coupons Management
     Route::get('/coupons', [AdminCouponController::class, 'index'])->name('coupons.index');
