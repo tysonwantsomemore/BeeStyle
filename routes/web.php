@@ -86,7 +86,9 @@ Route::name('client.')->group(function () {
         Route::put('/tai-khoan/cap-nhat', [ProfileController::class, 'updateProfile'])->name('profile.update');
         Route::put('/tai-khoan/doi-mat-khau', [ProfileController::class, 'updatePassword'])->name('profile.password');
         Route::post('/tai-khoan/dia-chi', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
+        Route::put('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
         Route::delete('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'deleteAddress'])->name('profile.address.delete');
+        Route::post('/tai-khoan/dia-chi/{id}/mac-dinh', [ProfileController::class, 'setDefaultAddress'])->name('profile.address.default');
     });
 });
 
