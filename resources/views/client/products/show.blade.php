@@ -112,24 +112,56 @@
           @endif
 
           <!-- FORM ADD TO CART -->
-          <form action="{{ route('client.cart.add') }}" method="POST" id="productForm">
+          <form action="{{ route('client.cart.add') }}" method="POST" id="productForm" onsubmit="if (!IS_AUTHENTICATED) { event.preventDefault(); requireAuthPrompt('thêm sản phẩm vào giỏ hàng hoặc mua ngay'); return false; }">
             @csrf
             <input type="hidden" name="product_id" value="{{ $product->id }}">
 
             <!-- COLOR SELECTION -->
             @php
               $prodColors = is_array($product->colors) ? $product->colors : ['Đen', 'Trắng', 'Xanh Navy'];
+              function getShowColorHex($name) {
+                $c = mb_strtolower(trim($name));
+                if (str_contains($c, 'đen') || str_contains($c, 'black')) return '#0f172a';
+                if (str_contains($c, 'trắng') || str_contains($c, 'white')) return '#ffffff';
+                if (str_contains($c, 'navy') || str_contains($c, 'than')) return '#1e3a8a';
+                if (str_contains($c, 'xám ghi') || str_contains($c, 'ghi') || str_contains($c, 'xám')) return '#64748b';
+                if (str_contains($c, 'đỏ') || str_contains($c, 'burgundy')) return '#881337';
+                if (str_contains($c, 'be') || str_contains($c, 'khaki')) return '#d4b996';
+                if (str_contains($c, 'rêu') || str_contains($c, 'olive')) return '#365314';
+                if (str_contains($c, 'nâu') || str_contains($c, 'coffee')) return '#78350f';
+                if (str_contains($c, 'vàng')) return '#d97706';
+                return '#334155';
+              }
+              function getShowSizeHint($sz) {
+                $s = strtoupper(trim($sz));
+                if ($s === 'S') return '50-58kg';
+                if ($s === 'M') return '58-65kg';
+                if ($s === 'L') return '65-72kg';
+                if ($s === 'XL') return '72-80kg';
+                if ($s === 'XXL' || $s === '2XL') return '80-88kg';
+                if ($s === '3XL') return '> 88kg';
+                return 'Chuẩn form';
+              }
             @endphp
             @if(count($prodColors) > 0)
-              <div class="mb-3">
-                <label class="form-label small fw-semibold text-dark mb-2">
-                  Màu Sắc: <strong class="text-dark" id="selectedColorText">{{ $prodColors[0] }}</strong>
-                </label>
+              <div class="mb-3.5">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label small fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-palette text-warning me-1"></i> 1. Chọn Màu Sắc:
+                    <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="selectedColorText">{{ $prodColors[0] }}</span>
+                  </label>
+                  <span class="text-danger small" style="font-size: 0.75rem;">* Bắt buộc</span>
+                </div>
                 <div class="d-flex flex-wrap gap-2">
                   @foreach($prodColors as $c)
+                    @php
+                      $cHex = getShowColorHex($c);
+                      $isWhite = ($cHex === '#ffffff');
+                    @endphp
                     <input type="radio" class="btn-check" name="color" id="color_{{ $loop->index }}" value="{{ $c }}" {{ $loop->first ? 'checked' : '' }} onchange="document.getElementById('selectedColorText').innerText = this.value">
-                    <label class="btn btn-outline-dark btn-sm px-3 py-1 rounded-pill" for="color_{{ $loop->index }}">
-                      {{ $c }}
+                    <label class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2 rounded-pill px-3 py-1.5 fw-semibold shadow-xs" for="color_{{ $loop->index }}" style="font-size: 0.84rem;">
+                      <span class="rounded-circle d-inline-block border" style="width: 15px; height: 15px; background-color: {{ $cHex }}; border-color: {{ $isWhite ? '#cbd5e1' : 'transparent' }} !important;"></span>
+                      <span>{{ $c }}</span>
                     </label>
                   @endforeach
                 </div>
@@ -143,8 +175,9 @@
             @if(count($prodSizes) > 0)
               <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label small fw-semibold text-dark mb-0">
-                    Kích Thước: <strong class="text-dark" id="selectedSizeText">{{ $prodSizes[0] }}</strong>
+                  <label class="form-label small fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-ruler-combined text-warning me-1"></i> 2. Chọn Kích Thước (Size):
+                    <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="selectedSizeText">Size {{ $prodSizes[0] }} ({{ getShowSizeHint($prodSizes[0]) }})</span>
                   </label>
                   <button type="button" class="btn btn-link text-decoration-none p-0 small text-danger fw-bold" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
                     <i class="fa-solid fa-ruler-horizontal me-1"></i> Bảng quy đổi Size
@@ -152,42 +185,101 @@
                 </div>
                 <div class="d-flex flex-wrap gap-2">
                   @foreach($prodSizes as $s)
-                    <input type="radio" class="btn-check" name="size" id="size_{{ $loop->index }}" value="{{ $s }}" {{ $loop->first ? 'checked' : '' }} onchange="document.getElementById('selectedSizeText').innerText = this.value">
-                    <label class="btn btn-outline-dark btn-sm px-3 py-1 rounded-2 fw-semibold" for="size_{{ $loop->index }}">
-                      {{ $s }}
+                    <input type="radio" class="btn-check" name="size" id="size_{{ $loop->index }}" value="{{ $s }}" {{ $loop->first ? 'checked' : '' }} onchange="document.getElementById('selectedSizeText').innerText = 'Size ' + this.value + ' ({{ getShowSizeHint($s) }})'">
+                    <label class="btn btn-outline-secondary btn-sm d-flex flex-column align-items-center justify-content-center rounded-3 p-1.5 shadow-xs" for="size_{{ $loop->index }}" style="min-width: 64px; height: 48px;">
+                      <span class="fw-bold fs-6 lh-1">{{ $s }}</span>
+                      <span class="text-muted lh-1 mt-1" style="font-size: 0.65rem;">{{ getShowSizeHint($s) }}</span>
                     </label>
                   @endforeach
                 </div>
               </div>
             @endif
 
-            <!-- QUANTITY & ACTION BUTTONS -->
-            <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-              <div class="input-group" style="width: 130px;">
-                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="stepQty(-1)">-</button>
-                <input type="number" name="quantity" id="productQty" class="form-control form-control-sm text-center fw-bold" value="1" min="1" max="{{ $product->stock }}">
-                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="stepQty(1)">+</button>
+
+            <!-- QUANTITY & ACTION BUTTONS (THANH TRƯỢT, NHẤN ĐÚP, NHẤN GIỮ & SỐ LƯỢNG > 1000) -->
+            <div class="mb-4 p-3 bg-light rounded-3 border">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label small fw-bold text-dark mb-0">
+                  <i class="fa-solid fa-calculator text-warning me-1"></i> Số Lượng Mua:
+                </label>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 small fw-bold">
+                    Đã chọn: <span id="showQtyLiveBadge" class="text-danger fs-6 fw-bold">1</span> sản phẩm
+                  </span>
+                  <span class="small text-muted">Kho: <strong class="text-dark" id="displayStockCount">{{ $product->stock }}</strong> có sẵn</span>
+                </div>
               </div>
 
-              <div class="small text-muted">
-                Kho: <strong class="text-dark" id="displayStockCount">{{ $product->stock }}</strong> sản phẩm có sẵn
+              <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <div class="input-group input-group-sm" style="width: 145px;">
+                  <button class="btn btn-outline-secondary px-2.5 fw-bold" type="button" id="showBtnMinus"
+                    title="Click: -1 | Nhấn đúp: -10 | Nhấn giữ: Giảm liên tục">
+                    <i class="fa-solid fa-minus"></i>
+                  </button>
+                  <input type="number" name="quantity" id="productQty" class="form-control text-center fw-bold text-dark fs-6 bg-white border-secondary-subtle" 
+                    value="1" min="1" max="999999" oninput="validateProductQty(this)" onchange="validateProductQty(this)"
+                    title="Nhập bất kỳ số lượng nào (trên 1000 sản phẩm đều được)">
+                  <button class="btn btn-outline-secondary px-2.5 fw-bold" type="button" id="showBtnPlus"
+                    title="Click: +1 | Nhấn đúp: +10 | Nhấn giữ: Tăng liên tục">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
+
+                <!-- Nút chọn nhanh số lượng lớn -->
+                <div class="d-flex gap-1 flex-wrap align-items-center flex-grow-1">
+                  <button type="button" class="btn btn-sm btn-warning text-dark fw-bold py-1 px-2.5 rounded-2 show-quick-qty shadow-xs" onclick="setProductQty(1, this)">1</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2 fw-semibold show-quick-qty" onclick="setProductQty(5, this)">5</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2 fw-semibold show-quick-qty" onclick="setProductQty(10, this)">10</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2 fw-semibold show-quick-qty" onclick="setProductQty(50, this)">50</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2 fw-semibold show-quick-qty" onclick="setProductQty(100, this)">100</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2 fw-semibold show-quick-qty" onclick="setProductQty(500, this)">500</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2 fw-semibold show-quick-qty" onclick="setProductQty(1000, this)">1000+</button>
+                </div>
               </div>
+
+              <!-- THANH TRƯỢT SỐ LƯỢNG TRỰC QUAN TRÊN TRANG CHI TIẾT -->
+              <div class="pt-1">
+                <input type="range" class="form-range" id="showQuantitySlider" min="1" max="1000" step="1" value="1" 
+                  oninput="syncShowSlider(this.value)" 
+                  style="accent-color: #d97706; cursor: pointer;">
+                <div class="d-flex justify-content-between text-muted" style="font-size: 0.7rem; margin-top: -4px;">
+                  <span>1</span>
+                  <span>100</span>
+                  <span>250</span>
+                  <span>500</span>
+                  <span>750</span>
+                  <span>1.000+</span>
+                </div>
+              </div>
+              <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                <i class="fa-solid fa-circle-info text-primary me-1"></i> Mẹo: Nhấn đúp để nhảy ±10, nhấn giữ nút +/- để tăng giảm liên tục, hoặc kéo thanh trượt để chọn nhanh số lượng lớn (trên 1000 sản phẩm đều được).
+              </small>
             </div>
 
-            <!-- BUTTONS -->
-            <div class="row g-2 mb-4">
-              <div class="col-6">
-                <button type="submit" class="btn btn-bee-outline w-100 py-2.5 fs-6" id="btnAddToCart">
-                  <i class="fa-solid fa-cart-plus me-2"></i> Thêm Vào Giỏ
+
+
+            <!-- BUTTONS & WISHLIST -->
+            <div class="row g-2 mb-4 align-items-center">
+              <div class="col-5">
+                <button type="submit" class="btn btn-bee-outline w-100 py-2.5 fs-6 shadow-xs" id="btnAddToCart">
+                  <i class="fa-solid fa-cart-plus me-1.5"></i> Thêm Vào Giỏ
                 </button>
               </div>
-              <div class="col-6">
-                <button type="submit" name="buy_now" value="1" class="btn btn-bee-primary w-100 py-2.5 fs-6" id="btnBuyNow">
-                  <i class="fa-solid fa-bolt me-2"></i> Mua Ngay
+              <div class="col-5">
+                <button type="submit" name="buy_now" value="1" class="btn btn-bee-primary w-100 py-2.5 fs-6 shadow-xs" id="btnBuyNow">
+                  <i class="fa-solid fa-bolt me-1.5"></i> Mua Ngay
+                </button>
+              </div>
+              <div class="col-2">
+                <button type="button" class="btn btn-outline-secondary w-100 py-2.5 fs-6 btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active text-danger border-danger' : '' }} shadow-xs" 
+                  onclick="toggleWishlist({{ $product->id }}, this)" 
+                  title="Thêm vào danh sách yêu thích" style="border-radius: 8px;">
+                  <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart' }} fs-5"></i>
                 </button>
               </div>
             </div>
           </form>
+
 
           <!-- PROMISES / TRUST BADGES -->
           <div class="border-top pt-3">
@@ -488,17 +580,140 @@
     }
   }
 
+  function syncShowSlider(val) {
+    const qty = parseInt(val) || 1;
+    document.getElementById('productQty').value = qty;
+    document.getElementById('showQtyLiveBadge').textContent = qty.toLocaleString('vi-VN');
+    updateShowQuickQtyHighlight(qty);
+  }
+
   function stepQty(amount) {
     const qtyInput = document.getElementById('productQty');
     let val = parseInt(qtyInput.value) || 1;
     val += amount;
     if (val < 1) val = 1;
-    if (val > {{ $product->stock }}) val = {{ $product->stock }};
+    if (val > 999999) val = 999999;
     qtyInput.value = val;
+    syncShowInputToSlider(val);
+    updateShowQuickQtyHighlight(val);
   }
 
+  function setProductQty(val, btn) {
+    const qtyInput = document.getElementById('productQty');
+    let qty = parseInt(val) || 1;
+    if (qty < 1) qty = 1;
+    qtyInput.value = qty;
+    syncShowInputToSlider(qty);
+    updateShowQuickQtyHighlight(qty);
+  }
+
+  function validateProductQty(input) {
+    let val = parseInt(input.value);
+    if (isNaN(val) || val < 1) {
+      val = 1;
+    } else if (val > 999999) {
+      val = 999999;
+    }
+    input.value = val;
+    syncShowInputToSlider(val);
+    updateShowQuickQtyHighlight(val);
+  }
+
+  function syncShowInputToSlider(qty) {
+    const slider = document.getElementById('showQuantitySlider');
+    if (slider) {
+      if (qty > parseInt(slider.max)) {
+        slider.max = qty > 10000 ? qty : 10000;
+      }
+      slider.value = qty;
+    }
+    const badge = document.getElementById('showQtyLiveBadge');
+    if (badge) badge.textContent = qty.toLocaleString('vi-VN');
+  }
+
+  function updateShowQuickQtyHighlight(val) {
+    document.querySelectorAll('.show-quick-qty').forEach(b => {
+      const btnVal = parseInt(b.textContent.trim());
+      if (btnVal === val) {
+        b.className = 'btn btn-sm btn-warning text-dark fw-bold py-1 px-2.5 rounded-2 show-quick-qty shadow-xs';
+      } else {
+        b.className = 'btn btn-sm btn-outline-secondary py-1 px-2.5 rounded-2 fw-semibold show-quick-qty';
+      }
+    });
+  }
+
+  // XỬ LÝ NHẤN ĐÚP & NHẤN GIỮ NÚT TĂNG GIẢM LIÊN TỤC TRÊN TRANG CHI TIẾT
+  let showHoldInterval = null;
+  let showHoldTimeout = null;
+
+  function initShowHoldButtons() {
+    const btnMinus = document.getElementById('showBtnMinus');
+    const btnPlus = document.getElementById('showBtnPlus');
+
+    if (!btnMinus || !btnPlus) return;
+
+    // 1. Nhấn 1 lần: ±1
+    btnMinus.onclick = () => stepQty(-1);
+    btnPlus.onclick = () => stepQty(1);
+
+    // 2. Nhấn đúp (Double-Click): Nhảy nhanh ±10
+    btnMinus.ondblclick = (e) => {
+      e.preventDefault();
+      stepQty(-10);
+    };
+    btnPlus.ondblclick = (e) => {
+      e.preventDefault();
+      stepQty(10);
+    };
+
+    // 3. Nhấn Giữ (Press and Hold): Tăng giảm liên tục siêu tốc
+    const startHold = (delta) => {
+      clearTimeout(showHoldTimeout);
+      clearInterval(showHoldInterval);
+      
+      let step = delta;
+      let speed = 100;
+      let counter = 0;
+
+      showHoldTimeout = setTimeout(() => {
+        showHoldInterval = setInterval(() => {
+          counter++;
+          if (counter > 30) step = delta * 100;
+          else if (counter > 15) step = delta * 20;
+          else if (counter > 5) step = delta * 5;
+
+          stepQty(step);
+        }, speed);
+      }, 250);
+    };
+
+    const stopHold = () => {
+      clearTimeout(showHoldTimeout);
+      clearInterval(showHoldInterval);
+    };
+
+    btnMinus.addEventListener('mousedown', () => startHold(-1));
+    btnMinus.addEventListener('mouseup', stopHold);
+    btnMinus.addEventListener('mouseleave', stopHold);
+
+    btnPlus.addEventListener('mousedown', () => startHold(1));
+    btnPlus.addEventListener('mouseup', stopHold);
+    btnPlus.addEventListener('mouseleave', stopHold);
+
+    btnMinus.addEventListener('touchstart', (e) => { startHold(-1); }, {passive: true});
+    btnMinus.addEventListener('touchend', stopHold);
+
+    btnPlus.addEventListener('touchstart', (e) => { startHold(1); }, {passive: true});
+    btnPlus.addEventListener('touchend', stopHold);
+  }
+
+
+
   document.addEventListener("DOMContentLoaded", function () {
+    initShowHoldButtons();
+
     // Tự động kích hoạt Tab Đánh giá và cuộn xuống nếu URL có hash #reviews hoặc param review=1
+
     if (window.location.hash === '#reviews' || window.location.search.includes('review=1')) {
       const reviewTabBtn = document.getElementById('reviews-tab');
       if (reviewTabBtn) {

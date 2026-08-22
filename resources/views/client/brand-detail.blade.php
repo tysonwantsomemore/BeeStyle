@@ -88,10 +88,18 @@
                 @if($product->discount_percent > 0)
                   <span class="position-absolute top-0 start-0 m-2 badge bg-danger rounded-pill">-{{ $product->discount_percent }}%</span>
                 @endif
+                <!-- NÚT TRÁI TIM YÊU THÍCH -->
+                <button type="button" class="btn btn-sm btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active' : '' }} position-absolute top-0 end-0 m-2.5 rounded-circle shadow-xs" 
+                  onclick="toggleWishlist({{ $product->id }}, this)" 
+                  title="Yêu thích sản phẩm" style="width: 32px; height: 32px; z-index: 4; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,0.08);">
+                  <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart text-dark' }} fs-6"></i>
+                </button>
+
                 <a href="{{ route('client.products.show', $product->id) }}">
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid" style="max-height: 190px; object-fit: contain;">
                 </a>
               </div>
+
               <div class="card-body p-3 d-flex flex-column justify-content-between">
                 <div>
                   <small class="text-warning fw-bold d-block mb-1">{{ $product->category->name ?? 'Thời trang nam' }}</small>
@@ -108,13 +116,48 @@
                       <small class="text-muted text-decoration-line-through">{{ number_format($product->original_price, 0, ',', '.') }}₫</small>
                     @endif
                   </div>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-outline-warning text-dark btn-sm w-100 fw-bold rounded-2">
-                    Xem Chi Tiết &amp; Chọn Biến Thể
-                  </a>
+                  <!-- 2 NÚT THÊM VÀO GIỎ HÀNG & MUA HÀNG NGAY (MỞ MODAL CHỌN MÀU & SIZE) -->
+                  <div class="d-flex gap-1.5 mt-2">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="{{ $product->category->name ?? 'Thời trang nam' }}"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    </button>
+                    <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="{{ $product->category->name ?? 'Thời trang nam' }}"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
+                      title="Mua hàng ngay (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+                    </button>
+                  </div>
+
+
                 </div>
               </div>
             </div>
           </div>
+
         @empty
           <div class="col-12 text-center py-5">
             <p class="text-muted">Chưa có sản phẩm nào thuộc thương hiệu này.</p>

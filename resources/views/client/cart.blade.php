@@ -65,19 +65,24 @@
                           @csrf
                           <input type="hidden" name="key" value="{{ $item['key'] }}">
                           <input type="hidden" name="quantity" value="{{ $item['quantity'] - 1 }}">
-                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;">-</button>
+                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;" title="Giảm số lượng">-</button>
                         </form>
 
-                        <span class="px-2 fw-bold text-dark">{{ $item['quantity'] }}</span>
+                        <form action="{{ route('client.cart.update') }}" method="POST" class="d-inline mx-1">
+                          @csrf
+                          <input type="hidden" name="key" value="{{ $item['key'] }}">
+                          <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1" max="999" class="form-control form-control-sm text-center fw-bold text-dark px-1 border-secondary-subtle" style="width: 52px; height: 28px;" title="Nhập số lượng bạn muốn mua" onchange="this.form.submit()">
+                        </form>
 
                         <form action="{{ route('client.cart.update') }}" method="POST" class="d-inline">
                           @csrf
                           <input type="hidden" name="key" value="{{ $item['key'] }}">
                           <input type="hidden" name="quantity" value="{{ $item['quantity'] + 1 }}">
-                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;">+</button>
+                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;" title="Tăng số lượng">+</button>
                         </form>
                       </div>
                     </td>
+
 
                     <!-- Total -->
                     <td>

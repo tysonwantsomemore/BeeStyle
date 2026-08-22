@@ -100,23 +100,34 @@ class CartService
             return ['success' => false, 'message' => 'Phiên bản sản phẩm đã chọn hiện đã hết hàng trong kho.'];
         }
 
+        // Kiểm tra xem sản phẩm có đang trong chương trình Ưu Đãi Trong Ngày (Daily Deal) không
+        $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
+        $isDailyDeal = false;
+        $dealId = null;
+        $dealDiscount = 0;
+
+        if ($runningDeal) {
+            $isDailyDeal = true;
+            $dealId = $runningDeal->id;
+            $dealDiscount = $runningDeal->discount_percent;
+            $originalPrice = $originalPrice ?: $price;
+            $price = max(0, (int) round($price * (1 - ($runningDeal->discount_percent / 100))));
+        }
+
         $cartKey = $variant ? "v_{$variant->id}" : "{$productId}_{$selectedColor}_{$selectedSize}";
         $cart = Session::get(self::CART_SESSION_KEY, []);
 
         if (isset($cart[$cartKey])) {
             $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
-            if ($newQuantity > $stock) {
-                return ['success' => false, 'message' => "Số lượng trong kho chỉ còn {$stock} sản phẩm."];
-            }
             $cart[$cartKey]['quantity'] = $newQuantity;
         } else {
-            if ($quantity > $stock) {
-                return ['success' => false, 'message' => "Số lượng trong kho chỉ còn {$stock} sản phẩm."];
-            }
             $cart[$cartKey] = [
                 'key' => $cartKey,
                 'product_id' => $product->id,
                 'variant_id' => $variant ? $variant->id : null,
+                'deal_id' => $dealId,
+                'is_daily_deal' => $isDailyDeal,
+                'deal_discount' => $dealDiscount,
                 'name' => $product->name,
                 'sku' => $sku,
                 'slug' => $product->slug,
@@ -131,9 +142,10 @@ class CartService
         }
 
         Session::put(self::CART_SESSION_KEY, $cart);
+        $dealNotice = $isDailyDeal ? " (⚡ Ưu đãi Flash Sale -{$dealDiscount}%)" : "";
         return [
             'success' => true,
-            'message' => "Đã thêm \"{$product->name} ({$selectedColor} - Size {$selectedSize})\" vào giỏ hàng!",
+            'message' => "Đã thêm \"{$product->name} ({$selectedColor} - Size {$selectedSize})\"{$dealNotice} (x{$quantity}) vào giỏ hàng!",
             'cart_count' => self::count()
         ];
     }
@@ -153,16 +165,12 @@ class CartService
             return self::remove($cartKey);
         }
 
-        $product = Product::find($cart[$cartKey]['product_id']);
-        if ($product && $quantity > $product->stock) {
-            return ['success' => false, 'message' => "Số lượng vượt quá tồn kho (còn {$product->stock} sản phẩm)."];
-        }
-
         $cart[$cartKey]['quantity'] = $quantity;
         Session::put(self::CART_SESSION_KEY, $cart);
 
         return ['success' => true, 'message' => 'Đã cập nhật số lượng giỏ hàng!'];
     }
+
 
     /**
      * Xóa một sản phẩm khỏi giỏ hàng

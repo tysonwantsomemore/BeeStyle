@@ -312,67 +312,115 @@
     </div>
   </div>
 
-  <!-- 4. FLASH SALE & DEAL OF THE DAY -->
-  <div class="card border-0 shadow-sm mb-5 p-4" style="background: #ffffff; border: 1.5px solid #ffe4e6 !important; border-radius: 16px;">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-      <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-bolt me-1"></i> FLASH SALE</span>
-        <h3 class="fw-bold text-dark mb-0 fs-5 text-uppercase" style="font-family: var(--atino-font-heading);">ƯU ĐÃI TRONG NGÀY</h3>
-      </div>
-      <div class="d-flex align-items-center gap-2 text-muted small">
-        <span class="fw-bold text-dark">KẾT THÚC SAU:</span>
-        <span class="badge bg-dark text-white p-2 font-monospace fs-6" id="cdHours">08</span> :
-        <span class="badge bg-dark text-white p-2 font-monospace fs-6" id="cdMinutes">45</span> :
-        <span class="badge bg-dark text-white p-2 font-monospace fs-6" id="cdSeconds">19</span>
-      </div>
-    </div>
-
-    <div class="row g-3">
-      @foreach($featuredProducts->take(4) as $product)
-        <div class="col-lg-3 col-md-6 col-6">
-          <div class="bee-product-card">
-            @if($product->discount_percent > 0)
-              <span class="bee-product-badge sale">-{{ $product->discount_percent }}%</span>
-            @endif
-            
-            <div class="bee-product-actions">
-              <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-              <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
-            </div>
-
-            <div class="bee-product-img-wrapper">
-              <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
-            </div>
-
-            <div class="bee-product-body">
-              <span class="bee-product-category">{{ $product->category->name ?? 'Áo Nam' }}</span>
-              <a href="{{ route('client.products.show', $product->id) }}" class="bee-product-title">
-                {{ $product->name }}
-              </a>
-
-              <div class="bee-product-rating">
-                @for($i=1; $i<=5; $i++)
-                  <i class="fa-solid fa-star text-warning"></i>
-                @endfor
-                <span class="text-muted ms-auto small d-none d-sm-inline">Đã bán {{ $product->sold_count }}</span>
-              </div>
-
-              <div class="bee-product-price-row">
-                <span class="bee-product-price">{{ number_format($product->price, 0, ',', '.') }}₫</span>
-                @if($product->original_price && $product->original_price > $product->price)
-                  <span class="bee-product-old-price">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
-                @endif
-              </div>
-
-              <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-primary btn-sm w-100 mt-2">
-                <i class="fa-solid fa-cart-shopping me-1"></i> XEM CHI TIẾT
-              </a>
-            </div>
-          </div>
+  <!-- 4. FLASH SALE & DEAL OF THE DAY (CHỈ HIỂN THỊ KHI CÓ ƯU ĐÃI ĐANG TRONG KHUNG GIỜ VÀNG) -->
+  @if(isset($runningDailyDeals) && $runningDailyDeals->isNotEmpty())
+    <div id="flash-sale" class="card border-0 shadow-sm mb-5 p-4" style="background: #ffffff; border: 1.5px solid #ffe4e6 !important; border-radius: 16px;">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill"><i class="fa-solid fa-bolt me-1"></i> FLASH SALE</span>
+          <h3 class="fw-bold text-dark mb-0 fs-5 text-uppercase" style="font-family: var(--atino-font-heading);">ƯU ĐÃI TRONG NGÀY</h3>
+          @if(!empty($currentSlotName))
+            <span class="badge bg-warning-subtle text-dark border border-warning px-2.5 py-1 fw-bold fs-9">
+              <i class="fa-regular fa-clock me-1 text-warning"></i> {{ $currentSlotName }}
+            </span>
+          @endif
         </div>
-      @endforeach
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="d-flex align-items-center gap-2 text-muted small" id="dealCountdownWrapper" data-target="{{ $targetCountdown }}">
+            <span class="fw-bold text-dark">KẾT THÚC SAU:</span>
+            <span class="badge bg-dark text-white p-2 font-monospace fs-6" id="cdHours">00</span> :
+            <span class="badge bg-dark text-white p-2 font-monospace fs-6" id="cdMinutes">00</span> :
+            <span class="badge bg-dark text-white p-2 font-monospace fs-6" id="cdSeconds">00</span>
+          </div>
+          <a href="{{ route('client.daily-deals.index') }}" class="btn btn-outline-danger btn-sm px-3 fw-bold rounded-pill shadow-xs">
+            Xem Thêm <i class="fa-solid fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        @foreach($runningDailyDeals->take(4) as $deal)
+          @php
+            $product = $deal->product;
+          @endphp
+          @if($product)
+            <div class="col-lg-3 col-md-6 col-6">
+              <div class="bee-product-card h-100 d-flex flex-column position-relative">
+                <!-- BADGE KHUYẾN MÃI % -->
+                <span class="bee-product-badge sale shadow-xs">-{{ $deal->discount_percent }}%</span>
+                
+                <div class="bee-product-actions">
+                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
+                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Mua ngay"><i class="fa-solid fa-cart-plus"></i></a>
+                </div>
+
+                <div class="bee-product-img-wrapper">
+                  <a href="{{ route('client.products.show', $product->id) }}">
+                    <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
+                  </a>
+                </div>
+
+                <div class="bee-product-body d-flex flex-column flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="bee-product-category">{{ $product->category->name ?? 'Áo Nam' }}</span>
+                    @if($deal->slot_name)
+                      <span class="badge bg-light text-danger border border-danger-subtle fs-10 px-1.5 py-0.5">{{ $deal->slot_name }}</span>
+                    @endif
+                  </div>
+
+                  <a href="{{ route('client.products.show', $product->id) }}" class="bee-product-title">
+                    {{ $product->name }}
+                  </a>
+
+                  <!-- TIẾN ĐỘ BÁN HÀNG HOẶC ĐÁNH GIÁ -->
+                  <div class="my-1.5">
+                    @if($deal->quantity_limit > 0)
+                      @php
+                        $soldPct = min(100, round(($deal->sold_count / $deal->quantity_limit) * 100));
+                      @endphp
+                      <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
+                        <span><i class="fa-solid fa-fire text-danger me-1"></i>Đã bán {{ $deal->sold_count }}</span>
+                        <span>Còn {{ max(0, $deal->quantity_limit - $deal->sold_count) }} suất</span>
+                      </div>
+                      <div class="progress mt-1" style="height: 5px; border-radius: 99px;">
+                        <div class="progress-bar bg-danger" style="width: {{ $soldPct }}%"></div>
+                      </div>
+                    @else
+                      <div class="bee-product-rating">
+                        @for($i=1; $i<=5; $i++)
+                          <i class="fa-solid fa-star text-warning"></i>
+                        @endfor
+                        <span class="text-muted ms-auto small d-none d-sm-inline">Đã bán {{ $product->sold_count }}</span>
+                      </div>
+                    @endif
+                  </div>
+
+                  <!-- GIÁ BÁN FLASH SALE -->
+                  <div class="bee-product-price-row mt-auto">
+                    <span class="bee-product-price text-danger">{{ number_format($deal->deal_price, 0, ',', '.') }}₫</span>
+                    <span class="bee-product-old-price">{{ number_format($product->price, 0, ',', '.') }}₫</span>
+                  </div>
+
+                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-primary btn-sm w-100 mt-2">
+                    <i class="fa-solid fa-bolt me-1"></i> SĂN DEAL NGAY
+                  </a>
+                </div>
+              </div>
+            </div>
+          @endif
+        @endforeach
+      </div>
+
+      <!-- NÚT XEM TẤT CẢ SẢN PHẨM KHUYẾN MÃI -->
+      <div class="text-center mt-4 pt-3 border-top border-danger border-opacity-10">
+        <a href="{{ route('client.daily-deals.index') }}" class="btn btn-danger px-4 py-2.5 fw-bold rounded-pill shadow-sm d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+          <i class="fa-solid fa-bolt text-warning"></i>
+          <span>XEM TẤT CẢ SẢN PHẨM KHUYẾN MÃI HÔM NAY</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
     </div>
-  </div>
+  @endif
 
   <!-- 5. BEST SELLERS SECTION (ÁO NAM BÁN CHẠY NHẤT) -->
   <div class="mb-5">
@@ -480,7 +528,9 @@
                 @endif
                 <div class="bee-product-actions">
                   <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                  <button type="button" class="btn-action btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active text-danger' : '' }}" onclick="toggleWishlist({{ $product->id }}, this)" title="Yêu thích sản phẩm">
+                    <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart' }}"></i>
+                  </button>
                 </div>
                 <div class="bee-product-img-wrapper">
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
@@ -494,8 +544,42 @@
                       <span class="bee-product-old-price">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
                     @endif
                   </div>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Chi Tiết</a>
+                  <div class="d-flex gap-1.5 mt-2">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Polo Cao Cấp"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    </button>
+                    <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Polo Cao Cấp"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
+                      title="Mua hàng ngay (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+                    </button>
+                  </div>
                 </div>
+
               </div>
             </div>
           @endforeach
@@ -518,11 +602,14 @@
                 @endif
                 <div class="bee-product-actions">
                   <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                  <button type="button" class="btn-action btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active text-danger' : '' }}" onclick="toggleWishlist({{ $product->id }}, this)" title="Yêu thích sản phẩm">
+                    <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart' }}"></i>
+                  </button>
                 </div>
                 <div class="bee-product-img-wrapper">
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
                 </div>
+
                 <div class="bee-product-body">
                   <span class="bee-product-category">Áo Sơ Mi Nam</span>
                   <a href="{{ route('client.products.show', $product->id) }}" class="bee-product-title">{{ $product->name }}</a>
@@ -532,8 +619,43 @@
                       <span class="bee-product-old-price">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
                     @endif
                   </div>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Chi Tiết</a>
+                  <div class="d-flex gap-1.5 mt-2">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Sơ Mi Nam"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    </button>
+                    <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Sơ Mi Nam"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
+                      title="Mua hàng ngay (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+                    </button>
+                  </div>
                 </div>
+
+
               </div>
             </div>
           @endforeach
@@ -556,7 +678,9 @@
                 @endif
                 <div class="bee-product-actions">
                   <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                  <button type="button" class="btn-action btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active text-danger' : '' }}" onclick="toggleWishlist({{ $product->id }}, this)" title="Yêu thích sản phẩm">
+                    <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart' }}"></i>
+                  </button>
                 </div>
                 <div class="bee-product-img-wrapper">
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
@@ -570,7 +694,40 @@
                       <span class="bee-product-old-price">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
                     @endif
                   </div>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Chi Tiết</a>
+                  <div class="d-flex gap-1.5 mt-2">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Khoác & Blazer"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    </button>
+                    <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Khoác & Blazer"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
+                      title="Mua hàng ngay (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -594,7 +751,9 @@
                 @endif
                 <div class="bee-product-actions">
                   <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                  <button type="button" class="btn-action btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active text-danger' : '' }}" onclick="toggleWishlist({{ $product->id }}, this)" title="Yêu thích sản phẩm">
+                    <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart' }}"></i>
+                  </button>
                 </div>
                 <div class="bee-product-img-wrapper">
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
@@ -608,7 +767,40 @@
                       <span class="bee-product-old-price">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
                     @endif
                   </div>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Chi Tiết</a>
+                  <div class="d-flex gap-1.5 mt-2">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="BST Mùa Hè"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    </button>
+                    <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="BST Mùa Hè"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
+                      title="Mua hàng ngay (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -632,11 +824,14 @@
                 @endif
                 <div class="bee-product-actions">
                   <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn-action" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></a>
+                  <button type="button" class="btn-action btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active text-danger' : '' }}" onclick="toggleWishlist({{ $product->id }}, this)" title="Yêu thích sản phẩm">
+                    <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart' }}"></i>
+                  </button>
                 </div>
                 <div class="bee-product-img-wrapper">
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
                 </div>
+
                 <div class="bee-product-body">
                   <span class="bee-product-category">Áo Thu Đông &amp; Hoodie</span>
                   <a href="{{ route('client.products.show', $product->id) }}" class="bee-product-title">{{ $product->name }}</a>
@@ -646,7 +841,40 @@
                       <span class="bee-product-old-price">{{ number_format($product->original_price, 0, ',', '.') }}₫</span>
                     @endif
                   </div>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-bee-outline btn-sm w-100 mt-2">Xem Chi Tiết</a>
+                  <div class="d-flex gap-1.5 mt-2">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Thu Đông & Hoodie"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    </button>
+                    <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="Áo Thu Đông & Hoodie"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
+                      title="Mua hàng ngay (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -658,8 +886,10 @@
           </a>
         </div>
       </div>
+
     </div>
   </div>
+
 
   <!-- 7. STYLE GUIDE / LOOKBOOK (GỢI Ý PHỐI ĐỒ QUÝ ÔNG) -->
   <div class="mb-5">
@@ -870,27 +1100,52 @@
       });
     }
 
-    // 2. Đồng hồ đếm ngược Flash Sale
-    let hours = 8, minutes = 45, seconds = 19;
-    setInterval(function () {
-      if (seconds > 0) {
-        seconds--;
-      } else {
-        seconds = 59;
-        if (minutes > 0) {
-          minutes--;
-        } else {
-          minutes = 59;
-          if (hours > 0) hours--;
+    // 2. Đồng hồ đếm ngược Flash Sale thời gian thực
+    const countdownWrapper = document.getElementById("dealCountdownWrapper");
+    const hEl = document.getElementById("cdHours");
+    const mEl = document.getElementById("cdMinutes");
+    const sEl = document.getElementById("cdSeconds");
+
+    if (countdownWrapper && hEl && mEl && sEl) {
+      const targetStr = countdownWrapper.getAttribute("data-target");
+      let targetTime = targetStr ? new Date(targetStr).getTime() : (Date.now() + 8 * 3600 * 1000 + 45 * 60 * 1000);
+
+      function updateCountdown() {
+        const now = Date.now();
+        const diff = targetTime - now;
+
+        if (diff <= 0) {
+          // Khi hết thời gian ưu đãi -> Tự động ẩn khối Flash Sale ngay lập tức
+          const flashSaleSection = document.getElementById("flash-sale");
+          if (flashSaleSection) {
+            flashSaleSection.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+            flashSaleSection.style.opacity = "0";
+            flashSaleSection.style.transform = "translateY(-10px)";
+            setTimeout(() => {
+              flashSaleSection.remove();
+            }, 600);
+          }
+          return;
         }
+
+        const totalSecs = Math.floor(diff / 1000);
+        const hours = Math.floor(totalSecs / 3600);
+        const minutes = Math.floor((totalSecs % 3600) / 60);
+        const seconds = totalSecs % 60;
+
+        hEl.textContent = String(hours).padStart(2, '0');
+        mEl.textContent = String(minutes).padStart(2, '0');
+        sEl.textContent = String(seconds).padStart(2, '0');
       }
-      const hEl = document.getElementById("cdHours");
-      const mEl = document.getElementById("cdMinutes");
-      const sEl = document.getElementById("cdSeconds");
-      if (hEl) hEl.textContent = String(hours).padStart(2, '0');
-      if (mEl) mEl.textContent = String(minutes).padStart(2, '0');
-      if (sEl) sEl.textContent = String(seconds).padStart(2, '0');
-    }, 1000);
+
+      updateCountdown();
+      const timerInterval = setInterval(function () {
+        updateCountdown();
+        if (targetTime - Date.now() <= 0) {
+          clearInterval(timerInterval);
+        }
+      }, 1000);
+    }
   });
 </script>
 @endpush

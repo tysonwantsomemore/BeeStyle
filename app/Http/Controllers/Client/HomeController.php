@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Coupon;
+use App\Models\DailyDeal;
 use App\Models\Product;
 use App\Models\Review;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -22,6 +24,24 @@ class HomeController extends Controller
 
         // Lấy thương hiệu đối tác
         $brands = Brand::active()->take(6)->get();
+
+        // Ưu đãi trong ngày (Daily Deals / Flash Sale) - CHỈ HIỂN THỊ KHI ĐANG TRONG KHUNG GIỜ VÀNG
+        $runningDailyDeals = DailyDeal::with(['product.category', 'product.brand', 'product.variants'])
+            ->whereHas('product', fn($q) => $q->where('status', 'active'))
+            ->runningNow()
+            ->latest('id')
+            ->get();
+
+        $isCurrentlyLive = $runningDailyDeals->isNotEmpty();
+        $targetCountdown = null;
+        $currentSlotName = null;
+
+        if ($isCurrentlyLive) {
+            // Target thời gian kết thúc sớm nhất của các deal đang chạy
+            $earliestEnd = $runningDailyDeals->map(fn($d) => $d->getTargetEndDateTime())->min();
+            $targetCountdown = $earliestEnd ? $earliestEnd->toIso8601String() : now()->endOfDay()->toIso8601String();
+            $currentSlotName = $runningDailyDeals->first()->formatted_slot;
+        }
 
         // Lấy danh sách sản phẩm với các quan hệ đầy đủ
         $products = Product::with(['category', 'brand', 'variants'])->active()->latest()->take(8)->get();
@@ -52,6 +72,10 @@ class HomeController extends Controller
             'featuredProducts',
             'bestSellers',
             'newArrivals',
+            'runningDailyDeals',
+            'isCurrentlyLive',
+            'targetCountdown',
+            'currentSlotName',
             'poloSpotlight',
             'shirtSpotlight',
             'blazerSpotlight',
