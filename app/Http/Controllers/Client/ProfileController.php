@@ -26,8 +26,9 @@ class ProfileController extends Controller
 
         $orders = Order::with('items')->where('user_id', $user->id)->latest()->get();
         $addresses = UserAddress::where('user_id', $user->id)->orderBy('is_default', 'desc')->latest()->get();
+        $pendingReviewItems = method_exists($user, 'getPendingReviewItems') ? $user->getPendingReviewItems() : collect();
 
-        return view('client.profile', compact('user', 'orders', 'addresses'));
+        return view('client.profile', compact('user', 'orders', 'addresses', 'pendingReviewItems'));
     }
 
     /**
@@ -225,4 +226,66 @@ class ProfileController extends Controller
 
         return back()->with('success', 'Đã xóa địa chỉ khỏi sổ địa chỉ!');
     }
+
+    /**
+     * Cập nhật địa chỉ nhận hàng đã có
+     */
+    public function updateAddress(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('auth.login');
+        }
+
+        $address = $user->addresses()->findOrFail($id);
+
+        $validated = $request->validate([
+            'recipient_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'city' => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+            'ward' => 'nullable|string|max:100',
+            'address' => 'required|string|max:255',
+            'label' => 'nullable|string|max:50',
+            'is_default' => 'nullable|boolean',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        $isDefault = $request->boolean('is_default');
+        if ($isDefault) {
+            $user->addresses()->where('id', '!=', $address->id)->update(['is_default' => false]);
+        }
+
+        $address->update([
+            'recipient_name' => $validated['recipient_name'],
+            'phone' => $validated['phone'],
+            'city' => $validated['city'],
+            'district' => $validated['district'],
+            'ward' => $validated['ward'] ?? null,
+            'address' => $validated['address'],
+            'label' => $validated['label'] ?? 'Nhà riêng',
+            'is_default' => $isDefault,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        return back()->with('success', 'Đã cập nhật địa chỉ giao hàng thành công!');
+    }
+
+    /**
+     * Đặt địa chỉ làm mặc định
+     */
+    public function setDefaultAddress($id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('auth.login');
+        }
+
+        $user->addresses()->update(['is_default' => false]);
+        $address = $user->addresses()->findOrFail($id);
+        $address->update(['is_default' => true]);
+
+        return back()->with('success', 'Đã thiết lập địa chỉ nhận hàng mặc định!');
+    }
 }
+
