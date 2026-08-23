@@ -250,15 +250,6 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $catSummer = Category::create([
-            'name' => 'Bộ Sưu Tập Mùa Hè',
-            'slug' => 'bo-suu-tap-mua-he',
-            'icon' => 'fa-solid fa-sun',
-            'image' => '/assets/img/products/somi_linen_white.jpg',
-            'description' => 'Trang phục mùa hè thoáng mát, chất liệu đũi linen và cotton lụa đi biển dạo phố cực mát.',
-            'sort_order' => 7,
-            'is_active' => true,
-        ]);
 
         // 4. DANH SÁCH 70 SẢN PHẨM (MỖI DANH MỤC ĐÚNG 10 SẢN PHẨM KHÔNG TRÙNG NHAU)
         $catalog = [
@@ -361,23 +352,6 @@ class DatabaseSeeder extends Seeder
                     ['sku' => 'BS-THUDONG-08', 'name' => 'Áo Khoác Nỉ Nam Có Mũ Thể Thao Chạy Bộ Mùa Lạnh', 'price' => 460000, 'orig' => 600000, 'img' => '/assets/img/products/hoodie_men.jpg', 'sold' => 790, 'rating' => 4.8, 'rev' => 58, 'featured' => false],
                     ['sku' => 'BS-THUDONG-09', 'name' => 'Áo Hoodie Nam Phong Cách Đường Phố In Họa Tiết Độc Lạ', 'price' => 450000, 'orig' => 590000, 'img' => '/assets/img/products/hoodie_street.jpg', 'sold' => 930, 'rating' => 4.8, 'rev' => 69, 'featured' => false],
                     ['sku' => 'BS-THUDONG-10', 'name' => 'Áo Gió Nam Thu Đông Lót Nỉ 2 Lớp Chống Thấm Nước', 'price' => 550000, 'orig' => 720000, 'img' => '/assets/img/products/windbreaker_men.jpg', 'sold' => 1250, 'rating' => 4.9, 'rev' => 96, 'featured' => true],
-                ]
-            ],
-
-            // DANH MỤC 7: BỘ SƯU TẬP MÙA HÈ (10 sản phẩm)
-            [
-                'cat' => $catSummer, 'brand' => $brandUrban,
-                'items' => [
-                    ['sku' => 'BS-SUMMER-01', 'name' => 'Áo Sơ Mi Nam Đũi Linen Trắng Mùa Hè Thoáng Mát', 'price' => 429000, 'orig' => 550000, 'img' => '/assets/img/products/somi_linen_white.jpg', 'sold' => 1350, 'rating' => 5.0, 'rev' => 98, 'featured' => true],
-                    ['sku' => 'BS-SUMMER-02', 'name' => 'Áo Sơ Mi Nam Đũi Be Mộc Đi Biển Phong Cách Tự Nhiên', 'price' => 439000, 'orig' => 560000, 'img' => '/assets/img/products/somi_linen_beige.jpg', 'sold' => 980, 'rating' => 4.9, 'rev' => 72, 'featured' => true],
-                    ['sku' => 'BS-SUMMER-03', 'name' => 'Áo Sơ Mi Nam Xanh Biển Cộc Tay Phong Cách Nghỉ Dưỡng', 'price' => 399000, 'orig' => 520000, 'img' => '/assets/img/products/somi_blue.jpg', 'sold' => 870, 'rating' => 4.8, 'rev' => 64, 'featured' => false],
-                    ['sku' => 'BS-SUMMER-04', 'name' => 'Áo Polo Nam Mùa Hè Màu Xanh Mint Mát Lạnh Air-Cool', 'price' => 369000, 'orig' => 480000, 'img' => '/assets/img/products/polo_green.jpg', 'sold' => 1140, 'rating' => 4.9, 'rev' => 85, 'featured' => true],
-                    ['sku' => 'BS-SUMMER-05', 'name' => 'Áo Polo Nam Xanh Da Trời Thoáng Khí Chống Tia UV', 'price' => 379000, 'orig' => 490000, 'img' => '/assets/img/products/polo_blue.jpg', 'sold' => 920, 'rating' => 4.8, 'rev' => 69, 'featured' => false],
-                    ['sku' => 'BS-SUMMER-06', 'name' => 'Áo Polo Nam Màu Kem Be Thanh Lịch Dạo Phố Mùa Hè', 'price' => 389000, 'orig' => 500000, 'img' => '/assets/img/products/polo_cream.jpg', 'sold' => 760, 'rating' => 4.7, 'rev' => 53, 'featured' => false],
-                    ['sku' => 'BS-SUMMER-07', 'name' => 'Áo Polo Nam Đỏ Rượu Vang Bo Cổ Phối Năng Động Hè', 'price' => 399000, 'orig' => 510000, 'img' => '/assets/img/products/polo_wine.jpg', 'sold' => 680, 'rating' => 4.8, 'rev' => 49, 'featured' => false],
-                    ['sku' => 'BS-SUMMER-08', 'name' => 'Áo Polo Nam Kẻ Sọc Viền Cổ Phong Cách Du Thuyền Hè', 'price' => 419000, 'orig' => 540000, 'img' => '/assets/img/products/polo_striped_collar.jpg', 'sold' => 830, 'rating' => 4.9, 'rev' => 61, 'featured' => true],
-                    ['sku' => 'BS-SUMMER-09', 'name' => 'Áo Ba Lỗ Nam Thể Thao Mùa Hè Thoát Nhiệt Tức Thì', 'price' => 199000, 'orig' => 270000, 'img' => '/assets/img/products/tanktop_1.jpg', 'sold' => 1420, 'rating' => 5.0, 'rev' => 118, 'featured' => true],
-                    ['sku' => 'BS-SUMMER-10', 'name' => 'Áo Sơ Mi Nam Oxford Cộc Tay Dáng Rộng Năng Động Hè', 'price' => 449000, 'orig' => 580000, 'img' => '/assets/img/products/somi_oxford.jpg', 'sold' => 790, 'rating' => 4.8, 'rev' => 57, 'featured' => false],
                 ]
             ],
         ];

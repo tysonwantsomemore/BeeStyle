@@ -89,7 +89,7 @@ class DailyDeal extends Model
     }
 
     /**
-     * Scope: Deals upcoming later today
+     * Scope: Deals upcoming later today or in future dates
      */
     public function scopeUpcomingToday($query)
     {
@@ -97,11 +97,13 @@ class DailyDeal extends Model
         $currentTime = now()->toTimeString();
 
         return $query->where('is_active', true)
-            ->where(function ($q) use ($today) {
-                $q->whereNull('deal_date')
-                  ->orWhereDate('deal_date', $today);
-            })
-            ->where('start_time', '>', $currentTime);
+            ->where(function ($q) use ($today, $currentTime) {
+                $q->where(function ($sub) use ($today, $currentTime) {
+                    $sub->where(function ($d) use ($today) {
+                        $d->whereNull('deal_date')->orWhereDate('deal_date', $today);
+                    })->where('start_time', '>', $currentTime);
+                })->orWhereDate('deal_date', '>', $today);
+            });
     }
 
     /**

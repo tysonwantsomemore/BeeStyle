@@ -280,16 +280,16 @@
               $avgRating = $product ? round($product->reviews->avg('rating') ?: 5, 1) : 5.0;
               $revCount = $product ? $product->allReviews->count() : 0;
             @endphp
-            <tr class="{{ $isRunning ? 'table-danger table-opacity-10' : '' }}">
+            <tr class="bg-white" style="background-color: #ffffff !important;">
               
               <!-- 1. SẢN PHẨM ÁP DỤNG -->
-              <td class="ps-4 py-3">
+              <td class="ps-4 py-3 bg-white" style="background-color: #ffffff !important;">
                 <div class="d-flex align-items-center gap-3">
-                  <div class="position-relative" style="width: 54px; height: 54px; min-width: 54px;">
+                  <div class="position-relative bg-white rounded-3 p-0.5 border shadow-2xs" style="width: 54px; height: 54px; min-width: 54px; background-color: #ffffff !important;">
                     @if($product && $product->image)
-                      <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="w-100 h-100 rounded-3 object-fit-cover border shadow-2xs">
+                      <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="w-100 h-100 rounded-2 object-fit-cover" style="background-color: #ffffff;">
                     @else
-                      <div class="w-100 h-100 rounded-3 bg-light d-flex align-items-center justify-content-center border">
+                      <div class="w-100 h-100 rounded-2 bg-white d-flex align-items-center justify-content-center">
                         <i class="fa-solid fa-shirt text-muted"></i>
                       </div>
                     @endif
@@ -1208,6 +1208,16 @@
   .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
   .hover-primary:hover { color: #f59e0b !important; }
   .table > :not(caption) > * > * { padding: 0.85rem 0.65rem; }
+
+  /* ĐỒNG BỘ NỀN TRẮNG TINH KHIẾT CHO TẤT CẢ SẢN PHẨM & CÁC TRANG LỌC */
+  .table > tbody > tr,
+  .table > tbody > tr > td {
+    background-color: #ffffff !important;
+  }
+  .table-hover > tbody > tr:hover > td,
+  .table-hover > tbody > tr:hover {
+    background-color: #f8fafc !important;
+  }
 </style>
 @endpush
 
