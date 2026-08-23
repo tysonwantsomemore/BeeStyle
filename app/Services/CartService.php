@@ -114,11 +114,14 @@ class CartService
             $price = max(0, (int) round($price * (1 - ($runningDeal->discount_percent / 100))));
         }
 
+        // Giới hạn tối đa 10 sản phẩm mỗi lần mua
+        $quantity = min(10, max(1, $quantity));
+
         $cartKey = $variant ? "v_{$variant->id}" : "{$productId}_{$selectedColor}_{$selectedSize}";
         $cart = Session::get(self::CART_SESSION_KEY, []);
 
         if (isset($cart[$cartKey])) {
-            $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
+            $newQuantity = min(10, $cart[$cartKey]['quantity'] + $quantity);
             $cart[$cartKey]['quantity'] = $newQuantity;
         } else {
             $cart[$cartKey] = [
@@ -164,6 +167,9 @@ class CartService
         if ($quantity <= 0) {
             return self::remove($cartKey);
         }
+
+        // Giới hạn số lượng tối đa 10 sản phẩm
+        $quantity = min(10, max(1, $quantity));
 
         $cart[$cartKey]['quantity'] = $quantity;
         Session::put(self::CART_SESSION_KEY, $cart);

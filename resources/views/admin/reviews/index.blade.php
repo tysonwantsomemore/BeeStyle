@@ -235,11 +235,21 @@
               </div>
             </td>
 
-            <!-- Comment -->
-            <td style="max-width: 320px;">
-              <p class="small text-dark mb-0 fst-italic leading-relaxed">
+            <!-- Comment & Photos -->
+            <td style="max-width: 340px;">
+              <p class="small text-dark mb-1 fst-italic leading-relaxed">
                 "{{ $rev->comment }}"
               </p>
+              @if(!empty($rev->images_urls))
+                <div class="d-flex align-items-center gap-1.5 mt-1 flex-wrap">
+                  @foreach(array_slice($rev->images_urls, 0, 3) as $pImg)
+                    <img src="{{ $pImg }}" alt="ảnh khách" class="rounded border shadow-xs" style="width: 36px; height: 36px; object-fit: cover;">
+                  @endforeach
+                  <span class="badge bg-warning-subtle text-dark border border-warning-subtle fw-bold px-1.5 py-0.5" style="font-size: 0.68rem;">
+                    <i class="fa-solid fa-camera text-warning me-1"></i> {{ count($rev->images_urls) }} ảnh
+                  </span>
+                </div>
+              @endif
             </td>
 
             <!-- Date -->
@@ -362,12 +372,12 @@
                   <strong class="text-dark" id="mdlCustPhone">0988 123 456</strong>
                 </div>
                 <div class="d-flex justify-content-between">
-                  <span class="text-muted"><i class="fa-solid fa-crown me-1.5 text-warning"></i> Hạng VIP:</span>
+                  <span class="text-muted"><i class="fa-solid fa-crown me-1.5 text-warning"></i> Hạng thành viên:</span>
                   <span class="badge bg-warning-subtle text-dark fw-bold" id="mdlCustRank">Thành viên Bạc</span>
                 </div>
                 <div class="d-flex justify-content-between">
-                  <span class="text-muted"><i class="fa-solid fa-coins me-1.5 text-warning"></i> Điểm VIP:</span>
-                  <strong class="text-warning" id="mdlCustPoints">1.250 Điểm</strong>
+                  <span class="text-muted"><i class="fa-solid fa-circle-check me-1.5 text-success"></i> Trạng thái:</span>
+                  <strong class="text-success" id="mdlCustPoints">Đã xác thực</strong>
                 </div>
                 <div class="d-flex justify-content-between">
                   <span class="text-muted"><i class="fa-solid fa-bag-shopping me-1.5 text-danger"></i> Chi tiêu:</span>
@@ -441,7 +451,7 @@
                 <span class="badge bg-warning-subtle text-dark fw-bold text-uppercase px-2 py-1" style="font-size: 0.72rem;">
                   <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá Nhận Xét
                 </span>
-                <span class="badge bg-warning text-dark fw-bold py-0.5 px-2" style="font-size: 0.7rem;">+20 Điểm VIP</span>
+                <span class="badge bg-success-subtle text-success fw-bold py-0.5 px-2" style="font-size: 0.7rem;">✓ Đã xác thực</span>
               </div>
 
               <!-- Khối Số Sao Rating -->
@@ -459,8 +469,18 @@
                 <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.72rem;">
                   <i class="fa-solid fa-comment-dots text-danger me-1"></i> Cảm nhận chi tiết từ khách:
                 </label>
-                <div class="p-3 bg-light rounded-3 border fst-italic leading-relaxed text-dark small" style="min-height: 110px; font-size: 0.88rem;" id="mdlReviewComment">
+                <div class="p-3 bg-light rounded-3 border fst-italic leading-relaxed text-dark small" style="min-height: 80px; font-size: 0.88rem;" id="mdlReviewComment">
                   "Vải dệt tổ ong thoáng mát cực kỳ, form áo lên chuẩn dáng, màu sắc rất đẹp và đường may chắc chắn..."
+                </div>
+              </div>
+
+              <!-- Hình Ảnh Khách Hàng Tải Lên -->
+              <div class="mb-3" id="mdlPhotosSection">
+                <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.72rem;">
+                  <i class="fa-solid fa-camera text-warning me-1"></i> Ảnh thực tế từ khách:
+                </label>
+                <div id="mdlReviewPhotos" class="d-flex gap-2 flex-wrap p-2 bg-light rounded-3 border">
+                  <!-- Photos -->
                 </div>
               </div>
 
@@ -505,7 +525,7 @@
     document.getElementById('mdlCustEmail').textContent = user.email || 'Chưa cập nhật email';
     document.getElementById('mdlCustPhone').textContent = user.phone || 'Chưa cập nhật SĐT';
     document.getElementById('mdlCustRank').textContent = user.rank || 'Thành viên';
-    document.getElementById('mdlCustPoints').textContent = (user.points || 0).toLocaleString('vi-VN') + ' Điểm';
+    document.getElementById('mdlCustPoints').textContent = 'Đã xác thực';
     document.getElementById('mdlCustSpent').textContent = (user.total_spent || 0).toLocaleString('vi-VN') + '₫';
     
     if (user.id) {
@@ -552,7 +572,7 @@
       document.getElementById('mdlOrderLink').style.display = 'none';
     }
 
-    // 3. Rating & Review Content (Đánh giá nhận xét)
+    // 3. Rating & Review Content (Đánh giá nhận xét & Hình ảnh)
     let starsHtml = '';
     for (let i = 1; i <= 5; i++) {
       starsHtml += `<i class="fa-solid fa-star ${i <= rev.rating ? 'text-warning' : 'text-secondary-subtle'}"></i> `;
@@ -561,6 +581,23 @@
     document.getElementById('mdlRatingText').textContent = `(${rev.rating}/5 Sao)`;
     document.getElementById('mdlReviewComment').textContent = `"${rev.comment}"`;
     document.getElementById('mdlReviewTime').textContent = rev.created_at ? new Date(rev.created_at).toLocaleString('vi-VN') : '';
+
+    // Render customer photos
+    const photosSection = document.getElementById('mdlPhotosSection');
+    const photosContainer = document.getElementById('mdlReviewPhotos');
+    if (rev.images_urls && rev.images_urls.length > 0) {
+      photosSection.style.display = 'block';
+      photosContainer.innerHTML = '';
+      rev.images_urls.forEach(photo => {
+        photosContainer.innerHTML += `
+          <a href="${photo}" target="_blank" class="d-inline-block">
+            <img src="${photo}" alt="ảnh khách" class="rounded border shadow-xs" style="width: 58px; height: 58px; object-fit: cover;">
+          </a>
+        `;
+      });
+    } else {
+      photosSection.style.display = 'none';
+    }
 
     // Status badge
     if (rev.status === 'approved') {

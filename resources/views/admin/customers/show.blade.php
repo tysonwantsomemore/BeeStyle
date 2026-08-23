@@ -113,7 +113,7 @@
           <i class="fa-solid fa-award me-1"></i> {{ $customer->rank }}
         </span>
         <span class="badge bg-light text-dark fw-bold px-3 py-2 rounded-pill border">
-          <i class="fa-solid fa-coins me-1 text-warning"></i> {{ number_format($customer->points) }} Điểm
+          <i class="fa-solid fa-circle-check me-1 text-success"></i> Khách Hàng Thân Thiết
         </span>
       </div>
 

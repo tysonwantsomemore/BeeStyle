@@ -35,7 +35,7 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|integer|exists:products,id',
             'variant_id' => 'nullable|integer|exists:product_variants,id',
-            'quantity' => 'nullable|integer|min:1',
+            'quantity' => 'nullable|integer|min:1|max:10',
             'color' => 'nullable|string',
             'size' => 'nullable|string',
         ]);
@@ -67,7 +67,7 @@ class CartController extends Controller
     {
         $request->validate([
             'key' => 'required|string',
-            'quantity' => 'required|integer|min:0',
+            'quantity' => 'required|integer|min:0|max:10',
         ]);
 
         $result = CartService::update($request->key, (int)$request->quantity);

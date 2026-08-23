@@ -3,6 +3,9 @@
 @section('title', 'Tài Khoản & Cài Đặt Hồ Sơ | BeeStyle Menswear')
 
 @section('content')
+@php
+  $addresses = $addresses ?? ($user->addresses ?? collect());
+@endphp
 <div class="container py-4">
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">
@@ -57,7 +60,7 @@
             <i class="fa-solid fa-award me-1"></i> {{ $user->rank ?? 'Thành viên Mới' }}
           </span>
           <span class="badge bg-light text-dark fw-bold px-3 py-2 rounded-pill border">
-            <i class="fa-solid fa-coins me-1 text-warning"></i> {{ number_format($user->points ?? 0) }} Điểm
+            <i class="fa-solid fa-circle-check me-1 text-success"></i> Khách Hàng Thân Thiết
           </span>
         </div>
 
@@ -90,7 +93,7 @@
           </button>
 
           <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="rewards-tab" data-bs-toggle="pill" data-bs-target="#tab-vip" type="button" role="tab">
-            <i class="fa-solid fa-gem me-2 text-warning"></i> Quyền Lợi &amp; Điểm Thưởng VIP
+            <i class="fa-solid fa-heart me-2 text-danger"></i> Tri Ân Khách Hàng &amp; Đặc Quyền
           </button>
 
 
@@ -140,7 +143,7 @@
                   </div>
                   <div>
                     <h6 class="fw-bold text-dark mb-1 small text-uppercase">Bạn có {{ $pendingReviewItems->count() }} sản phẩm từ đơn hàng hoàn tất chưa đánh giá!</h6>
-                    <p class="mb-0 text-muted small">Hãy đánh giá sản phẩm để nhận ngay <strong>+20 Điểm VIP</strong> vào tài khoản nhé.</p>
+                    <p class="mb-0 text-muted small">Cảm ơn bạn đã mua hàng! Hãy chia sẻ cảm nhận để giúp BeeStyle ngày càng hoàn thiện nhé.</p>
                   </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -209,12 +212,12 @@
                           <span class="small fw-bold text-dark d-block">{{ number_format($item->subtotal ?? ($item->price * $item->quantity), 0, ',', '.') }}₫</span>
                           @if($order->shipping_status === 'delivered' || $order->shipping_status === 'completed' || $order->status_step >= 5)
                             @if($hasReviewedThisItem)
-                              <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="btn btn-sm btn-outline-success py-0.5 px-2 mt-1 fw-bold text-nowrap" style="font-size: 0.72rem;">
+                              <button type="button" id="order-btn-review-{{ $item->product_id ?: ($item->product->id ?? 1) }}" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-outline-success py-0.5 px-2 mt-1 fw-bold text-nowrap" style="font-size: 0.72rem;">
                                 <i class="fa-solid fa-circle-check me-1"></i> Xem / Sửa Đánh Giá
                               </button>
                             @else
-                              <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 mt-1 fw-bold text-nowrap" style="font-size: 0.75rem;">
-                                <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá (+20đ)
+                              <button type="button" id="order-btn-review-{{ $item->product_id ?: ($item->product->id ?? 1) }}" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 mt-1 fw-bold text-nowrap" style="font-size: 0.75rem;">
+                                <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
                               </button>
                             @endif
                           @endif
@@ -646,71 +649,100 @@
           </div>
         </div>
 
-        <!-- TAB 5: VIP BENEFITS & LOYALTY POINTS -->
+        <!-- TAB 5: LỜI TRI ÂN & ĐẶC QUYỀN KHÁCH HÀNG -->
         <div class="tab-pane fade" id="tab-vip" role="tabpanel">
           <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
             <div class="mb-4 pb-2 border-bottom">
               <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                <i class="fa-solid fa-gem me-2 text-warning"></i> Chính Sách Điểm Thưởng &amp; Hội Viên VIP
+                <i class="fa-solid fa-heart me-2 text-danger"></i> Tri Ân Khách Hàng &amp; Đặc Quyền Phục Vụ
               </h5>
-              <p class="text-muted small mb-0">Quyền lợi đặc quyền dành riêng cho khách hàng thân thiết của BeeStyle</p>
+              <p class="text-muted small mb-0">Lời cảm ơn chân thành và cam kết chất lượng dịch vụ từ BeeStyle</p>
             </div>
 
-            <!-- VIP Status Card -->
-            <div class="p-4 rounded-3 text-white mb-4 position-relative overflow-hidden" style="background: linear-gradient(135deg, #111827, #1f2937);">
+            <!-- Customer Appreciation Status Card -->
+            <div class="p-4 rounded-3 text-white mb-4 position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid rgba(245, 158, 11, 0.3);">
               <div class="row align-items-center">
-                <div class="col-md-7">
-                  <span class="badge bg-warning text-dark fw-bold px-3 py-1 text-uppercase mb-2">HẠNG HIỆN TẠI</span>
-                  <h3 class="fw-bold text-white mb-1" style="font-family: var(--atino-font-heading);">{{ $user->rank ?? 'Thành viên Bạc (Silver)' }}</h3>
-                  <p class="text-white-50 small mb-0">Tổng chi tiêu tích lũy: <strong class="text-warning">{{ number_format($user->total_spent ?? 0, 0, ',', '.') }}₫</strong></p>
+                <div class="col-md-8">
+                  <span class="badge bg-warning text-dark fw-bold px-3 py-1 text-uppercase mb-2">HỘI VIÊN THÂN THIẾT</span>
+                  <h3 class="fw-bold text-white mb-1" style="font-family: var(--atino-font-heading);">{{ $user->name }}</h3>
+                  <p class="text-white-50 small mb-0">Hạng tài khoản: <strong class="text-warning">{{ $user->rank ?? 'Thành viên Bạc (Silver)' }}</strong> • Tổng tích lũy mua sắm: <strong class="text-warning">{{ number_format($user->total_spent ?? 0, 0, ',', '.') }}₫</strong></p>
                 </div>
-                <div class="col-md-5 text-md-end mt-3 mt-md-0">
-                  <div class="display-6 fw-bold text-warning mb-0">{{ number_format($user->points ?? 0) }}</div>
-                  <small class="text-white-50 text-uppercase">ĐIỂM TÍCH LŨY KHẢ DỤNG</small>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                  <span class="badge bg-danger px-3 py-2 fs-6 fw-bold rounded-pill shadow-xs">
+                    <i class="fa-solid fa-shield-heart me-1"></i> Khách Hàng Ưu Tiên
+                  </span>
                 </div>
               </div>
             </div>
 
-            <!-- VIP Tiers Table -->
-            <h6 class="fw-bold text-dark mb-3">Bảng phân hạng Hội viên BeeStyle:</h6>
-            <div class="table-responsive">
-              <table class="table table-bordered align-middle small mb-0 text-center">
-                <thead class="table-dark">
-                  <tr>
-                    <th>Hạng Hội Viên</th>
-                    <th>Điều Kiện Chi Tiêu</th>
-                    <th>Tỷ Lệ Tích Điểm</th>
-                    <th>Đặc Quyền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong class="text-secondary">Thành viên Mới</strong></td>
-                    <td>Đăng ký tài khoản</td>
-                    <td>10.000₫ = 1 điểm</td>
-                    <td>Tặng 100 điểm + Freeship đơn đầu</td>
-                  </tr>
-                  <tr class="table-warning">
-                    <td><strong class="text-dark">Thành viên Bạc (Silver)</strong></td>
-                    <td>Chi tiêu từ 2.000.000₫</td>
-                    <td>10.000₫ = 1.2 điểm</td>
-                    <td>Giảm 5% sinh nhật + Ưu tiên giao hàng</td>
-                  </tr>
-                  <tr>
-                    <td><strong class="text-warning">Thành viên Vàng (Gold)</strong></td>
-                    <td>Chi tiêu từ 5.000.000₫</td>
-                    <td>10.000₫ = 1.5 điểm</td>
-                    <td>Giảm 10% sinh nhật + Quà tặng độc quyền</td>
-                  </tr>
-                  <tr>
-                    <td><strong class="text-danger">Thành viên Kim Cương (Diamond)</strong></td>
-                    <td>Chi tiêu từ 10.000.000₫</td>
-                    <td>10.000₫ = 2.0 điểm</td>
-                    <td>Giảm 15% trọn đời + Hotline phục vụ riêng</td>
-                  </tr>
-                </tbody>
-              </table>
+            <!-- Thank You Letter from BeeStyle -->
+            <div class="p-4 bg-light rounded-3 border mb-4">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="fa-solid fa-envelope-open-text text-warning fs-4"></i>
+                <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-family: var(--atino-font-heading);">
+                  Thư Tri Ân Gửi Đến Quý Khách Hàng
+                </h6>
+              </div>
+              <p class="text-secondary small leading-relaxed mb-2" style="font-size: 0.92rem; line-height: 1.65;">
+                Kính gửi Quý khách <strong>{{ $user->name }}</strong>,
+              </p>
+              <p class="text-secondary small leading-relaxed mb-2" style="font-size: 0.92rem; line-height: 1.65;">
+                BeeStyle xin gửi lời cảm ơn chân thành và sâu sắc nhất vì Quý khách đã luôn tin tưởng, lựa chọn các sản phẩm thời trang nam của chúng tôi trong suốt thời gian qua. Sự đồng hành và ủng hộ của Quý khách chính là niềm tự hào to lớn, là động lực để đội ngũ BeeStyle không ngừng nâng tầm chất lượng từ từng đường kim mũi chỉ đến dịch vụ chăm sóc khách hàng tận tâm nhất.
+              </p>
+              <p class="text-secondary small leading-relaxed mb-0" style="font-size: 0.92rem; line-height: 1.65;">
+                Kính chúc Quý khách luôn lịch lãm, tự tin, gặt hái được nhiều thành công trong cuộc sống và luôn có những trải nghiệm mua sắm tuyệt vời tại BeeStyle!
+              </p>
             </div>
+
+            <!-- 4 Service Commitments -->
+            <h6 class="fw-bold text-dark mb-3">Đặc quyền chăm sóc dành riêng cho bạn:</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
+                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                    <i class="fa-solid fa-truck-fast text-warning fs-6"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark d-block small">Ưu Tiên Giao Hàng Siêu Tốc</strong>
+                    <small class="text-muted">Đơn hàng của hội viên luôn được xử lý đóng gói và vận chuyển ưu tiên hàng đầu.</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
+                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                    <i class="fa-solid fa-rotate-left text-warning fs-6"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark d-block small">Đổi Size Tận Nơi Miễn Phí</strong>
+                    <small class="text-muted">Hỗ trợ đổi size tận nhà trong vòng 30 ngày hoàn toàn không phát sinh thêm chi phí.</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
+                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                    <i class="fa-solid fa-shield-halved text-warning fs-6"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark d-block small">Bảo Hành Đường May 1 Năm</strong>
+                    <small class="text-muted">Cam kết chất lượng chuẩn may đo xuất khẩu, hỗ trợ bảo hành trọn vẹn 365 ngày.</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
+                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                    <i class="fa-solid fa-headset text-warning fs-6"></i>
+                  </div>
+                  <div>
+                    <strong class="text-dark d-block small">Hỗ Trợ &amp; Chăm Sóc Riêng 24/7</strong>
+                    <small class="text-muted">Đội ngũ stylist BeeStyle sẵn sàng tư vấn phối đồ và hỗ trợ bất cứ khi nào bạn cần.</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -724,12 +756,12 @@
                 </h5>
                 <p class="text-muted small mb-0">Xem lại và chỉnh sửa các nhận xét sản phẩm bạn đã từng gửi</p>
               </div>
-              <span class="badge bg-warning text-dark fw-bold">+20 điểm/đánh giá</span>
+              <span class="badge bg-light text-dark fw-semibold border"><i class="fa-solid fa-heart text-danger me-1"></i> Đóng góp ý kiến quý báu</span>
             </div>
 
             <div class="d-flex flex-column gap-3">
               @forelse($user->reviews as $rev)
-                <div class="p-3 bg-light rounded-3 border transition-all hover-lift">
+                <div class="p-3 bg-light rounded-3 border transition-all hover-lift" id="profile-rev-card-{{ $rev->product_id }}">
                   <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-3">
                       <img src="{{ asset($rev->product->image ?? '/assets/img/products/1.png') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 48px; height: 48px; object-fit: cover; cursor: pointer;" class="rounded border bg-white" onclick="openQuickReviewModal({{ $rev->product_id }})">
@@ -739,7 +771,7 @@
                       </div>
                     </div>
                     <div class="text-end">
-                      <div class="text-warning small mb-1">
+                      <div class="text-warning small mb-1" id="profile-rev-stars-{{ $rev->product_id }}">
                         @for($i=1; $i<=5; $i++)
                           <i class="fa-solid fa-star {{ $i <= $rev->rating ? 'text-warning' : 'text-secondary-subtle' }}"></i>
                         @endfor
@@ -750,15 +782,29 @@
                       </button>
                     </div>
                   </div>
-                  <p class="small text-dark mb-0 fst-italic leading-relaxed p-2 bg-white rounded-2 border">
+                  <p class="small text-dark mb-0 fst-italic leading-relaxed p-2 bg-white rounded-2 border" id="profile-rev-comment-{{ $rev->product_id }}">
                     "{{ $rev->comment }}"
                   </p>
+
+                  <!-- Photos in Profile Reviews Tab -->
+                  <div class="d-flex gap-2 flex-wrap mt-2 pt-2 border-top {{ empty($rev->images_urls) ? 'd-none' : '' }}" id="profile-rev-photos-{{ $rev->product_id }}">
+                    @if(!empty($rev->images_urls))
+                      @foreach($rev->images_urls as $photoUrl)
+                        <div class="position-relative" style="cursor: pointer;" onclick="openReviewImageLightbox('{{ $photoUrl }}')">
+                          <img src="{{ $photoUrl }}" alt="Ảnh đánh giá" class="rounded border shadow-xs" style="width: 54px; height: 54px; object-fit: cover;">
+                          <span class="position-absolute bottom-0 end-0 bg-dark text-white px-1 py-0.5 rounded-start" style="font-size: 0.6rem; opacity: 0.85;">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                          </span>
+                        </div>
+                      @endforeach
+                    @endif
+                  </div>
                 </div>
               @empty
                 <div class="text-center py-5">
                   <i class="fa-regular fa-comment-dots fs-1 text-muted mb-2"></i>
                   <h6 class="fw-bold text-dark">Bạn chưa viết đánh giá nào</h6>
-                  <p class="text-muted small mb-3">Sau khi nhận hàng thành công, hãy đánh giá sản phẩm để nhận ngay +20 điểm thưởng VIP nhé!</p>
+                  <p class="text-muted small mb-3">Sau khi nhận hàng thành công, hãy chia sẻ cảm nhận để giúp BeeStyle ngày một hoàn thiện hơn nhé!</p>
                   <a href="#tab-orders" data-bs-toggle="pill" data-bs-target="#tab-orders" class="btn btn-bee-primary btn-sm px-4">
                     Xem Đơn Hàng Của Bạn
                   </a>

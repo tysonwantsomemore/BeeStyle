@@ -28,7 +28,7 @@
             <span class="input-group-text bg-light border-end-0 text-muted">
               <i class="fa-solid fa-magnifying-glass"></i>
             </span>
-            <input type="text" name="code" value="{{ $code }}" class="form-control border-start-0 ps-0" placeholder="Nhập mã đơn hàng (VD: BEE-2026-0816-01)..." required>
+            <input type="text" name="code" value="{{ $code ?? '' }}" class="form-control border-start-0 ps-0" placeholder="Nhập mã đơn hàng (VD: BEE-2026-0816-01)..." required>
           </div>
           <button type="submit" class="btn btn-bee-primary px-4 text-nowrap fw-bold shadow-sm">
             Tra Cứu
@@ -265,15 +265,15 @@
         <div class="alert alert-success border-0 shadow-sm p-4 my-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 6px solid #10b981 !important;">
           <div class="d-flex align-items-center gap-3">
             <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px; min-width: 48px;">
-              <i class="fa-solid fa-gift fs-4"></i>
+              <i class="fa-solid fa-heart fs-4"></i>
             </div>
             <div>
-              <h6 class="fw-bold text-success mb-1 fs-6">ĐƠN HÀNG ĐÃ GIAO THÀNH CÔNG!</h6>
-              <p class="mb-0 text-muted small">Cảm ơn bạn đã mua sắm tại BeeStyle! Hãy dành 1 phút đánh giá chất lượng sản phẩm để nhận ngay <strong>+20 điểm thưởng VIP</strong> nhé.</p>
+              <h6 class="fw-bold text-success mb-1 fs-6">CẢM ƠN QUÝ KHÁCH ĐÃ MUA HÀNG TẠI BEESTYLE!</h6>
+              <p class="mb-0 text-muted small">BeeStyle chân thành cảm ơn Quý khách đã tin tưởng mua sắm. Hãy chia sẻ cảm nhận của bạn để giúp chúng tôi ngày càng hoàn thiện nhé!</p>
             </div>
           </div>
           <button type="button" onclick="openQuickReviewModal({{ $currentOrder->items->first()->product_id ?? 1 }})" class="btn btn-bee-primary px-4 py-2.5 text-nowrap fw-bold rounded-pill shadow-sm">
-            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM NGAY (+20Đ)
+            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM
           </button>
         </div>
       @endif
@@ -345,12 +345,12 @@
                       }
                     @endphp
                     @if($isReviewed)
-                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="btn btn-sm btn-outline-success py-0.5 px-2 text-nowrap mt-1 fw-bold" style="font-size: 0.72rem;">
+                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-outline-success py-0.5 px-2 text-nowrap mt-1 fw-bold" style="font-size: 0.72rem;">
                         <i class="fa-solid fa-circle-check me-1"></i> Đã đánh giá
                       </button>
                     @else
-                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 text-nowrap mt-1 fw-bold" style="font-size: 0.75rem;">
-                        <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá (+20đ)
+                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 text-nowrap mt-1 fw-bold" style="font-size: 0.75rem;">
+                        <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
                       </button>
                     @endif
                   @endif

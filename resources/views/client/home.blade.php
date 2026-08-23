@@ -1198,27 +1198,24 @@
     </div>
   </div>
 
-  <!-- 9. VIP CLUB BANNER & NEWSLETTER -->
-  <div class="bee-vip-card mb-5">
+  <!-- 9. LỜI CẢM ƠN TRI ÂN KHÁCH HÀNG -->
+  <div class="bee-vip-card mb-5 p-4 p-md-5" style="border-radius: 20px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(245, 158, 11, 0.35); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);">
     <div class="row align-items-center g-4">
-      <div class="col-lg-7">
-        <span class="badge bg-warning text-dark fw-bold px-3 py-1 text-uppercase mb-2">
-          <i class="fa-solid fa-crown me-1"></i> BEESTYLE VIP CLUB
+      <div class="col-lg-8">
+        <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 text-uppercase mb-3 shadow-xs" style="font-size: 0.82rem; letter-spacing: 0.5px;">
+          <i class="fa-solid fa-heart me-1.5 text-danger"></i> THƯ TRI ÂN TỪ BEESTYLE MENSWEAR
         </span>
-        <h2 class="fw-bold text-white mb-2" style="font-family: var(--atino-font-heading);">
-          GIA NHẬP HỘI VIÊN &amp; NHẬN NGAY VOUCHER 50K
+        <h2 class="fw-bold text-white mb-2.5" style="font-family: var(--atino-font-heading); font-size: 1.6rem; line-height: 1.35;">
+          CẢM ƠN QUÝ KHÁCH ĐÃ TIN TƯỞNG &amp; ĐỒNG HÀNH CÙNG BEESTYLE
         </h2>
-        <p class="text-white-50 small mb-0">
-          Tích điểm trên mọi hóa đơn (100k = 10 điểm), đổi điểm lấy quà tặng áo nam độc quyền và nhận ưu đãi sinh nhật giảm 20%.
+        <p class="text-white-50 small mb-0 leading-relaxed" style="font-size: 0.95rem; line-height: 1.65;">
+          BeeStyle xin gửi lời cảm ơn chân thành và sâu sắc nhất đến Quý khách hàng đã luôn tin tưởng, lựa chọn và mua sắm tại cửa hàng. Mỗi đơn hàng của Quý khách là niềm vinh hạnh và nguồn động lực to lớn để chúng tôi không ngừng hoàn thiện chất lượng sản phẩm chuẩn may đo và dịch vụ tận tâm nhất. Kính chúc Quý khách luôn lịch lãm, tự tin và có những trải nghiệm thật tuyệt vời!
         </p>
       </div>
-      <div class="col-lg-5 text-lg-end">
+      <div class="col-lg-4 text-lg-end">
         <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-          <a href="{{ route('auth.register') }}" class="btn btn-bee-accent px-4 py-3">
-            <i class="fa-solid fa-user-plus me-1"></i> ĐĂNG KÝ HỘI VIÊN
-          </a>
-          <a href="{{ route('client.products.index') }}" class="btn btn-outline-light px-4 py-3 fw-bold" style="border-radius: 8px;">
-            MUA SẮM NGAY
+          <a href="{{ route('client.products.index') }}" class="btn btn-bee-primary px-4 py-3 fw-bold shadow-sm">
+            <i class="fa-solid fa-bag-shopping me-1.5"></i> KHÁM PHÁ BỘ SƯU TẬP
           </a>
         </div>
       </div>
