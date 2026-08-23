@@ -107,6 +107,7 @@ Route::name('client.')->group(function () {
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/dashboard/revenue-data', [DashboardController::class, 'getRevenueData'])->name('dashboard.revenueData');
     Route::get('/revenue/monthly', [AdminRevenueController::class, 'monthly'])->name('revenue.monthly');
 

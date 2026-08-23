@@ -39,17 +39,17 @@ class AppServiceProvider extends ServiceProvider
                     $allShopNotifications->push([
                         'id' => 'rev_' . $item->id,
                         'type' => 'review',
-                        'icon' => 'fa-solid fa-gift text-warning',
-                        'badge' => '+20đ VIP',
-                        'badge_class' => 'bg-warning text-dark',
-                        'title' => 'Đánh giá sản phẩm nhận quà',
-                        'content' => "Đơn hàng {$item->order->order_code} đã hoàn tất. Đánh giá sản phẩm \"{$item->product_name}\" để nhận ngay +20 điểm VIP!",
+                        'icon' => 'fa-solid fa-star text-warning',
+                        'badge' => 'Cảm ơn đã mua hàng',
+                        'badge_class' => 'bg-warning-subtle text-dark border',
+                        'title' => 'Cảm ơn bạn đã mua hàng!',
+                        'content' => "Đơn hàng {$item->order->order_code} đã hoàn tất. Hãy chia sẻ cảm nhận của bạn về sản phẩm \"{$item->product_name}\" nhé!",
                         'link' => route('client.products.show', $item->product_id) . '#reviews',
                         'image' => asset($item->image ?? ($item->product->image ?? '/assets/img/products/1.png')),
                         'created_at' => $item->created_at,
                         'time_ago' => $item->created_at ? $item->created_at->diffForHumans() : 'Gần đây',
                         'is_unread' => true,
-                        'action_text' => 'Đánh giá (+20đ)',
+                        'action_text' => 'Đánh giá ngay',
                     ]);
                 }
 
@@ -99,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
                         'badge' => 'Voucher Hot',
                         'badge_class' => 'bg-danger-subtle text-danger',
                         'title' => "Ưu đãi độc quyền: Mã {$cp->code}",
-                        'content' => "{$cp->title}. Giảm giá cực sốc khi mua sắm thời trang áo nam hôm nay!",
+                        'content' => "{$cp->title}. Giảm giá khi mua sắm thời trang nam hôm nay!",
                         'link' => route('client.products.index'),
                         'image' => null,
                         'created_at' => now()->subHours(2),
@@ -109,24 +109,22 @@ class AppServiceProvider extends ServiceProvider
                     ]);
                 }
 
-                // 4. Thông báo Điểm thưởng VIP
-                if ($user->points > 0) {
-                    $allShopNotifications->push([
-                        'id' => 'vip_' . $user->id,
-                        'type' => 'vip',
-                        'icon' => 'fa-solid fa-crown text-warning',
-                        'badge' => 'BeeStyle VIP',
-                        'badge_class' => 'bg-warning text-dark',
-                        'title' => "Bạn đang có " . number_format($user->points) . " Điểm Thưởng VIP",
-                        'content' => "Hạng thành viên: {$user->rank}. Bạn có thể dùng điểm đổi các ưu đãi quà tặng và voucher sinh nhật giảm 20%.",
-                        'link' => route('client.profile', ['tab' => 'vip']),
-                        'image' => null,
-                        'created_at' => now()->subDays(1),
-                        'time_ago' => 'Quyền lợi VIP',
-                        'is_unread' => false,
-                        'action_text' => 'Xem điểm VIP',
-                    ]);
-                }
+                // 4. Lời cảm ơn và Tri ân Hội viên
+                $allShopNotifications->push([
+                    'id' => 'vip_' . $user->id,
+                    'type' => 'vip',
+                    'icon' => 'fa-solid fa-heart text-danger',
+                    'badge' => 'Tri ân khách hàng',
+                    'badge_class' => 'bg-warning-subtle text-dark border',
+                    'title' => "Cảm ơn bạn đã luôn đồng hành cùng BeeStyle!",
+                    'content' => "Hạng tài khoản: {$user->rank}. BeeStyle luôn dành tặng bạn đặc quyền đổi size tận nơi 30 ngày và hỗ trợ ưu tiên.",
+                    'link' => route('client.profile', ['tab' => 'vip']),
+                    'image' => null,
+                    'created_at' => now()->subDays(1),
+                    'time_ago' => 'Đặc quyền chăm sóc',
+                    'is_unread' => false,
+                    'action_text' => 'Xem đặc quyền',
+                ]);
             }
 
             $view->with([

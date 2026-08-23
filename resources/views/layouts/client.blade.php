@@ -184,9 +184,9 @@
                   <div class="tab-pane fade p-3" id="notif-reviews" role="tabpanel">
                     @if(isset($pendingReviewItems) && $pendingReviewItems->count() > 0)
                       <div class="alert alert-warning border-0 p-2 rounded-2 mb-3 d-flex align-items-center gap-2 small" style="background: #fffbeb;">
-                        <i class="fa-solid fa-coins text-warning fs-5"></i>
+                        <i class="fa-solid fa-heart text-danger fs-5"></i>
                         <div style="font-size: 0.75rem;">
-                          Đánh giá nhận ngay <strong>+20 Điểm Thưởng VIP</strong> vào tài khoản!
+                          Cảm ơn bạn đã mua hàng! Hãy chia sẻ cảm nhận về sản phẩm nhé.
                         </div>
                       </div>
                       <div class="d-flex flex-column gap-2">
@@ -209,7 +209,7 @@
                                 <i class="fa-solid fa-circle-check me-1"></i> Đã hoàn tất
                               </span>
                               <button type="button" onclick="openQuickReviewModal({{ $pItem->product_id }})" class="btn btn-sm btn-bee-primary py-1 px-3 fw-bold text-nowrap" style="font-size: 0.75rem;">
-                                <i class="fa-solid fa-star text-warning me-1"></i> Đánh Giá (+20đ)
+                                <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
                               </button>
                             </div>
                           </div>
@@ -292,7 +292,7 @@
                   <div class="small text-muted">{{ Auth::user()->email }}</div>
                   <div class="d-flex align-items-center gap-1 mt-1">
                     <span class="badge bg-danger-subtle text-danger fs-10 fw-bold">{{ Auth::user()->rank ?? 'Thành viên' }}</span>
-                    <span class="badge bg-light text-dark fs-10 border">{{ Auth::user()->points ?? 0 }} Điểm</span>
+                    <span class="badge bg-light text-dark fs-10 border"><i class="fa-solid fa-circle-check text-success me-1"></i>Đã xác thực</span>
                   </div>
                 </li>
                 @if(Auth::user()->isAdmin())
@@ -508,7 +508,7 @@
             <li><a href="{{ route('client.order-tracking') }}">Tra cứu hành trình đơn hàng</a></li>
             <li><a href="#">Chính sách đổi trả trong 30 ngày</a></li>
             <li><a href="#">Bảng quy đổi Size nam chuẩn</a></li>
-            <li><a href="#">Chính sách tích điểm VIP</a></li>
+            <li><a href="#">Chính sách chăm sóc khách hàng</a></li>
             <li><a href="#">Hệ thống cửa hàng toàn quốc</a></li>
             <li><a href="#">Bảo mật thông tin khách hàng</a></li>
           </ul>
@@ -574,9 +574,9 @@
             
             <div class="modal-body p-4">
               <div class="alert alert-warning border-0 p-2.5 rounded-3 mb-3 d-flex align-items-center gap-2 small" style="background: #fffbeb;">
-                <i class="fa-solid fa-coins text-warning fs-5"></i>
+                <i class="fa-solid fa-heart text-danger fs-5"></i>
                 <div>
-                  Nhận ngay <strong>+20 Điểm Thưởng VIP</strong> vào tài khoản cho mỗi đánh giá nhận xét sản phẩm!
+                  <strong>Cảm ơn bạn đã mua sắm tại BeeStyle!</strong> Ý kiến đánh giá của bạn là nguồn động lực lớn để chúng tôi ngày càng hoàn thiện.
                 </div>
               </div>
 
@@ -659,13 +659,22 @@
             <!-- Alert status message -->
             <div id="qrmAlertBox" style="display: none;" class="alert alert-success border-0 py-2.5 px-3 rounded-3 mb-3 small"></div>
 
+            <!-- Notice when not purchased -->
+            <div id="qrmUnpurchasedNotice" class="alert alert-warning border-0 small p-3 rounded-3 mb-4 d-flex align-items-center gap-2.5 shadow-xs" style="display: none;">
+              <i class="fa-solid fa-shield-halved text-warning fs-4 flex-shrink-0"></i>
+              <div>
+                <strong class="text-dark d-block">Xác thực người mua hàng:</strong>
+                <span class="text-muted" style="font-size: 0.8rem;">Chỉ tài khoản khách hàng đã từng mua sản phẩm này tại BeeStyle mới có thể viết đánh giá xác thực.</span>
+              </div>
+            </div>
+
             <!-- Review Form -->
-            <div class="card border-0 p-3.5 rounded-3 mb-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--atino-border) !important;">
+            <div id="qrmFormCard" class="card border-0 p-3.5 rounded-3 mb-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--atino-border) !important;">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.85rem;">
                   <i class="fa-solid fa-pen-nib text-danger me-1.5"></i> <span id="qrmFormTitle">Viết Đánh Giá Của Bạn</span>
                 </h6>
-                <span class="badge bg-warning text-dark fw-bold">+20 điểm VIP</span>
+                <span class="badge bg-light text-dark border fw-semibold"><i class="fa-solid fa-heart text-danger me-1"></i> Đóng góp ý kiến</span>
               </div>
 
               <form id="qrmForm">
@@ -698,9 +707,24 @@
                   <textarea id="qrmComment" class="form-control form-control-sm" rows="3" placeholder="Ví dụ: Vải cotton dệt tổ ong mặc rất mát, form áo lên chuẩn dáng, đường may rất chắc chắn..." required></textarea>
                 </div>
 
+                <!-- 3. Photo Upload with Live Preview -->
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-dark mb-1 d-flex align-items-center justify-content-between">
+                    <span><i class="fa-solid fa-camera text-warning me-1"></i> 3. Đính kèm ảnh thực tế:</span>
+                    <span class="text-muted fs-11" id="qrmImgCount">Tối đa 5 ảnh</span>
+                  </label>
+                  <div class="p-2.5 rounded-3 border bg-light text-center" style="border: 2px dashed #cbd5e1 !important; cursor: pointer;" onclick="document.getElementById('qrmImagesInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-warning fs-3 mb-1 d-block"></i>
+                    <span class="small text-dark fw-bold d-block">Bấm để chọn hoặc kéo thả ảnh chụp áo</span>
+                    <small class="text-muted fs-11">Hỗ trợ JPG, PNG, WEBP (tối đa 5MB/ảnh)</small>
+                    <input type="file" id="qrmImagesInput" class="d-none" multiple accept="image/*" onchange="previewReviewPhotos(this, 'qrmImagesPreview')">
+                  </div>
+                  <div id="qrmImagesPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
+                </div>
+
                 <div class="d-flex justify-content-between align-items-center">
                   <button type="submit" id="qrmSubmitBtn" class="btn btn-bee-primary btn-sm px-4 py-2 fw-bold">
-                    <i class="fa-solid fa-paper-plane me-1"></i> <span id="qrmBtnText">GỬI ĐÁNH GIÁ (+20Đ VIP)</span>
+                    <i class="fa-solid fa-paper-plane me-1"></i> <span id="qrmBtnText">GỬI ĐÁNH GIÁ NGAY</span>
                   </button>
                   <small class="text-muted" style="font-size: 0.75rem;">BeeStyle bảo mật &amp; trân trọng mọi góp ý</small>
                 </div>
@@ -726,6 +750,16 @@
     </div>
   </div>
 
+  <!-- GLOBAL REVIEW PHOTO LIGHTBOX MODAL -->
+  <div class="modal fade" id="reviewPhotoLightboxModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-transparent border-0 text-center position-relative">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 z-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        <img id="reviewPhotoLightboxImg" src="" class="img-fluid rounded-4 shadow-lg mx-auto" style="max-height: 85vh; object-fit: contain; background: rgba(0,0,0,0.85); border: 2px solid rgba(255,255,255,0.2);">
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="{{ asset('vendors/bootstrap/bootstrap.min.js') }}"></script>
   <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
@@ -736,165 +770,416 @@
       feather.replace();
     }
 
+    // Hàm mở Modal phóng to ảnh đánh giá (Global Lightbox)
+    function openReviewImageLightbox(imgSrc) {
+      if (!imgSrc) return;
+      const lightboxModal = document.getElementById('reviewPhotoLightboxModal');
+      const lightboxImg = document.getElementById('reviewPhotoLightboxImg');
+      if (lightboxModal && lightboxImg) {
+        lightboxImg.src = imgSrc;
+        bootstrap.Modal.getOrCreateInstance(lightboxModal).show();
+      }
+    }
+
+    // Hàm xem trước ảnh tải lên cho Form đánh giá
+    function previewReviewPhotos(input, previewContainerId) {
+      const container = document.getElementById(previewContainerId);
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (input.files && input.files.length > 0) {
+        const maxFiles = Math.min(input.files.length, 5);
+        for (let i = 0; i < maxFiles; i++) {
+          const file = input.files[i];
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'position-relative';
+            wrapper.innerHTML = `
+              <img src="${e.target.result}" class="rounded border shadow-xs" style="width: 58px; height: 58px; object-fit: cover;">
+            `;
+            container.appendChild(wrapper);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+
+    // Hàm hiển thị nhanh đánh giá trực tiếp vào danh sách trong Modal
+    function renderReviewDirectlyInModal(r, totalCount) {
+      const listEl = document.getElementById('qrmReviewsList');
+      if (!listEl || !r) return;
+
+      if (totalCount !== undefined) {
+        const countEl = document.getElementById('qrmReviewsCount');
+        if (countEl) countEl.textContent = totalCount;
+      }
+
+      let starsHtml = '';
+      const rRating = parseInt(r.rating) || 5;
+      for (let i = 1; i <= 5; i++) {
+        starsHtml += `<i class="fa-solid fa-star ${i <= rRating ? 'text-warning' : 'text-secondary-subtle'}"></i>`;
+      }
+
+      let photosHtml = '';
+      if (r.images && r.images.length > 0) {
+        photosHtml += '<div class="d-flex gap-2 flex-wrap mt-2 pt-2 border-top border-secondary border-opacity-10">';
+        r.images.forEach(photo => {
+          photosHtml += `
+            <div class="position-relative" style="cursor: pointer;" onclick="openReviewImageLightbox('${photo}')">
+              <img src="${photo}" alt="Ảnh đánh giá" class="rounded border shadow-xs" style="width: 60px; height: 60px; object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <span class="position-absolute bottom-0 end-0 bg-dark text-white px-1 py-0.5 rounded-start" style="font-size: 0.6rem; opacity: 0.85;">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+              </span>
+            </div>
+          `;
+        });
+        photosHtml += '</div>';
+      }
+
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'p-3 bg-light rounded-3 border';
+      itemDiv.id = 'qrm-review-item-' + (r.id || 'new');
+      itemDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-1.5 flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <img src="${r.user_avatar}" alt="${r.user_name}" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
+            <div>
+              <strong class="text-dark small d-block leading-none">${r.user_name}</strong>
+              <span class="badge bg-success-subtle text-success py-0 px-1" style="font-size: 0.65rem;">
+                <i class="fa-solid fa-circle-check"></i> Đã mua hàng
+              </span>
+            </div>
+          </div>
+          <small class="text-muted" style="font-size: 0.72rem;">${r.time_ago || 'Vừa xong'}</small>
+        </div>
+        <div class="text-warning small mb-1.5">
+          ${starsHtml} <span class="text-dark fw-bold ms-1">(${rRating}/5)</span>
+        </div>
+        <p class="small text-dark mb-0 fst-italic leading-relaxed" style="font-size: 0.8rem;">
+          "${r.comment}"
+        </p>
+        ${photosHtml}
+      `;
+
+      // Xóa empty message nếu có
+      if (listEl.querySelector('.fa-comment-dots')) {
+        listEl.innerHTML = '';
+      }
+
+      const existingEl = document.getElementById('qrm-review-item-' + r.id);
+      if (existingEl) {
+        existingEl.replaceWith(itemDiv);
+      } else {
+        listEl.insertBefore(itemDiv, listEl.firstChild);
+      }
+    }
+
     // Hàm mở Modal Đánh Giá & Xem Nhận Xét Sản Phẩm Nhanh
-    function openQuickReviewModal(productId) {
+    function openQuickReviewModal(productId, isSilent = false) {
       const modalEl = document.getElementById('quickProductReviewModal');
       if (!modalEl) return;
 
+      const pId = parseInt(productId) || 1;
       const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
       const loadingEl = document.getElementById('qrmLoading');
       const contentEl = document.getElementById('qrmContent');
       const alertBox = document.getElementById('qrmAlertBox');
+      const imgPreview = document.getElementById('qrmImagesPreview');
+      const imgInput = document.getElementById('qrmImagesInput');
 
-      loadingEl.style.display = 'block';
-      contentEl.style.display = 'none';
-      alertBox.style.display = 'none';
-      bsModal.show();
+      if (!isSilent) {
+        if (imgInput) imgInput.value = '';
+        if (imgPreview) imgPreview.innerHTML = '';
 
-      // Fetch dữ liệu sản phẩm & toàn bộ đánh giá
-      fetch(`/san-pham/${productId}/danh-gia-chi-tiet`, {
-        headers: { 'Accept': 'application/json' }
+        loadingEl.innerHTML = `
+          <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+          </div>
+          <p class="small text-muted mt-2 mb-0">Đang tải thông tin sản phẩm và các đánh giá...</p>
+        `;
+        loadingEl.style.display = 'block';
+        contentEl.style.display = 'none';
+        alertBox.style.display = 'none';
+        bsModal.show();
+      }
+
+      // Fetch dữ liệu sản phẩm & toàn bộ đánh giá bằng đường dẫn tuyệt đối theo Window Origin
+      const fetchUrl = window.location.origin + "/san-pham/" + pId + "/danh-gia-chi-tiet";
+      fetch(fetchUrl, {
+        headers: { 
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP error ' + res.status);
+        return res.json();
+      })
       .then(data => {
-        if (data.success) {
+        if (data && data.success) {
           const p = data.product;
-          document.getElementById('qrmProductId').value = p.id;
-          document.getElementById('qrmProductName').textContent = p.name;
-          document.getElementById('qrmProductImg').src = p.image;
-          document.getElementById('qrmProductPrice').textContent = p.price;
-          document.getElementById('qrmProductCat').textContent = p.category_name;
-          document.getElementById('qrmProductLink').href = p.url;
-          document.getElementById('qrmProductRating').innerHTML = `<i class="fa-solid fa-star"></i> <strong>${p.rating}</strong> (${p.reviews_count} nhận xét)`;
-          document.getElementById('qrmReviewsCount').textContent = data.reviews.length;
+          const pIdEl = document.getElementById('qrmProductId');
+          if (pIdEl) pIdEl.value = p.id;
+          const pNameEl = document.getElementById('qrmProductName');
+          if (pNameEl) pNameEl.textContent = p.name || '';
+          const pImgEl = document.getElementById('qrmProductImg');
+          if (pImgEl) pImgEl.src = p.image || '';
+          const pPriceEl = document.getElementById('qrmProductPrice');
+          if (pPriceEl) pPriceEl.textContent = p.price || '';
+          const pCatEl = document.getElementById('qrmProductCat');
+          if (pCatEl) pCatEl.textContent = p.category_name || '';
+          const pLinkEl = document.getElementById('qrmProductLink');
+          if (pLinkEl) pLinkEl.href = p.url || '#';
+          const pRatingEl = document.getElementById('qrmProductRating');
+          if (pRatingEl) pRatingEl.innerHTML = `<i class="fa-solid fa-star"></i> <strong>${p.rating}</strong> (${p.reviews_count} nhận xét)`;
+          const pRevCountEl = document.getElementById('qrmReviewsCount');
+          if (pRevCountEl) pRevCountEl.textContent = data.reviews ? data.reviews.length : 0;
 
-          // Xử lý Form đánh giá của chính khách
-          if (data.user_review) {
-            document.getElementById('qrmFormTitle').textContent = 'Cập Nhật Đánh Giá Của Bạn';
-            document.getElementById('qrmBtnText').textContent = 'CẬP NHẬT ĐÁNH GIÁ';
-            document.getElementById('qrmComment').value = data.user_review.comment;
-            const starRadio = document.querySelector(`input[name="qrm_rating"][value="${data.user_review.rating}"]`);
-            if (starRadio) starRadio.checked = true;
+          // Kiểm tra quyền đánh giá (chỉ khách đã mua mới thấy form nhập)
+          const formCard = document.getElementById('qrmFormCard');
+          const noticeCard = document.getElementById('qrmUnpurchasedNotice');
+
+          if (data.user_has_purchased) {
+            if (formCard) formCard.style.display = 'block';
+            if (noticeCard) noticeCard.style.display = 'none';
+
+            const fTitle = document.getElementById('qrmFormTitle');
+            const fBtn = document.getElementById('qrmBtnText');
+            const fComment = document.getElementById('qrmComment');
+
+            if (data.user_review) {
+              if (fTitle) fTitle.textContent = 'Cập Nhật Đánh Giá & Hình Ảnh';
+              if (fBtn) fBtn.textContent = 'CẬP NHẬT ĐÁNH GIÁ';
+              if (fComment) fComment.value = data.user_review.comment || '';
+              const starRadio = document.querySelector(`input[name="qrm_rating"][value="${data.user_review.rating}"]`);
+              if (starRadio) starRadio.checked = true;
+
+              // Render existing user photos
+              if (data.user_review.images && data.user_review.images.length > 0 && imgPreview) {
+                imgPreview.innerHTML = '';
+                data.user_review.images.forEach(img => {
+                  imgPreview.innerHTML += `<img src="${img}" class="rounded border shadow-xs" style="width: 58px; height: 58px; object-fit: cover;">`;
+                });
+              }
+            } else {
+              if (fTitle) fTitle.textContent = 'Viết Đánh Giá & Đính Kèm Ảnh';
+              if (fBtn) fBtn.textContent = 'GỬI ĐÁNH GIÁ NGAY';
+              if (!isSilent) {
+                if (fComment) fComment.value = '';
+                const star5 = document.getElementById('qrm_star_5');
+                if (star5) star5.checked = true;
+              }
+            }
           } else {
-            document.getElementById('qrmFormTitle').textContent = 'Viết Đánh Giá Của Bạn';
-            document.getElementById('qrmBtnText').textContent = 'GỬI ĐÁNH GIÁ (+20Đ VIP)';
-            document.getElementById('qrmComment').value = '';
-            document.getElementById('qrm_star_5').checked = true;
+            if (formCard) formCard.style.display = 'none';
+            if (noticeCard) noticeCard.style.display = 'flex';
           }
 
           // Render danh sách đánh giá của các khách hàng khác
           const listEl = document.getElementById('qrmReviewsList');
-          listEl.innerHTML = '';
+          if (listEl) {
+            listEl.innerHTML = '';
 
-          if (data.reviews && data.reviews.length > 0) {
-            data.reviews.forEach(r => {
-              let starsHtml = '';
-              for (let i = 1; i <= 5; i++) {
-                starsHtml += `<i class="fa-solid fa-star ${i <= r.rating ? 'text-warning' : 'text-secondary-subtle'}"></i>`;
-              }
-
-              const itemDiv = document.createElement('div');
-              itemDiv.className = 'p-3 bg-light rounded-3 border';
-              itemDiv.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-1.5 flex-wrap gap-2">
-                  <div class="d-flex align-items-center gap-2">
-                    <img src="${r.user_avatar}" alt="${r.user_name}" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
-                    <div>
-                      <strong class="text-dark small d-block leading-none">${r.user_name}</strong>
-                      <span class="badge bg-success-subtle text-success py-0 px-1" style="font-size: 0.65rem;">
-                        <i class="fa-solid fa-circle-check"></i> Đã mua hàng
-                      </span>
-                    </div>
-                  </div>
-                  <small class="text-muted" style="font-size: 0.72rem;">${r.time_ago}</small>
+            if (data.reviews && data.reviews.length > 0) {
+              data.reviews.forEach(r => {
+                renderReviewDirectlyInModal(r);
+              });
+            } else {
+              listEl.innerHTML = `
+                <div class="text-center py-4 bg-light rounded-3 border">
+                  <i class="fa-regular fa-comment-dots fs-2 text-muted mb-2 d-block"></i>
+                  <p class="small text-muted mb-0">Chưa có đánh giá nào khác. Hãy là người đầu tiên nhận xét sản phẩm này!</p>
                 </div>
-                <div class="text-warning small mb-1.5">
-                  ${starsHtml} <span class="text-dark fw-bold ms-1">(${r.rating}/5)</span>
-                </div>
-                <p class="small text-dark mb-0 fst-italic leading-relaxed" style="font-size: 0.8rem;">
-                  "${r.comment}"
-                </p>
               `;
-              listEl.appendChild(itemDiv);
-            });
-          } else {
-            listEl.innerHTML = `
-              <div class="text-center py-4 bg-light rounded-3 border">
-                <i class="fa-regular fa-comment-dots fs-2 text-muted mb-2 d-block"></i>
-                <p class="small text-muted mb-0">Chưa có đánh giá nào khác. Hãy là người đầu tiên nhận xét sản phẩm này!</p>
-              </div>
-            `;
+            }
           }
 
-          loadingEl.style.display = 'none';
-          contentEl.style.display = 'block';
+          if (loadingEl) loadingEl.style.display = 'none';
+          if (contentEl) contentEl.style.display = 'block';
+        } else {
+          throw new Error('Dữ liệu không hợp lệ');
         }
       })
       .catch(err => {
-        console.error(err);
-        loadingEl.innerHTML = '<p class="text-danger small">Lỗi tải dữ liệu đánh giá sản phẩm. Vui lòng thử lại!</p>';
+        console.error('Error fetching review data:', err);
+        if (!isSilent && contentEl && contentEl.style.display !== 'block' && loadingEl) {
+          loadingEl.innerHTML = `
+            <div class="text-center py-4">
+              <i class="fa-solid fa-circle-exclamation text-danger fs-2 mb-2 d-block"></i>
+              <p class="text-dark fw-semibold small mb-2">Chưa thể tải dữ liệu đánh giá sản phẩm</p>
+              <button type="button" class="btn btn-sm btn-outline-dark px-3 fw-bold rounded-pill" onclick="openQuickReviewModal(${pId})">
+                <i class="fa-solid fa-rotate-right me-1"></i> Bấm để thử lại
+              </button>
+            </div>
+          `;
+        }
       });
     }
 
-    // Xử lý gửi Form Đánh Giá AJAX trong Modal
+    // Xử lý gửi Form Đánh Giá AJAX (kèm hỗ trợ tải lên file ảnh FormData) trong Modal
     document.addEventListener("DOMContentLoaded", function () {
       const qrmForm = document.getElementById('qrmForm');
       if (qrmForm) {
         qrmForm.addEventListener('submit', function (e) {
           e.preventDefault();
-          const productId = document.getElementById('qrmProductId').value;
+          const pIdInput = document.getElementById('qrmProductId');
+          const productId = parseInt(pIdInput ? pIdInput.value : 1) || 1;
           const ratingInput = document.querySelector('input[name="qrm_rating"]:checked');
-          const comment = document.getElementById('qrmComment').value;
+          const commentInput = document.getElementById('qrmComment');
+          const comment = commentInput ? commentInput.value : '';
+          const imgInput = document.getElementById('qrmImagesInput');
           const submitBtn = document.getElementById('qrmSubmitBtn');
           const alertBox = document.getElementById('qrmAlertBox');
 
           if (!ratingInput || !comment.trim()) return;
 
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi...';
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi đánh giá & ảnh...';
+          }
 
-          fetch(`/san-pham/${productId}/danh-gia`, {
+          const formData = new FormData();
+          formData.append('rating', ratingInput.value);
+          formData.append('comment', comment);
+          if (imgInput && imgInput.files && imgInput.files.length > 0) {
+            const maxFiles = Math.min(imgInput.files.length, 5);
+            for (let i = 0; i < maxFiles; i++) {
+              formData.append('review_images[]', imgInput.files[i]);
+            }
+          }
+
+          const postUrl = window.location.origin + "/san-pham/" + productId + "/danh-gia";
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+          formData.append('_token', csrfToken);
+
+          fetch(postUrl, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
               'Accept': 'application/json',
-              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+              'X-CSRF-TOKEN': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({
-              rating: ratingInput.value,
-              comment: comment
-            })
+            body: formData
           })
-          .then(res => res.json())
+          .then(async res => {
+            const isJson = res.headers.get('content-type')?.includes('application/json');
+            const data = isJson ? await res.json() : null;
+
+            if (!res.ok) {
+              const errMsg = (data && data.message) ? data.message : `Lỗi ${res.status}: Vui lòng kiểm tra lại thông tin gửi đánh giá`;
+              throw new Error(errMsg);
+            }
+
+            return data;
+          })
           .then(data => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> HOÀN TẤT!';
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> CẬP NHẬT ĐÁNH GIÁ';
+            }
 
-            if (data.success) {
-              alertBox.className = 'alert alert-success border-0 py-2.5 px-3 rounded-3 mb-3 small';
-              alertBox.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> ${data.message}`;
-              alertBox.style.display = 'block';
+            if (data && data.success) {
+              if (alertBox) {
+                alertBox.className = 'alert alert-success border-0 py-2.5 px-3 rounded-3 mb-3 small';
+                alertBox.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> ${data.message}`;
+                alertBox.style.display = 'block';
+              }
 
-              // Tải lại danh sách đánh giá sau 1s
+              // Cập nhật title form
+              const fTitle = document.getElementById('qrmFormTitle');
+              if (fTitle) fTitle.textContent = 'Cập Nhật Đánh Giá & Hình Ảnh';
+              const fBtn = document.getElementById('qrmBtnText');
+              if (fBtn) fBtn.textContent = 'CẬP NHẬT ĐÁNH GIÁ';
+
+              // Cập nhật rating và reviews_count trên header modal
+              const pRating = document.getElementById('qrmProductRating');
+              if (pRating && data.product_rating) {
+                pRating.innerHTML = `<i class="fa-solid fa-star"></i> <strong>${data.product_rating}</strong> (${data.product_reviews_count} nhận xét)`;
+              }
+
+              // Render review ngay lập tức vào danh sách hiển thị
+              if (data.review) {
+                renderReviewDirectlyInModal(data.review, data.product_reviews_count);
+                syncReviewToProfilePage(data.review, productId);
+              }
+
+              // Xóa input file đã gửi
+              if (imgInput) imgInput.value = '';
+
+              // Sync dữ liệu ngầm sau 500ms mà không làm giật modal
               setTimeout(() => {
-                openQuickReviewModal(productId);
-              }, 1200);
+                openQuickReviewModal(productId, true);
+              }, 500);
             } else {
-              alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
-              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> ${data.message || 'Không thể gửi đánh giá'}`;
-              alertBox.style.display = 'block';
+              if (alertBox) {
+                alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
+                alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> ${data?.message || 'Không thể gửi đánh giá'}`;
+                alertBox.style.display = 'block';
+              }
             }
           })
           .catch(err => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ';
-            alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
-            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Có lỗi xảy ra khi gửi đánh giá.';
-            alertBox.style.display = 'block';
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ';
+            }
+            if (alertBox) {
+              alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
+              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> ${err.message || 'Có lỗi xảy ra khi gửi đánh giá.'}`;
+              alertBox.style.display = 'block';
+            }
           });
         });
       }
     });
+
+    // Hàm đồng bộ dữ liệu đánh giá vừa sửa sang Trang Hồ Sơ Tài Khoản
+    function syncReviewToProfilePage(reviewData, productId) {
+      if (!reviewData || !productId) return;
+
+      const commentEl = document.getElementById('profile-rev-comment-' + productId);
+      if (commentEl) {
+        commentEl.textContent = `"${reviewData.comment}"`;
+      }
+
+      const starsEl = document.getElementById('profile-rev-stars-' + productId);
+      if (starsEl) {
+        let starsHtml = '';
+        const rRating = parseInt(reviewData.rating) || 5;
+        for (let i = 1; i <= 5; i++) {
+          starsHtml += `<i class="fa-solid fa-star ${i <= rRating ? 'text-warning' : 'text-secondary-subtle'}"></i> `;
+        }
+        starsHtml += `<span class="fw-bold text-dark ms-1">(${rRating}/5)</span>`;
+        starsEl.innerHTML = starsHtml;
+      }
+
+      const photosEl = document.getElementById('profile-rev-photos-' + productId);
+      if (photosEl) {
+        if (reviewData.images && reviewData.images.length > 0) {
+          photosEl.classList.remove('d-none');
+          photosEl.style.display = 'flex';
+          photosEl.innerHTML = '';
+          reviewData.images.forEach(photoUrl => {
+            photosEl.innerHTML += `
+              <div class="position-relative" style="cursor: pointer;" onclick="openReviewImageLightbox('${photoUrl}')">
+                <img src="${photoUrl}" alt="Ảnh đánh giá" class="rounded border shadow-xs" style="width: 54px; height: 54px; object-fit: cover;">
+                <span class="position-absolute bottom-0 end-0 bg-dark text-white px-1 py-0.5 rounded-start" style="font-size: 0.6rem; opacity: 0.85;">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </span>
+              </div>
+            `;
+          });
+        }
+      }
+
+      // Đổi nút Đơn Hàng sang "Xem / Sửa Đánh Giá"
+      const orderBtn = document.getElementById('order-btn-review-' + productId);
+      if (orderBtn) {
+        orderBtn.className = 'btn btn-sm btn-outline-success py-0.5 px-2 mt-1 fw-bold text-nowrap';
+        orderBtn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Xem / Sửa Đánh Giá';
+      }
+    }
 
     // Hàm đánh dấu đã gửi thông báo 1 lần duy nhất trên Database & Trình duyệt
     function markReviewNotified() {
@@ -1042,67 +1327,48 @@
             </div>
           </div>
 
-          <!-- 3. CHỌN SỐ LƯỢNG MUA (HỖ TRỢ THANH TRƯỢT, NHẤN ĐÚP, GIỮ CHUỘT VÀ SỐ LƯỢNG > 1000) -->
-          <div class="mb-3 p-3 bg-light rounded-3 border">
+          <!-- 3. CHỌN SỐ LƯỢNG MUA (1 - 10 SẢN PHẨM) -->
+          <div class="mb-3 p-3 rounded-3 border" style="background: #f8fafc;">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <label class="form-label small fw-bold text-dark mb-0">
-                <i class="fa-solid fa-calculator text-warning me-1"></i> 3. Số Lượng Mua:
+              <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
+                <i class="fa-solid fa-calculator text-warning"></i>
+                <span>3. Số Lượng Mua:</span>
               </label>
-              <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 small fw-bold">
-                Đã chọn: <span id="qvmQtyLiveBadge" class="text-danger fs-6 fw-bold">1</span> sản phẩm
+              <span class="badge bg-dark text-warning border border-warning px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
+                <i class="fa-solid fa-cart-shopping"></i> Đã chọn: <span id="qvmQtyLiveBadge" class="text-white fs-6 fw-bolder">1</span> cái
               </span>
             </div>
             
-            <!-- Ô nhập số lượng + nút tăng giảm hỗ trợ Click / Nhấn Đúp / Nhấn Giữ -->
-            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-              <div class="input-group input-group-sm" style="width: 145px;">
-                <button type="button" class="btn btn-outline-secondary px-2.5 fw-bold" id="qvmBtnMinus" 
-                  title="Click: -1 | Nhấn đúp: -10 | Nhấn giữ: Giảm liên tục">
+            <!-- Ô nhập số lượng + nút tăng giảm cộng trừ (Tối đa 10) -->
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <div class="bee-qty-stepper">
+                <button type="button" class="btn-step-minus" id="qvmBtnMinus" onclick="changeQvmQuantity(-1)" title="Giảm 1 sản phẩm">
                   <i class="fa-solid fa-minus"></i>
                 </button>
-                <input type="number" id="qvmQuantityInput" value="1" min="1" max="999999" 
-                  class="form-control text-center fw-bold text-dark fs-6 bg-white border-secondary-subtle" 
-                  oninput="validateQvmQuantity(this)" onchange="validateQvmQuantity(this)"
-                  title="Nhập bất kỳ số lượng nào (trên 1000 sản phẩm đều được)">
-                <button type="button" class="btn btn-outline-secondary px-2.5 fw-bold" id="qvmBtnPlus" 
-                  title="Click: +1 | Nhấn đúp: +10 | Nhấn giữ: Tăng liên tục">
+                <input type="number" id="qvmQuantityInput" value="1" min="1" max="10" class="qty-display-input" readonly>
+                <button type="button" class="btn-step-plus" id="qvmBtnPlus" onclick="changeQvmQuantity(1)" title="Tăng 1 sản phẩm">
                   <i class="fa-solid fa-plus"></i>
                 </button>
               </div>
 
-              <!-- Hàng nút chọn nhanh số lượng lớn: 1, 5, 10, 50, 100, 500, 1000 -->
-              <div class="d-flex gap-1 flex-wrap align-items-center flex-grow-1">
-                <button type="button" class="btn btn-sm btn-warning text-dark fw-bold py-1 px-2 rounded-2 qvm-quick-qty shadow-xs" onclick="setQvmQuantity(1, this)">1</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2 fw-semibold qvm-quick-qty" onclick="setQvmQuantity(5, this)">5</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2 fw-semibold qvm-quick-qty" onclick="setQvmQuantity(10, this)">10</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2 fw-semibold qvm-quick-qty" onclick="setQvmQuantity(50, this)">50</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2 fw-semibold qvm-quick-qty" onclick="setQvmQuantity(100, this)">100</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2 fw-semibold qvm-quick-qty" onclick="setQvmQuantity(500, this)">500</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-2 fw-semibold qvm-quick-qty" onclick="setQvmQuantity(1000, this)">1000+</button>
+              <div>
+                <div class="d-flex align-items-baseline gap-1.5">
+                  <span class="text-muted small">Tạm tính:</span>
+                  <strong class="text-danger fs-6 fw-bold" id="qvmSubtotalLive">0₫</strong>
+                </div>
+                <small class="text-muted fs-11 d-block">
+                  Kho: <strong class="text-dark" id="qvmStockNumber">999</strong> có sẵn • Tối đa 10 cái
+                </small>
               </div>
             </div>
 
-            <!-- THANH TRƯỢT SỐ LƯỢNG (RANGE SLIDER) TRỰC QUAN -->
-            <div class="pt-1">
-              <input type="range" class="form-range" id="qvmQuantitySlider" min="1" max="1000" step="1" value="1" 
-                oninput="syncQvmSlider(this.value)" 
-                style="accent-color: #d97706; cursor: pointer;">
-              <div class="d-flex justify-content-between text-muted" style="font-size: 0.7rem; margin-top: -4px;">
-                <span>1</span>
-                <span>100</span>
-                <span>250</span>
-                <span>500</span>
-                <span>750</span>
-                <span>1.000+</span>
-              </div>
+            <div id="qvmMaxLimitMsg" class="alert alert-warning border-0 py-2 px-3 small rounded-3 mt-2 mb-0 d-none fw-semibold" style="font-size: 0.78rem;">
+              <i class="fa-solid fa-circle-exclamation text-danger me-1"></i> Số lượng mua tối đa cho phép là 10 sản phẩm.
             </div>
-            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
-              <i class="fa-solid fa-circle-info text-primary me-1"></i> Mẹo: Nhấn đúp để nhảy ±10, nhấn giữ nút +/- để tăng giảm liên tục, hoặc kéo thanh trượt để chọn nhanh số lượng lớn (trên 1000 cũng được).
-            </small>
           </div>
 
           <!-- Cảnh Báo Chọn Biến Thể -->
-          <div class="alert alert-warning border-0 py-2.5 px-3 rounded-3 mb-0 small shadow-xs" id="qvmValidationAlert" style="display: none; font-size: 0.82rem;">
+          <div class="alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-0 small shadow-xs" id="qvmValidationAlert" style="display: none; font-size: 0.82rem;">
             <i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Vui lòng chọn đầy đủ <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!
           </div>
         </div>
@@ -1241,18 +1507,13 @@
       selectedColor = null;
       selectedSize = null;
       document.getElementById('qvmSelectedColorText').textContent = 'Chưa chọn';
+      document.getElementById('qvmSelectedColorText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1';
       document.getElementById('qvmSelectedSizeText').textContent = 'Chưa chọn';
+      document.getElementById('qvmSelectedSizeText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1';
       document.getElementById('qvmQuantityInput').value = 1;
-      document.getElementById('qvmQtyLiveBadge').textContent = '1';
       document.getElementById('qvmValidationAlert').style.display = 'none';
-
-      // Khởi tạo slider
-      const slider = document.getElementById('qvmQuantitySlider');
-      if (slider) {
-        slider.max = 1000;
-        slider.value = 1;
-      }
-      updateQuickQtyHighlight(1);
+      const maxNotice = document.getElementById('qvmMaxLimitMsg');
+      if (maxNotice) maxNotice.classList.add('d-none');
 
       // Đổi class nút bấm nếu ở chế độ Mua Ngay
       if (isBuyNow) {
@@ -1315,7 +1576,6 @@
         })
         .catch(err => {
           console.warn('API Quick View Fetch notice:', err);
-          // Nếu chưa có dữ liệu sản phẩm, sử dụng dữ liệu mặc định an toàn
           if (!currentQvmProduct || currentQvmProduct.id !== productId) {
             currentQvmProduct = {
               id: productId,
@@ -1425,17 +1685,9 @@
       }).join('');
       document.getElementById('qvmSizesContainer').innerHTML = sizesHtml;
 
-      // Tự động chọn nếu chỉ có 1 màu / 1 size
-      if (colors.length === 1) {
-        const firstColorBtn = document.querySelector('.qvm-color-item');
-        if (firstColorBtn) selectQvmColor(colors[0], firstColorBtn);
-      }
-      if (sizes.length === 1) {
-        const firstSizeBtn = document.querySelector('.qvm-size-item');
-        if (firstSizeBtn) selectQvmSize(sizes[0], firstSizeBtn);
-      }
+      // Cập nhật hiển thị số lượng & tổng tiền ban đầu
+      updateQvmQtyDisplay(1);
     }
-
 
     // Xử lý chọn màu
     function selectQvmColor(color, btn) {
@@ -1483,147 +1735,62 @@
       if (activeHint) activeHint.className = 'text-warning-emphasis lh-1 mt-1';
     }
 
+    function updateQvmQtyDisplay(val) {
+      const qtyInput = document.getElementById('qvmQuantityInput');
+      const badge = document.getElementById('qvmQtyLiveBadge');
+      const subtotal = document.getElementById('qvmSubtotalLive');
+      const btnMinus = document.getElementById('qvmBtnMinus');
+      const btnPlus = document.getElementById('qvmBtnPlus');
+      const maxMsg = document.getElementById('qvmMaxLimitMsg');
 
-    // Đồng bộ khi kéo thanh trượt Range Slider
-    function syncQvmSlider(val) {
-      const qty = parseInt(val) || 1;
-      document.getElementById('qvmQuantityInput').value = qty;
-      document.getElementById('qvmQtyLiveBadge').textContent = qty.toLocaleString('vi-VN');
-      updateQuickQtyHighlight(qty);
+      if (qtyInput) qtyInput.value = val;
+      if (badge) {
+        badge.textContent = val;
+        badge.classList.remove('animate-scale');
+        void badge.offsetWidth;
+        badge.classList.add('animate-scale');
+      }
+      if (subtotal && currentQvmProduct && currentQvmProduct.price) {
+        const total = currentQvmProduct.price * val;
+        subtotal.textContent = total.toLocaleString('vi-VN') + '₫';
+      } else if (subtotal && currentQvmProduct && currentQvmProduct.price_formatted) {
+        subtotal.textContent = currentQvmProduct.price_formatted;
+      }
+      if (btnMinus) {
+        btnMinus.disabled = (val <= 1);
+        btnMinus.style.opacity = (val <= 1) ? '0.45' : '1';
+      }
+      if (btnPlus) {
+        btnPlus.disabled = (val >= 10);
+        btnPlus.style.opacity = (val >= 10) ? '0.45' : '1';
+      }
+      if (maxMsg) {
+        if (val >= 10) {
+          maxMsg.classList.remove('d-none');
+        } else {
+          maxMsg.classList.add('d-none');
+        }
+      }
     }
 
-    // Tăng / giảm số lượng bằng nút bấm
+    // Tăng / giảm số lượng bằng nút bấm (Tối đa 10)
     function changeQvmQuantity(delta) {
       const qtyInput = document.getElementById('qvmQuantityInput');
+      if (!qtyInput) return;
       let current = parseInt(qtyInput.value) || 1;
       current += delta;
       if (current < 1) current = 1;
-      if (current > 999999) current = 999999;
-      qtyInput.value = current;
-      
-      syncQvmInputToSlider(current);
-      updateQuickQtyHighlight(current);
+      if (current > 10) current = 10;
+      updateQvmQtyDisplay(current);
     }
 
-    // Chọn nhanh số lượng bằng các nút 1, 5, 10, 50, 100, 500, 1000
-    function setQvmQuantity(val, btn) {
-      const qtyInput = document.getElementById('qvmQuantityInput');
-      let qty = parseInt(val) || 1;
-      if (qty < 1) qty = 1;
-      qtyInput.value = qty;
-      
-      syncQvmInputToSlider(qty);
-      updateQuickQtyHighlight(qty);
-    }
-
-    // Kiểm tra tính hợp lệ khi khách hàng tự gõ số lượng từ bàn phím (trên 1000 sản phẩm thoải mái)
+    // Kiểm tra tính hợp lệ khi khách hàng tự gõ số lượng (1 - 10)
     function validateQvmQuantity(input) {
       let val = parseInt(input.value);
-      if (isNaN(val) || val < 1) {
-        val = 1;
-      } else if (val > 999999) {
-        val = 999999;
-      }
-      input.value = val;
-      syncQvmInputToSlider(val);
-      updateQuickQtyHighlight(val);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > 10) val = 10;
+      updateQvmQtyDisplay(val);
     }
-
-    function syncQvmInputToSlider(qty) {
-      const slider = document.getElementById('qvmQuantitySlider');
-      if (slider) {
-        if (qty > parseInt(slider.max)) {
-          slider.max = qty > 10000 ? qty : 10000;
-        }
-        slider.value = qty;
-      }
-      const badge = document.getElementById('qvmQtyLiveBadge');
-      if (badge) badge.textContent = qty.toLocaleString('vi-VN');
-    }
-
-    function updateQuickQtyHighlight(val) {
-      document.querySelectorAll('.qvm-quick-qty').forEach(b => {
-        const btnVal = parseInt(b.textContent.trim());
-        if (btnVal === val) {
-          b.className = 'btn btn-sm btn-warning text-dark fw-bold py-1 px-2 rounded-2 qvm-quick-qty shadow-xs';
-        } else {
-          b.className = 'btn btn-sm btn-outline-secondary py-1 px-2 rounded-2 fw-semibold qvm-quick-qty';
-        }
-      });
-    }
-
-    // XỬ LÝ NHẤN ĐÚP & NHẤN GIỮ NÚT TĂNG GIẢM LIÊN TỤC (PRESS & HOLD ACCELERATION)
-    let qvmHoldInterval = null;
-    let qvmHoldTimeout = null;
-
-    function initQvmHoldButtons() {
-      const btnMinus = document.getElementById('qvmBtnMinus');
-      const btnPlus = document.getElementById('qvmBtnPlus');
-
-      if (!btnMinus || !btnPlus) return;
-
-      // 1. Nhấn 1 lần: ±1
-      btnMinus.onclick = () => changeQvmQuantity(-1);
-      btnPlus.onclick = () => changeQvmQuantity(1);
-
-      // 2. Nhấn đúp (Double-Click): Nhảy nhanh ±10
-      btnMinus.ondblclick = (e) => {
-        e.preventDefault();
-        changeQvmQuantity(-10);
-      };
-      btnPlus.ondblclick = (e) => {
-        e.preventDefault();
-        changeQvmQuantity(10);
-      };
-
-      // 3. Nhấn Giữ (Press and Hold): Tăng giảm liên tục siêu tốc
-      const startHold = (delta) => {
-        clearTimeout(qvmHoldTimeout);
-        clearInterval(qvmHoldInterval);
-        
-        let step = delta;
-        let speed = 100; // ms
-        let counter = 0;
-
-        qvmHoldTimeout = setTimeout(() => {
-          qvmHoldInterval = setInterval(() => {
-            counter++;
-            // Tăng tốc độ nhảy số khi giữ lâu (nhảy 5, 10, 50, 100)
-            if (counter > 30) step = delta * 100;
-            else if (counter > 15) step = delta * 20;
-            else if (counter > 5) step = delta * 5;
-
-            changeQvmQuantity(step);
-          }, speed);
-        }, 250);
-      };
-
-      const stopHold = () => {
-        clearTimeout(qvmHoldTimeout);
-        clearInterval(qvmHoldInterval);
-      };
-
-      // Gắn sự kiện Chuột (Desktop)
-      btnMinus.addEventListener('mousedown', () => startHold(-1));
-      btnMinus.addEventListener('mouseup', stopHold);
-      btnMinus.addEventListener('mouseleave', stopHold);
-
-      btnPlus.addEventListener('mousedown', () => startHold(1));
-      btnPlus.addEventListener('mouseup', stopHold);
-      btnPlus.addEventListener('mouseleave', stopHold);
-
-      // Gắn sự kiện Cảm ứng (Mobile / Tablet)
-      btnMinus.addEventListener('touchstart', (e) => { startHold(-1); }, {passive: true});
-      btnMinus.addEventListener('touchend', stopHold);
-
-      btnPlus.addEventListener('touchstart', (e) => { startHold(1); }, {passive: true});
-      btnPlus.addEventListener('touchend', stopHold);
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-      initQvmHoldButtons();
-    });
-
 
 
     // Submit Thêm Vào Giỏ hoặc Mua Ngay

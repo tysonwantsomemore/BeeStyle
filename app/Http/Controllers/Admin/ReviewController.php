@@ -72,27 +72,40 @@ class ReviewController extends Controller
     {
         $review->matched_order = null;
         if ($review->user_id && $review->product_id) {
-            $order = \App\Models\Order::where('user_id', $review->user_id)
-                ->whereHas('items', fn($q) => $q->where('product_id', $review->product_id))
-                ->with(['items' => fn($q) => $q->where('product_id', $review->product_id)])
+            $order = \App\Models\Order::where(function($q) use ($review) {
+                    $q->where('user_id', $review->user_id);
+                    if ($review->user && $review->user->phone) {
+                        $q->orWhere('customer_phone', $review->user->phone);
+                    }
+                })
+                ->whereHas('items', function ($q) use ($review) {
+                    $q->where('product_id', $review->product_id)
+                      ->orWhere('product_name', 'LIKE', '%' . ($review->product->name ?? '') . '%');
+                })
+                ->with(['items'])
                 ->latest()
                 ->first();
 
             if ($order) {
-                $matchedItem = $order->items->first();
-                $review->matched_order = [
-                    'order_id' => $order->id,
-                    'order_code' => $order->order_code,
-                    'created_at' => $order->created_at ? $order->created_at->format('d/m/Y H:i') : '',
-                    'total_amount' => number_format($order->total_amount, 0, ',', '.') . '₫',
-                    'shipping_status_label' => $order->status_label ?? 'Đã hoàn tất',
-                    'payment_status_label' => $order->payment_status_label ?? 'Đã thanh toán',
-                    'color' => $matchedItem->color ?? 'Tiêu chuẩn',
-                    'size' => $matchedItem->size ?? 'M',
-                    'quantity' => $matchedItem->quantity ?? 1,
-                    'price' => number_format($matchedItem->price ?? ($review->product->price ?? 0), 0, ',', '.') . '₫',
-                    'item_image' => $matchedItem->image ? asset($matchedItem->image) : ($review->product->image ? asset($review->product->image) : asset('/assets/img/products/1.png')),
-                ];
+                $matchedItem = $order->items->first(function($it) use ($review) {
+                    return $it->product_id == $review->product_id || ($review->product && str_contains($it->product_name, $review->product->name));
+                }) ?: $order->items->first();
+
+                if ($matchedItem) {
+                    $review->matched_order = [
+                        'order_id' => $order->id,
+                        'order_code' => $order->order_code,
+                        'created_at' => $order->created_at ? $order->created_at->format('d/m/Y H:i') : '',
+                        'total_amount' => number_format($order->total_amount, 0, ',', '.') . '₫',
+                        'shipping_status_label' => $order->status_label ?? 'Đã hoàn tất',
+                        'payment_status_label' => $order->payment_status_label ?? 'Đã thanh toán',
+                        'color' => $matchedItem->color ?? 'Tiêu chuẩn',
+                        'size' => $matchedItem->size ?? 'M',
+                        'quantity' => $matchedItem->quantity ?? 1,
+                        'price' => number_format($matchedItem->price ?? ($review->product->price ?? 0), 0, ',', '.') . '₫',
+                        'item_image' => $matchedItem->image ? asset($matchedItem->image) : ($review->product && $review->product->image ? asset($review->product->image) : asset('/assets/img/products/1.png')),
+                    ];
+                }
             }
         }
     }
