@@ -13,7 +13,6 @@
       <button type="button" data-bs-target="#beeHeroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
       <button type="button" data-bs-target="#beeHeroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
       <button type="button" data-bs-target="#beeHeroCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
-      <button type="button" data-bs-target="#beeHeroCarousel" data-bs-slide-to="4" aria-label="Slide 5"></button>
     </div>
 
     <!-- Slides -->
@@ -131,33 +130,6 @@
         </div>
       </div>
 
-      <!-- Slide 5: BST Mùa Hè -->
-      <div class="carousel-item" style="background-image: url('{{ asset('assets/img/products/somi_linen_white.jpg') }}');">
-        <div class="carousel-overlay">
-          <div class="row w-100 align-items-center">
-            <div class="col-lg-7 text-start">
-              <span class="bee-hero-badge gold">
-                <i class="fa-solid fa-sun me-1"></i> SUMMER COLLECTION • ĐŨI LINEN &amp; TROPICAL
-              </span>
-              <h1 class="bee-hero-title">
-                BỘ SƯU TẬP MÙA HÈ <br>
-                <span class="text-warning">THOÁNG MÁT &amp; NĂNG ĐỘNG</span>
-              </h1>
-              <p class="bee-hero-subtitle">
-                Chất liệu đũi Linen, Cotton tơ tằm dệt xốp nhẹ thoáng mát, giải nhiệt mùa hè, cực kỳ lý tưởng cho dạo phố và du lịch biển.
-              </p>
-              <div class="d-flex flex-wrap gap-3">
-                <a href="{{ route('client.products.index', ['category' => 'bo-suu-tap-mua-he']) }}" class="btn btn-bee-accent px-4 py-3">
-                  <i class="fa-solid fa-umbrella-beach me-1"></i> KHÁM PHÁ BST MÙA HÈ
-                </a>
-                <a href="{{ route('client.products.index') }}" class="btn btn-outline-light px-4 py-3 fw-bold" style="border-radius: 8px;">
-                  TẤT CẢ SẢN PHẨM
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Carousel Controls -->
@@ -227,7 +199,7 @@
 
     <div class="row g-3">
       <!-- Cat 1: Polo -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-6 col-6">
         <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/polo_01.jpg') }}" alt="Áo Polo Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -239,7 +211,7 @@
       </div>
 
       <!-- Cat 2: Sơ mi -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-6 col-6">
         <a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/somi_01.jpg') }}" alt="Áo Sơ Mi Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -251,7 +223,7 @@
       </div>
 
       <!-- Cat 3: T-shirt -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-6 col-6">
         <a href="{{ route('client.products.index', ['category' => 'ao-phong-tshirt-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/tshirt_01.jpg') }}" alt="Áo Phông Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -263,7 +235,7 @@
       </div>
 
       <!-- Cat 4: Blazer -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-6 col-6">
         <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/outerwear_01.jpg') }}" alt="Áo Khoác & Blazer" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -275,7 +247,7 @@
       </div>
 
       <!-- Cat 5: Áo Thun -->
-      <div class="col-lg-4 col-md-4 col-6">
+      <div class="col-lg-4 col-md-6 col-6">
         <a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/tshirt_black.jpg') }}" alt="Áo Thun Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -287,25 +259,13 @@
       </div>
 
       <!-- Cat 6: Áo Thu Đông -->
-      <div class="col-lg-4 col-md-4 col-6">
+      <div class="col-lg-4 col-md-6 col-6">
         <a href="{{ route('client.products.index', ['category' => 'ao-thu-dong-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/hoodie_1.jpg') }}" alt="Áo Thu Đông Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
           <div class="cat-content">
             <h5 class="cat-title">ÁO THU ĐÔNG &amp; HOODIE</h5>
             <span class="cat-count"><i class="fa-solid fa-snowflake me-1 text-info"></i> 10 Mẫu nỉ bông ấm</span>
-          </div>
-        </a>
-      </div>
-
-      <!-- Cat 7: BST Mùa Hè -->
-      <div class="col-lg-4 col-md-4 col-12">
-        <a href="{{ route('client.products.index', ['category' => 'bo-suu-tap-mua-he']) }}" class="bee-cat-card-modern" style="height: 200px;">
-          <img src="{{ asset('assets/img/products/somi_linen_white.jpg') }}" alt="Bộ Sưu Tập Mùa Hè" class="cat-bg-img">
-          <div class="cat-overlay"></div>
-          <div class="cat-content">
-            <h5 class="cat-title">BỘ SƯU TẬP MÙA HÈ</h5>
-            <span class="cat-count"><i class="fa-solid fa-sun me-1 text-warning"></i> 10 Mẫu đũi linen &amp; polo hè</span>
           </div>
         </a>
       </div>
@@ -480,6 +440,8 @@
         </div>
       @endforeach
     </div>
+  </div>
+
   <!-- 6. CATEGORY SPOTLIGHT TABS (KHÁM PHÁ THEO TỪNG DÒNG ÁO NAM) -->
   <div class="mb-5">
     <div class="bee-section-header">
@@ -504,8 +466,8 @@
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link btn-sm px-3 py-1.5 fw-bold rounded-pill" id="tab-summer" data-bs-toggle="pill" data-bs-target="#content-summer" type="button" role="tab">
-            <i class="fa-solid fa-sun me-1"></i> BST Mùa Hè
+          <button class="nav-link btn-sm px-3 py-1.5 fw-bold rounded-pill" id="tab-thun" data-bs-toggle="pill" data-bs-target="#content-thun" type="button" role="tab">
+            <i class="fa-solid fa-layer-group me-1"></i> Áo Thun Nam
           </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -740,10 +702,10 @@
         </div>
       </div>
 
-      <!-- Tab 4: Summer -->
-      <div class="tab-pane fade" id="content-summer" role="tabpanel">
+      <!-- Tab 4: Áo Thun -->
+      <div class="tab-pane fade" id="content-thun" role="tabpanel">
         <div class="row g-4">
-          @foreach($summerSpotlight as $product)
+          @foreach($thunSpotlight as $product)
             <div class="col-lg-3 col-md-6 col-6">
               <div class="bee-product-card">
                 @if($product->discount_percent > 0)
@@ -759,7 +721,7 @@
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
                 </div>
                 <div class="bee-product-body">
-                  <span class="bee-product-category">BST Mùa Hè</span>
+                  <span class="bee-product-category">Áo Thun Nam Cao Cấp</span>
                   <a href="{{ route('client.products.show', $product->id) }}" class="bee-product-title">{{ $product->name }}</a>
                   <div class="bee-product-price-row">
                     <span class="bee-product-price">{{ number_format($product->price, 0, ',', '.') }}₫</span>
@@ -776,7 +738,7 @@
                       data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
                       data-discount="{{ $product->discount_percent ?? 0 }}"
                       data-image="{{ asset($product->image) }}"
-                      data-category="BST Mùa Hè"
+                      data-category="Áo Thun Nam"
                       data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
@@ -792,7 +754,7 @@
                       data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
                       data-discount="{{ $product->discount_percent ?? 0 }}"
                       data-image="{{ asset($product->image) }}"
-                      data-category="BST Mùa Hè"
+                      data-category="Áo Thun Nam"
                       data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
@@ -807,8 +769,8 @@
           @endforeach
         </div>
         <div class="text-center mt-4">
-          <a href="{{ route('client.products.index', ['category' => 'bo-suu-tap-mua-he']) }}" class="btn btn-bee-primary px-4 py-2">
-            Xem Tất Cả BST Mùa Hè <i class="fa-solid fa-arrow-right ms-1"></i>
+          <a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="btn btn-bee-primary px-4 py-2">
+            Xem Tất Cả Mẫu Áo Thun <i class="fa-solid fa-arrow-right ms-1"></i>
           </a>
         </div>
       </div>
@@ -891,69 +853,7 @@
   </div>
 
 
-  <!-- 7. STYLE GUIDE / LOOKBOOK (GỢI Ý PHỐI ĐỒ QUÝ ÔNG) -->
-  <div class="mb-5">
-    <div class="bee-section-header">
-      <div>
-        <h2 class="bee-section-title">GỢI Ý PHỐI ĐỒ • STYLE LOOKBOOK</h2>
-        <p class="bee-section-subtitle">Định hình phong cách thời trang chuẩn quý ông hiện đại cho từng hoàn cảnh</p>
-      </div>
-    </div>
 
-
-    <div class="row g-4">
-      <!-- Lookbook 1: Smart Casual -->
-      <div class="col-lg-4 col-md-6">
-        <div class="bee-lookbook-card">
-          <img src="{{ asset('assets/img/products/outerwear_01.jpg') }}" alt="Smart Casual" class="bee-lookbook-img">
-          <div class="p-4">
-            <span class="badge bg-dark-subtle text-dark fw-bold text-uppercase mb-2">SMART CASUAL CÔNG SỞ</span>
-            <h5 class="fw-bold text-dark mb-2">Áo Sơ Mi Bamboo + Blazer Hàn Quốc</h5>
-            <p class="text-muted small mb-3">
-              Set đồ hoàn hảo cho các buổi họp kinh doanh, đàm phán hợp đồng hay môi trường văn phòng đòi hỏi sự lịch lãm, tinh tế.
-            </p>
-            <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="btn btn-bee-outline btn-sm w-100">
-              Khám Phá Set Đồ <i class="fa-solid fa-arrow-right ms-1"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Lookbook 2: Weekend Casual -->
-      <div class="col-lg-4 col-md-6">
-        <div class="bee-lookbook-card">
-          <img src="{{ asset('assets/img/products/polo_01.jpg') }}" alt="Weekend Casual" class="bee-lookbook-img">
-          <div class="p-4">
-            <span class="badge bg-warning-subtle text-dark fw-bold text-uppercase mb-2">WEEKEND DẠO PHỐ</span>
-            <h5 class="fw-bold text-dark mb-2">Áo Polo Tổ Ong + Quần Kaki Trẻ Trung</h5>
-            <p class="text-muted small mb-3">
-              Phong cách năng động, phóng khoáng cho những buổi hẹn hò cà phê cuối tuần hoặc du lịch dã ngoại cùng người thân.
-            </p>
-            <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="btn btn-bee-outline btn-sm w-100">
-              Khám Phá Set Đồ <i class="fa-solid fa-arrow-right ms-1"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Lookbook 3: Summer & Vacation -->
-      <div class="col-lg-4 col-md-6">
-        <div class="bee-lookbook-card">
-          <img src="{{ asset('assets/img/products/somi_linen_white.jpg') }}" alt="Summer Vacation" class="bee-lookbook-img">
-          <div class="p-4">
-            <span class="badge bg-warning-subtle text-dark fw-bold text-uppercase mb-2">SUMMER VACATION</span>
-            <h5 class="fw-bold text-dark mb-2">Sơ Mi Đũi Linen + Polo Hè Mát Lạnh</h5>
-            <p class="text-muted small mb-3">
-              Set đồ mùa hè phong cách nhiệt đới tự nhiên, thoáng mát tối đa giúp bạn tự tin trong mọi chuyến du lịch biển và nghỉ dưỡng.
-            </p>
-            <a href="{{ route('client.products.index', ['category' => 'bo-suu-tap-mua-he']) }}" class="btn btn-bee-outline btn-sm w-100">
-              Khám Phá Set Đồ <i class="fa-solid fa-arrow-right ms-1"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- 7. COUPON VOUCHERS (MÃ GIẢM GIÁ ĐANG CÓ SẴN) -->
   <div class="mb-5">

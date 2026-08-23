@@ -137,7 +137,7 @@ class ProductController extends Controller
 
         // Bộ lọc Danh mục
         if ($categorySlug) {
-            $cat = Category::where('slug', $categorySlug)->first();
+            $cat = Category::active()->where('slug', $categorySlug)->first();
             if ($cat) {
                 if ($cat->children()->exists()) {
                     $catIds = $cat->children->pluck('id')->push($cat->id);
@@ -145,6 +145,8 @@ class ProductController extends Controller
                 } else {
                     $query->where('category_id', $cat->id);
                 }
+            } else {
+                return redirect()->route('client.products.index');
             }
         }
 

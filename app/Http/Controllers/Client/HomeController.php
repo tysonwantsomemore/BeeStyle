@@ -49,13 +49,12 @@ class HomeController extends Controller
         $bestSellers = Product::with(['category', 'brand', 'variants'])->bestSeller()->orderByDesc('sold_count')->take(8)->get();
         $newArrivals = Product::with(['category', 'brand', 'variants'])->newArrivals()->latest()->take(8)->get();
         
-        // Category spotlights
-        $poloSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-polo-nam'))->take(4)->get();
-        $shirtSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-so-mi-nam'))->take(4)->get();
-        $blazerSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-khoac-blazer-nam'))->take(4)->get();
-        $thunSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-thun-nam'))->take(4)->get();
-        $thuDongSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-thu-dong-nam'))->take(4)->get();
-        $summerSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'bo-suu-tap-mua-he'))->take(4)->get();
+        // Category spotlights (8 sản phẩm cho lưới 2 hàng x 4 cột cân đối, mặc định hiển thị Áo Polo)
+        $poloSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-polo-nam'))->take(8)->get();
+        $shirtSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-so-mi-nam'))->take(8)->get();
+        $blazerSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-khoac-blazer-nam'))->take(8)->get();
+        $thunSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-thun-nam'))->take(8)->get();
+        $thuDongSpotlight = Product::with(['category', 'brand', 'variants'])->active()->whereHas('category', fn($q) => $q->where('slug', 'ao-thu-dong-nam'))->take(8)->get();
 
         // Mã giảm giá còn hạn
         $coupons = Coupon::where('is_active', true)->where(function($q) {
@@ -81,7 +80,6 @@ class HomeController extends Controller
             'blazerSpotlight',
             'thunSpotlight',
             'thuDongSpotlight',
-            'summerSpotlight',
             'coupons',
             'reviews'
         ));

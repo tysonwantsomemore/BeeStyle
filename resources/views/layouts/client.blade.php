@@ -433,12 +433,6 @@
               </a>
             </li>
 
-            <!-- BST Mùa Hè -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'bo-suu-tap-mua-he' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'bo-suu-tap-mua-he']) }}">
-                <i class="fa-solid fa-sun me-1 text-warning"></i> BST Mùa Hè
-              </a>
-            </li>
 
             <!-- Thương Hiệu (Brands) -->
             <li class="nav-item">
@@ -504,7 +498,6 @@
             <li><a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}">Áo Khoác &amp; Blazer</a></li>
             <li><a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}">Áo Thun Nam</a></li>
             <li><a href="{{ route('client.products.index', ['category' => 'ao-thu-dong-nam']) }}">Áo Thu Đông</a></li>
-            <li><a href="{{ route('client.products.index', ['category' => 'bo-suu-tap-mua-he']) }}">BST Mùa Hè</a></li>
           </ul>
         </div>
 
