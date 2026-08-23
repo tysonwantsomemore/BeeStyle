@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DailyDealController as AdminDailyDealController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\RevenueController as AdminRevenueController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\UserManagementController;
 
 
 
@@ -112,6 +114,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/revenue-data', [DashboardController::class, 'getRevenueData'])->name('dashboard.revenueData');
     Route::get('/revenue/monthly', [AdminRevenueController::class, 'monthly'])->name('revenue.monthly');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // User account administration and role assignment
+    Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+    Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
 
 
     
