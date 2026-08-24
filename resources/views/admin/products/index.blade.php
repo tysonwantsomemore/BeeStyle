@@ -20,14 +20,20 @@
   <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <form action="{{ route('admin.products.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
       <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="Tìm tên hoặc mã SKU..." style="width: 250px;">
-      <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 200px;">
+      <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 180px;">
         <option value="">Tất cả danh mục</option>
         @foreach($categories as $cat)
           <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
         @endforeach
       </select>
+      <select name="brand_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 180px;">
+        <option value="">Tất cả thương hiệu</option>
+        @foreach($brands as $b)
+          <option value="{{ $b->id }}" {{ request('brand_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
+        @endforeach
+      </select>
       <button type="submit" class="btn btn-sm btn-outline-secondary">Lọc</button>
-      @if(request('q') || request('category_id'))
+      @if(request('q') || request('category_id') || request('brand_id'))
         <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-link text-danger p-0 ms-1">Xóa lọc</a>
       @endif
     </form>
@@ -43,6 +49,7 @@
           <th>Mã SKU</th>
           <th>Sản Phẩm</th>
           <th>Danh Mục</th>
+          <th>Thương Hiệu</th>
           <th>Giá Bán</th>
           <th>Giá Gốc</th>
           <th>Tồn Kho</th>
@@ -70,6 +77,13 @@
               </div>
             </td>
             <td><span class="badge bg-light text-dark border">{{ $product->category->name ?? 'Thời trang nam' }}</span></td>
+            <td>
+              @if($product->brand)
+                <span class="badge bg-warning-subtle text-dark border"><i class="fa-solid fa-award me-1"></i>{{ $product->brand->name }}</span>
+              @else
+                <small class="text-muted">BeeStyle</small>
+              @endif
+            </td>
             <td><strong class="text-danger">{{ number_format($product->price, 0, ',', '.') }}₫</strong></td>
             <td>
               @if($product->original_price)

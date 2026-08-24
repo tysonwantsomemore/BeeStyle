@@ -15,12 +15,17 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $categoryId = $request->query('category_id');
+        $brandId = $request->query('brand_id');
         $search = $request->query('q');
 
-        $query = Product::with('category')->latest();
+        $query = Product::with(['category', 'brand'])->latest();
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
+        }
+
+        if ($brandId) {
+            $query->where('brand_id', $brandId);
         }
 
         if ($search) {
@@ -32,8 +37,9 @@ class ProductController extends Controller
 
         $products = $query->paginate(10)->withQueryString();
         $categories = Category::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
 
-        return view('admin.products.index', compact('products', 'categories', 'categoryId', 'search'));
+        return view('admin.products.index', compact('products', 'categories', 'brands', 'categoryId', 'brandId', 'search'));
     }
 
     public function create()
