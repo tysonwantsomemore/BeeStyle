@@ -105,40 +105,40 @@
 
           <div class="d-flex flex-column gap-3">
             <!-- Method 1: COD -->
-            <div class="form-check p-3 border rounded-3 bg-light-subtle d-flex align-items-center">
-              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_cod" value="cod" checked>
-              <label class="form-check-label d-flex align-items-center justify-content-between flex-grow-1 cursor-pointer" for="pay_cod">
+            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_cod">
+              <div class="d-flex align-items-center">
+                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_cod" value="cod" checked>
                 <div>
                   <strong class="text-dark d-block">Thanh toán khi nhận hàng (COD)</strong>
                   <span class="text-muted small">Thanh toán tiền mặt cho bưu tá khi nhận và thử hàng tận nhà</span>
                 </div>
-                <i class="fa-solid fa-hand-holding-dollar fs-4 text-warning"></i>
-              </label>
-            </div>
+              </div>
+              <i class="fa-solid fa-hand-holding-dollar fs-3 text-warning"></i>
+            </label>
 
             <!-- Method 2: VietQR -->
-            <div class="form-check p-3 border rounded-3 bg-light-subtle d-flex align-items-center">
-              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_vietqr" value="vietqr">
-              <label class="form-check-label d-flex align-items-center justify-content-between flex-grow-1 cursor-pointer" for="pay_vietqr">
+            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_vietqr">
+              <div class="d-flex align-items-center">
+                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_vietqr" value="vietqr">
                 <div>
                   <strong class="text-dark d-block">Chuyển khoản VietQR 24/7 (Khuyên dùng)</strong>
                   <span class="text-muted small">Quét mã QR qua app mọi ngân hàng - Tự động xác nhận giao dịch</span>
                 </div>
-                <i class="fa-solid fa-qrcode fs-4 text-warning"></i>
-              </label>
-            </div>
+              </div>
+              <i class="fa-solid fa-qrcode fs-3 text-warning"></i>
+            </label>
 
             <!-- Method 3: VNPAY / MoMo -->
-            <div class="form-check p-3 border rounded-3 bg-light-subtle d-flex align-items-center">
-              <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="pay_vnpay" value="vnpay">
-              <label class="form-check-label d-flex align-items-center justify-content-between flex-grow-1 cursor-pointer" for="pay_vnpay">
+            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_vnpay">
+              <div class="d-flex align-items-center">
+                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_vnpay" value="vnpay">
                 <div>
                   <strong class="text-dark d-block">Ví điện tử VNPAY / MoMo / Thẻ Quốc Tế</strong>
                   <span class="text-muted small">Cổng thanh toán online an toàn bảo mật tiêu chuẩn quốc tế</span>
                 </div>
-                <i class="fa-solid fa-wallet fs-4 text-info"></i>
-              </label>
-            </div>
+              </div>
+              <i class="fa-solid fa-wallet fs-3 text-info"></i>
+            </label>
           </div>
         </div>
 
@@ -156,7 +156,7 @@
                 <div class="d-flex align-items-center gap-2">
                   <div class="position-relative bg-light rounded-2 p-1" style="width: 50px; height: 50px;">
                     <img src="{{ asset($item['image']) }}" alt="{{ $item['name'] }}" class="w-100 h-100 object-fit-contain">
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary small">{{ $item['quantity'] }}</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark small">{{ $item['quantity'] }}</span>
                   </div>
                   <div>
                     <h6 class="small fw-bold text-dark mb-0 text-truncate" style="max-width: 200px;">{{ $item['name'] }}</h6>

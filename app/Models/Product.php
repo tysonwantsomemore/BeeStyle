@@ -99,6 +99,11 @@ class Product extends Model
         return $this->hasMany(Review::class)->where('status', 'approved')->orderBy('created_at', 'desc');
     }
 
+    public function allReviews()
+    {
+        return $this->hasMany(Review::class)->orderBy('created_at', 'desc');
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
@@ -109,7 +114,83 @@ class Product extends Model
         return $this->product_type === 'variant' && $this->variants()->exists();
     }
 
+    /**
+     * Accessor tính toán % giảm giá chính xác
+     */
+    public function getDiscountPercentAttribute($value)
+    {
+        if ($value && $value > 0) {
+            return (int)$value;
+        }
+        if ($this->original_price && $this->original_price > $this->price) {
+            return (int)round((($this->original_price - $this->price) / $this->original_price) * 100);
+        }
+        return 0;
+    }
+
+    public function dailyDeals()
+    {
+        return $this->hasMany(DailyDeal::class);
+    }
+
+    public function runningDailyDeal()
+    {
+        return $this->hasOne(DailyDeal::class)
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $today = now()->toDateString();
+                $q->whereNull('deal_date')->orWhereDate('deal_date', $today);
+            })
+            ->where('start_time', '<=', now()->toTimeString())
+            ->where('end_time', '>=', now()->toTimeString())
+            ->where(function ($q) {
+                $q->where('quantity_limit', 0)->orWhereColumn('sold_count', '<', 'quantity_limit');
+            });
+    }
+
+    /**
+     * Check if product currently has an active daily deal
+     */
+    public function getIsOnDailyDealAttribute(): bool
+    {
+        return (bool) $this->current_daily_deal;
+    }
+
+    /**
+     * Get current active daily deal for this product
+     */
+    public function getCurrentDailyDealAttribute()
+    {
+        if ($this->relationLoaded('dailyDeals')) {
+            return $this->dailyDeals->first(fn($deal) => $deal->is_running);
+        }
+        return $this->runningDailyDeal;
+    }
+
+    /**
+     * Get effective sale price (takes daily deal into account)
+     */
+    public function getEffectivePriceAttribute(): int
+    {
+        $deal = $this->current_daily_deal;
+        if ($deal) {
+            return (int) ($deal->deal_price ?: round($this->price * (100 - $deal->discount_percent) / 100));
+        }
+        return (int) $this->price;
+    }
+
+    /**
+     * Scope: Products with active daily deals
+     */
+    public function scopeHasDailyDeal($query)
+    {
+        return $query->whereHas('dailyDeals', function ($q) {
+            $q->runningNow();
+        });
+    }
+
     // Phạm vi truy vấn (Scopes)
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

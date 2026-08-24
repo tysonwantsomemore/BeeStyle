@@ -499,7 +499,7 @@ class EcommerceDataService
             ],
             [
                 'id' => 3,
-                'code' => 'VIPBEE15',
+                'code' => 'BEESTYLE15',
                 'title' => 'Giảm 15% tổng hóa đơn cho thành viên thân thiết',
                 'discount_amount' => 15,
                 'type' => 'percent',

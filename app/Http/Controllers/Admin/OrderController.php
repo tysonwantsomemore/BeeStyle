@@ -58,6 +58,16 @@ class OrderController extends Controller
             'cancelled' => 0,
         ];
 
+        // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm
+        if ($validated['shipping_status'] === 'cancelled' && $order->shipping_status !== 'cancelled') {
+            foreach ($order->items as $item) {
+                if ($item->product_id) {
+                    \App\Models\Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                    \App\Models\Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                }
+            }
+        }
+
         $order->update([
             'shipping_status' => $validated['shipping_status'],
             'payment_status' => $validated['payment_status'] ?? $order->payment_status,
@@ -68,3 +78,4 @@ class OrderController extends Controller
         return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công!");
     }
 }
+
