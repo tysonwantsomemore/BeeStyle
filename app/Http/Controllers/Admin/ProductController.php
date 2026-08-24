@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Brand;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
@@ -14,12 +15,17 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $categoryId = $request->query('category_id');
+        $brandId = $request->query('brand_id');
         $search = $request->query('q');
 
-        $query = Product::with('category')->latest();
+        $query = Product::with(['category', 'brand'])->latest();
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
+        }
+
+        if ($brandId) {
+            $query->where('brand_id', $brandId);
         }
 
         if ($search) {
@@ -31,14 +37,16 @@ class ProductController extends Controller
 
         $products = $query->paginate(10)->withQueryString();
         $categories = Category::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
 
-        return view('admin.products.index', compact('products', 'categories', 'categoryId', 'search'));
+        return view('admin.products.index', compact('products', 'categories', 'brands', 'categoryId', 'brandId', 'search'));
     }
 
     public function create()
     {
         $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('admin.products.create', compact('categories'));
+        $brands = Brand::where('is_active', true)->orderBy('name')->get();
+        return view('admin.products.create', compact('categories', 'brands'));
     }
 
     public function store(Request $request)
@@ -47,6 +55,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:50|unique:products,sku',
             'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -75,6 +84,7 @@ class ProductController extends Controller
             'sku' => strtoupper($validated['sku']),
             'slug' => Str::slug($validated['name']),
             'category_id' => $validated['category_id'],
+            'brand_id' => $validated['brand_id'] ?? null,
             'price' => $validated['price'],
             'original_price' => $validated['original_price'] ?? null,
             'stock' => $validated['stock'],
@@ -106,7 +116,8 @@ class ProductController extends Controller
     {
         $product = Product::with('images')->findOrFail($id);
         $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('admin.products.edit', compact('product', 'categories'));
+        $brands = Brand::where('is_active', true)->orderBy('name')->get();
+        return view('admin.products.edit', compact('product', 'categories', 'brands'));
     }
 
     public function update(Request $request, $id)
@@ -117,6 +128,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:50|unique:products,sku,' . $product->id,
             'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -145,6 +157,7 @@ class ProductController extends Controller
             'sku' => strtoupper($validated['sku']),
             'slug' => Str::slug($validated['name']),
             'category_id' => $validated['category_id'],
+            'brand_id' => $validated['brand_id'] ?? null,
             'price' => $validated['price'],
             'original_price' => $validated['original_price'] ?? null,
             'stock' => $validated['stock'],

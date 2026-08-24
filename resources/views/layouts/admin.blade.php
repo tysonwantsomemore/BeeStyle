@@ -80,6 +80,14 @@
                   <span class="nav-link-text">Danh Mục Áo Nam</span>
                 </a>
               </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}" href="{{ route('admin.brands.index') }}">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><i class="fa-solid fa-copyright"></i></span>
+                    <span class="nav-link-text">Thương Hiệu Thời Trang</span>
+                  </div>
+                </a>
+              </div>
             </li>
 
             <!-- ĐƠN HÀNG & GIAO DỊCH -->
