@@ -75,6 +75,10 @@
             <i class="fa-solid fa-user-pen me-2 text-secondary"></i> Thông Tin Cá Nhân
           </button>
 
+          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="bank-tab" data-bs-toggle="pill" data-bs-target="#tab-bank" type="button" role="tab">
+            <i class="fa-solid fa-building-columns me-2 text-secondary"></i> Tài Khoản Ngân Hàng
+          </button>
+
           <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="password-tab" data-bs-toggle="pill" data-bs-target="#tab-password" type="button" role="tab">
             <i class="fa-solid fa-shield-halved me-2 text-secondary"></i> Đổi Mật Khẩu Tài Khoản
           </button>
@@ -344,6 +348,126 @@
               <div class="mt-4 pt-2 border-top text-end">
                 <button type="submit" class="btn btn-bee-primary px-4 py-2">
                   <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Thay Đổi Hồ Sơ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- TAB: BANK ACCOUNT / HOÀN TIỀN -->
+        <div class="tab-pane fade" id="tab-bank" role="tabpanel">
+          <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
+            <div class="mb-4 pb-2 border-bottom">
+              <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
+                <i class="fa-solid fa-building-columns me-2 text-danger"></i> Tài Khoản Ngân Hàng Nhận Hoàn Tiền
+              </h5>
+              <p class="text-muted small mb-0">Cung cấp thông tin tài khoản ngân hàng chính chủ để nhận tiền hoàn nhanh chóng khi đổi trả hàng</p>
+            </div>
+
+            <!-- Visual Bank Card Mockup -->
+            <div class="p-4 rounded-4 text-white mb-4 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); max-width: 480px; border: 1px solid rgba(255,255,255,0.12);">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-microchip text-warning fs-3"></i>
+                  <i class="fa-solid fa-wifi text-white-50 fs-5" style="transform: rotate(90deg);"></i>
+                </div>
+                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 text-uppercase font-monospace" style="letter-spacing: 1px;">
+                  {{ $user->bank_name ?: 'BEESTYLE REWARD' }}
+                </span>
+              </div>
+              <div class="mb-4">
+                <small class="text-white-50 text-uppercase d-block" style="font-size: 0.7rem; letter-spacing: 1.5px;">Số tài khoản</small>
+                <h4 class="fw-bold text-white font-monospace mb-0" style="letter-spacing: 2px;">
+                  @if($user->bank_account_number)
+                    {{ chunk_split($user->bank_account_number, 4, ' ') }}
+                  @else
+                    •••• •••• •••• ••••
+                  @endif
+                </h4>
+              </div>
+              <div class="d-flex justify-content-between align-items-end">
+                <div>
+                  <small class="text-white-50 text-uppercase d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Chủ tài khoản</small>
+                  <span class="fw-bold text-white text-uppercase font-monospace" style="letter-spacing: 1px; font-size: 0.95rem;">
+                    {{ $user->bank_account_name ?: ($user->name ?: 'CHƯA CẬP NHẬT') }}
+                  </span>
+                </div>
+                @if($user->bank_branch)
+                  <div class="text-end">
+                    <small class="text-white-50 text-uppercase d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Chi nhánh</small>
+                    <span class="text-white-50 small font-monospace">{{ $user->bank_branch }}</span>
+                  </div>
+                @endif
+              </div>
+            </div>
+
+            <form action="{{ route('client.profile.bank') }}" method="POST">
+              @csrf
+              @method('PUT')
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-dark">Ngân hàng thụ hưởng <span class="text-danger">*</span></label>
+                  <select name="bank_name" class="form-select form-select-sm" required>
+                    <option value="" disabled {{ empty($user->bank_name) ? 'selected' : '' }}>-- Chọn ngân hàng --</option>
+                    @php
+                      $banks = [
+                        'Vietcombank' => 'Vietcombank (Ngoại Thương Việt Nam)',
+                        'Techcombank' => 'Techcombank (Kỹ Thương Việt Nam)',
+                        'MB Bank' => 'MB Bank (Quân Đội)',
+                        'VietinBank' => 'VietinBank (Công Thương Việt Nam)',
+                        'BIDV' => 'BIDV (Đầu Tư và Phát Triển)',
+                        'ACB' => 'ACB (Á Châu)',
+                        'VPBank' => 'VPBank (Việt Nam Thịnh Vượng)',
+                        'TPBank' => 'TPBank (Tiên Phong)',
+                        'Sacombank' => 'Sacombank (Sài Gòn Thương Tín)',
+                        'HDBank' => 'HDBank (Phát Triển TP.HCM)',
+                        'VIB' => 'VIB (Quốc Tế Việt Nam)',
+                        'MSB' => 'MSB (Hàng Hải)',
+                        'OCB' => 'OCB (Phương Đông)',
+                        'Agribank' => 'Agribank (Nông Nghiệp & PTNT)',
+                        'SeABank' => 'SeABank (Đông Nam Á)',
+                        'LPBank' => 'LPBank (Lộc Phát Việt Nam)',
+                        'SHB' => 'SHB (Sài Gòn - Hà Nội)',
+                      ];
+                    @endphp
+                    @foreach($banks as $bKey => $bLabel)
+                      <option value="{{ $bKey }}" {{ old('bank_name', $user->bank_name) === $bKey ? 'selected' : '' }}>{{ $bLabel }}</option>
+                    @endforeach
+                    @if($user->bank_name && !array_key_exists($user->bank_name, $banks))
+                      <option value="{{ $user->bank_name }}" selected>{{ $user->bank_name }}</option>
+                    @endif
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-dark">Số tài khoản ngân hàng <span class="text-danger">*</span></label>
+                  <input type="text" name="bank_account_number" class="form-control form-control-sm font-monospace" value="{{ old('bank_account_number', $user->bank_account_number) }}" placeholder="Ví dụ: 0071001234567" required>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-dark">Tên chủ tài khoản (Viết hoa không dấu) <span class="text-danger">*</span></label>
+                  <input type="text" name="bank_account_name" class="form-control form-control-sm text-uppercase font-monospace" value="{{ old('bank_account_name', $user->bank_account_name) }}" placeholder="Ví dụ: NGUYEN VAN A" required>
+                  <small class="text-muted fs-11">Tên chủ tài khoản cần khớp chính xác với thẻ/CCCD để đảm bảo nhận tiền thành công.</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-dark">Chi nhánh mở thẻ</label>
+                  <input type="text" name="bank_branch" class="form-control form-control-sm" value="{{ old('bank_branch', $user->bank_branch) }}" placeholder="Ví dụ: Chi nhánh Hà Nội, Chi nhánh Cầu Giấy...">
+                </div>
+              </div>
+
+              <div class="p-3 bg-light rounded-3 mb-4">
+                <h6 class="small fw-bold text-dark mb-1"><i class="fa-solid fa-shield-halved text-success me-1"></i> Chính sách bảo mật thông tin tài khoản:</h6>
+                <ul class="text-muted small ps-3 mb-0">
+                  <li>Thông tin tài khoản ngân hàng của bạn được bảo mật tuyệt đối theo tiêu chuẩn an toàn thanh toán.</li>
+                  <li>BeeStyle chỉ sử dụng thông tin này để xử lý hoàn tiền tự động khi quý khách có đơn hàng hoàn trả hoặc hủy hợp lệ.</li>
+                </ul>
+              </div>
+
+              <div class="pt-2 border-top text-end">
+                <button type="submit" class="btn btn-bee-primary px-4 py-2">
+                  <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Thông Tin Ngân Hàng
                 </button>
               </div>
             </form>
@@ -706,12 +830,14 @@
     const tabMap = {
       'orders': 'orders-tab',
       'profile': 'edit-profile-tab',
+      'bank': 'bank-tab',
       'password': 'password-tab',
       'addresses': 'addresses-tab',
       'vip': 'rewards-tab',
       'reviews': 'my-reviews-tab',
       '#tab-orders': 'orders-tab',
       '#tab-profile': 'edit-profile-tab',
+      '#tab-bank': 'bank-tab',
       '#tab-password': 'password-tab',
       '#tab-addresses': 'addresses-tab',
       '#tab-vip': 'rewards-tab',
@@ -725,9 +851,11 @@
       targetTabId = tabMap[hash];
     }
 
-    // 2. Nếu có lỗi validation của form đổi mật khẩu (current_password, password) thì tự mở tab password
+    // 2. Nếu có lỗi validation của form thì tự động mở tab tương ứng
     @if(isset($errors) && ($errors->has('current_password') || $errors->has('password')))
       targetTabId = 'password-tab';
+    @elseif(isset($errors) && ($errors->has('bank_name') || $errors->has('bank_account_number') || $errors->has('bank_account_name') || $errors->has('bank_branch')))
+      targetTabId = 'bank-tab';
     @elseif(isset($errors) && ($errors->has('recipient_name') || $errors->has('address') || $errors->has('city')))
       targetTabId = 'addresses-tab';
     @endif
