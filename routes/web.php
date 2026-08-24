@@ -86,6 +86,26 @@ Route::name('client.')->group(function () {
         Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
         Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
         
+        // Cổng Thanh Toán MoMo Gateway
+        Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
+        Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
+
+        // Cổng Thanh Toán ZaloPay Gateway
+        Route::get('/thanh-toan/zalopay/{code}', [CheckoutController::class, 'zalopayGateway'])->name('checkout.zalopay');
+        Route::post('/thanh-toan/zalopay/{code}/xac-nhan', [CheckoutController::class, 'zalopaySuccess'])->name('checkout.zalopay.success');
+
+        // Cổng Thanh Toán Online Banking Gateway (Napas / Visa / Internet Banking)
+        Route::get('/thanh-toan/online/{code}', [CheckoutController::class, 'onlineGateway'])->name('checkout.online');
+        Route::post('/thanh-toan/online/{code}/xac-nhan', [CheckoutController::class, 'onlineSuccess'])->name('checkout.online.success');
+
+        // Xử lý Hết hạn thanh toán (Auto-Expiry & Restock) & Tự Động Khớp Lệnh
+        Route::post('/thanh-toan/{code}/het-han', [CheckoutController::class, 'handleExpired'])->name('checkout.expire');
+        Route::get('/thanh-toan/{code}/kiem-tra-trang-thai', [CheckoutController::class, 'checkPaymentStatus'])->name('checkout.check-status');
+        Route::post('/thanh-toan/{code}/tu-dong-khop-lenh', [CheckoutController::class, 'autoConfirmTransfer'])->name('checkout.auto-confirm');
+
+
+
+        
         // Order Tracking (Tra cứu đơn hàng)
         Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
         Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');

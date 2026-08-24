@@ -237,14 +237,15 @@
                         <span class="small text-muted">Tổng tiền: </span>
                         <strong class="text-danger fs-6">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong>
                       </div>
-                      @if($order->payment_method === 'vietqr' && $order->payment_status !== 'paid')
+                      @if(in_array($order->payment_method, ['online', 'momo', 'zalopay', 'vietqr']) && $order->payment_status !== 'paid')
                         <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="btn btn-sm btn-bee-primary fw-bold px-3">
-                          <i class="fa-solid fa-qrcode me-1"></i> Quét Mã VietQR
+                          <i class="fa-solid fa-credit-card me-1"></i> Thanh Toán Ngay
                         </a>
                       @endif
                       <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="btn btn-sm btn-bee-outline">
                         <i class="fa-solid fa-truck-fast me-1"></i> Tra Cứu Vận Chuyển
                       </a>
+
                     </div>
                   </div>
                 </div>

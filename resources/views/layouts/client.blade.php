@@ -462,8 +462,106 @@
 
   <!-- MAIN CONTENT -->
   <main class="bee-main-content">
+    
+    @if(session('success') && !session('payment_success_order'))
+      <div class="container mt-3">
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2" role="alert">
+          <i class="fa-solid fa-circle-check text-success fs-5"></i>
+          <div>{{ session('success') }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      </div>
+    @endif
+
+    @if(session('error'))
+      <div class="container mt-3">
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2" role="alert">
+          <i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i>
+          <div>{{ session('error') }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      </div>
+    @endif
+
     @yield('content')
   </main>
+
+  <!-- PAYMENT CELEBRATION MODAL -->
+  @if(session('payment_success_order'))
+    <div class="modal fade" id="globalPaymentSuccessModal" tabindex="-1" aria-labelledby="globalPaymentSuccessModalLabel" aria-hidden="true" data-bs-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden text-center p-4" style="background: #ffffff;">
+          
+          <!-- Animation Icon -->
+          <div class="my-2 position-relative d-inline-block">
+            <div class="rounded-circle bg-success-subtle text-success p-3 d-inline-flex align-items-center justify-content-center shadow-md" style="width: 80px; height: 80px;">
+              <i class="fa-solid fa-circle-check fs-1 text-success"></i>
+            </div>
+            <span class="position-absolute top-0 end-0 badge rounded-pill bg-warning text-dark fw-bold px-2 py-1 shadow-sm" style="font-size: 0.75rem;">
+              <i class="fa-solid fa-sparkles me-1"></i> Thành Công
+            </span>
+          </div>
+
+          <h4 class="fw-black text-dark mb-1 mt-2">THANH TOÁN THÀNH CÔNG!</h4>
+          <p class="text-muted small mb-3">BeeStyle đã ghi nhận thanh toán cho đơn hàng của bạn.</p>
+
+          <!-- Order Summary Card in Modal -->
+          <div class="p-3 bg-light rounded-3 border text-start mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1.5 small">
+              <span class="text-muted">Mã đơn hàng:</span>
+              <strong class="text-primary font-monospace fs-6">#{{ session('payment_success_order') }}</strong>
+            </div>
+            @if(session('payment_success_amount'))
+              <div class="d-flex justify-content-between align-items-center mb-1.5 small">
+                <span class="text-muted">Số tiền thanh toán:</span>
+                <strong class="text-danger fs-5 fw-black">{{ number_format(session('payment_success_amount'), 0, ',', '.') }}₫</strong>
+              </div>
+            @endif
+            @if(session('payment_success_method'))
+              <div class="d-flex justify-content-between align-items-center mb-1.5 small">
+                <span class="text-muted">Hình thức:</span>
+                <span class="badge bg-white border text-dark fw-semibold">{{ session('payment_success_method') }}</span>
+              </div>
+            @endif
+            <div class="d-flex justify-content-between align-items-center small">
+              <span class="text-muted">Trạng thái thanh toán:</span>
+              <span class="badge bg-success text-white fw-bold"><i class="fa-solid fa-check me-1"></i> Đã Thanh Toán</span>
+            </div>
+          </div>
+
+          <!-- Warehouse Processing Notice -->
+          <div class="alert alert-warning py-2.5 px-3 rounded-3 text-start small border-0 mb-3" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
+            <div class="d-flex gap-2">
+              <i class="fa-solid fa-box-open text-warning fs-5 mt-0.5"></i>
+              <div>
+                <strong class="text-dark d-block">Đang Xử Lý Gửi Hàng:</strong>
+                <span class="text-muted" style="font-size: 0.78rem;">Dữ liệu đơn hàng đã được gửi đến bộ phận kho. Nhân viên kho đang kiểm tra và đóng gói để gửi hàng đến cho bạn sớm nhất!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex flex-column gap-2">
+            <a href="{{ route('client.order-tracking', ['code' => session('payment_success_order')]) }}" class="btn btn-bee-primary py-2.5 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
+              <i class="fa-solid fa-truck-fast"></i> Tra Cứu Tiến Độ Vận Chuyển
+            </a>
+            <button type="button" class="btn btn-outline-secondary py-2 small fw-semibold rounded-3" data-bs-dismiss="modal">
+              Tiếp Tục Mua Sắm
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('globalPaymentSuccessModal'));
+        myModal.show();
+      });
+    </script>
+  @endif
+
 
   <!-- FOOTER -->
   <footer class="bee-footer pt-5 pb-3 mt-5">

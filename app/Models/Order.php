@@ -78,10 +78,23 @@ class Order extends Model
     public function getPaymentMethodNameAttribute(): string
     {
         return match ($this->payment_method) {
+            'online' => 'Thanh toán Online (ATM/Banking/Visa)',
+            'momo' => 'Ví Điện Tử MoMo',
+            'zalopay' => 'Ví Điện Tử ZaloPay',
             'vietqr' => 'Chuyển khoản VietQR',
-            'momo' => 'Ví điện tử MoMo',
             'vnpay' => 'Cổng VNPAY',
             default => 'Thanh toán khi nhận hàng (COD)',
+        };
+    }
+
+    public function getPaymentMethodBadgeAttribute(): string
+    {
+        return match ($this->payment_method) {
+            'online' => '<span class="badge bg-info-subtle text-info fw-bold"><i class="fa-solid fa-credit-card me-1"></i> Online Banking</span>',
+            'momo' => '<span class="badge text-white fw-bold" style="background-color: #d82d8b;"><i class="fa-solid fa-wallet me-1"></i> Ví MoMo</span>',
+            'zalopay' => '<span class="badge text-white fw-bold" style="background-color: #008fe5;"><i class="fa-solid fa-wallet me-1"></i> Ví ZaloPay</span>',
+            'vietqr', 'vnpay' => '<span class="badge bg-primary-subtle text-primary fw-bold"><i class="fa-solid fa-qrcode me-1"></i> Online</span>',
+            default => '<span class="badge bg-secondary-subtle text-secondary fw-bold"><i class="fa-solid fa-hand-holding-dollar me-1"></i> COD</span>',
         };
     }
 }

@@ -13,7 +13,7 @@ class OrderController extends Controller
         $status = $request->query('status');
         $search = $request->query('q');
 
-        $query = Order::with('items')->latest();
+        $query = Order::with('items')->orderBy('id', 'desc');
 
         if ($status) {
             $query->where('shipping_status', $status);
