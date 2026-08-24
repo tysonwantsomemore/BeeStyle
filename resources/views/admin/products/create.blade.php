@@ -29,16 +29,25 @@
         </div>
 
         <div class="row g-3 mb-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="form-label small fw-semibold">Mã SKU <span class="text-danger">*</span></label>
             <input type="text" name="sku" class="form-control" value="{{ old('sku') }}" placeholder="Ví dụ: BS-PL-099" required>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="form-label small fw-semibold">Danh mục thời trang <span class="text-danger">*</span></label>
             <select name="category_id" class="form-select" required>
               <option value="">-- Chọn danh mục --</option>
               @foreach($categories as $cat)
                 <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Thương hiệu</label>
+            <select name="brand_id" class="form-select">
+              <option value="">-- Chọn thương hiệu --</option>
+              @foreach($brands as $brand)
+                <option value="{{ $brand->id }}" {{ old('brand_id') == $brand->id ? 'selected' : '' }}>{{ $brand->name }}</option>
               @endforeach
             </select>
           </div>

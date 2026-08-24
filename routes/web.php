@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Admin\BrandController as AdminBrandController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,6 +97,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::put('/categories/{id}', [AdminCategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
     Route::patch('/categories/{id}/toggle-status', [AdminCategoryController::class, 'toggleStatus'])->name('categories.toggleStatus');
+
+    // Quản lý thương hiệu sản phẩm
+    Route::get('/brands', [AdminBrandController::class, 'index'])->name('brands.index');
+    Route::post('/brands', [AdminBrandController::class, 'store'])->name('brands.store');
+    Route::put('/brands/{id}', [AdminBrandController::class, 'update'])->name('brands.update');
+    Route::delete('/brands/{id}', [AdminBrandController::class, 'destroy'])->name('brands.destroy');
+    Route::patch('/brands/{id}/toggle-status', [AdminBrandController::class, 'toggleStatus'])->name('brands.toggleStatus');
 
     // Quản lý đơn hàng
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
