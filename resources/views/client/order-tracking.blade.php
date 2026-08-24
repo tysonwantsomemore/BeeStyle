@@ -353,6 +353,14 @@
                 <strong>Ghi chú:</strong> "{{ $currentOrder->notes }}"
               </div>
             @endif
+            @if($currentOrder->admin_notes)
+              <div class="p-2 bg-info-subtle text-info rounded-3 border border-info-subtle d-flex align-items-center gap-2 mt-1">
+                <i class="fa-solid fa-truck-fast fs-5 text-primary"></i>
+                <div class="small text-dark">
+                  <strong class="text-primary d-block">Vận Đơn Giao Hàng:</strong> {{ $currentOrder->admin_notes }}
+                </div>
+              </div>
+            @endif
           </div>
         </div>
 

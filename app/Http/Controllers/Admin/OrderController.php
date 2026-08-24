@@ -13,7 +13,7 @@ class OrderController extends Controller
         $status = $request->query('status');
         $search = $request->query('q');
 
-        $query = Order::with('items')->orderBy('id', 'desc');
+        $query = Order::with(['items.product', 'user'])->orderBy('id', 'desc');
 
         if ($status) {
             $query->where('shipping_status', $status);
@@ -23,9 +23,16 @@ class OrderController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('order_code', 'LIKE', "%{$search}%")
                   ->orWhere('customer_name', 'LIKE', "%{$search}%")
-                  ->orWhere('customer_phone', 'LIKE', "%{$search}%");
+                  ->orWhere('customer_phone', 'LIKE', "%{$search}%")
+                  ->orWhere('customer_email', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'LIKE', "%{$search}%")
+                         ->orWhere('email', 'LIKE', "%{$search}%")
+                         ->orWhere('phone', 'LIKE', "%{$search}%");
+                  });
             });
         }
+
 
         $orders = $query->paginate(10)->withQueryString();
 
@@ -58,6 +65,29 @@ class OrderController extends Controller
             'cancelled' => 0,
         ];
 
+        // Xử lý tự động thu tiền COD khi shipper giao hàng thành công (delivered / completed)
+        $paymentStatus = $validated['payment_status'] ?? $order->payment_status;
+        if (in_array($validated['shipping_status'], ['delivered', 'completed']) && $order->payment_method === 'cod') {
+            $paymentStatus = 'paid';
+        }
+
+        // Tích lũy điểm thưởng & tổng chi tiêu khi đơn hàng hoàn tất
+        if ($validated['shipping_status'] === 'completed' && $order->shipping_status !== 'completed' && $order->user_id) {
+            $user = \App\Models\User::find($order->user_id);
+            if ($user) {
+                $earnedPoints = (int)floor($order->total_amount / 10000);
+                $user->increment('points', $earnedPoints);
+                $user->increment('total_spent', $order->total_amount);
+            }
+        }
+
+        // Xử lý thông tin Đơn vị vận chuyển & Mã vận đơn nếu có
+        $adminNotes = $validated['admin_notes'] ?? $order->admin_notes;
+        if ($request->filled('shipping_carrier') && $request->filled('tracking_code')) {
+            $carrierInfo = "[ĐVVC: " . $request->input('shipping_carrier') . " | Vận đơn: " . $request->input('tracking_code') . "]";
+            $adminNotes = $carrierInfo . ($adminNotes ? " - " . $adminNotes : "");
+        }
+
         // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm & phân loại biến thể
         if ($validated['shipping_status'] === 'cancelled' && $order->shipping_status !== 'cancelled') {
             foreach ($order->items as $item) {
@@ -77,12 +107,13 @@ class OrderController extends Controller
 
         $order->update([
             'shipping_status' => $validated['shipping_status'],
-            'payment_status' => $validated['payment_status'] ?? $order->payment_status,
+            'payment_status' => $paymentStatus,
             'status_step' => $stepMap[$validated['shipping_status']] ?? 1,
-            'admin_notes' => $validated['admin_notes'] ?? $order->admin_notes,
+            'admin_notes' => $adminNotes,
         ]);
 
-        return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công!");
+        return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công ({$order->status_label})!");
     }
 }
+
 
