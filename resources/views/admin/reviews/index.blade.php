@@ -192,7 +192,9 @@
                   <strong class="text-dark d-block small">{{ $rev->user_name }}</strong>
                   <small class="text-muted d-block" style="font-size: 0.75rem;">{{ $rev->user->email ?? 'Khách vãng lai' }}</small>
                   @if($rev->user)
-                    <span class="badge bg-light text-secondary border mt-0.5" style="font-size: 0.68rem;">{{ $rev->user->orders->count() }} đơn đã mua</span>
+                    <span class="badge bg-light text-secondary border mt-0.5" style="font-size: 0.68rem;">
+                      {{ $rev->customer_orders_count ?? $rev->user->orders->where('shipping_status', '!=', 'cancelled')->count() }} đơn • Chi tiêu: {{ number_format($rev->customer_total_spent ?? $rev->user->actual_total_spent, 0, ',', '.') }}₫
+                    </span>
                   @endif
                 </div>
               </div>
@@ -516,7 +518,7 @@
     const modalEl = document.getElementById('reviewDetailModal');
     if (!modalEl) return;
 
-    // 1. Customer info (Ảnh avatar tài khoản khách hàng chuẩn xác 100%)
+    // 1. Customer info (Ảnh avatar & Chi tiêu khách hàng chuẩn xác 100% theo tổng chi tiêu từng khách)
     const user = rev.user || {};
     const avatarUrl = rev.user_avatar_url || (user.avatar_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(rev.user_name || 'Khách') + '&background=f59e0b&color=111827&bold=true&size=128'));
     document.getElementById('mdlCustAvatar').src = avatarUrl;
@@ -526,7 +528,20 @@
     document.getElementById('mdlCustPhone').textContent = user.phone || 'Chưa cập nhật SĐT';
     document.getElementById('mdlCustRank').textContent = user.rank || 'Thành viên';
     document.getElementById('mdlCustPoints').textContent = 'Đã xác thực';
-    document.getElementById('mdlCustSpent').textContent = (user.total_spent || 0).toLocaleString('vi-VN') + '₫';
+
+    // Tính toán tổng chi tiêu của từng khách hàng để hiển thị chính xác tuyệt đối
+    let totalSpent = 0;
+    if (rev.customer_total_spent !== undefined && rev.customer_total_spent !== null) {
+      totalSpent = Number(rev.customer_total_spent);
+    } else if (user.actual_total_spent !== undefined && user.actual_total_spent !== null) {
+      totalSpent = Number(user.actual_total_spent);
+    } else if (user.total_spent !== undefined && user.total_spent !== null) {
+      totalSpent = Number(user.total_spent);
+    } else if (user.orders && Array.isArray(user.orders)) {
+      totalSpent = user.orders.filter(o => o.shipping_status !== 'cancelled').reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+    }
+
+    document.getElementById('mdlCustSpent').textContent = totalSpent.toLocaleString('vi-VN') + '₫';
     
     if (user.id) {
       document.getElementById('mdlCustLink').href = `/admin/customers/${user.id}`;

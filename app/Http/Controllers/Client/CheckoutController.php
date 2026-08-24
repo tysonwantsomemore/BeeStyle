@@ -121,6 +121,16 @@ class CheckoutController extends Controller
                     $product->increment('sold_count', $item['quantity']);
                 }
 
+                // Cập nhật trừ tồn kho biến thể chi tiết (ProductVariant) nếu có
+                if (!empty($item['variant_id'])) {
+                    \App\Models\ProductVariant::where('id', $item['variant_id'])->decrement('stock', $item['quantity']);
+                } elseif (!empty($item['color']) && !empty($item['size'])) {
+                    \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                        ->where('color', $item['color'])
+                        ->where('size', $item['size'])
+                        ->decrement('stock', $item['quantity']);
+                }
+
                 // Cập nhật số lượng đã bán của chương trình Ưu Đãi Trong Ngày (Daily Deal)
                 if (!empty($item['deal_id'])) {
                     $deal = \App\Models\DailyDeal::find($item['deal_id']);

@@ -120,6 +120,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/products/{id}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{id}', [AdminProductController::class, 'destroy'])->name('products.destroy');
+    Route::post('/products/{id}/toggle', [AdminProductController::class, 'toggleStatus'])->name('products.toggle');
+
 
     // Categories Management
     Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');

@@ -58,12 +58,19 @@ class OrderController extends Controller
             'cancelled' => 0,
         ];
 
-        // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm
+        // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm & phân loại biến thể
         if ($validated['shipping_status'] === 'cancelled' && $order->shipping_status !== 'cancelled') {
             foreach ($order->items as $item) {
                 if ($item->product_id) {
                     \App\Models\Product::where('id', $item->product_id)->increment('stock', $item->quantity);
                     \App\Models\Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+
+                    if (!empty($item->color) && !empty($item->size)) {
+                        \App\Models\ProductVariant::where('product_id', $item->product_id)
+                            ->where('color', $item->color)
+                            ->where('size', $item->size)
+                            ->increment('stock', $item->quantity);
+                    }
                 }
             }
         }
