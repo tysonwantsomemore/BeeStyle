@@ -195,166 +195,74 @@ Route::name('client.')->group(function () {
         | WISHLIST
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/san-pham-yeu-thich',
-            [WishlistController::class, 'index']
-        )->name('wishlist.index');
-
-
-        Route::post(
-            '/san-pham-yeu-thich/toggle',
-            [WishlistController::class, 'toggle']
-        )->name('wishlist.toggle');
-
-
-        Route::delete(
-            '/san-pham-yeu-thich/xoa/{id}',
-            [WishlistController::class, 'remove']
-        )->name('wishlist.remove');
-
-
-        Route::post(
-            '/san-pham-yeu-thich/xoa-tat-ca',
-            [WishlistController::class, 'clear']
-        )->name('wishlist.clear');
-
+        Route::get('/san-pham-yeu-thich', [WishlistController::class, 'index'])->name('wishlist.index');
+        Route::post('/san-pham-yeu-thich/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+        Route::delete('/san-pham-yeu-thich/xoa/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+        Route::post('/san-pham-yeu-thich/xoa-tat-ca', [WishlistController::class, 'clear'])->name('wishlist.clear');
 
         /*
         |--------------------------------------------------------------------------
         | CART
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/gio-hang',
-            [CartController::class, 'index']
-        )->name('cart');
-
-
-        Route::post(
-            '/gio-hang/them',
-            [CartController::class, 'add']
-        )->name('cart.add');
-
-
-        Route::post(
-            '/gio-hang/cap-nhat',
-            [CartController::class, 'update']
-        )->name('cart.update');
-
-
-        Route::delete(
-            '/gio-hang/xoa/{key}',
-            [CartController::class, 'remove']
-        )->name('cart.remove');
-
-
-        Route::post(
-            '/gio-hang/xoa-tat-ca',
-            [CartController::class, 'clear']
-        )->name('cart.clear');
-
-
-        Route::post(
-            '/gio-hang/ma-giam-gia',
-            [CartController::class, 'applyCoupon']
-        )->name('cart.applyCoupon');
-
-
-        Route::delete(
-            '/gio-hang/xoa-ma',
-            [CartController::class, 'removeCoupon']
-        )->name('cart.removeCoupon');
-
+        Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
+        Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
+        Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
+        Route::delete('/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+        Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
+        Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
+        Route::delete('/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
 
         /*
         |--------------------------------------------------------------------------
-        | CHECKOUT
+        | CHECKOUT & CỔNG THANH TOÁN
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/thanh-toan',
-            [CheckoutController::class, 'index']
-        )->name('checkout');
+        Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
+        Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
+        
+        // Cổng Thanh Toán MoMo Gateway
+        Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
+        Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
 
+        // Cổng Thanh Toán ZaloPay Gateway
+        Route::get('/thanh-toan/zalopay/{code}', [CheckoutController::class, 'zalopayGateway'])->name('checkout.zalopay');
+        Route::post('/thanh-toan/zalopay/{code}/xac-nhan', [CheckoutController::class, 'zalopaySuccess'])->name('checkout.zalopay.success');
 
-        Route::post(
-            '/thanh-toan',
-            [CheckoutController::class, 'process']
-        )->name('checkout.process');
+        // Cổng Thanh Toán Online Banking Gateway (Techcombank / Napas 247)
+        Route::get('/thanh-toan/online/{code}', [CheckoutController::class, 'onlineGateway'])->name('checkout.online');
+        Route::post('/thanh-toan/online/{code}/xac-nhan', [CheckoutController::class, 'onlineSuccess'])->name('checkout.online.success');
 
+        // Xử lý Hết hạn thanh toán (Auto-Expiry & Restock) & Tự Động Khớp Lệnh
+        Route::post('/thanh-toan/{code}/het-han', [CheckoutController::class, 'handleExpired'])->name('checkout.expire');
+        Route::get('/thanh-toan/{code}/kiem-tra-trang-thai', [CheckoutController::class, 'checkPaymentStatus'])->name('checkout.check-status');
+        Route::post('/thanh-toan/{code}/tu-dong-khop-lenh', [CheckoutController::class, 'autoConfirmTransfer'])->name('checkout.auto-confirm');
 
         /*
         |--------------------------------------------------------------------------
         | ORDER TRACKING
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/tra-cuu-don-hang',
-            [OrderTrackingController::class, 'index']
-        )->name('order-tracking');
-
-
-        Route::post(
-            '/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan',
-            [OrderTrackingController::class, 'confirmTransfer']
-        )->name('order-tracking.confirm-transfer');
-
+        Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
+        Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
 
         /*
         |--------------------------------------------------------------------------
         | USER PROFILE
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/tai-khoan',
-            [ProfileController::class, 'index']
-        )->name('profile');
-
-
-        Route::put(
-            '/tai-khoan/cap-nhat',
-            [ProfileController::class, 'updateProfile']
-        )->name('profile.update');
-
-
-        Route::put(
-            '/tai-khoan/doi-mat-khau',
-            [ProfileController::class, 'updatePassword']
-        )->name('profile.password');
-
-
-        Route::put(
-            '/tai-khoan/ngan-hang',
-            [ProfileController::class, 'updateBank']
-        )->name('profile.bank');
-
-
-        Route::post(
-            '/tai-khoan/dia-chi',
-            [ProfileController::class, 'storeAddress']
-        )->name('profile.address.store');
-
-
-        Route::put(
-            '/tai-khoan/dia-chi/{id}',
-            [ProfileController::class, 'updateAddress']
-        )->name('profile.address.update');
-
-
-        Route::delete(
-            '/tai-khoan/dia-chi/{id}',
-            [ProfileController::class, 'deleteAddress']
-        )->name('profile.address.delete');
-
-
-        Route::post(
-            '/tai-khoan/dia-chi/{id}/mac-dinh',
-            [ProfileController::class, 'setDefaultAddress']
-        )->name('profile.address.default');
-
+        Route::get('/tai-khoan', [ProfileController::class, 'index'])->name('profile');
+        Route::put('/tai-khoan/cap-nhat', [ProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/tai-khoan/doi-mat-khau', [ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::put('/tai-khoan/ngan-hang', [ProfileController::class, 'updateBank'])->name('profile.bank');
+        Route::post('/tai-khoan/dia-chi', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
+        Route::put('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
+        Route::delete('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'deleteAddress'])->name('profile.address.delete');
+        Route::post('/tai-khoan/dia-chi/{id}/mac-dinh', [ProfileController::class, 'setDefaultAddress'])->name('profile.address.default');
     });
 
 });
+
 
 
 /*

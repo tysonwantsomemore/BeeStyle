@@ -241,14 +241,24 @@
                         <span class="small text-muted">Tổng tiền: </span>
                         <strong class="text-danger fs-6">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong>
                       </div>
-                      @if($order->payment_method === 'vietqr' && $order->payment_status !== 'paid')
-                        <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="btn btn-sm btn-bee-primary fw-bold px-3">
-                          <i class="fa-solid fa-qrcode me-1"></i> Quét Mã VietQR
+                      @if($order->payment_status !== 'paid' && in_array($order->payment_method, ['online', 'momo', 'zalopay', 'vietqr', 'vnpay']))
+                        @php
+                          $gatewayRoute = match($order->payment_method) {
+                            'momo' => route('client.checkout.momo', $order->order_code),
+                            'zalopay' => route('client.checkout.zalopay', $order->order_code),
+                            'online', 'vietqr', 'vnpay' => route('client.checkout.online', $order->order_code),
+                            default => route('client.order-tracking', ['code' => $order->order_code]),
+                          };
+                        @endphp
+                        <a href="{{ $gatewayRoute }}" class="btn btn-sm btn-bee-primary fw-bold px-3 shadow-xs">
+                          <i class="fa-solid fa-credit-card me-1"></i> Mở Cổng Thanh Toán
                         </a>
                       @endif
                       <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="btn btn-sm btn-bee-outline">
                         <i class="fa-solid fa-truck-fast me-1"></i> Tra Cứu Vận Chuyển
                       </a>
+
+
                     </div>
                   </div>
                 </div>

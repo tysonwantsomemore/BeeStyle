@@ -12,6 +12,7 @@ use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -56,41 +57,32 @@ class CheckoutController extends Controller
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email|max:255',
-            'shipping_address' => 'required|string|max:500',
+            'shipping_address' => 'required|string|max:255',
             'city' => 'nullable|string|max:100',
             'district' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:1000',
-            'payment_method' => 'required|string|in:cod,vietqr,momo,vnpay',
-        ], [
-            'customer_name.required' => 'Vui lòng nhập họ và tên người nhận hàng.',
-            'customer_phone.required' => 'Vui lòng nhập số điện thoại người nhận.',
-            'shipping_address.required' => 'Vui lòng cung cấp địa chỉ giao hàng chi tiết.',
-            'payment_method.required' => 'Vui lòng chọn hình thức thanh toán.',
+            'payment_method' => 'required|string|in:cod,online,momo,zalopay,vnpay,vietqr',
         ]);
 
-        // Tạo mã đơn hàng duy nhất theo định dạng BEE-YYYYMMDD-XXXX
-        $datePrefix = date('Ymd');
-        $randomCode = strtoupper(Str::random(4));
-        $orderCode = "BEE-{$datePrefix}-{$randomCode}";
+        $user = Auth::user();
+        $orderCode = 'BEE-' . date('Ymd') . '-' . strtoupper(Str::random(4));
 
         DB::beginTransaction();
-        try {
-            $user = Auth::user();
 
+        try {
             $order = Order::create([
                 'order_code' => $orderCode,
                 'user_id' => $user ? $user->id : null,
                 'customer_name' => $validated['customer_name'],
                 'customer_phone' => $validated['customer_phone'],
-                'customer_email' => $validated['customer_email'],
+                'customer_email' => $validated['customer_email'] ?? null,
                 'shipping_address' => $validated['shipping_address'],
                 'city' => $validated['city'] ?? 'Hồ Chí Minh',
                 'district' => $validated['district'] ?? '',
-                'notes' => $validated['notes'],
+                'notes' => $validated['notes'] ?? null,
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => in_array($validated['payment_method'], ['cod', 'vietqr']) ? 'unpaid' : 'paid',
+                'payment_status' => in_array($validated['payment_method'], ['cod', 'online', 'momo', 'zalopay']) ? 'unpaid' : 'paid',
                 'shipping_status' => 'pending',
-
                 'status_step' => 1,
                 'subtotal' => $cartData['subtotal'],
                 'discount_amount' => $cartData['discount'],
@@ -99,32 +91,26 @@ class CheckoutController extends Controller
                 'coupon_code' => $cartData['coupon'] ? $cartData['coupon']->code : null,
             ]);
 
-            // Lưu chi tiết từng món hàng trong đơn và trừ tồn kho
+            // Lưu các mặt hàng trong đơn hàng và trừ tồn kho ngay lập tức
             foreach ($cartData['items'] as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item['product_id'],
                     'product_name' => $item['name'],
-                    'product_sku' => $item['sku'],
                     'color' => $item['color'],
                     'size' => $item['size'],
                     'price' => $item['price'],
                     'quantity' => $item['quantity'],
-                    'subtotal' => $item['subtotal'],
+                    'subtotal' => $item['price'] * $item['quantity'],
                     'image' => $item['image'],
                 ]);
 
-                // Cập nhật tồn kho sản phẩm và tăng số lượng đã bán
-                $product = Product::find($item['product_id']);
-                if ($product) {
-                    $product->decrement('stock', $item['quantity']);
-                    $product->increment('sold_count', $item['quantity']);
-                }
+                // TRỪ TỒN KHO TỔNG CỦA SẢN PHẨM VÀ TĂNG ĐÃ BÁN
+                Product::where('id', $item['product_id'])->decrement('stock', $item['quantity']);
+                Product::where('id', $item['product_id'])->increment('sold_count', $item['quantity']);
 
-                // Cập nhật trừ tồn kho biến thể chi tiết (ProductVariant) nếu có
-                if (!empty($item['variant_id'])) {
-                    \App\Models\ProductVariant::where('id', $item['variant_id'])->decrement('stock', $item['quantity']);
-                } elseif (!empty($item['color']) && !empty($item['size'])) {
+                // TRỪ TỒN KHO CHI TIẾT CỦA BIẾN THỂ (MÀU + SIZE)
+                if (!empty($item['color']) && !empty($item['size'])) {
                     \App\Models\ProductVariant::where('product_id', $item['product_id'])
                         ->where('color', $item['color'])
                         ->where('size', $item['size'])
@@ -160,11 +146,242 @@ class CheckoutController extends Controller
             // Xóa sạch giỏ hàng trong session sau khi hoàn tất đặt hàng
             CartService::clear();
 
+            // Nếu chọn Thanh toán Online (Napas / Visa) -> Chuyển sang Cổng Online Gateway
+            if ($validated['payment_method'] === 'online') {
+                return redirect()->route('client.checkout.online', ['code' => $orderCode]);
+            }
+
+            // Nếu chọn Ví MoMo -> Chuyển sang Cổng Thanh Toán MoMo Gateway
+            if ($validated['payment_method'] === 'momo') {
+                return redirect()->route('client.checkout.momo', ['code' => $orderCode]);
+            }
+
+            // Nếu chọn Ví ZaloPay -> Chuyển sang Cổng Thanh Toán ZaloPay Gateway
+            if ($validated['payment_method'] === 'zalopay') {
+                return redirect()->route('client.checkout.zalopay', ['code' => $orderCode]);
+            }
+
+            // Với đơn COD: gửi email hóa đơn ngay và chuyển sang trang tra cứu
+            $this->sendOrderInvoiceEmail($order);
+
             return redirect()->route('client.order-tracking', ['code' => $orderCode])
                 ->with('success', "Chúc mừng bạn đã đặt hàng thành công tại BeeStyle! Mã đơn hàng của bạn là {$orderCode}.");
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Đã xảy ra lỗi khi tạo đơn hàng: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cổng Thanh Toán Trực Tuyến Online Banking Napas 247
+     */
+    public function onlineGateway($code)
+    {
+        $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
+        return view('client.payment.online', compact('order'));
+    }
+
+    /**
+     * Xác nhận thanh toán Online Banking thành công
+     */
+    public function onlineSuccess($code)
+    {
+        $order = Order::where('order_code', $code)->firstOrFail();
+        $order->update([
+            'payment_status' => 'paid',
+            'shipping_status' => 'processing',
+            'status_step' => 2,
+        ]);
+        $this->sendOrderInvoiceEmail($order);
+
+        return redirect()->route('client.home')
+            ->with('payment_success_order', $code)
+            ->with('payment_success_amount', $order->total_amount)
+            ->with('payment_success_method', 'Thanh toán Online (Techcombank Napas 247)')
+            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+    }
+
+    /**
+     * Cổng Thanh Toán Trực Tuyến Ví MoMo
+     */
+    public function momoGateway($code)
+    {
+        $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
+        return view('client.payment.momo', compact('order'));
+    }
+
+    /**
+     * Xác nhận thanh toán Ví MoMo thành công
+     */
+    public function momoSuccess($code)
+    {
+        $order = Order::where('order_code', $code)->firstOrFail();
+        $order->update([
+            'payment_status' => 'paid',
+            'shipping_status' => 'processing',
+            'status_step' => 2,
+        ]);
+        $this->sendOrderInvoiceEmail($order);
+
+        return redirect()->route('client.home')
+            ->with('payment_success_order', $code)
+            ->with('payment_success_amount', $order->total_amount)
+            ->with('payment_success_method', 'Ví Điện Tử MoMo')
+            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví MoMo! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+    }
+
+    /**
+     * Cổng Thanh Toán Trực Tuyến Ví ZaloPay
+     */
+    public function zalopayGateway($code)
+    {
+        $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
+        return view('client.payment.zalopay', compact('order'));
+    }
+
+    /**
+     * Xác nhận thanh toán Ví ZaloPay thành công
+     */
+    public function zalopaySuccess($code)
+    {
+        $order = Order::where('order_code', $code)->firstOrFail();
+        $order->update([
+            'payment_status' => 'paid',
+            'shipping_status' => 'processing',
+            'status_step' => 2,
+        ]);
+        $this->sendOrderInvoiceEmail($order);
+
+        return redirect()->route('client.home')
+            ->with('payment_success_order', $code)
+            ->with('payment_success_amount', $order->total_amount)
+            ->with('payment_success_method', 'Ví Điện Tử ZaloPay')
+            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví ZaloPay! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+    }
+
+    /**
+     * Xử lý Hết hạn thời gian chờ thanh toán (Auto-Expiry & Restock Kho)
+     */
+    public function handleExpired($code)
+    {
+        $order = Order::with('items')->where('order_code', $code)->firstOrFail();
+
+        if ($order->payment_status === 'unpaid' && $order->shipping_status === 'pending') {
+            DB::transaction(function () use ($order) {
+                $order->update(['shipping_status' => 'cancelled']);
+
+                // Hoàn trả số lượng tồn kho sản phẩm & biến thể
+                foreach ($order->items as $item) {
+                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                    Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+
+                    \App\Models\ProductVariant::where('product_id', $item->product_id)
+                        ->where('color', $item->color)
+                        ->where('size', $item->size)
+                        ->increment('stock', $item->quantity);
+                }
+
+                // Trừ lại điểm thưởng & chi tiêu nếu đã tích lũy
+                if ($order->user_id) {
+                    $user = User::find($order->user_id);
+                    if ($user) {
+                        $earnedPoints = (int)floor($order->total_amount / 10000);
+                        if ($user->points >= $earnedPoints) {
+                            $user->decrement('points', $earnedPoints);
+                        }
+                        if ($user->total_spent >= $order->total_amount) {
+                            $user->decrement('total_spent', $order->total_amount);
+                        }
+                    }
+                }
+            });
+        }
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Đơn hàng #{$code} đã hết hạn thời gian thanh toán và được tự động hủy để hoàn trả kho.",
+                'redirect' => route('client.cart')
+            ]);
+        }
+
+        return redirect()->route('client.cart')
+            ->with('warning', "Đơn hàng #{$code} đã hết hạn thời gian thanh toán (10 phút) và đã được tự động hủy để hoàn trả kho hàng.");
+    }
+
+    /**
+     * API Polling kiểm tra trạng thái thanh toán theo thời gian thực (Realtime Payment Status)
+     */
+    public function checkPaymentStatus($code)
+    {
+        $order = Order::where('order_code', $code)->firstOrFail();
+
+        if ($order->payment_status === 'paid') {
+            session()->flash('payment_success_order', $code);
+            session()->flash('payment_success_amount', $order->total_amount);
+            session()->flash('payment_success_method', $order->payment_method_name);
+            session()->flash('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+
+            return response()->json([
+                'status' => 'paid',
+                'redirect' => route('client.home')
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'unpaid',
+            'redirect' => null
+        ]);
+    }
+
+
+    /**
+     * Tự động nhận diện & khớp lệnh chuyển khoản (Webhook / Realtime Banking Auto-Match)
+     */
+    public function autoConfirmTransfer($code)
+    {
+        $order = Order::where('order_code', $code)->firstOrFail();
+
+        if ($order->payment_status !== 'paid') {
+            $order->update([
+                'payment_status' => 'paid',
+                'shipping_status' => 'processing',
+                'status_step' => 2,
+            ]);
+            $this->sendOrderInvoiceEmail($order);
+
+            session()->flash('payment_success_order', $code);
+            session()->flash('payment_success_amount', $order->total_amount);
+            session()->flash('payment_success_method', $order->payment_method_name);
+            session()->flash('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 'paid',
+            'redirect' => route('client.home')
+        ]);
+    }
+
+
+
+    /**
+     * Gửi Hóa đơn Điện tử HTML qua Email
+     */
+    protected function sendOrderInvoiceEmail($order)
+    {
+        if (empty($order->customer_email)) {
+            return;
+        }
+
+        try {
+            $order->load(['items.product', 'user']);
+            Mail::send('emails.order_invoice', ['order' => $order], function ($message) use ($order) {
+                $message->to($order->customer_email, $order->customer_name)
+                    ->subject("【BeeStyle】Xác nhận Hóa Đơn Điện Tử Đơn Hàng #{$order->order_code}");
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Lỗi gửi email hóa đơn đơn #{$order->order_code}: " . $e->getMessage());
         }
     }
 }

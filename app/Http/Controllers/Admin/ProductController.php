@@ -1,4 +1,18 @@
-public function index(Request $request)
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
+use App\Models\ProductVariant;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class ProductController extends Controller
+{
+    public function index(Request $request)
     {
         $categoryId = $request->query('category_id');
         $brandId = $request->query('brand_id');
@@ -153,3 +167,86 @@ public function index(Request $request)
             'kpiDetailData'
         ));
     }
+
+    public function create()
+    {
+        $categories = Category::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
+        return view('admin.products.create', compact('categories', 'brands'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'description' => 'nullable|string',
+            'image' => 'nullable|string',
+            'status' => 'nullable|string|in:active,inactive',
+        ]);
+
+        $validated['slug'] = Str::slug($validated['name']) . '-' . time();
+        $validated['sku'] = 'BEE-' . strtoupper(Str::random(6));
+        $validated['status'] = $validated['status'] ?? 'active';
+        $validated['is_active'] = ($validated['status'] === 'active');
+
+        Product::create($validated);
+
+        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm thành công!');
+    }
+
+    public function edit($id)
+    {
+        $product = Product::with('variants')->findOrFail($id);
+        $categories = Category::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
+        return view('admin.products.edit', compact('product', 'categories', 'brands'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'description' => 'nullable|string',
+            'image' => 'nullable|string',
+            'status' => 'nullable|string|in:active,inactive',
+        ]);
+
+        $validated['status'] = $validated['status'] ?? $product->status;
+        $validated['is_active'] = ($validated['status'] === 'active');
+
+        $product->update($validated);
+
+        return redirect()->route('admin.products.index')->with('success', 'Cập nhật sản phẩm thành công!');
+    }
+
+    public function destroy($id)
+    {
+        $product = Product::findOrFail($id);
+        $product->delete();
+        return redirect()->route('admin.products.index')->with('success', 'Đã xóa sản phẩm thành công!');
+    }
+
+    public function toggleStatus($id)
+    {
+        $product = Product::findOrFail($id);
+        $newStatus = ($product->status === 'active') ? 'inactive' : 'active';
+        $product->update([
+            'status' => $newStatus,
+            'is_active' => ($newStatus === 'active')
+        ]);
+
+        return back()->with('success', "Đã thay đổi trạng thái sản phẩm #{$product->sku} sang " . ($newStatus === 'active' ? 'Đang bán' : 'Tạm dừng'));
+    }
+}
