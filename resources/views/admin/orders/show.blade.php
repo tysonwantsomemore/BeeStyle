@@ -70,6 +70,22 @@
       </form>
     </div>
 
+    <!-- THÔNG BÁO XUẤT KHO / TRỪ TỒN KHO TỰ ĐỘNG -->
+    <div class="alert alert-warning-subtle border border-warning-subtle rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2.5">
+        <div class="rounded-circle bg-warning text-dark p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+          <i class="fa-solid fa-boxes-stacked fs-6"></i>
+        </div>
+        <div>
+          <strong class="text-dark small d-block">Đã Trừ Tồn Kho Tự Động: Tổng cộng {{ $order->items->sum('quantity') }} sản phẩm</strong>
+          <small class="text-muted">Hệ thống đã trừ ngay số lượng khỏi kho hàng của từng sản phẩm &amp; phân loại khi khách chốt đơn. (Tự động hoàn kho nếu đơn bị hủy).</small>
+        </div>
+      </div>
+      <span class="badge bg-success text-white fw-bold py-1.5 px-2.5">
+        <i class="fa-solid fa-circle-check me-1"></i> Kho Đã Cập Nhật
+      </span>
+    </div>
+
     <!-- ITEMS TABLE -->
     <div class="bee-table-card mb-4">
       <div class="card-header">
@@ -94,13 +110,20 @@
                     <img src="{{ asset($item->image ?? '/assets/img/products/1.png') }}" alt="{{ $item->product_name }}" style="width: 45px; height: 45px; object-fit: contain;" class="border rounded bg-light">
                     <div>
                       <div class="fw-bold small text-dark">{{ $item->product_name }}</div>
-                      <small class="text-muted">Màu: {{ $item->color ?? 'Tiêu chuẩn' }} | Size: {{ $item->size ?? 'M' }}</small>
+                      <div class="d-flex align-items-center gap-1.5 flex-wrap mt-0.5">
+                        <small class="text-muted">Màu: {{ $item->color ?? 'Tiêu chuẩn' }} | Size: {{ $item->size ?? 'M' }}</small>
+                        @if($item->product)
+                          <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;" title="Tồn kho thực tế còn lại trong kho">
+                            Tồn kho còn: {{ $item->product->stock }}
+                          </span>
+                        @endif
+                      </div>
                     </div>
                   </div>
                 </td>
                 <td><span class="font-monospace small text-muted">{{ $item->product_sku ?? 'BS-PROD' }}</span></td>
                 <td>{{ number_format($item->price, 0, ',', '.') }}₫</td>
-                <td><span class="badge bg-light text-dark border">x{{ $item->quantity }}</span></td>
+                <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold">Trừ kho x{{ $item->quantity }}</span></td>
                 <td class="text-end fw-bold text-dark">{{ number_format($item->subtotal ?? ($item->price * $item->quantity), 0, ',', '.') }}₫</td>
               </tr>
             @endforeach

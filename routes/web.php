@@ -101,13 +101,11 @@ Route::name('auth.')->group(function () {
 
 Route::name('client.')->group(function () {
 
-
     /*
     |--------------------------------------------------------------------------
     | HOME
     |--------------------------------------------------------------------------
     */
-
     Route::get(
         '/',
         [HomeController::class, 'index']
@@ -119,7 +117,6 @@ Route::name('client.')->group(function () {
     | PRODUCTS
     |--------------------------------------------------------------------------
     */
-
     Route::get(
         '/uu-dai-trong-ngay',
         [ClientProductController::class, 'dailyDeals']
@@ -149,7 +146,6 @@ Route::name('client.')->group(function () {
     | BRANDS
     |--------------------------------------------------------------------------
     */
-
     Route::get(
         '/thuong-hieu',
         [ClientBrandController::class, 'index']
@@ -167,7 +163,6 @@ Route::name('client.')->group(function () {
     | PRODUCT REVIEWS
     |--------------------------------------------------------------------------
     */
-
     Route::get(
         '/san-pham/{id}/danh-gia-chi-tiet',
         [ReviewController::class, 'getProductReviewsData']
@@ -193,16 +188,13 @@ Route::name('client.')->group(function () {
     | CLIENT AUTHENTICATED ROUTES
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('auth')->group(function () {
-
 
         /*
         |--------------------------------------------------------------------------
         | WISHLIST
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/san-pham-yeu-thich',
             [WishlistController::class, 'index']
@@ -232,7 +224,6 @@ Route::name('client.')->group(function () {
         | CART
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/gio-hang',
             [CartController::class, 'index']
@@ -280,7 +271,6 @@ Route::name('client.')->group(function () {
         | CHECKOUT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/thanh-toan',
             [CheckoutController::class, 'index']
@@ -298,7 +288,6 @@ Route::name('client.')->group(function () {
         | ORDER TRACKING
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/tra-cuu-don-hang',
             [OrderTrackingController::class, 'index']
@@ -316,7 +305,6 @@ Route::name('client.')->group(function () {
         | USER PROFILE
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/tai-khoan',
             [ProfileController::class, 'index']
@@ -374,30 +362,25 @@ Route::name('client.')->group(function () {
 | ADMIN DASHBOARD & MANAGEMENT ROUTES
 |--------------------------------------------------------------------------
 */
-
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'admin'])
     ->group(function () {
-
 
         /*
         |--------------------------------------------------------------------------
         | DASHBOARD
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/',
             [DashboardController::class, 'index']
         )->name('dashboard');
 
-
         Route::get(
             '/dashboard',
             [DashboardController::class, 'index']
         );
-
 
         Route::get(
             '/dashboard/revenue-data',
@@ -410,12 +393,10 @@ Route::prefix('admin')
         | REVENUE & REPORTS
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/revenue/monthly',
             [AdminRevenueController::class, 'monthly']
         )->name('revenue.monthly');
-
 
         Route::get(
             '/reports',
@@ -428,12 +409,10 @@ Route::prefix('admin')
         | USER MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/users',
             [UserManagementController::class, 'index']
         )->name('users.index');
-
 
         Route::put(
             '/users/{user}',
@@ -446,41 +425,40 @@ Route::prefix('admin')
         | PRODUCTS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/products',
             [AdminProductController::class, 'index']
         )->name('products.index');
-
 
         Route::get(
             '/products/create',
             [AdminProductController::class, 'create']
         )->name('products.create');
 
-
         Route::post(
             '/products',
             [AdminProductController::class, 'store']
         )->name('products.store');
-
 
         Route::get(
             '/products/{id}/edit',
             [AdminProductController::class, 'edit']
         )->name('products.edit');
 
-
         Route::put(
             '/products/{id}',
             [AdminProductController::class, 'update']
         )->name('products.update');
 
-
         Route::delete(
             '/products/{id}',
             [AdminProductController::class, 'destroy']
         )->name('products.destroy');
+
+        Route::post(
+            '/products/{id}/toggle',
+            [AdminProductController::class, 'toggleStatus']
+        )->name('products.toggle');
 
 
         /*
@@ -488,30 +466,25 @@ Route::prefix('admin')
         | CATEGORIES MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/categories',
             [AdminCategoryController::class, 'index']
         )->name('categories.index');
-
 
         Route::post(
             '/categories',
             [AdminCategoryController::class, 'store']
         )->name('categories.store');
 
-
         Route::put(
             '/categories/{id}',
             [AdminCategoryController::class, 'update']
         )->name('categories.update');
 
-
         Route::delete(
             '/categories/{id}',
             [AdminCategoryController::class, 'destroy']
         )->name('categories.destroy');
-
 
         Route::patch(
             '/categories/{id}/toggle-status',
@@ -524,30 +497,25 @@ Route::prefix('admin')
         | BRANDS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/brands',
             [AdminBrandController::class, 'index']
         )->name('brands.index');
-
 
         Route::post(
             '/brands',
             [AdminBrandController::class, 'store']
         )->name('brands.store');
 
-
         Route::put(
             '/brands/{id}',
             [AdminBrandController::class, 'update']
         )->name('brands.update');
 
-
         Route::delete(
             '/brands/{id}',
             [AdminBrandController::class, 'destroy']
         )->name('brands.destroy');
-
 
         Route::patch(
             '/brands/{id}/toggle-status',
@@ -560,18 +528,15 @@ Route::prefix('admin')
         | ORDERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/orders',
             [AdminOrderController::class, 'index']
         )->name('orders.index');
 
-
         Route::get(
             '/orders/{id}',
             [AdminOrderController::class, 'show']
         )->name('orders.show');
-
 
         Route::post(
             '/orders/{id}/status',
@@ -584,12 +549,10 @@ Route::prefix('admin')
         | CUSTOMERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/customers',
             [AdminCustomerController::class, 'index']
         )->name('customers.index');
-
 
         Route::get(
             '/customers/{id}',
@@ -602,18 +565,15 @@ Route::prefix('admin')
         | REVIEWS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/reviews',
             [AdminReviewController::class, 'index']
         )->name('reviews.index');
 
-
         Route::post(
             '/reviews/{id}/status',
             [AdminReviewController::class, 'updateStatus']
         )->name('reviews.updateStatus');
-
 
         Route::delete(
             '/reviews/{id}',
@@ -626,36 +586,30 @@ Route::prefix('admin')
         | DAILY DEALS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/daily-deals',
             [AdminDailyDealController::class, 'index']
         )->name('daily-deals.index');
-
 
         Route::post(
             '/daily-deals',
             [AdminDailyDealController::class, 'store']
         )->name('daily-deals.store');
 
-
         Route::put(
             '/daily-deals/{id}',
             [AdminDailyDealController::class, 'update']
         )->name('daily-deals.update');
-
 
         Route::delete(
             '/daily-deals/{id}',
             [AdminDailyDealController::class, 'destroy']
         )->name('daily-deals.destroy');
 
-
         Route::post(
             '/daily-deals/{id}/toggle',
             [AdminDailyDealController::class, 'toggleStatus']
         )->name('daily-deals.toggle');
-
 
         Route::post(
             '/daily-deals/{id}/renew',
@@ -668,24 +622,20 @@ Route::prefix('admin')
         | COUPONS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
         Route::get(
             '/coupons',
             [AdminCouponController::class, 'index']
         )->name('coupons.index');
-
 
         Route::post(
             '/coupons',
             [AdminCouponController::class, 'store']
         )->name('coupons.store');
 
-
         Route::put(
             '/coupons/{id}',
             [AdminCouponController::class, 'update']
         )->name('coupons.update');
-
 
         Route::delete(
             '/coupons/{id}',
