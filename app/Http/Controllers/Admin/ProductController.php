@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductImage;
+use App\Models\Category;
+use App\Models\Brand;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,13 +15,18 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $categoryId = $request->query('category_id');
+        $brandId = $request->query('brand_id');
         $status = $request->query('status');
         $search = $request->query('q');
 
-        $query = Product::with(['category', 'variants'])->latest();
+        $query = Product::with(['category', 'brand', 'variants'])->latest();
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
+        }
+
+        if ($brandId) {
+            $query->where('brand_id', $brandId);
         }
 
         if ($status === 'active') {
@@ -40,6 +46,7 @@ class ProductController extends Controller
 
         $products = $query->paginate(10)->withQueryString();
         $categories = Category::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
 
         // Thống kê nhanh chỉ số kho hàng
         $totalProductsCount = Product::count();
@@ -48,7 +55,7 @@ class ProductController extends Controller
         $lowStockProductsCount = Product::where('stock', '<=', 5)->count();
 
         // Dữ liệu chi tiết cho 4 nhóm KPI khi bấm vào từng thẻ
-        $allProducts = Product::with(['category'])->get();
+        $allProducts = Product::with(['category', 'brand'])->get();
 
         $formatProduct = function($p) {
             return [
@@ -56,6 +63,7 @@ class ProductController extends Controller
                 'name' => $p->name,
                 'sku' => $p->sku,
                 'category' => $p->category->name ?? 'Thời trang nam',
+                'brand' => $p->brand->name ?? null,
                 'price' => $p->price,
                 'price_formatted' => number_format($p->price, 0, ',', '.') . '₫',
                 'original_price' => $p->original_price,
@@ -147,7 +155,9 @@ class ProductController extends Controller
         return view('admin.products.index', compact(
             'products', 
             'categories', 
+            'brands',
             'categoryId', 
+            'brandId',
             'status', 
             'search',
             'totalProductsCount',
@@ -158,80 +168,43 @@ class ProductController extends Controller
         ));
     }
 
-
-
     public function create()
     {
-        $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('admin.products.create', compact('categories'));
+        $categories = Category::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
+        return view('admin.products.create', compact('categories', 'brands'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|max:50|unique:products,sku',
             'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'colors' => 'nullable|array',
-            'sizes' => 'nullable|array',
-            'short_description' => 'nullable|string',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
-            'image_url' => 'nullable|string',
-            'is_featured' => 'nullable|boolean',
-            'is_new' => 'nullable|boolean',
-            'is_best_seller' => 'nullable|boolean',
+            'image' => 'nullable|string',
+            'status' => 'nullable|string|in:active,inactive',
         ]);
 
-        $imagePath = '/assets/img/products/1.png'; // Ảnh mặc định dự phòng
+        $validated['slug'] = Str::slug($validated['name']) . '-' . time();
+        $validated['sku'] = 'BEE-' . strtoupper(Str::random(6));
+        $validated['status'] = $validated['status'] ?? 'active';
+        $validated['is_active'] = ($validated['status'] === 'active');
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $imagePath = '/storage/' . $path;
-        } elseif ($request->filled('image_url')) {
-            $imagePath = $request->image_url;
-        }
+        Product::create($validated);
 
-        $product = Product::create([
-            'name' => $validated['name'],
-            'sku' => strtoupper($validated['sku']),
-            'slug' => Str::slug($validated['name']),
-            'category_id' => $validated['category_id'],
-            'price' => $validated['price'],
-            'original_price' => $validated['original_price'] ?? null,
-            'stock' => $validated['stock'],
-            'sold_count' => 0,
-            'rating' => 5.0,
-            'reviews_count' => 0,
-            'colors' => $validated['colors'] ?? ['Đen', 'Trắng'],
-            'sizes' => $validated['sizes'] ?? ['S', 'M', 'L', 'XL'],
-            'short_description' => $validated['short_description'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'image' => $imagePath,
-            'is_featured' => $request->boolean('is_featured'),
-            'is_new' => $request->boolean('is_new', true),
-            'is_best_seller' => $request->boolean('is_best_seller'),
-            'status' => 'active',
-        ]);
-
-        // Lưu vào bộ sưu tập ảnh sản phẩm
-        ProductImage::create([
-            'product_id' => $product->id,
-            'image_path' => $imagePath,
-            'sort_order' => 1,
-        ]);
-
-        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm thời trang thành công!');
+        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm thành công!');
     }
 
     public function edit($id)
     {
-        $product = Product::with('images')->findOrFail($id);
-        $categories = Category::where('is_active', true)->orderBy('name')->get();
-        return view('admin.products.edit', compact('product', 'categories'));
+        $product = Product::with('variants')->findOrFail($id);
+        $categories = Category::where('is_active', true)->get();
+        $brands = Brand::where('is_active', true)->get();
+        return view('admin.products.edit', compact('product', 'categories', 'brands'));
     }
 
     public function update(Request $request, $id)
@@ -240,74 +213,40 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|max:50|unique:products,sku,' . $product->id,
             'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'colors' => 'nullable|array',
-            'sizes' => 'nullable|array',
-            'short_description' => 'nullable|string',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
-            'image_url' => 'nullable|string',
-            'is_featured' => 'nullable|boolean',
-            'is_new' => 'nullable|boolean',
-            'is_best_seller' => 'nullable|boolean',
-            'status' => 'nullable|string|in:active,inactive,draft',
+            'image' => 'nullable|string',
+            'status' => 'nullable|string|in:active,inactive',
         ]);
 
-        $imagePath = $product->image;
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $imagePath = '/storage/' . $path;
-        } elseif ($request->filled('image_url')) {
-            $imagePath = $request->image_url;
-        }
+        $validated['status'] = $validated['status'] ?? $product->status;
+        $validated['is_active'] = ($validated['status'] === 'active');
 
-        $product->update([
-            'name' => $validated['name'],
-            'sku' => strtoupper($validated['sku']),
-            'slug' => Str::slug($validated['name']),
-            'category_id' => $validated['category_id'],
-            'price' => $validated['price'],
-            'original_price' => $validated['original_price'] ?? null,
-            'stock' => $validated['stock'],
-            'colors' => $validated['colors'] ?? $product->colors,
-            'sizes' => $validated['sizes'] ?? $product->sizes,
-            'short_description' => $validated['short_description'],
-            'description' => $validated['description'],
-            'image' => $imagePath,
-            'is_featured' => $request->boolean('is_featured'),
-            'is_new' => $request->boolean('is_new'),
-            'is_best_seller' => $request->boolean('is_best_seller'),
-            'status' => $validated['status'] ?? 'active',
-        ]);
+        $product->update($validated);
 
-        return redirect()->route('admin.products.index')->with('success', 'Cập nhật thông tin sản phẩm thành công!');
+        return redirect()->route('admin.products.index')->with('success', 'Cập nhật sản phẩm thành công!');
     }
 
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
         $product->delete();
-
-        return redirect()->route('admin.products.index')->with('success', 'Đã xóa sản phẩm khỏi hệ thống!');
+        return redirect()->route('admin.products.index')->with('success', 'Đã xóa sản phẩm thành công!');
     }
 
-    /**
-     * Chuyển đổi nhanh 1-Click trạng thái Kinh doanh <-> Tạm dừng của sản phẩm
-     */
     public function toggleStatus($id)
     {
         $product = Product::findOrFail($id);
-        $product->status = ($product->status === 'active') ? 'inactive' : 'active';
-        $product->save();
+        $newStatus = ($product->status === 'active') ? 'inactive' : 'active';
+        $product->update([
+            'status' => $newStatus,
+            'is_active' => ($newStatus === 'active')
+        ]);
 
-        $statusText = ($product->status === 'active') ? 'ĐANG KINH DOANH (Mở bán công khai)' : 'TẠM DỪNG (Ẩn khỏi Website)';
-
-        return back()->with('success', "Đã chuyển trạng thái sản phẩm '{$product->name}' sang {$statusText}!");
+        return back()->with('success', "Đã thay đổi trạng thái sản phẩm #{$product->sku} sang " . ($newStatus === 'active' ? 'Đang bán' : 'Tạm dừng'));
     }
 }
-
-

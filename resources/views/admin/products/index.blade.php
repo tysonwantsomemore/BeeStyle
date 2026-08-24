@@ -18,7 +18,7 @@
   </div>
 </div>
 
-<!-- 4 THẺ KPI TỔNG QUAN KHO HÀNG (TRỎ CHUỘT XEM NHANH & BẤM VÀO ĐỂ XEM ĐẦY ĐỦ) -->
+<!-- 4 THẺ KPI TỔNG QUAN KHO HÀNG -->
 <div class="row g-3 mb-4">
   <!-- Thẻ 1: Tổng Sản Phẩm -->
   <div class="col-xl-3 col-md-6">
@@ -41,7 +41,6 @@
         </div>
       </div>
       
-      <!-- Thông số hiển thị trực tiếp khi nhìn vào thẻ -->
       <div class="small text-muted mb-2 pt-1" style="font-size: 0.76rem; line-height: 1.5;">
         <div><i class="fa-solid fa-boxes-stacked me-1 text-primary"></i> Tồn kho: <strong class="text-dark">{{ $kpiDetailData['all']['metrics'][1]['value'] }}</strong></div>
         <div class="text-truncate"><i class="fa-solid fa-sack-dollar me-1 text-warning"></i> Giá trị: <strong class="text-danger">{{ $kpiDetailData['all']['metrics'][2]['value'] }}</strong></div>
@@ -75,7 +74,6 @@
         </div>
       </div>
       
-      <!-- Thông số hiển thị trực tiếp khi nhìn vào thẻ -->
       <div class="small text-muted mb-2 pt-1" style="font-size: 0.76rem; line-height: 1.5;">
         <div><i class="fa-solid fa-globe me-1 text-success"></i> Mở bán: <strong class="text-dark">{{ $kpiDetailData['active']['metrics'][1]['value'] }}</strong></div>
         <div class="text-truncate"><i class="fa-solid fa-sack-dollar me-1 text-warning"></i> Giá trị: <strong class="text-danger">{{ $kpiDetailData['active']['metrics'][2]['value'] }}</strong></div>
@@ -109,7 +107,6 @@
         </div>
       </div>
       
-      <!-- Thông số hiển thị trực tiếp khi nhìn vào thẻ -->
       <div class="small text-muted mb-2 pt-1" style="font-size: 0.76rem; line-height: 1.5;">
         <div><i class="fa-solid fa-lock me-1 text-secondary"></i> Lưu kho: <strong class="text-dark">{{ $kpiDetailData['inactive']['metrics'][1]['value'] }}</strong></div>
         <div class="text-truncate"><i class="fa-solid fa-sack-dollar me-1 text-warning"></i> Giá trị: <strong class="text-danger">{{ $kpiDetailData['inactive']['metrics'][2]['value'] }}</strong></div>
@@ -143,7 +140,6 @@
         </div>
       </div>
       
-      <!-- Thông số hiển thị trực tiếp khi nhìn vào thẻ -->
       <div class="small text-muted mb-2 pt-1" style="font-size: 0.76rem; line-height: 1.5;">
         <div><i class="fa-solid fa-circle-xmark me-1 text-danger"></i> Hết kho: <strong class="text-danger">{{ $kpiDetailData['low_stock']['metrics'][1]['value'] }}</strong></div>
         <div class="text-truncate"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Còn ít (1-5): <strong class="text-warning">{{ $kpiDetailData['low_stock']['metrics'][2]['value'] }}</strong></div>
@@ -157,18 +153,25 @@
   </div>
 </div>
 
-
 <div class="bee-table-card">
-  <!-- FILTER TOOLBAR -->
+  <!-- FILTER TOOLBAR (Unified Category, Brand, Status & Search Filters) -->
   <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
     <form action="{{ route('admin.products.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
       <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="Tìm tên hoặc mã SKU..." style="width: 240px;">
       
       <!-- Lọc Danh mục -->
-      <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 180px;">
+      <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 170px;">
         <option value="">Tất cả danh mục</option>
         @foreach($categories as $cat)
           <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+        @endforeach
+      </select>
+
+      <!-- Lọc Thương hiệu -->
+      <select name="brand_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 170px;">
+        <option value="">Tất cả thương hiệu</option>
+        @foreach($brands as $b)
+          <option value="{{ $b->id }}" {{ request('brand_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
         @endforeach
       </select>
 
@@ -181,10 +184,11 @@
       </select>
 
       <button type="submit" class="btn btn-sm btn-outline-secondary">Lọc</button>
-      @if(request('q') || request('category_id') || request('status'))
+      @if(request('q') || request('category_id') || request('brand_id') || request('status'))
         <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-link text-danger p-0 ms-1">Xóa lọc</a>
       @endif
     </form>
+
     <div class="text-muted small">
       Hiển thị: <strong>{{ $products->total() }}</strong> sản phẩm
     </div>
@@ -196,7 +200,7 @@
         <tr>
           <th>Mã SKU</th>
           <th>Sản Phẩm</th>
-          <th>Danh Mục</th>
+          <th>Danh Mục / Thương Hiệu</th>
           <th>Giá Bán</th>
           <th>Giá Gốc</th>
           <th>Tồn Kho</th>
@@ -214,14 +218,21 @@
               <div class="d-flex align-items-center gap-2.5">
                 <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" style="width: 44px; height: 44px; object-fit: contain;" class="rounded border bg-white shadow-xs">
                 <div>
-                  <a href="{{ route('client.products.show', $product->id) }}" target="_blank" class="fw-bold small text-dark text-decoration-none d-block text-truncate" style="max-width: 220px;">
+                  <a href="{{ route('client.products.show', $product->id) }}" target="_blank" class="fw-bold small text-dark text-decoration-none d-block text-truncate" style="max-width: 200px;">
                     {{ $product->name }}
                   </a>
                   <small class="text-muted">{{ $product->variants->count() }} biến thể màu/size</small>
                 </div>
               </div>
             </td>
-            <td><span class="badge bg-light text-dark border">{{ $product->category->name ?? 'Thời trang nam' }}</span></td>
+            <td>
+              <div class="d-flex flex-column gap-1">
+                <span class="badge bg-light text-dark border w-fit">{{ $product->category->name ?? 'Thời trang nam' }}</span>
+                @if($product->brand)
+                  <small class="text-muted"><i class="fa-solid fa-tag me-1"></i>{{ $product->brand->name }}</small>
+                @endif
+              </div>
+            </td>
             <td><strong class="text-danger">{{ number_format($product->price, 0, ',', '.') }}₫</strong></td>
             <td><span class="text-muted text-decoration-line-through small">{{ number_format($product->original_price, 0, ',', '.') }}₫</span></td>
             <td>
@@ -379,7 +390,6 @@
 
 @push('scripts')
 <script>
-  // Toàn bộ dữ liệu 4 nhóm KPI từ Controller
   const kpiData = @json($kpiDetailData);
 
   function openKpiModal(groupKey) {
@@ -389,7 +399,6 @@
     const modalEl = document.getElementById('kpiProductDetailModal');
     if (!modalEl) return;
 
-    // 1. Cập nhật Header
     document.getElementById('mdlKpiTitle').textContent = data.title;
     document.getElementById('mdlKpiSubtitle').textContent = data.subtitle;
     
@@ -402,7 +411,6 @@
 
     document.getElementById('mdlFilterLink').href = data.filter_url;
 
-    // 2. Render 4 Thẻ Metrics
     const metricsContainer = document.getElementById('mdlMetricsContainer');
     metricsContainer.innerHTML = '';
     data.metrics.forEach(m => {
@@ -416,7 +424,6 @@
       `;
     });
 
-    // 3. Render Bảng Sản Phẩm
     const tbody = document.getElementById('kpiProductsTbody');
     tbody.innerHTML = '';
     const products = data.products || [];
@@ -457,8 +464,9 @@
             <td>
               <div class="d-flex align-items-center gap-2">
                 <img src="${p.image}" alt="${p.name}" style="width: 38px; height: 38px; object-fit: contain;" class="rounded border bg-white shadow-xs">
-                <div class="text-truncate" style="max-width: 220px;">
+                <div class="text-truncate" style="max-width: 200px;">
                   <strong class="text-dark d-block small text-truncate">${p.name}</strong>
+                  ${p.brand ? `<small class="text-muted">${p.brand}</small>` : ''}
                 </div>
               </div>
             </td>
@@ -486,7 +494,6 @@
     document.getElementById('kpiVisibleCount').textContent = products.length;
     document.getElementById('kpiSearchInput').value = '';
 
-    // Ẩn toàn bộ popover đang mở trước khi hiển thị Modal
     const popovers = document.querySelectorAll('[data-bs-toggle="popover"]');
     popovers.forEach(el => {
       const popInstance = bootstrap.Popover.getInstance(el);
@@ -497,16 +504,13 @@
     bsModal.show();
   }
 
-  // Khởi tạo Bootstrap Popover khi trỏ chuột (Hover) & tìm kiếm realtime
   document.addEventListener('DOMContentLoaded', function() {
-    // 1. Khởi tạo Popover
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+    [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
       sanitize: false,
       delay: { "show": 100, "hide": 100 }
     }));
 
-    // 2. Tìm kiếm realtime bên trong modal
     const searchInput = document.getElementById('kpiSearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', function() {
@@ -531,6 +535,3 @@
 </script>
 @endpush
 @endsection
-
-
-
