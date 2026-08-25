@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
+use App\Http\Controllers\Client\CategoryController as ClientCategoryController;
 use App\Http\Controllers\Client\BrandController as ClientBrandController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\CheckoutController;
@@ -50,6 +51,10 @@ Route::name('client.')->group(function () {
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
     
+    // Categories (Xem danh mục sản phẩm)
+    Route::get('/danh-muc', [ClientCategoryController::class, 'index'])->name('categories.index');
+    Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
+
     // Brands
     Route::get('/thuong-hieu', [ClientBrandController::class, 'index'])->name('brands.index');
     Route::get('/thuong-hieu/{slug}', [ClientBrandController::class, 'show'])->name('brands.show');
