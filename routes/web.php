@@ -124,6 +124,11 @@ Route::name('client.')->group(function () {
         [ClientProductController::class, 'dailyDeals']
     )->name('daily-deals.index');
 
+    Route::get(
+        '/deal-ngay',
+        [ClientProductController::class, 'dailyDeals']
+    );
+
 
     Route::get(
         '/san-pham',
@@ -141,6 +146,11 @@ Route::name('client.')->group(function () {
         '/san-pham/{id}',
         [ClientProductController::class, 'show']
     )->name('products.show');
+
+    Route::get(
+        '/san-pham/api-reviewer-profile/{id}',
+        [ClientProductController::class, 'getReviewerProfile']
+    )->name('products.reviewerProfile');
 
 
     /*
