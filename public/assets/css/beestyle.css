@@ -109,6 +109,66 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
   color: var(--atino-red);
 }
 
+.beestyle-logo.logo-light,
+.bee-footer .beestyle-logo {
+  color: #ffffff !important;
+}
+
+.beestyle-logo.logo-light .logo-badge,
+.bee-footer .beestyle-logo .logo-badge {
+  background: var(--atino-red);
+  color: #ffffff;
+}
+
+.beestyle-logo.logo-light .brand-highlight,
+.bee-footer .beestyle-logo .brand-highlight {
+  color: var(--atino-red);
+}
+
+/* Modern RMA & Dashboard UI Utilities */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-scale:hover {
+  transform: scale(1.06);
+  z-index: 2;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.letter-spacing-2 {
+  letter-spacing: 2.5px;
+}
+
+.ring-2 {
+  box-shadow: 0 0 0 2px var(--bs-primary);
+}
+.ring-primary {
+  box-shadow: 0 0 0 2px #3b82f6 !important;
+}
+.ring-warning {
+  box-shadow: 0 0 0 2px #f59e0b !important;
+}
+.ring-info {
+  box-shadow: 0 0 0 2px #0ea5e9 !important;
+}
+.ring-success {
+  box-shadow: 0 0 0 2px #10b981 !important;
+}
+.ring-danger {
+  box-shadow: 0 0 0 2px #ef4444 !important;
+}
+
 /* Announcement Topbar */
 .bee-announcement-bar {
   background: #0f172a;

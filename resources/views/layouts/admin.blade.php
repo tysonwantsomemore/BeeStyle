@@ -40,10 +40,9 @@
             
             <!-- ADMIN UNIFIED LOGO -->
             <li class="nav-item mb-4 px-3 pt-3">
-              <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
-                <span class="fs-4 fw-black text-white" style="letter-spacing: 1.5px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 900;">
-                  BEE<span class="text-warning">STYLE</span>
-                </span>
+              <a href="{{ route('admin.dashboard') }}" class="beestyle-logo logo-light">
+                <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
+                <span>BEE<span class="brand-highlight">STYLE</span></span>
               </a>
             </li>
 
@@ -97,6 +96,18 @@
                 <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
                   <span class="nav-link-icon"><i class="fa-solid fa-cart-shopping"></i></span>
                   <span class="nav-link-text">Quản Lý Đơn Hàng</span>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.returns.*') ? 'active' : '' }}" href="{{ route('admin.returns.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-arrow-rotate-left text-danger"></i></span>
+                  <span class="nav-link-text">Đổi Trả &amp; Hoàn Tiền</span>
+                  @php
+                    $pendingRmaBadge = \App\Models\OrderReturn::where('status', 'pending')->count();
+                  @endphp
+                  @if($pendingRmaBadge > 0)
+                    <span class="badge bg-warning text-dark ms-auto fs-10 px-1.5 py-0.5 rounded-pill">{{ $pendingRmaBadge }}</span>
+                  @endif
                 </a>
               </div>
               <div class="nav-item-wrapper">
@@ -173,8 +184,9 @@
             <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
           </button>
           <a class="navbar-brand me-1 me-sm-3 d-lg-none" href="{{ route('admin.dashboard') }}">
-            <div class="d-flex align-items-center">
-              <span class="fs-5 fw-black text-dark" style="letter-spacing: 1px;">BEE<span class="text-warning">STYLE</span></span>
+            <div class="beestyle-logo" style="font-size: 1.25rem;">
+              <span class="logo-badge" style="width: 32px; height: 32px; font-size: 0.95rem;"><i class="fa-solid fa-gem"></i></span>
+              <span>BEE<span class="brand-highlight">STYLE</span></span>
             </div>
           </a>
 
@@ -254,7 +266,7 @@
 
       <!-- ADMIN FOOTER -->
       <footer class="footer position-relative mt-5 pt-3 border-top text-secondary small d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>&copy; {{ date('Y') }} <strong>BeeStyle Menswear</strong> - Hệ thống Quản trị Bán hàng Đồ án Tốt nghiệp.</div>
+        <div>&copy; {{ date('Y') }} <strong>BEESTYLE MENSWEAR</strong> - Hệ thống Quản trị Bán hàng Đồ án Tốt nghiệp.</div>
         <div>Phiên bản 2.0 • Laravel 13.x • MySQL 8.x</div>
       </footer>
     </div>

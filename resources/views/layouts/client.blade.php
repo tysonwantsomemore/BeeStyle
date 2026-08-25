@@ -569,12 +569,10 @@
       <div class="row g-4 pb-4 border-bottom border-secondary-subtle">
         <!-- Brand Info -->
         <div class="col-lg-4 col-md-6">
-          <div class="d-flex align-items-center gap-2 mb-3">
-            <div class="bee-logo-icon">
-              <i class="fa-solid fa-b"></i>
-            </div>
-            <span class="fs-4 fw-black tracking-wide text-white">BEE<span class="text-warning">STYLE</span></span>
-          </div>
+          <a href="{{ route('client.home') }}" class="beestyle-logo logo-light mb-3 d-inline-flex">
+            <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
+            <span>BEE<span class="brand-highlight">STYLE</span></span>
+          </a>
           <p class="text-secondary small mb-3">
             Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất lượng vượt trội.
           </p>

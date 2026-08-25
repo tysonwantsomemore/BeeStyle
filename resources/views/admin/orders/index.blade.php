@@ -133,8 +133,21 @@
                 <span class="badge bg-secondary-subtle text-dark py-1 px-2 fw-bold"><i class="fa-solid fa-clipboard-check me-1"></i> Bước 2/6: Đã xác nhận</span>
               @elseif($order->shipping_status === 'cancelled')
                 <span class="badge bg-danger-subtle text-danger py-1 px-2 fw-bold"><i class="fa-solid fa-ban me-1"></i> Đã hủy đơn</span>
+                @if($order->cancel_reason)
+                  <small class="text-muted d-block text-truncate" style="max-width: 140px; font-size: 0.68rem;" title="{{ $order->cancel_reason }}">
+                    {{ $order->cancel_reason }}
+                  </small>
+                @endif
               @else
                 <span class="badge bg-warning-subtle text-dark py-1 px-2 fw-bold"><i class="fa-solid fa-clock me-1"></i> Bước 1/6: Chờ xác nhận</span>
+              @endif
+
+              @if($order->latestReturn)
+                <div class="mt-1">
+                  <a href="{{ route('admin.returns.show', $order->latestReturn->id) }}" class="badge bg-warning-subtle text-dark border border-warning text-decoration-none" style="font-size: 0.68rem;">
+                    <i class="fa-solid fa-arrow-rotate-left text-warning me-0.5"></i> RMA: {{ $order->latestReturn->status_label }}
+                  </a>
+                </div>
               @endif
             </td>
             <td class="text-end">

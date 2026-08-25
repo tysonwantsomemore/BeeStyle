@@ -89,6 +89,10 @@ class OrderController extends Controller
         }
 
         // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm & phân loại biến thể
+        $cancelledBy = $order->cancelled_by;
+        $cancelledAt = $order->cancelled_at;
+        $cancelReason = $order->cancel_reason;
+
         if ($validated['shipping_status'] === 'cancelled' && $order->shipping_status !== 'cancelled') {
             foreach ($order->items as $item) {
                 if ($item->product_id) {
@@ -103,6 +107,18 @@ class OrderController extends Controller
                     }
                 }
             }
+
+            // Hoàn lại lượt sử dụng mã giảm giá (Voucher)
+            if ($order->coupon_code) {
+                $coupon = \App\Models\Coupon::where('code', $order->coupon_code)->first();
+                if ($coupon && $coupon->used_count > 0) {
+                    $coupon->decrement('used_count');
+                }
+            }
+
+            $cancelledBy = 'admin';
+            $cancelledAt = now();
+            $cancelReason = $request->input('cancel_reason', 'Hủy bởi Quản trị viên BeeStyle');
         }
 
         $order->update([
@@ -110,6 +126,9 @@ class OrderController extends Controller
             'payment_status' => $paymentStatus,
             'status_step' => $stepMap[$validated['shipping_status']] ?? 1,
             'admin_notes' => $adminNotes,
+            'cancelled_by' => $cancelledBy,
+            'cancelled_at' => $cancelledAt,
+            'cancel_reason' => $cancelReason,
         ]);
 
         return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công ({$order->status_label})!");
