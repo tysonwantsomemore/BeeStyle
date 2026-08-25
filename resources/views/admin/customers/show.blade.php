@@ -11,8 +11,84 @@
           <i class="fa-solid fa-arrow-left"></i>
         </a>
         <h3 class="fw-bold text-dark mb-0">Hồ Sơ Khách Hàng: {{ $customer->name }}</h3>
+        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">ID: #{{ $customer->id }}</span>
       </div>
-      <p class="text-muted small mb-0 ps-4 ms-2">Xem thông tin tài khoản đăng nhập, lịch sử mua hàng và các đánh giá</p>
+      <p class="text-muted small mb-0 ps-4 ms-2">Xem thông tin tài khoản đăng nhập, tổng chi tiêu cá nhân và thống kê chi tiêu của tất cả khách hàng</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ route('admin.customers.index') }}" class="btn btn-outline-dark btn-sm px-3">
+        <i class="fa-solid fa-users me-1.5"></i> Danh Sách Khách Hàng
+      </a>
+      <a href="{{ route('admin.orders.index') }}" class="btn btn-bee-primary btn-sm px-3">
+        <i class="fa-solid fa-receipt me-1.5"></i> Quản Lý Đơn Hàng
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 4 THẺ THỐNG KÊ CHI TIÊU TOÀN DIỆN (TOÀN SHOP & KHÁCH HÀNG HIỆN TẠI) -->
+<div class="row g-3 mb-4">
+  <!-- 1. Tổng Chi Tiêu Tất Cả Khách Hàng Toàn Shop -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid var(--bee-primary, #f59e0b) !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tổng Chi Tiêu Tất Cả Khách Hàng</span>
+        <div class="rounded-circle p-2 bg-warning-subtle text-warning" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-sack-dollar fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ number_format($totalAllCustomersSpent, 0, ',', '.') }}₫</h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-circle-check text-success me-1"></i> Hoàn tất: <strong>{{ number_format($totalCompletedSpent, 0, ',', '.') }}₫</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Tổng Tài Khoản Đã Mua Hàng -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #06b6d4 !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tài Khoản Đã Mua Hàng</span>
+        <div class="rounded-circle p-2 bg-info-subtle text-info" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-users-line fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ $totalPurchasingAccounts }} <span class="fs-6 text-muted fw-normal">/ {{ $totalAllRegisteredCustomers }} tài khoản</span></h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-arrow-trend-up text-info me-1"></i> Chi tiêu TB: <strong>{{ number_format($averageSpendPerAccount, 0, ',', '.') }}₫</strong> / khách
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Chi Tiêu Của Khách Hàng Hiện Tại -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #10b981 !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase text-truncate" style="letter-spacing: 0.05em; font-size: 0.72rem;">Chi Tiêu Của {{ $customer->name }}</span>
+        <div class="rounded-circle p-2 bg-success-subtle text-success" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-wallet fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-danger mb-1" style="font-size: 1.55rem;">{{ number_format($customerTotalSpent, 0, ',', '.') }}₫</h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-pie-chart text-success me-1"></i> Chiếm <strong>{{ $customerContributionPercent }}%</strong> tổng chi tiêu toàn shop
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Vị Trí Xếp Hạng Chi Tiêu Của Khách -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #8b5cf6 !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Xếp Hạng & TB Đơn Hàng</span>
+        <div class="rounded-circle p-2 bg-primary-subtle text-primary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-trophy fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">Top #{{ $customerRankPosition }} <span class="fs-6 text-muted fw-normal">/ {{ $totalPurchasingAccounts }}</span></h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-calculator text-primary me-1"></i> TB: <strong>{{ number_format($customerAverageOrderValue, 0, ',', '.') }}₫</strong> / đơn ({{ $customerOrdersCount }} đơn)
+      </div>
     </div>
   </div>
 </div>
@@ -37,12 +113,16 @@
           <i class="fa-solid fa-award me-1"></i> {{ $customer->rank }}
         </span>
         <span class="badge bg-light text-dark fw-bold px-3 py-2 rounded-pill border">
-          <i class="fa-solid fa-coins me-1 text-warning"></i> {{ number_format($customer->points) }} Điểm
+          <i class="fa-solid fa-circle-check me-1 text-success"></i> Khách Hàng Thân Thiết
         </span>
       </div>
 
       <!-- Information List -->
       <div class="text-start border-top pt-3 small">
+        <div class="d-flex justify-content-between py-1.5 border-bottom">
+          <span class="text-muted">Mã khách hàng:</span>
+          <strong class="text-dark font-monospace">#CUST-{{ str_pad($customer->id, 4, '0', STR_PAD_LEFT) }}</strong>
+        </div>
         <div class="d-flex justify-content-between py-1.5 border-bottom">
           <span class="text-muted">Số điện thoại:</span>
           <strong class="text-dark">{{ $customer->phone ?? 'Chưa cập nhật' }}</strong>
@@ -61,25 +141,41 @@
         </div>
         <div class="d-flex justify-content-between py-1.5 border-bottom">
           <span class="text-muted">Tổng chi tiêu:</span>
-          <strong class="text-danger fs-6">{{ number_format($customer->total_spent, 0, ',', '.') }}₫</strong>
+          <strong class="text-danger fs-6">{{ number_format($customerTotalSpent, 0, ',', '.') }}₫</strong>
+        </div>
+        <div class="d-flex justify-content-between py-1.5 border-bottom">
+          <span class="text-muted">Đơn hàng hoàn tất:</span>
+          <strong class="text-success">{{ $customerCompletedOrdersCount }} / {{ $customerOrdersCount }} đơn</strong>
+        </div>
+        <div class="d-flex justify-content-between py-1.5 border-bottom">
+          <span class="text-muted">Đóng góp doanh thu:</span>
+          <strong class="text-primary">{{ $customerContributionPercent }}% toàn shop</strong>
         </div>
         <div class="d-flex justify-content-between py-1.5">
-          <span class="text-muted">Địa chỉ:</span>
+          <span class="text-muted">Địa chỉ nhận hàng:</span>
           <strong class="text-dark text-end" style="max-width: 200px;">{{ $customer->address ? ($customer->address . ', ' . $customer->district . ', ' . $customer->city) : 'Chưa cập nhật' }}</strong>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- RIGHT COLUMN: ORDERS & REVIEWS TABS -->
+  <!-- RIGHT COLUMN: ORDERS & ALL CUSTOMERS TABS -->
   <div class="col-lg-8">
     <div class="card border-0 shadow-sm p-4" style="border-radius: 16px; background: #ffffff;">
       <ul class="nav nav-tabs border-bottom mb-4" id="custTabs" role="tablist">
+        <!-- Tab 1: Đơn Hàng Của Khách Này -->
         <li class="nav-item" role="presentation">
           <button class="nav-link active fw-bold text-uppercase py-2.5 px-3" id="cust-orders-tab" data-bs-toggle="tab" data-bs-target="#cust-orders" type="button" role="tab">
-            <i class="fa-solid fa-box-archive me-1 text-danger"></i> Lịch Sử Đơn Hàng ({{ $customer->orders->count() }})
+            <i class="fa-solid fa-box-archive me-1 text-danger"></i> Đơn Hàng Của Khách ({{ $customer->orders->count() }})
           </button>
         </li>
+        <!-- Tab 2: Tổng Hợp Chi Tiêu TẤT CẢ Khách Hàng -->
+        <li class="nav-item" role="presentation">
+          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-all-spending-tab" data-bs-toggle="tab" data-bs-target="#cust-all-spending" type="button" role="tab">
+            <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Chi Tiêu Tất Cả Khách Hàng ({{ $allPurchasingCustomers->count() }})
+          </button>
+        </li>
+        <!-- Tab 3: Đánh Giá Đã Viết -->
         <li class="nav-item" role="presentation">
           <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-reviews-tab" data-bs-toggle="tab" data-bs-target="#cust-reviews" type="button" role="tab">
             <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá Đã Viết ({{ $customer->reviews->count() }})
@@ -88,7 +184,7 @@
       </ul>
 
       <div class="tab-content" id="custTabsContent">
-        <!-- Tab 1: Orders -->
+        <!-- Tab 1: Orders của khách hiện tại -->
         <div class="tab-pane fade show active" id="cust-orders" role="tabpanel">
           <div class="table-responsive">
             <table class="table align-middle small mb-0">
@@ -99,7 +195,7 @@
                   <th>Số Lượng SP</th>
                   <th>Tổng Tiền</th>
                   <th>Trạng Thái</th>
-                  <th></th>
+                  <th>Thao Tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -112,12 +208,16 @@
                     <td>
                       @if($order->shipping_status === 'completed')
                         <span class="badge bg-success text-white">Hoàn tất</span>
+                      @elseif($order->shipping_status === 'delivered')
+                        <span class="badge bg-success-subtle text-success border border-success">Đã giao hàng</span>
                       @elseif($order->shipping_status === 'shipping')
                         <span class="badge bg-warning text-dark">Đang giao</span>
+                      @elseif($order->shipping_status === 'processing')
+                        <span class="badge bg-info text-white">Đang đóng gói</span>
                       @elseif($order->shipping_status === 'cancelled')
                         <span class="badge bg-danger text-white">Đã hủy</span>
                       @else
-                        <span class="badge bg-info text-white">{{ $order->status_label }}</span>
+                        <span class="badge bg-secondary text-white">{{ $order->status_label }}</span>
                       @endif
                     </td>
                     <td>
@@ -136,7 +236,103 @@
           </div>
         </div>
 
-        <!-- Tab 2: Reviews -->
+        <!-- Tab 2: Tổng hợp chi tiêu của TẤT CẢ các tài khoản khách hàng -->
+        <div class="tab-pane fade" id="cust-all-spending" role="tabpanel">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h6 class="fw-bold text-dark mb-0">Bảng Xếp Hạng Chi Tiêu Toàn Bộ Khách Hàng</h6>
+              <small class="text-muted">Tổng hợp tất cả các tài khoản đã mua hàng của shop từ trước đến nay</small>
+            </div>
+            <span class="badge bg-warning text-dark px-3 py-2 fw-bold rounded-pill">
+              Tổng chi tiêu: {{ number_format($totalAllCustomersSpent, 0, ',', '.') }}₫
+            </span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle small mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 50px;">Hạng</th>
+                  <th>Tài Khoản Khách Hàng</th>
+                  <th>Số Đơn Đã Mua</th>
+                  <th>Tổng Chi Tiêu</th>
+                  <th>Tỷ Trọng (%)</th>
+                  <th>Hạng VIP</th>
+                  <th>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse($allPurchasingCustomers as $idx => $c)
+                  @php
+                    $share = $totalAllCustomersSpent > 0 ? round(($c->total_spent / $totalAllCustomersSpent) * 100, 1) : 0;
+                    $isCurrent = ($c->id === $customer->id);
+                  @endphp
+                  <tr class="{{ $isCurrent ? 'table-warning bg-warning-subtle' : '' }}">
+                    <td>
+                      @if($idx === 0)
+                        <span class="badge bg-warning text-dark fw-bold rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-crown"></i></span>
+                      @elseif($idx === 1)
+                        <span class="badge bg-secondary text-white fw-bold rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                      @elseif($idx === 2)
+                        <span class="badge bg-danger-subtle text-danger fw-bold rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">3</span>
+                      @else
+                        <strong class="text-muted ps-1">#{{ $idx + 1 }}</strong>
+                      @endif
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <img src="{{ asset($c->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ $c->name }}" class="rounded-circle border bg-white" style="width: 38px; height: 38px; object-fit: cover;">
+                        <div>
+                          <strong class="text-dark d-block">
+                            {{ $c->name }}
+                            @if($isCurrent)
+                              <span class="badge bg-danger text-white ms-1" style="font-size: 0.65rem;">(Đang xem)</span>
+                            @endif
+                          </strong>
+                          <small class="text-muted">{{ $c->email }} • {{ $c->phone ?? 'Chưa có SĐT' }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark border px-2 py-1 fw-bold">{{ $c->orders_count }} đơn</span>
+                    </td>
+                    <td>
+                      <strong class="text-danger fs-6">{{ number_format($c->total_spent, 0, ',', '.') }}₫</strong>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center gap-1.5">
+                        <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                          <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $share }}%" aria-valuenow="{{ $share }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <span class="fw-bold small text-dark">{{ $share }}%</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1">
+                        {{ $c->rank }}
+                      </span>
+                    </td>
+                    <td>
+                      @if($isCurrent)
+                        <span class="badge bg-dark text-white py-1.5 px-2">Hồ sơ hiện tại</span>
+                      @else
+                        <a href="{{ route('admin.customers.show', $c->id) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold text-nowrap py-1 px-2" style="font-size: 0.75rem;">
+                          <i class="fa-regular fa-eye me-1"></i> Xem Hồ Sơ
+                        </a>
+                      @endif
+                    </td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">Chưa có khách hàng nào phát sinh đơn hàng.</td>
+                  </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Reviews -->
         <div class="tab-pane fade" id="cust-reviews" role="tabpanel">
           <div class="d-flex flex-column gap-3">
             @forelse($customer->reviews as $rev)
@@ -173,3 +369,4 @@
   </div>
 </div>
 @endsection
+

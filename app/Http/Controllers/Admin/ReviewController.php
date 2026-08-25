@@ -39,12 +39,12 @@ class ReviewController extends Controller
 
         $reviews = $query->paginate(15)->withQueryString();
 
-        // Nối thông tin đơn hàng khách đã mua sản phẩm này
+        // Nối thông tin đơn hàng khách đã mua sản phẩm này & tính tổng chi tiêu thực tế của khách
         foreach ($reviews as $rev) {
             $this->attachMatchedOrder($rev);
         }
 
-        $latestReviews = Review::with(['product', 'user'])->latest()->take(4)->get();
+        $latestReviews = Review::with(['product', 'user.orders'])->latest()->take(4)->get();
         foreach ($latestReviews as $lRev) {
             $this->attachMatchedOrder($lRev);
         }
@@ -66,36 +66,76 @@ class ReviewController extends Controller
     }
 
     /**
-     * Nối thông tin Đơn hàng khách đã mua sản phẩm được đánh giá
+     * Nối thông tin Đơn hàng khách đã mua sản phẩm được đánh giá & tính chi tiêu từng khách
      */
     private function attachMatchedOrder(&$review)
     {
         $review->matched_order = null;
+
+        // Tính tổng chi tiêu thực tế của khách hàng (khớp chính xác 100% với danh sách đơn hàng đã mua)
+        $customerSpent = 0;
+        $customerOrdersCount = 0;
+
+        if ($review->user) {
+            $userOrders = $review->user->orders ? $review->user->orders->where('shipping_status', '!=', 'cancelled') : collect();
+            $customerSpent = (int) $userOrders->sum('total_amount');
+            $customerOrdersCount = $userOrders->count();
+            if ($customerSpent === 0 && !empty($review->user->total_spent)) {
+                $customerSpent = (int) $review->user->total_spent;
+            }
+            $review->user->total_spent = $customerSpent;
+            $review->user->actual_total_spent = $customerSpent;
+        } elseif (!empty($review->user_name)) {
+            $matchedOrders = \App\Models\Order::where('customer_name', $review->user_name)
+                ->where('shipping_status', '!=', 'cancelled')
+                ->get();
+            $customerSpent = (int) $matchedOrders->sum('total_amount');
+            $customerOrdersCount = $matchedOrders->count();
+        }
+
+        $review->customer_total_spent = $customerSpent;
+        $review->customer_total_spent_formatted = number_format($customerSpent, 0, ',', '.') . '₫';
+        $review->customer_orders_count = $customerOrdersCount;
+
         if ($review->user_id && $review->product_id) {
-            $order = \App\Models\Order::where('user_id', $review->user_id)
-                ->whereHas('items', fn($q) => $q->where('product_id', $review->product_id))
-                ->with(['items' => fn($q) => $q->where('product_id', $review->product_id)])
+            $order = \App\Models\Order::where(function($q) use ($review) {
+                    $q->where('user_id', $review->user_id);
+                    if ($review->user && $review->user->phone) {
+                        $q->orWhere('customer_phone', $review->user->phone);
+                    }
+                })
+                ->whereHas('items', function ($q) use ($review) {
+                    $q->where('product_id', $review->product_id)
+                      ->orWhere('product_name', 'LIKE', '%' . ($review->product->name ?? '') . '%');
+                })
+                ->with(['items'])
                 ->latest()
                 ->first();
 
             if ($order) {
-                $matchedItem = $order->items->first();
-                $review->matched_order = [
-                    'order_id' => $order->id,
-                    'order_code' => $order->order_code,
-                    'created_at' => $order->created_at ? $order->created_at->format('d/m/Y H:i') : '',
-                    'total_amount' => number_format($order->total_amount, 0, ',', '.') . '₫',
-                    'shipping_status_label' => $order->status_label ?? 'Đã hoàn tất',
-                    'payment_status_label' => $order->payment_status_label ?? 'Đã thanh toán',
-                    'color' => $matchedItem->color ?? 'Tiêu chuẩn',
-                    'size' => $matchedItem->size ?? 'M',
-                    'quantity' => $matchedItem->quantity ?? 1,
-                    'price' => number_format($matchedItem->price ?? ($review->product->price ?? 0), 0, ',', '.') . '₫',
-                    'item_image' => $matchedItem->image ? asset($matchedItem->image) : ($review->product->image ? asset($review->product->image) : asset('/assets/img/products/1.png')),
-                ];
+                $matchedItem = $order->items->first(function($it) use ($review) {
+                    return $it->product_id == $review->product_id || ($review->product && str_contains($it->product_name, $review->product->name));
+                }) ?: $order->items->first();
+
+                if ($matchedItem) {
+                    $review->matched_order = [
+                        'order_id' => $order->id,
+                        'order_code' => $order->order_code,
+                        'created_at' => $order->created_at ? $order->created_at->format('d/m/Y H:i') : '',
+                        'total_amount' => number_format($order->total_amount, 0, ',', '.') . '₫',
+                        'shipping_status_label' => $order->status_label ?? 'Đã hoàn tất',
+                        'payment_status_label' => $order->payment_status_label ?? 'Đã thanh toán',
+                        'color' => $matchedItem->color ?? 'Tiêu chuẩn',
+                        'size' => $matchedItem->size ?? 'M',
+                        'quantity' => $matchedItem->quantity ?? 1,
+                        'price' => number_format($matchedItem->price ?? ($review->product->price ?? 0), 0, ',', '.') . '₫',
+                        'item_image' => $matchedItem->image ? asset($matchedItem->image) : ($review->product && $review->product->image ? asset($review->product->image) : asset('/assets/img/products/1.png')),
+                    ];
+                }
             }
         }
     }
+
 
 
 

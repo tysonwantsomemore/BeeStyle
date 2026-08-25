@@ -14,7 +14,7 @@
             <span>BEE<span class="brand-highlight">STYLE</span></span>
           </div>
           <h4 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">ĐĂNG KÝ THÀNH VIÊN</h4>
-          <p class="text-muted small">Nhận ngay <strong>100 điểm tích lũy</strong> và ưu đãi giảm giá độc quyền</p>
+          <p class="text-muted small">Trở thành hội viên để nhận ngay ưu đãi giảm giá và chăm sóc độc quyền</p>
         </div>
 
         <!-- WELCOME GIFT PROMO -->
@@ -22,7 +22,7 @@
           <i class="fa-solid fa-gift fs-2"></i>
           <div class="small">
             <strong class="d-block text-uppercase">Quà Tặng Chào Mừng:</strong>
-            <span>Tặng 100 điểm thưởng + Mã freeship toàn quốc cho đơn hàng đầu tiên.</span>
+            <span>Tặng mã Freeship toàn quốc &amp; Voucher giảm 50.000₫ cho đơn hàng đầu tiên.</span>
           </div>
         </div>
 

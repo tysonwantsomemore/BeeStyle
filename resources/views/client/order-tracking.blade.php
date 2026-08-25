@@ -28,7 +28,7 @@
             <span class="input-group-text bg-light border-end-0 text-muted">
               <i class="fa-solid fa-magnifying-glass"></i>
             </span>
-            <input type="text" name="code" value="{{ $code }}" class="form-control border-start-0 ps-0" placeholder="Nhập mã đơn hàng (VD: BEE-2026-0816-01)..." required>
+            <input type="text" name="code" value="{{ $code ?? '' }}" class="form-control border-start-0 ps-0" placeholder="Nhập mã đơn hàng (VD: BEE-2026-0816-01)..." required>
           </div>
           <button type="submit" class="btn btn-bee-primary px-4 text-nowrap fw-bold shadow-sm">
             Tra Cứu
@@ -40,111 +40,129 @@
 
   @if($currentOrder)
 
-    <!-- KHỐI THANH TOÁN VIETQR TỰ ĐỘNG KHI CHỌN PHƯƠNG THỨC CHUYỂN KHOẢN -->
-    @if($currentOrder->payment_method === 'vietqr')
+    <!-- KHỐI THÔNG TIN THANH TOÁN TƯƠNG ỨNG VỚI PHƯƠNG THỨC -->
+    @if(in_array($currentOrder->payment_method, ['online', 'momo', 'zalopay', 'vietqr', 'vnpay']))
       @if($currentOrder->payment_status !== 'paid')
-        <!-- LUXURY SMART BANKING VIETQR PASS (ULTRA PROFESSIONAL FINTECH UI) -->
-        <div class="card border-0 shadow-lg mb-4 overflow-hidden position-relative" style="border-radius: 24px; background: linear-gradient(145deg, #090e17 0%, #111827 50%, #1e293b 100%); color: #ffffff; border: 1.5px solid #f59e0b !important;">
+        <!-- CARD THANH TOÁN ONLINE / MOMO / ZALOPAY -->
+        @php
+          $isMomo = $currentOrder->payment_method === 'momo';
+          $isZalo = $currentOrder->payment_method === 'zalopay';
+          $cardBorder = $isMomo ? '#d82d8b' : ($isZalo ? '#008fe5' : '#f59e0b');
+          $methodTitle = $isMomo ? 'Thanh Toán Qua Ví MoMo' : ($isZalo ? 'Thanh Toán Qua Ví ZaloPay' : 'Thanh Toán Online (ATM / Internet Banking / Visa)');
+          $methodDesc = $isMomo ? 'Mở ứng dụng ví MoMo để chuyển tiền thanh toán đơn hàng với thông tin bên dưới:' : ($isZalo ? 'Mở ứng dụng ví ZaloPay hoặc app Zalo để thanh toán đơn hàng:' : 'Vui lòng chuyển khoản trực tuyến qua Internet Banking với thông tin bên dưới:');
+          $badgeLabel = $isMomo ? 'VÍ MOMO' : ($isZalo ? 'VÍ ZALOPAY' : 'ONLINE BANKING');
+          $badgeColor = $isMomo ? 'background-color: #d82d8b;' : ($isZalo ? 'background-color: #008fe5;' : 'background-color: #f59e0b; color: #111827;');
+        @endphp
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden position-relative" style="border-radius: 24px; background: linear-gradient(145deg, #090e17 0%, #111827 50%, #1e293b 100%); color: #ffffff; border: 1.5px solid {{ $cardBorder }} !important;">
           
-          <!-- Background Ambient Glow -->
-          <div class="position-absolute top-0 end-0 p-5 rounded-circle" style="background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%); width: 400px; height: 400px; pointer-events: none;"></div>
-
           <div class="card-body p-4 p-lg-5 position-relative">
             <div class="row align-items-center g-4 g-lg-5">
               
-              <!-- CỘT 1: THẺ QR THANH TOÁN KỸ THUẬT SỐ (DIGITAL POS PASS) -->
+              <!-- CỘT 1: BIỂU TƯỢNG VÀ TÓM TẮT PHƯƠNG THỨC -->
               <div class="col-lg-5 text-center">
-                <div class="p-3.5 bg-white rounded-4 shadow-lg d-inline-block position-relative" style="max-width: 320px; width: 100%;">
+                <div class="p-4 bg-white rounded-4 shadow-lg d-inline-block position-relative" style="max-width: 320px; width: 100%;">
                   
-                  <!-- Top Badge: VietQR & Napas 247 -->
-                  <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-                    <span class="badge bg-danger-subtle text-danger fw-black px-2 py-0.5" style="font-size: 0.68rem; letter-spacing: 0.5px;">
-                      VIETQR 24/7
-                    </span>
-                    <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-0.5" style="font-size: 0.68rem;">
-                      <i class="fa-solid fa-bolt me-0.5"></i> NAPAS 247
+                  <div class="mb-3">
+                    <span class="badge text-white fw-bold px-3 py-1.5 rounded-pill shadow-xs" style="{{ $badgeColor }} font-size: 0.85rem;">
+                      {{ $badgeLabel }}
                     </span>
                   </div>
 
-                  <!-- Dynamic VietQR Code Image -->
-                  @php
-                    $vietQrUrl = "https://img.vietqr.io/image/MB-0988889999-compact2.png?amount=" . $currentOrder->total_amount . "&addInfo=" . urlencode($currentOrder->order_code) . "&accountName=" . urlencode("BEESTYLE MENSWEAR");
-                  @endphp
-                  <div class="p-2 bg-light rounded-3 border position-relative">
-                    <img src="{{ $vietQrUrl }}" alt="VietQR Payment Code" style="max-width: 250px; width: 100%; height: auto;" class="rounded mx-auto d-block">
+                  <div class="p-4 bg-light rounded-3 border text-center my-2">
+                    @if($isMomo)
+                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 72px; height: 72px; background-color: #d82d8b; font-size: 2rem;">
+                        <i class="fa-solid fa-wallet"></i>
+                      </div>
+                      <h6 class="fw-bold text-dark mb-1">Ví Điện Tử MoMo</h6>
+                      <span class="text-muted small">Hotline: 0988.889.999</span>
+                    @elseif($isZalo)
+                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 72px; height: 72px; background-color: #008fe5; font-size: 2rem;">
+                        <i class="fa-solid fa-wallet"></i>
+                      </div>
+                      <h6 class="fw-bold text-dark mb-1">Ví Điện Tử ZaloPay</h6>
+                      <span class="text-muted small">Hotline: 0988.889.999</span>
+                    @else
+                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-dark mb-2 shadow-sm" style="width: 72px; height: 72px; background-color: #f59e0b; font-size: 2rem;">
+                        <i class="fa-solid fa-credit-card"></i>
+                      </div>
+                      <h6 class="fw-bold text-dark mb-1">Thanh Toán Trực Tuyến</h6>
+                      <span class="text-muted small">MB Bank / Thẻ ATM / Visa</span>
+                    @endif
                   </div>
 
-                  <!-- Supported Banking Apps Row -->
-                  <div class="mt-2.5 pt-2 border-top text-muted small d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.72rem;">
-                    <i class="fa-solid fa-shield-halved text-success"></i>
-                    <span class="text-dark fw-semibold">Quét bằng App mọi Ngân Hàng &amp; Ví Điện Tử</span>
+                  <div class="mt-2 text-muted small">
+                    <i class="fa-solid fa-shield-halved text-success me-1"></i> Giao dịch bảo mật 100%
                   </div>
-                </div>
-
-                <div class="mt-3 d-flex justify-content-center gap-2">
-                  <a href="{{ $vietQrUrl }}" download="VietQR_{{ $currentOrder->order_code }}.png" target="_blank" class="btn btn-sm btn-light text-dark py-1.5 px-3.5 fw-bold shadow-sm rounded-pill" style="font-size: 0.8rem;">
-                    <i class="fa-solid fa-arrow-down-to-bracket me-1.5 text-warning"></i> Tải Ảnh Mã QR
-                  </a>
                 </div>
               </div>
 
-              <!-- CỘT 2: BẢNG TÀI KHOẢN NGÂN HÀNG THÔNG MINH (SMART ACCOUNT DETAILS) -->
+              <!-- CỘT 2: BẢNG THÔNG TIN THANH TOÁN -->
               <div class="col-lg-7">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                  <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-danger text-white fw-bold px-3 py-1.5 rounded-pill" style="font-size: 0.75rem;">
-                      <i class="fa-solid fa-circle-dot me-1 text-warning"></i> CHỜ CHUYỂN KHOẢN
-                    </span>
-                    <span class="text-warning small fw-bold"><i class="fa-solid fa-clock me-1"></i> Tự động kiểm tra 24/7</span>
-                  </div>
-                  <!-- Countdown Timer -->
+                  <span class="badge bg-danger text-white fw-bold px-3 py-1.5 rounded-pill" style="font-size: 0.75rem;">
+                    <i class="fa-solid fa-circle-dot me-1 text-warning"></i> CHỜ THANH TOÁN
+                  </span>
                   <div class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-20 px-3 py-1.5 rounded-pill small">
-                    <i class="fa-regular fa-clock me-1 text-warning"></i> Thời gian giữ hàng: <span id="vietqrCountdown" class="fw-bold text-warning font-monospace">14:59</span>
+                    <i class="fa-regular fa-clock me-1 text-warning"></i> Thời gian giữ hàng: <span class="fw-bold text-warning font-monospace">14:59</span>
                   </div>
                 </div>
 
-                <h3 class="fw-black text-white mb-1.5" style="letter-spacing: -0.5px;">Thanh Toán Chuyển Khoản VietQR</h3>
+                <h3 class="fw-black text-white mb-1.5" style="letter-spacing: -0.5px;">{{ $methodTitle }}</h3>
                 <p class="text-white text-opacity-90 small mb-3.5 leading-relaxed" style="font-size: 0.88rem;">
-                  Mở ứng dụng ngân hàng của bạn để quét mã QR bên cạnh. Số tiền thanh toán và nội dung chuyển khoản đã được điền sẵn chính xác 100%:
+                  {{ $methodDesc }}
                 </p>
 
-                <!-- CARDLET BẢNG THÔNG TIN GIAO DỊCH TƯƠNG PHẢN CAO -->
+                <!-- THÔNG TIN TÀI KHOẢN / VÍ NHẬN TIỀN -->
                 <div class="p-3.5 rounded-4 mb-4" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px);">
                   <div class="d-flex flex-column gap-2.5 small">
                     
-                    <!-- Row 1: Ngân hàng -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                      <span class="text-white text-opacity-80 fw-semibold">
-                        <i class="fa-solid fa-building-columns me-1.5 text-warning"></i> Ngân hàng thụ hưởng:
-                      </span>
-                      <strong class="text-white fs-6">MB Bank (Ngân Hàng TMCP Quân Đội)</strong>
-                    </div>
-
-                    <!-- Row 2: Chủ tài khoản -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                      <span class="text-white text-opacity-80 fw-semibold">
-                        <i class="fa-solid fa-user-check me-1.5 text-warning"></i> Tên chủ tài khoản:
-                      </span>
-                      <strong class="text-warning fs-6">BEESTYLE MENSWEAR</strong>
-                    </div>
-
-                    <!-- Row 3: Số tài khoản & nút copy -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                      <span class="text-white text-opacity-80 fw-semibold">
-                        <i class="fa-solid fa-credit-card me-1.5 text-warning"></i> Số tài khoản:
-                      </span>
-                      <div class="d-flex align-items-center gap-2">
-                        <strong class="text-white font-monospace fs-5 fw-bold" id="accNumberTxt">0988889999</strong>
-                        <button type="button" class="btn btn-sm btn-warning text-dark py-0.5 px-2.5 fw-bold rounded-2 shadow-sm" id="btnCopyAcc" style="font-size: 0.72rem;" onclick="copyText('0988889999', 'btnCopyAcc')">
-                          <i class="fa-regular fa-copy me-1"></i> Copy
-                        </button>
+                    @if($isMomo || $isZalo)
+                      <!-- Ví & Số Điện Thoại -->
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
+                        <span class="text-white text-opacity-80 fw-semibold">
+                          <i class="fa-solid fa-phone me-1.5 text-warning"></i> Số tài khoản ví / Ngân hàng liên kết:
+                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                          <strong class="text-white font-monospace fs-5 fw-bold" id="accNumberTxt">77427842310105</strong>
+                          <button type="button" class="btn btn-sm btn-warning text-dark py-0.5 px-2.5 fw-bold rounded-2 shadow-sm" id="btnCopyAcc" style="font-size: 0.72rem;" onclick="copyText('77427842310105', 'btnCopyAcc')">
+                            <i class="fa-regular fa-copy me-1"></i> Copy
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    @else
+                      <!-- Ngân hàng & STK -->
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
+                        <span class="text-white text-opacity-80 fw-semibold">
+                          <i class="fa-solid fa-building-columns me-1.5 text-warning"></i> Ngân hàng thụ hưởng:
+                        </span>
+                        <strong class="text-white fs-6">Techcombank (Ngân Hàng Kỹ Thương)</strong>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
+                        <span class="text-white text-opacity-80 fw-semibold">
+                          <i class="fa-solid fa-credit-card me-1.5 text-warning"></i> Số tài khoản:
+                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                          <strong class="text-white font-monospace fs-5 fw-bold" id="accNumberTxt">77427842310105</strong>
+                          <button type="button" class="btn btn-sm btn-warning text-dark py-0.5 px-2.5 fw-bold rounded-2 shadow-sm" id="btnCopyAcc" style="font-size: 0.72rem;" onclick="copyText('77427842310105', 'btnCopyAcc')">
+                            <i class="fa-regular fa-copy me-1"></i> Copy
+                          </button>
+                        </div>
+                      </div>
+                    @endif
 
-                    <!-- Row 4: Số tiền cần chuyển -->
+                    <!-- Tên người nhận -->
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
                       <span class="text-white text-opacity-80 fw-semibold">
-                        <i class="fa-solid fa-money-bill-wave me-1.5 text-warning"></i> Số tiền cần chuyển:
+                        <i class="fa-solid fa-user-check me-1.5 text-warning"></i> Người nhận tiền:
+                      </span>
+                      <strong class="text-warning fs-6">NGUYEN XUAN BAC</strong>
+                    </div>
+
+
+                    <!-- Số tiền -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
+                      <span class="text-white text-opacity-80 fw-semibold">
+                        <i class="fa-solid fa-money-bill-wave me-1.5 text-warning"></i> Số tiền cần thanh toán:
                       </span>
                       <div class="d-flex align-items-center gap-2">
                         <strong class="text-warning fs-4 fw-black">{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</strong>
@@ -154,10 +172,10 @@
                       </div>
                     </div>
 
-                    <!-- Row 5: Nội dung chuyển khoản (Bắt buộc) -->
+                    <!-- Nội dung chuyển khoản -->
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pt-1">
                       <span class="text-white fw-bold">
-                        <i class="fa-solid fa-receipt me-1.5 text-warning"></i> Nội dung chuyển khoản:
+                        <i class="fa-solid fa-receipt me-1.5 text-warning"></i> Lời nhắn / Nội dung:
                       </span>
                       <div class="d-flex align-items-center gap-2">
                         <strong class="text-warning font-monospace fs-5 fw-black px-2.5 py-1 rounded-2 border border-warning shadow-sm" style="background: rgba(245, 158, 11, 0.18);">
@@ -172,16 +190,33 @@
                   </div>
                 </div>
 
-                <!-- Form Nút Xác Nhận Chuyển Khoản & Tiếp Tục Mua Sắm -->
-                <form action="{{ route('client.order-tracking.confirm-transfer', $currentOrder->order_code) }}" method="POST" class="d-flex gap-2 flex-wrap">
-                  @csrf
-                  <button type="submit" class="btn btn-warning text-dark px-4 py-3 fw-black flex-grow-1 shadow-lg rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2" style="transition: all 0.2s;">
-                    <i class="fa-solid fa-circle-check fs-5"></i> TÔI ĐÃ CHUYỂN KHOẢN THÀNH CÔNG
-                  </button>
-                  <a href="{{ route('client.home') }}" class="btn btn-outline-light text-white px-4 py-3 fw-bold rounded-3">
-                    Tiếp Tục Mua Sắm
-                  </a>
-                </form>
+                <!-- Form Nút Xác Nhận Thanh Toán & Mở Cổng Gateway -->
+                <div class="d-flex flex-column gap-2">
+                  @if($currentOrder->payment_method === 'momo')
+                    <a href="{{ route('client.checkout.momo', $currentOrder->order_code) }}" class="btn text-white px-4 py-3 fw-black shadow-lg rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #d82d8b, #a50064);">
+                      <i class="fa-solid fa-wallet fs-5"></i> MỞ CỔNG THANH TOÁN MOMO GATEWAY
+                    </a>
+                  @elseif($currentOrder->payment_method === 'zalopay')
+                    <a href="{{ route('client.checkout.zalopay', $currentOrder->order_code) }}" class="btn text-white px-4 py-3 fw-black shadow-lg rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #008fe5, #0056b3);">
+                      <i class="fa-solid fa-wallet fs-5"></i> MỞ CỔNG THANH TOÁN ZALOPAY GATEWAY
+                    </a>
+                  @elseif($currentOrder->payment_method === 'online')
+                    <a href="{{ route('client.checkout.online', $currentOrder->order_code) }}" class="btn text-white px-4 py-3 fw-black shadow-lg rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #0284c7, #1e3a8a);">
+                      <i class="fa-solid fa-credit-card fs-5"></i> MỞ CỔNG THANH TOÁN NAPAS 247 GATEWAY
+                    </a>
+                  @endif
+
+                  <form action="{{ route('client.order-tracking.confirm-transfer', $currentOrder->order_code) }}" method="POST" class="d-flex gap-2 flex-wrap">
+                    @csrf
+                    <button type="submit" class="btn btn-warning text-dark px-4 py-2.5 fw-black flex-grow-1 shadow-md rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2">
+                      <i class="fa-solid fa-circle-check fs-5"></i> TÔI ĐÃ HOÀN TẤT THANH TOÁN
+                    </button>
+                    <a href="{{ route('client.home') }}" class="btn btn-outline-light text-white px-4 py-2.5 fw-bold rounded-3">
+                      Tiếp Tục Mua Sắm
+                    </a>
+                  </form>
+                </div>
+
               </div>
 
             </div>
@@ -189,15 +224,15 @@
         </div>
 
       @else
-        <!-- ĐÃ XÁC NHẬN THANH TOÁN VIETQR THÀNH CÔNG -->
+        <!-- ĐÃ XÁC NHẬN THANH TOÁN THÀNH CÔNG -->
         <div class="alert alert-success border-0 shadow-sm p-4 mb-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 6px solid #10b981 !important;">
           <div class="d-flex align-items-center gap-3">
             <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
               <i class="fa-solid fa-circle-check fs-3"></i>
             </div>
             <div>
-              <h5 class="fw-bold text-success mb-1">ĐÃ THANH TOÁN VIETQR THÀNH CÔNG!</h5>
-              <p class="mb-0 text-muted small">Đơn hàng <strong>#{{ $currentOrder->order_code }}</strong> đã được thanh toán đầy đủ <strong>{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</strong> qua VietQR. BeeStyle đang đóng gói đơn hàng và sẽ gửi sớm nhất cho bạn.</p>
+              <h5 class="fw-bold text-success mb-1">ĐÃ THANH TOÁN {{ mb_strtoupper($currentOrder->payment_method_name) }} THÀNH CÔNG!</h5>
+              <p class="mb-0 text-muted small">Đơn hàng <strong>#{{ $currentOrder->order_code }}</strong> đã được thanh toán đầy đủ <strong>{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</strong>. BeeStyle đang chuẩn bị đơn hàng và sẽ gửi sớm nhất cho bạn.</p>
             </div>
           </div>
           <span class="badge bg-success px-3.5 py-2.5 fw-bold fs-6 rounded-pill shadow-sm">
@@ -206,6 +241,7 @@
         </div>
       @endif
     @endif
+
 
     <!-- ORDER STATUS & TRACKER -->
     <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff; border: 1px solid #e2e8f0 !important;">
@@ -265,15 +301,15 @@
         <div class="alert alert-success border-0 shadow-sm p-4 my-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 6px solid #10b981 !important;">
           <div class="d-flex align-items-center gap-3">
             <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px; min-width: 48px;">
-              <i class="fa-solid fa-gift fs-4"></i>
+              <i class="fa-solid fa-heart fs-4"></i>
             </div>
             <div>
-              <h6 class="fw-bold text-success mb-1 fs-6">ĐƠN HÀNG ĐÃ GIAO THÀNH CÔNG!</h6>
-              <p class="mb-0 text-muted small">Cảm ơn bạn đã mua sắm tại BeeStyle! Hãy dành 1 phút đánh giá chất lượng sản phẩm để nhận ngay <strong>+20 điểm thưởng VIP</strong> nhé.</p>
+              <h6 class="fw-bold text-success mb-1 fs-6">CẢM ƠN QUÝ KHÁCH ĐÃ MUA HÀNG TẠI BEESTYLE!</h6>
+              <p class="mb-0 text-muted small">BeeStyle chân thành cảm ơn Quý khách đã tin tưởng mua sắm. Hãy chia sẻ cảm nhận của bạn để giúp chúng tôi ngày càng hoàn thiện nhé!</p>
             </div>
           </div>
           <button type="button" onclick="openQuickReviewModal({{ $currentOrder->items->first()->product_id ?? 1 }})" class="btn btn-bee-primary px-4 py-2.5 text-nowrap fw-bold rounded-pill shadow-sm">
-            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM NGAY (+20Đ)
+            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM
           </button>
         </div>
       @endif
@@ -317,6 +353,14 @@
                 <strong>Ghi chú:</strong> "{{ $currentOrder->notes }}"
               </div>
             @endif
+            @if($currentOrder->admin_notes)
+              <div class="p-2 bg-info-subtle text-info rounded-3 border border-info-subtle d-flex align-items-center gap-2 mt-1">
+                <i class="fa-solid fa-truck-fast fs-5 text-primary"></i>
+                <div class="small text-dark">
+                  <strong class="text-primary d-block">Vận Đơn Giao Hàng:</strong> {{ $currentOrder->admin_notes }}
+                </div>
+              </div>
+            @endif
           </div>
         </div>
 
@@ -345,12 +389,12 @@
                       }
                     @endphp
                     @if($isReviewed)
-                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="btn btn-sm btn-outline-success py-0.5 px-2 text-nowrap mt-1 fw-bold" style="font-size: 0.72rem;">
+                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-outline-success py-0.5 px-2 text-nowrap mt-1 fw-bold" style="font-size: 0.72rem;">
                         <i class="fa-solid fa-circle-check me-1"></i> Đã đánh giá
                       </button>
                     @else
-                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 text-nowrap mt-1 fw-bold" style="font-size: 0.75rem;">
-                        <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá (+20đ)
+                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 text-nowrap mt-1 fw-bold" style="font-size: 0.75rem;">
+                        <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
                       </button>
                     @endif
                   @endif

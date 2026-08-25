@@ -147,6 +147,33 @@
 
     <!-- PRODUCTS GRID -->
     <div class="col-lg-9">
+      @if($categorySlug === 'ao-polo-nam' || (isset($activeCat) && str_contains(strtolower($activeCat->slug ?? ''), 'polo')))
+        <!-- HERO BANNER POLO HERITAGE -->
+        <div class="card border-0 shadow-sm mb-4 text-white overflow-hidden" style="border-radius: 16px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);">
+          <div class="card-body p-4 p-md-4 position-relative">
+            <div class="position-absolute end-0 top-0 bottom-0 d-none d-md-flex align-items-center opacity-10 pe-4" style="font-size: 8rem; pointer-events: none;">
+              <i class="fa-solid fa-shirt"></i>
+            </div>
+            <div class="position-relative" style="z-index: 2; max-width: 620px;">
+              <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill mb-2 shadow-xs">
+                <i class="fa-solid fa-crown me-1"></i> BST POLO SIGNATURE 2026
+              </span>
+              <h4 class="fw-bold text-white mb-1.5" style="letter-spacing: -0.3px;">
+                ÁO POLO NAM CAO CẤP • CHUẨN FORM QUÝ ÔNG
+              </h4>
+              <p class="text-white-50 small mb-2.5" style="font-size: 0.85rem;">
+                100% Sợi Cotton dệt tổ ong kháng khuẩn độc quyền • Co giãn 4 chiều tự nhiên • Đứng form, thoáng khí suốt ngày dài làm việc và sự kiện.
+              </p>
+              <div class="d-flex flex-wrap gap-2 gap-md-3 pt-2 border-top border-secondary-subtle small text-warning" style="font-size: 0.78rem;">
+                <span><i class="fa-solid fa-circle-check me-1"></i> Chuẩn Form Quý Ông</span>
+                <span><i class="fa-solid fa-shield-halved me-1"></i> Kháng khuẩn 99%</span>
+                <span><i class="fa-solid fa-rotate-left me-1"></i> Đổi size 7 ngày</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      @endif
+
       <!-- TOP TOOLBAR -->
       <div class="card border-0 shadow-sm p-3 mb-4" style="border-radius: 12px; background: #ffffff;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -179,38 +206,99 @@
       <div class="row g-3">
         @forelse($products as $product)
           <div class="col-6 col-md-4">
-            <div class="card h-100 border-0 shadow-sm transition-all hover-lift" style="border-radius: 14px; overflow: hidden; background: #ffffff;">
-              <div class="position-relative bg-light p-3 text-center" style="height: 230px; display: flex; align-items: center; justify-content: center;">
+            <div class="card h-100 border-0 shadow-sm transition-all hover-lift" style="border-radius: 16px; overflow: hidden; background: #ffffff; border: 1px solid rgba(0,0,0,0.05) !important;">
+              <div class="position-relative bg-light p-3 text-center" style="height: 230px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                 @if($product->discount_percent > 0)
-                  <span class="position-absolute top-0 start-0 m-2 badge bg-danger rounded-pill">-{{ $product->discount_percent }}%</span>
+                  <span class="position-absolute top-0 start-0 m-2.5 badge bg-danger rounded-pill shadow-xs" style="font-size: 0.72rem; z-index: 2;">-{{ $product->discount_percent }}%</span>
                 @endif
-                @if($product->brand)
-                  <span class="position-absolute top-0 end-0 m-2 badge bg-dark text-warning small">{{ $product->brand->name }}</span>
-                @endif
-                <a href="{{ route('client.products.show', $product->id) }}">
-                  <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid" style="max-height: 200px; object-fit: contain;">
+                
+                <!-- NÚT TRÁI TIM YÊU THÍCH -->
+                <button type="button" class="btn btn-sm btn-wishlist-toggle btn-wishlist-{{ $product->id }} {{ \App\Services\WishlistService::isFavorite($product->id) ? 'active' : '' }} position-absolute top-0 end-0 m-2.5 rounded-circle shadow-xs" 
+                  onclick="toggleWishlist({{ $product->id }}, this)" 
+                  title="Yêu thích sản phẩm" style="width: 32px; height: 32px; z-index: 4; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0,0,0,0.08);">
+                  <i class="{{ \App\Services\WishlistService::isFavorite($product->id) ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart text-dark' }} fs-6"></i>
+                </button>
+
+                <a href="{{ route('client.products.show', $product->id) }}" class="d-block w-100 h-100 d-flex align-items-center justify-content-center">
+                  <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid transition-all" style="max-height: 195px; object-fit: contain;">
                 </a>
               </div>
+
               <div class="card-body p-3 d-flex flex-column justify-content-between">
                 <div>
-                  <small class="text-warning fw-bold d-block mb-1">{{ $product->category->name ?? 'Thời trang nam' }}</small>
-                  <h6 class="fw-bold text-dark text-truncate-2 mb-2" style="font-size: 0.9rem; min-height: 42px;">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <small class="text-warning fw-bold text-uppercase" style="font-size: 0.75rem;">{{ $product->category->name ?? 'Thời trang nam' }}</small>
+                    
+                    <!-- PREVIEW CHẤM MÀU SẮC -->
+                    <div class="d-flex align-items-center gap-1">
+                      @foreach(array_slice($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy'], 0, 4) as $cDot)
+                        @php
+                          $cDotLower = strtolower($cDot);
+                          $dotBg = '#1e293b';
+                          if (str_contains($cDotLower, 'trắng')) $dotBg = '#ffffff';
+                          elseif (str_contains($cDotLower, 'navy') || str_contains($cDotLower, 'than')) $dotBg = '#1e3a8a';
+                          elseif (str_contains($cDotLower, 'xám') || str_contains($cDotLower, 'ghi')) $dotBg = '#64748b';
+                          elseif (str_contains($cDotLower, 'đỏ')) $dotBg = '#881337';
+                          elseif (str_contains($cDotLower, 'be') || str_contains($cDotLower, 'khaki')) $dotBg = '#d4b996';
+                          elseif (str_contains($cDotLower, 'rêu')) $dotBg = '#365314';
+                        @endphp
+                        <span class="rounded-circle d-inline-block border" style="width: 10px; height: 10px; background-color: {{ $dotBg }};" title="{{ $cDot }}"></span>
+                      @endforeach
+                    </div>
+                  </div>
+
+                  <h6 class="fw-bold text-dark text-truncate-2 mb-2" style="font-size: 0.92rem; min-height: 42px; line-height: 1.35;">
                     <a href="{{ route('client.products.show', $product->id) }}" class="text-decoration-none text-dark hover-warning">
                       {{ $product->name }}
                     </a>
                   </h6>
                 </div>
+
                 <div>
-                  <div class="d-flex align-items-baseline gap-2 mb-2">
+                  <div class="d-flex align-items-baseline gap-2 mb-2.5">
                     <strong class="text-danger fw-bold fs-6">{{ number_format($product->price, 0, ',', '.') }}₫</strong>
                     @if($product->original_price && $product->original_price > $product->price)
-                      <small class="text-muted text-decoration-line-through">{{ number_format($product->original_price, 0, ',', '.') }}₫</small>
+                      <small class="text-muted text-decoration-line-through" style="font-size: 0.8rem;">{{ number_format($product->original_price, 0, ',', '.') }}₫</small>
                     @endif
                   </div>
-                  <a href="{{ route('client.products.show', $product->id) }}" class="btn btn-outline-warning text-dark btn-sm w-100 fw-bold rounded-2">
-                    Xem Chi Tiết &amp; Biến Thể
-                  </a>
+
+                  <!-- 2 NÚT THÊM VÀO GIỎ HÀNG & MUA HÀNG NGAY (MỞ MODAL CHỌN MÀU & SIZE) -->
+                  <div class="d-flex gap-1.5 mt-1">
+                    <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap shadow-xs" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="{{ $product->category->name ?? 'Thời trang nam' }}"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.8rem; padding-top: 6px; padding-bottom: 6px;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    </button>
+                    <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap shadow-xs" 
+                      data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="{{ $product->category->name ?? 'Thời trang nam' }}"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
+                      onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
+                      title="Mua hàng ngay (Chọn màu & size)" style="font-size: 0.8rem; padding-top: 6px; padding-bottom: 6px;">
+                      <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+                    </button>
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
@@ -223,6 +311,7 @@
           </div>
         @endforelse
       </div>
+
 
       <!-- PAGINATION -->
       <div class="d-flex justify-content-center mt-5">

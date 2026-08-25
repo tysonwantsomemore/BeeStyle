@@ -80,6 +80,14 @@
                   <span class="nav-link-text">Danh Mục Áo Nam</span>
                 </a>
               </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}" href="{{ route('admin.brands.index') }}">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><i class="fa-solid fa-copyright"></i></span>
+                    <span class="nav-link-text">Thương Hiệu Thời Trang</span>
+                  </div>
+                </a>
+              </div>
             </li>
 
             <!-- ĐƠN HÀNG & GIAO DỊCH -->
@@ -97,6 +105,12 @@
                   <span class="nav-link-text">Doanh Thu Tháng Này</span>
                 </a>
               </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-chart-line"></i></span>
+                  <span class="nav-link-text">Báo Cáo &amp; Thống Kê</span>
+                </a>
+              </div>
             </li>
 
 
@@ -110,6 +124,12 @@
                 </a>
               </div>
               <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-user-shield"></i></span>
+                  <span class="nav-link-text">Người Dùng &amp; Phân Quyền</span>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
                 <a class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}" href="{{ route('admin.reviews.index') }}">
                   <span class="nav-link-icon"><i class="fa-solid fa-star"></i></span>
                   <span class="nav-link-text">Đánh Giá &amp; Nhận Xét</span>
@@ -119,6 +139,13 @@
                 <a class="nav-link {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}" href="{{ route('admin.coupons.index') }}">
                   <span class="nav-link-icon"><i class="fa-solid fa-tags"></i></span>
                   <span class="nav-link-text">Mã Giảm Giá (Voucher)</span>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.daily-deals.*') ? 'active' : '' }}" href="{{ route('admin.daily-deals.index') }}">
+                  <span class="nav-link-icon"><i class="fa-solid fa-bolt text-warning"></i></span>
+                  <span class="nav-link-text">Ưu Đãi Trong Ngày</span>
+                  <span class="badge bg-danger ms-auto fs-10 px-1.5 py-0.5 rounded-pill">HOT</span>
                 </a>
               </div>
             </li>
@@ -248,4 +275,3 @@
   @stack('scripts')
 </body>
 </html>
-

@@ -85,26 +85,33 @@
     </div>
   </div>
 
-  <!-- Thẻ 3: Khách Hàng Mua Trong Tháng -->
+  <!-- Thẻ 3: Khách Hàng Mua Trong Tháng (Bấm để xem danh sách toàn bộ khách hàng) -->
   <div class="col-xl-3 col-md-6">
-    <div class="bee-stat-card">
+    <div class="bee-stat-card shadow-sm transition-all hover-lift position-relative" 
+         style="cursor: pointer; border-left: 4px solid #0284c7 !important; background: #ffffff;"
+         data-bs-toggle="modal" 
+         data-bs-target="#monthlyCustomersModal"
+         title="Bấm để xem danh sách tất cả {{ $totalCustomersInMonth }} khách hàng mua trong tháng {{ $parsedDate->format('m/Y') }}">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
           <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Khách Mua Trong Tháng</span>
           <h3 class="fw-bold text-dark mb-0 mt-1" style="font-size: 1.65rem;">{{ $totalCustomersInMonth }} <span class="fs-6 fw-normal text-muted">Khách</span></h3>
         </div>
-        <div class="bee-stat-icon info">
+        <div class="bee-stat-icon info shadow-sm">
           <i class="fa-solid fa-users"></i>
         </div>
       </div>
       <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-        <span class="text-primary small fw-semibold">
-          <i class="fa-solid fa-crown me-1"></i> 100% Khách mua thực
+        <span class="text-primary small fw-bold">
+          <i class="fa-solid fa-arrow-pointer me-1 text-primary"></i> Xem toàn bộ {{ $totalCustomersInMonth }} khách
         </span>
-        <span class="text-muted small">Thành viên &amp; vãng lai</span>
+        <span class="badge bg-primary text-white fw-bold px-2 py-0.5" style="font-size: 0.68rem;">
+          <i class="fa-regular fa-eye me-1"></i> Chi tiết
+        </span>
       </div>
     </div>
   </div>
+
 
   <!-- Thẻ 4: Giá Trị Đơn Trung Bình (AOV) -->
   <div class="col-xl-3 col-md-6">
@@ -295,4 +302,243 @@
     </div>
   @endif
 </div>
+
+<!-- MODAL XEM TOÀN BỘ DANH SÁCH KHÁCH HÀNG MUA TRONG THÁNG -->
+<div class="modal fade" id="monthlyCustomersModal" tabindex="-1" aria-labelledby="monthlyCustomersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+      
+      <!-- Modal Header -->
+      <div class="modal-header border-0 text-white" style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 18px 24px;">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 44px; height: 44px; font-size: 1.2rem;">
+            <i class="fa-solid fa-users-viewfinder"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-white mb-0" id="monthlyCustomersModalLabel">
+              Toàn Bộ Khách Hàng Mua Sắm {{ 'Tháng ' . $parsedDate->format('m/Y') }}
+            </h5>
+            <small class="text-white-50" style="font-size: 0.8rem;">
+              Tổng cộng {{ $totalCustomersInMonth }} khách hàng • {{ $monthlyOrdersCount }} đơn hàng • Tổng chi tiêu: {{ number_format($monthlyRevenue, 0, ',', '.') }}₫
+            </small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body p-4 bg-light">
+        
+        <!-- 4 THẺ TÓM TẮT NHANH TRONG MODAL -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3 col-6">
+            <div class="p-3 bg-white rounded-3 border shadow-xs text-center">
+              <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Tổng Khách Mua Hàng</span>
+              <h4 class="fw-bold text-primary mb-0">{{ $totalCustomersInMonth }} <small class="fs-6 text-muted fw-normal">Khách</small></h4>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="p-3 bg-white rounded-3 border shadow-xs text-center">
+              <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Tổng Đơn Đã Đặt</span>
+              <h4 class="fw-bold text-dark mb-0">{{ $monthlyOrdersCount }} <small class="fs-6 text-muted fw-normal">Đơn</small></h4>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="p-3 bg-white rounded-3 border shadow-xs text-center">
+              <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Doanh Số Khách Mua</span>
+              <h4 class="fw-bold text-danger mb-0">{{ number_format($monthlyRevenue, 0, ',', '.') }}₫</h4>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="p-3 bg-white rounded-3 border shadow-xs text-center">
+              <span class="text-muted small fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem;">Chi Tiêu TB / Khách</span>
+              <h4 class="fw-bold text-success mb-0">{{ $totalCustomersInMonth > 0 ? number_format(round($monthlyRevenue / $totalCustomersInMonth), 0, ',', '.') : 0 }}₫</h4>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ô TÌM KIẾM NHANH KHÁCH HÀNG TRONG MODAL -->
+        <div class="card border-0 shadow-sm p-3 mb-3 bg-white rounded-3">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="input-group input-group-sm" style="max-width: 380px;">
+              <span class="input-group-text bg-light border text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+              <input type="text" id="filterMonthlyCustomersInput" class="form-control" placeholder="Tìm kiếm nhanh tên khách, SĐT, email...">
+            </div>
+            <div class="text-muted small">
+              Hiển thị: <strong id="visibleCustomerCount">{{ count($monthlyCustomersList) }}</strong> / {{ $totalCustomersInMonth }} khách hàng
+            </div>
+          </div>
+        </div>
+
+        <!-- BẢNG CHI TIẾT TỪNG KHÁCH HÀNG MUA TRONG THÁNG -->
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden bg-white">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="monthlyCustomersTable">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 60px;" class="text-center">#</th>
+                  <th>Khách Hàng (Tài khoản)</th>
+                  <th>Thông Tin Liên Hệ</th>
+                  <th>Hạng Thành Viên</th>
+                  <th class="text-center">Đơn Mua Tháng Này</th>
+                  <th class="text-end">Chi Tiêu Tháng Này</th>
+                  <th style="min-width: 220px;">Chi Tiết Đơn Hàng</th>
+                  <th class="text-end" style="width: 120px;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse($monthlyCustomersList as $index => $c)
+                  <tr class="customer-row" data-search="{{ mb_strtolower($c['name'] . ' ' . $c['phone'] . ' ' . $c['email']) }}">
+                    <!-- Xếp hạng chi tiêu trong tháng -->
+                    <td class="text-center">
+                      @if($index == 0)
+                        <span class="badge bg-warning text-dark fw-bold rounded-circle p-2" title="Top 1 chi tiêu tháng" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;">
+                          <i class="fa-solid fa-trophy"></i>
+                        </span>
+                      @elseif($index == 1)
+                        <span class="badge bg-secondary text-white fw-bold rounded-circle p-2" title="Top 2 chi tiêu tháng" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;">
+                          2
+                        </span>
+                      @elseif($index == 2)
+                        <span class="badge bg-danger-subtle text-danger fw-bold rounded-circle p-2" title="Top 3 chi tiêu tháng" style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;">
+                          3
+                        </span>
+                      @else
+                        <span class="text-muted fw-bold small">{{ $index + 1 }}</span>
+                      @endif
+                    </td>
+
+                    <!-- Tên & Avatar -->
+                    <td>
+                      <div class="d-flex align-items-center gap-2.5">
+                        <img src="{{ $c['avatar'] }}" alt="{{ $c['name'] }}" class="rounded-circle border bg-white shadow-xs" style="width: 44px; height: 44px; object-fit: cover;">
+                        <div>
+                          <strong class="text-dark d-block small mb-0.5">{{ $c['name'] }}</strong>
+                          @if($c['is_registered'])
+                            <span class="badge bg-success-subtle text-success py-0.5 px-1.5 fw-bold" style="font-size: 0.68rem;">
+                              <i class="fa-solid fa-shield-check me-0.5"></i> Thành viên
+                            </span>
+                          @else
+                            <span class="badge bg-light text-muted border py-0.5 px-1.5" style="font-size: 0.68rem;">
+                              Khách vãng lai
+                            </span>
+                          @endif
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Liên hệ -->
+                    <td>
+                      <div class="small fw-semibold text-dark">{{ $c['phone'] }}</div>
+                      <small class="text-muted text-truncate d-block" style="max-width: 180px;">{{ $c['email'] }}</small>
+                    </td>
+
+                    <!-- Hạng thành viên -->
+                    <td>
+                      <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1" style="font-size: 0.72rem;">
+                        <i class="fa-solid fa-crown me-1 text-warning"></i> {{ $c['rank'] }}
+                      </span>
+                    </td>
+
+                    <!-- Số đơn trong tháng -->
+                    <td class="text-center">
+                      <span class="badge bg-primary-subtle text-primary fw-bold px-2.5 py-1" style="font-size: 0.8rem;">
+                        {{ $c['orders_count'] }} đơn
+                      </span>
+                      @if($c['completed_count'] > 0)
+                        <div class="text-success mt-0.5 fw-semibold" style="font-size: 0.7rem;">{{ $c['completed_count'] }} hoàn tất</div>
+                      @endif
+                    </td>
+
+                    <!-- Tổng chi tiêu trong tháng -->
+                    <td class="text-end">
+                      <strong class="text-danger fs-6">{{ $c['total_spent_in_month_formatted'] }}</strong>
+                    </td>
+
+                    <!-- Danh sách các đơn đã mua trong tháng -->
+                    <td>
+                      <div class="d-flex flex-wrap gap-1.5" style="max-width: 280px;">
+                        @foreach($c['orders'] as $ord)
+                          <a href="{{ route('admin.orders.show', $ord['id']) }}" target="_blank" 
+                             class="badge bg-light text-dark border text-decoration-none py-1 px-1.5 fw-semibold"
+                             title="Đơn #{{ $ord['order_code'] }} - {{ $ord['total_amount_formatted'] }} ({{ $ord['shipping_status_label'] }})">
+                            <i class="fa-solid fa-receipt text-primary me-0.5"></i> #{{ $ord['order_code'] }}
+                          </a>
+                        @endforeach
+                      </div>
+                    </td>
+
+                    <!-- Thao tác -->
+                    <td class="text-end">
+                      @if($c['user_id'])
+                        <a href="{{ route('admin.customers.show', $c['user_id']) }}" target="_blank" class="btn btn-sm btn-outline-dark fw-bold py-1 px-2 text-nowrap" style="font-size: 0.75rem;">
+                          <i class="fa-regular fa-id-card me-1"></i> Hồ Sơ
+                        </a>
+                      @else
+                        <a href="{{ route('admin.revenue.monthly', ['month' => $selectedMonth, 'q' => $c['phone']]) }}" class="btn btn-sm btn-outline-secondary fw-bold py-1 px-2 text-nowrap" style="font-size: 0.75rem;">
+                          <i class="fa-solid fa-filter me-1"></i> Lọc đơn
+                        </a>
+                      @endif
+                    </td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                      <i class="fa-solid fa-users-slash fs-2 text-secondary-subtle mb-2 d-block"></i>
+                      Không có dữ liệu khách mua hàng trong tháng {{ $parsedDate->format('m/Y') }}.
+                    </td>
+                  </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer border-top bg-white py-2.5 px-4 d-flex justify-content-between align-items-center">
+        <span class="small text-muted">
+          <i class="fa-solid fa-circle-info text-primary me-1"></i> Dữ liệu được tính tự động dựa trên toàn bộ đơn hàng hợp lệ trong tháng {{ $parsedDate->format('m/Y') }}
+        </span>
+        <button type="button" class="btn btn-secondary btn-sm px-4 rounded-2 fw-bold" data-bs-dismiss="modal">
+          Đóng Hộp Thoại
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('filterMonthlyCustomersInput');
+    const rows = document.querySelectorAll('#monthlyCustomersTable tbody .customer-row');
+    const countEl = document.getElementById('visibleCustomerCount');
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        let visible = 0;
+
+        rows.forEach(row => {
+          const text = row.getAttribute('data-search') || '';
+          if (text.includes(query)) {
+            row.style.display = '';
+            visible++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        if (countEl) {
+          countEl.textContent = visible;
+        }
+      });
+    }
+  });
+</script>
+@endpush
 @endsection
+

@@ -10,7 +10,79 @@
         <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">THÀNH VIÊN</span>
         <h3 class="fw-bold text-dark mb-0">Quản Lý Tài Khoản Khách Hàng</h3>
       </div>
-      <p class="text-muted small mb-0">Theo dõi thông tin tài khoản đăng nhập, điểm tích lũy VIP và toàn bộ lịch sử mua hàng</p>
+      <p class="text-muted small mb-0">Theo dõi thông tin tài khoản đăng nhập, tổng chi tiêu tích lũy và toàn bộ lịch sử mua hàng</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ route('admin.orders.index') }}" class="btn btn-bee-primary btn-sm px-3">
+        <i class="fa-solid fa-receipt me-1.5"></i> Quản Lý Đơn Hàng
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 4 THẺ THỐNG KÊ CHI TIÊU TOÀN DIỆN HỆ THỐNG KHÁCH HÀNG -->
+<div class="row g-3 mb-4">
+  <!-- 1. Tổng Chi Tiêu Toàn Bộ Khách Hàng -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid var(--bee-primary, #f59e0b) !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tổng Chi Tiêu Tất Cả Khách Hàng</span>
+        <div class="rounded-circle p-2 bg-warning-subtle text-warning" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-sack-dollar fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ number_format($totalAllCustomersSpent, 0, ',', '.') }}₫</h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-circle-check text-success me-1"></i> Hoàn tất: <strong>{{ number_format($totalCompletedSpent, 0, ',', '.') }}₫</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Tài Khoản Đã Phát Sinh Đơn Hàng -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #06b6d4 !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tài Khoản Đã Mua Hàng</span>
+        <div class="rounded-circle p-2 bg-info-subtle text-info" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-users-line fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ $totalPurchasingAccounts }} <span class="fs-6 text-muted fw-normal">/ {{ $totalRegisteredCustomers }} tài khoản</span></h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-chart-pie text-info me-1"></i> Tỷ lệ mua: <strong>{{ $totalRegisteredCustomers > 0 ? round(($totalPurchasingAccounts / $totalRegisteredCustomers) * 100, 1) : 0 }}%</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Tổng Đơn Hàng Của Khách Hàng -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #10b981 !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tổng Đơn Hàng Thành Công</span>
+        <div class="rounded-circle p-2 bg-success-subtle text-success" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-cart-shopping fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ $totalOrdersCount }} <span class="fs-6 text-muted fw-normal">đơn hàng</span></h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-bag-shopping text-success me-1"></i> Không tính các đơn đã hủy
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Chi Tiêu Trung Bình Mỗi Khách -->
+  <div class="col-xl-3 col-md-6">
+    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #8b5cf6 !important;">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Chi Tiêu Trung Bình / Khách</span>
+        <div class="rounded-circle p-2 bg-primary-subtle text-primary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-calculator fs-6"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ number_format($averageSpendPerCustomer, 0, ',', '.') }}₫</h3>
+      <div class="text-muted small fs-11">
+        <i class="fa-solid fa-arrow-trend-up text-primary me-1"></i> Tính trên các tài khoản đã mua
+      </div>
     </div>
   </div>
 </div>
@@ -61,7 +133,7 @@
             </td>
             <td><small class="text-muted">{{ $customer->created_at ? $customer->created_at->format('d/m/Y') : '' }}</small></td>
             <td><span class="badge bg-light text-dark border px-2 py-1 fw-bold">{{ $customer->orders_count }} đơn hàng</span></td>
-            <td><strong class="text-danger">{{ number_format($customer->total_spent, 0, ',', '.') }}₫</strong></td>
+            <td><strong class="text-danger">{{ number_format($customer->actual_total_spent ?? $customer->total_spent, 0, ',', '.') }}₫</strong></td>
             <td>
               <span class="badge bg-warning-subtle text-dark fw-bold px-2.5 py-1">
                 <i class="fa-solid fa-crown me-1 text-warning"></i> {{ $customer->rank }}
