@@ -24,6 +24,7 @@ use App\Http\Controllers\Client\OrderTrackingController;
 use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\ReviewController;
 use App\Http\Controllers\Client\WishlistController;
+use App\Http\Controllers\Client\OrderReturnController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +43,7 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\RevenueController as AdminRevenueController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\ReturnController as AdminReturnController;
 
 
 /*
@@ -288,6 +290,14 @@ Route::name('client.')->group(function () {
         Route::put('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
         Route::delete('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'deleteAddress'])->name('profile.address.delete');
         Route::post('/tai-khoan/dia-chi/{id}/mac-dinh', [ProfileController::class, 'setDefaultAddress'])->name('profile.address.default');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER CANCELLATION & RETURN/REFUND (RMA)
+        |--------------------------------------------------------------------------
+        */
+        Route::post('/don-hang/{id}/huy', [OrderReturnController::class, 'cancelOrder'])->name('orders.cancel');
+        Route::post('/don-hang/{id}/yeu-cau-doi-tra', [OrderReturnController::class, 'storeReturn'])->name('orders.return.store');
     });
 
 });
@@ -574,9 +584,24 @@ Route::prefix('admin')
             [AdminCouponController::class, 'update']
         )->name('coupons.update');
 
-        Route::delete(
-            '/coupons/{id}',
-            [AdminCouponController::class, 'destroy']
-        )->name('coupons.destroy');
+        /*
+        |--------------------------------------------------------------------------
+        | RETURNS & REFUNDS (RMA) MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+        Route::get(
+            '/returns',
+            [AdminReturnController::class, 'index']
+        )->name('returns.index');
+
+        Route::get(
+            '/returns/{id}',
+            [AdminReturnController::class, 'show']
+        )->name('returns.show');
+
+        Route::post(
+            '/returns/{id}/status',
+            [AdminReturnController::class, 'updateStatus']
+        )->name('returns.updateStatus');
 
     });

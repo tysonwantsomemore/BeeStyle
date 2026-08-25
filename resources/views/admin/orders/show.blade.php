@@ -61,6 +61,27 @@
   </div>
 </div>
 
+<!-- ACTIVE RMA RETURN REQUEST ALERT FOR ADMIN -->
+@if($order->returns && $order->returns->count() > 0)
+  @php $latestRma = $order->returns->first(); @endphp
+  <div class="alert alert-warning border-0 shadow-sm p-4 mb-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3 d-print-none" style="background: #fffbeb; border-left: 6px solid #f59e0b !important;">
+    <div class="d-flex align-items-center gap-3">
+      <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
+        <i class="fa-solid fa-arrow-rotate-left fs-3"></i>
+      </div>
+      <div>
+        <h5 class="fw-bold text-dark mb-1">ĐƠN HÀNG CÓ PHIẾU YÊU CẦU ĐỔI TRẢ (#{{ $latestRma->return_code }})</h5>
+        <p class="mb-0 text-muted small">Hình thức: <strong>{{ $latestRma->type_label }}</strong> • Lý do: <strong>{{ $latestRma->reason }}</strong> • Trạng thái: {!! $latestRma->status_badge !!}</p>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ route('admin.returns.show', $latestRma->id) }}" class="btn btn-bee-primary btn-sm px-3.5 py-2 fw-bold rounded-pill shadow-xs">
+        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Xử Lý Phiếu RMA
+      </a>
+    </div>
+  </div>
+@endif
+
 <!-- VISUAL ORDER FULFILLMENT STEPPER (TIẾN TRÌNH 6 BƯỚC TMĐT CHUYÊN NGHIỆP) -->
 <div class="card border-0 shadow-sm p-4 mb-4 d-print-none" style="border-radius: 18px; background: #ffffff;">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -87,7 +108,7 @@
       <i class="fa-solid fa-ban fs-2 text-danger"></i>
       <div>
         <strong class="fs-6 d-block">ĐƠN HÀNG ĐÃ BỊ HỦY (CANCELLED)</strong>
-        <span class="small text-danger text-opacity-80">Toàn bộ sản phẩm trong đơn hàng đã được hệ thống tự động hoàn trả lại số lượng tồn kho.</span>
+        <span class="small text-danger text-opacity-80">Lý do hủy: <strong>{{ $order->cancel_reason ?: 'Không có ghi chú' }}</strong> • Thực hiện bởi: <strong>{{ $order->cancelled_by === 'customer' ? 'Khách hàng tự hủy' : ($order->cancelled_by === 'admin' ? 'Quản trị viên' : 'Hệ thống tự động') }}</strong> • Thời gian: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i:s') : ($order->updated_at ? $order->updated_at->format('d/m/Y H:i:s') : '') }}</span>
       </div>
     </div>
   @else

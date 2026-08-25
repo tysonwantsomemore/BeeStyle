@@ -120,6 +120,11 @@ class User extends Authenticatable
         return $this->hasMany(Order::class)->orderBy('created_at', 'desc');
     }
 
+    public function returns()
+    {
+        return $this->hasMany(OrderReturn::class)->orderBy('created_at', 'desc');
+    }
+
     public function reviews()
     {
         return $this->hasMany(Review::class);
