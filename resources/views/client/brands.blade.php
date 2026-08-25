@@ -34,7 +34,12 @@
             <!-- Brand Logo Column -->
             <div class="col-sm-4 p-4 text-center bg-light d-flex flex-column justify-content-center align-items-center border-end">
               <div class="bg-white rounded-circle shadow-sm p-3 mb-2 d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
-                <i class="fa-solid fa-crown text-warning fs-1"></i>
+                @if(!empty($brand->logo))
+                  <img src="{{ asset($brand->logo) }}" alt="{{ $brand->name }}" style="max-width: 55px; max-height: 55px; object-fit: contain;" onerror="this.onerror=null; this.src=''; this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');">
+                  <i class="fa-solid fa-crown text-warning fs-1 d-none"></i>
+                @else
+                  <i class="fa-solid fa-crown text-warning fs-1"></i>
+                @endif
               </div>
               <span class="badge bg-warning-subtle text-dark fw-bold px-3 py-1 rounded-pill small">
                 {{ $brand->products_count }} sản phẩm
