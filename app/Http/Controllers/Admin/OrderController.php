@@ -121,7 +121,7 @@ class OrderController extends Controller
             $cancelReason = $request->input('cancel_reason', 'Hủy bởi Quản trị viên BeeStyle');
         }
 
-        $order->update([
+        $updateData = [
             'shipping_status' => $validated['shipping_status'],
             'payment_status' => $paymentStatus,
             'status_step' => $stepMap[$validated['shipping_status']] ?? 1,
@@ -129,9 +129,16 @@ class OrderController extends Controller
             'cancelled_by' => $cancelledBy,
             'cancelled_at' => $cancelledAt,
             'cancel_reason' => $cancelReason,
-        ]);
+        ];
 
-        return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công ({$order->status_label})!");
+        // Khi đơn hàng được chuyển sang "Đã giao hàng" hoặc "Hoàn tất", kích hoạt thông báo mời khách hàng tự đánh giá
+        if (in_array($validated['shipping_status'], ['delivered', 'completed']) && !in_array($order->shipping_status, ['delivered', 'completed'])) {
+            $updateData['review_notified'] = false;
+        }
+
+        $order->update($updateData);
+
+        return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công ({$order->status_label})! Hệ thống đã gửi thông báo mời khách hàng tự đánh giá sản phẩm.");
     }
 }
 

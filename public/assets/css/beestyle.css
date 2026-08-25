@@ -169,7 +169,27 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
   box-shadow: 0 0 0 2px #ef4444 !important;
 }
 
-/* Announcement Topbar */
+/* Product Gallery Interactive Styles */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.gallery-nav-btn {
+  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+.main-gallery-container:hover .gallery-nav-btn {
+  opacity: 1;
+}
+
+.modal-thumb-item:hover {
+  opacity: 1 !important;
+  transform: scale(1.08);
+}
 .bee-announcement-bar {
   background: #0f172a;
   color: #e2e8f0;

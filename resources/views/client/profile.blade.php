@@ -1190,8 +1190,184 @@
   </div>
 </div>
 
+<!-- QUICK REVIEW MODAL CHO KHÁCH HÀNG TỰ ĐÁNH GIÁ SẢN PHẨM -->
+<div class="modal fade" id="quickReviewModal" tabindex="-1" aria-labelledby="quickReviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 540px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <!-- Modal Header -->
+      <div class="modal-header border-0 text-white p-3.5" style="background: linear-gradient(135deg, #111827 0%, #1e293b 100%);">
+        <div class="d-flex align-items-center gap-2">
+          <i class="fa-solid fa-star text-warning fs-5"></i>
+          <div>
+            <h6 class="modal-title fw-bold text-white mb-0" id="quickReviewModalLabel">Đánh Giá Sản Phẩm Của Bạn</h6>
+            <small class="text-white-50" style="font-size: 0.75rem;">Chia sẻ cảm nhận thực tế sau khi nhận hàng để giúp cộng đồng mua sắm</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="quickReviewForm" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="hidden" id="qrProductId" name="product_id" value="">
+        <div class="modal-body p-4 bg-light">
+          <!-- Alert Box -->
+          <div id="quickReviewAlert" class="alert d-none py-2 px-3 mb-3 rounded-3 small"></div>
+
+          <!-- Product Card Preview -->
+          <div class="p-3 bg-white rounded-3 border d-flex align-items-center gap-3 mb-3.5 shadow-xs">
+            <img id="qrProdImg" src="" alt="product" class="rounded border shadow-xs" style="width: 58px; height: 58px; object-fit: cover;">
+            <div class="flex-grow-1 min-w-0">
+              <h6 class="fw-bold text-dark mb-1 text-truncate small" id="qrProdName">Tên sản phẩm</h6>
+              <div class="text-danger fw-bold small" id="qrProdPrice">0₫</div>
+            </div>
+          </div>
+
+          <!-- Star Rating Interactive Selector -->
+          <div class="p-3 bg-white rounded-3 border mb-3.5 text-center shadow-xs">
+            <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.78rem;">
+              Chất lượng sản phẩm &amp; mức độ hài lòng:
+            </label>
+            <div class="d-flex justify-content-center gap-2 my-2" id="qrStarsContainer">
+              @for($i = 1; $i <= 5; $i++)
+                <i class="fa-solid fa-star fs-3 cursor-pointer qr-star-item text-warning" data-rating="{{ $i }}" style="cursor: pointer; transition: transform 0.15s, color 0.15s;" onmouseover="hoverQrStars({{ $i }})" onmouseout="resetQrStars()" onclick="selectQrRating({{ $i }})"></i>
+              @endfor
+            </div>
+            <input type="hidden" name="rating" id="qrRatingInput" value="5">
+            <div class="small fw-bold text-warning" id="qrRatingLabel">Tuyệt vời (5/5 sao)</div>
+          </div>
+
+          <!-- Review Comment Textarea -->
+          <div class="mb-3.5">
+            <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.78rem;">
+              <i class="fa-solid fa-pen-nib text-warning me-1"></i> Nhận xét chi tiết của bạn: <span class="text-danger">*</span>
+            </label>
+            <textarea name="comment" id="qrCommentInput" class="form-control rounded-3" rows="3" placeholder="Chia sẻ cảm nhận về chất vải, form dáng, đường may, độ co giãn khi mặc..." required minlength="4" maxlength="1000" style="font-size: 0.88rem; resize: none;"></textarea>
+          </div>
+
+          <!-- Image Upload Input -->
+          <div>
+            <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.78rem;">
+              <i class="fa-solid fa-camera text-warning me-1"></i> Tải ảnh chụp thực tế (tối đa 5 ảnh):
+            </label>
+            <input type="file" name="review_images[]" id="qrImagesInput" class="form-control form-control-sm rounded-3" multiple accept="image/*" onchange="previewQrImages(this)">
+            <div id="qrImagesPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 p-3 bg-white justify-content-between">
+          <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Hủy bỏ</button>
+          <button type="submit" id="qrSubmitBtn" class="btn btn-bee-primary btn-sm px-4 fw-bold rounded-pill">
+            <i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
+  let currentQrRating = 5;
+  const qrRatingLabels = {
+    1: 'Rất tệ (1/5 sao)',
+    2: 'Không hài lòng (2/5 sao)',
+    3: 'Bình thường (3/5 sao)',
+    4: 'Hài lòng (4/5 sao)',
+    5: 'Tuyệt vời (5/5 sao)'
+  };
+
+  function selectQrRating(rating) {
+    currentQrRating = rating;
+    document.getElementById('qrRatingInput').value = rating;
+    document.getElementById('qrRatingLabel').textContent = qrRatingLabels[rating] || (rating + '/5 sao');
+    updateQrStarsDisplay(rating);
+  }
+
+  function hoverQrStars(rating) {
+    updateQrStarsDisplay(rating);
+    document.getElementById('qrRatingLabel').textContent = qrRatingLabels[rating] || (rating + '/5 sao');
+  }
+
+  function resetQrStars() {
+    updateQrStarsDisplay(currentQrRating);
+    document.getElementById('qrRatingLabel').textContent = qrRatingLabels[currentQrRating] || (currentQrRating + '/5 sao');
+  }
+
+  function updateQrStarsDisplay(rating) {
+    document.querySelectorAll('.qr-star-item').forEach(star => {
+      const starRating = parseInt(star.getAttribute('data-rating'));
+      if (starRating <= rating) {
+        star.classList.remove('text-secondary-subtle');
+        star.classList.add('text-warning');
+      } else {
+        star.classList.remove('text-warning');
+        star.classList.add('text-secondary-subtle');
+      }
+    });
+  }
+
+  function previewQrImages(input) {
+    const previewContainer = document.getElementById('qrImagesPreview');
+    previewContainer.innerHTML = '';
+    if (input.files && input.files.length > 0) {
+      Array.from(input.files).slice(0, 5).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'rounded border shadow-xs';
+          img.style.width = '52px';
+          img.style.height = '52px';
+          img.style.objectFit = 'cover';
+          previewContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  function openQuickReviewModal(productId) {
+    const modalEl = document.getElementById('quickReviewModal');
+    const alertBox = document.getElementById('quickReviewAlert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    // Fetch product review data
+    fetch(`/san-pham/${productId}/danh-gia-chi-tiet`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.product) {
+          document.getElementById('qrProductId').value = data.product.id;
+          document.getElementById('qrProdName').textContent = data.product.name;
+          document.getElementById('qrProdPrice').textContent = data.product.price;
+          document.getElementById('qrProdImg').src = data.product.image;
+
+          // If user already reviewed, prefill
+          if (data.user_review) {
+            selectQrRating(data.user_review.rating || 5);
+            document.getElementById('qrCommentInput').value = data.user_review.comment || '';
+            document.getElementById('quickReviewModalLabel').textContent = 'Cập Nhật Đánh Giá Của Bạn';
+            document.getElementById('qrSubmitBtn').innerHTML = '<i class="fa-solid fa-check me-1"></i> CẬP NHẬT ĐÁNH GIÁ';
+          } else {
+            selectQrRating(5);
+            document.getElementById('qrCommentInput').value = '';
+            document.getElementById('quickReviewModalLabel').textContent = 'Đánh Giá Sản Phẩm Của Bạn';
+            document.getElementById('qrSubmitBtn').innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI';
+          }
+
+          document.getElementById('qrImagesPreview').innerHTML = '';
+          document.getElementById('qrImagesInput').value = '';
+
+          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal.show();
+        } else {
+          window.location.href = `/san-pham/${productId}#reviews`;
+        }
+      })
+      .catch(err => {
+        window.location.href = `/san-pham/${productId}#reviews`;
+      });
+  }
+
   function toggleRmaFields(type, orderId) {
     const exchangeFields = document.getElementById('exchangeFields' + orderId);
     const refundBankFields = document.getElementById('refundBankFields' + orderId);
@@ -1205,6 +1381,75 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    // Review Form AJAX Submit Handler
+    const reviewForm = document.getElementById('quickReviewForm');
+    if (reviewForm) {
+      reviewForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const pId = document.getElementById('qrProductId').value;
+        if (!pId) return;
+
+        const submitBtn = document.getElementById('qrSubmitBtn');
+        const alertBox = document.getElementById('quickReviewAlert');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang gửi đánh giá...';
+
+        const formData = new FormData(this);
+
+        fetch(`/san-pham/${pId}/danh-gia`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}',
+            'Accept': 'application/json'
+          },
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI';
+
+          if (data.success) {
+            if (alertBox) {
+              alertBox.className = 'alert alert-success border-0 py-2.5 px-3 rounded-3 mb-3 small';
+              alertBox.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> ${data.message || 'Cảm ơn bạn đã gửi đánh giá thành công!'}`;
+              alertBox.classList.remove('d-none');
+            }
+
+            // Update button on order list
+            const btnEl = document.getElementById('order-btn-review-' + pId);
+            if (btnEl) {
+              btnEl.className = 'btn btn-sm btn-outline-success py-0.5 px-2 mt-1 fw-bold text-nowrap';
+              btnEl.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Xem / Sửa Đánh Giá';
+            }
+
+            setTimeout(() => {
+              const modalEl = document.getElementById('quickReviewModal');
+              if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+              }
+            }, 1200);
+          } else {
+            if (alertBox) {
+              alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
+              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> ${data.message || 'Có lỗi xảy ra khi gửi đánh giá.'}`;
+              alertBox.classList.remove('d-none');
+            }
+          }
+        })
+        .catch(err => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI';
+          if (alertBox) {
+            alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
+            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Có lỗi xảy ra khi kết nối máy chủ.';
+            alertBox.classList.remove('d-none');
+          }
+        });
+      });
+    }
+
     // 1. Kiểm tra query param ?tab= hoặc URL hash #
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
