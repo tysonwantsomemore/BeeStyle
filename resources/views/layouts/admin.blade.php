@@ -279,6 +279,7 @@
   <script src="{{ asset('vendors/bootstrap/bootstrap.min.js') }}"></script>
   <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
   <script src="{{ asset('vendors/feather-icons/feather.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     if (typeof feather !== 'undefined') {
       feather.replace();

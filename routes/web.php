@@ -249,10 +249,11 @@ Route::name('client.')->group(function () {
         Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
         Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
         Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-        Route::delete('/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+        Route::match(['delete', 'post'], '/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+        Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
         Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
         Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-        Route::delete('/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
+        Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
 
         /*
         |--------------------------------------------------------------------------
@@ -593,6 +594,11 @@ Route::prefix('admin')
             '/coupons/{id}',
             [AdminCouponController::class, 'update']
         )->name('coupons.update');
+
+        Route::delete(
+            '/coupons/{id}',
+            [AdminCouponController::class, 'destroy']
+        )->name('coupons.destroy');
 
         /*
         |--------------------------------------------------------------------------

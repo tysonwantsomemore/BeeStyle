@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Coupon;
 use App\Models\Product;
+use App\Services\WishlistService;
 use Illuminate\Support\Facades\Session;
 
 class CartService
@@ -19,12 +20,33 @@ class CartService
         $rawCart = Session::get(self::CART_SESSION_KEY, []);
         $items = [];
         $subtotal = 0;
+        $hasOutOfStockItems = false;
 
         foreach ($rawCart as $key => $item) {
             $itemSubtotal = $item['price'] * $item['quantity'];
             $subtotal += $itemSubtotal;
+
+            // Kiểm tra tồn kho thực tế realtime từ DB
+            $currentStock = $item['stock'] ?? 10;
+            if (!empty($item['variant_id'])) {
+                $v = \App\Models\ProductVariant::find($item['variant_id']);
+                if ($v) $currentStock = $v->stock;
+            } elseif (!empty($item['product_id'])) {
+                $p = \App\Models\Product::find($item['product_id']);
+                if ($p) $currentStock = $p->stock;
+            }
+
+            $isOutOfStock = ($currentStock <= 0);
+            $hasStockWarning = ($item['quantity'] > $currentStock && !$isOutOfStock);
+            if ($isOutOfStock) $hasOutOfStockItems = true;
+
             $items[$key] = array_merge($item, [
-                'subtotal' => $itemSubtotal
+                'subtotal' => $itemSubtotal,
+                'subtotal_formatted' => number_format($itemSubtotal, 0, ',', '.') . '₫',
+                'price_formatted' => number_format($item['price'], 0, ',', '.') . '₫',
+                'current_stock' => $currentStock,
+                'is_out_of_stock' => $isOutOfStock,
+                'has_stock_warning' => $hasStockWarning,
             ]);
         }
 
@@ -44,10 +66,11 @@ class CartService
         }
 
         // Phí vận chuyển: Miễn phí giao hàng cho đơn từ 300.000đ trở lên, dưới mức đó phí 30.000đ
-        $shipping = ($subtotal >= 300000 || $subtotal == 0) ? 0 : 30000;
-        if ($coupon && $coupon->discount_type === 'shipping') {
-            $shipping = 0;
-        }
+        $freeShippingThreshold = 300000;
+        $isFreeShipping = ($subtotal >= $freeShippingThreshold || ($coupon && $coupon->discount_type === 'shipping') || $subtotal == 0);
+        $shipping = $isFreeShipping ? 0 : 30000;
+        $amountNeededForFreeShipping = max(0, $freeShippingThreshold - $subtotal);
+        $freeShippingPercent = $subtotal > 0 ? min(100, (int)round(($subtotal / $freeShippingThreshold) * 100)) : 0;
 
         $total = max(0, $subtotal - $discount + $shipping);
 
@@ -55,10 +78,20 @@ class CartService
             'items' => $items,
             'count' => array_sum(array_column($items, 'quantity')),
             'subtotal' => $subtotal,
+            'subtotal_formatted' => number_format($subtotal, 0, ',', '.') . '₫',
             'discount' => $discount,
+            'discount_formatted' => number_format($discount, 0, ',', '.') . '₫',
             'shipping' => $shipping,
+            'shipping_formatted' => $shipping == 0 ? 'Miễn phí' : number_format($shipping, 0, ',', '.') . '₫',
             'total' => $total,
+            'total_formatted' => number_format($total, 0, ',', '.') . '₫',
             'coupon' => $coupon,
+            'free_shipping_threshold' => $freeShippingThreshold,
+            'free_shipping_needed' => $amountNeededForFreeShipping,
+            'free_shipping_needed_formatted' => number_format($amountNeededForFreeShipping, 0, ',', '.') . '₫',
+            'free_shipping_percent' => $freeShippingPercent,
+            'is_free_shipping' => $isFreeShipping,
+            'has_out_of_stock_items' => $hasOutOfStockItems,
         ];
     }
 
@@ -237,5 +270,37 @@ class CartService
     public static function removeCoupon(): void
     {
         Session::forget(self::COUPON_SESSION_KEY);
+    }
+
+    /**
+     * Chuyển một sản phẩm từ giỏ hàng sang danh sách Yêu thích (Save for later)
+     */
+    public static function saveForLater(string $cartKey): array
+    {
+        $cart = Session::get(self::CART_SESSION_KEY, []);
+        if (!isset($cart[$cartKey])) {
+            return ['success' => false, 'message' => 'Sản phẩm không có trong giỏ hàng.'];
+        }
+
+        $item = $cart[$cartKey];
+        $productId = (int)($item['product_id'] ?? 0);
+
+        if ($productId > 0) {
+            // Thêm vào danh sách yêu thích nếu chưa có
+            if (!WishlistService::isFavorite($productId)) {
+                WishlistService::toggle($productId);
+            }
+        }
+
+        // Xóa khỏi giỏ hàng
+        unset($cart[$cartKey]);
+        Session::put(self::CART_SESSION_KEY, $cart);
+
+        return [
+            'success' => true,
+            'message' => "Đã lưu \"{$item['name']}\" vào danh sách yêu thích để mua sau!",
+            'cart' => self::getCart(),
+            'wishlist_count' => WishlistService::count(),
+        ];
     }
 }
