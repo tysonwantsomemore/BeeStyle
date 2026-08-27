@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
+use App\Models\Product;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 
@@ -16,6 +17,16 @@ class CartController extends Controller
             ->where(function ($q) {
                 $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
+            ->orderBy('min_order_value', 'asc')
+            ->get();
+
+        // Lấy danh sách 4 sản phẩm gợi ý mua kèm để gom đơn Freeship
+        $cartProductIds = array_column($cartData['items'], 'product_id');
+        $crossSellProducts = Product::with(['category', 'variants'])
+            ->active()
+            ->whereNotIn('id', $cartProductIds)
+            ->orderBy('price', 'asc')
+            ->take(4)
             ->get();
 
         return view('client.cart', [
@@ -26,7 +37,13 @@ class CartController extends Controller
             'shipping' => $cartData['shipping'],
             'total' => $cartData['total'],
             'appliedCoupon' => $cartData['coupon'],
+            'freeShippingThreshold' => $cartData['free_shipping_threshold'],
+            'freeShippingNeeded' => $cartData['free_shipping_needed'],
+            'freeShippingPercent' => $cartData['free_shipping_percent'],
+            'isFreeShipping' => $cartData['is_free_shipping'],
+            'hasOutOfStockItems' => $cartData['has_out_of_stock_items'],
             'coupons' => $coupons,
+            'crossSellProducts' => $crossSellProducts,
         ]);
     }
 
@@ -49,7 +66,9 @@ class CartController extends Controller
         );
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json($result);
+            return response()->json(array_merge($result, [
+                'cart' => CartService::getCart()
+            ]));
         }
 
         if (!$result['success']) {
@@ -73,7 +92,9 @@ class CartController extends Controller
         $result = CartService::update($request->key, (int)$request->quantity);
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json($result);
+            return response()->json(array_merge($result, [
+                'cart' => CartService::getCart()
+            ]));
         }
 
         if (!$result['success']) {
@@ -83,9 +104,27 @@ class CartController extends Controller
         return back()->with('success', $result['message']);
     }
 
-    public function remove($key)
+    public function remove(Request $request, $key)
     {
         $result = CartService::remove($key);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(array_merge($result, [
+                'cart' => CartService::getCart()
+            ]));
+        }
+
+        return back()->with($result['success'] ? 'success' : 'error', $result['message']);
+    }
+
+    public function saveForLater(Request $request, $key)
+    {
+        $result = CartService::saveForLater($key);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($result);
+        }
+
         return back()->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
@@ -103,6 +142,12 @@ class CartController extends Controller
 
         $result = CartService::applyCoupon($request->code);
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(array_merge($result, [
+                'cart' => CartService::getCart()
+            ]));
+        }
+
         if (!$result['success']) {
             return back()->with('error', $result['message']);
         }
@@ -110,9 +155,18 @@ class CartController extends Controller
         return back()->with('success', $result['message']);
     }
 
-    public function removeCoupon()
+    public function removeCoupon(Request $request)
     {
         CartService::removeCoupon();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã hủy áp dụng mã giảm giá!',
+                'cart' => CartService::getCart()
+            ]);
+        }
+
         return back()->with('success', 'Đã hủy áp dụng mã giảm giá!');
     }
 }

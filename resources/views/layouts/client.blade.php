@@ -359,16 +359,10 @@
           </a>
 
           <!-- Cart -->
-          @auth
-            <a href="{{ route('client.cart') }}" class="bee-icon-btn position-relative" title="Giỏ hàng">
-              <i class="fa-solid fa-bag-shopping"></i>
-              <span class="bee-badge-count" id="cartCountBadge">{{ \App\Services\CartService::count() }}</span>
-            </a>
-          @else
-            <a href="javascript:void(0)" onclick="requireAuthPrompt('xem giỏ hàng và đặt mua sản phẩm')" class="bee-icon-btn position-relative" title="Giỏ hàng">
-              <i class="fa-solid fa-bag-shopping"></i>
-            </a>
-          @endauth
+          <a href="{{ route('client.cart') }}" class="bee-icon-btn position-relative" title="Giỏ hàng">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span class="bee-badge-count" id="cartCountBadge" style="{{ \App\Services\CartService::count() > 0 ? '' : 'display: none;' }}">{{ \App\Services\CartService::count() }}</span>
+          </a>
 
 
 
@@ -861,6 +855,7 @@
   <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
   <script src="{{ asset('vendors/swiper/swiper-bundle.min.js') }}"></script>
   <script src="{{ asset('vendors/feather-icons/feather.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     if (typeof feather !== 'undefined') {
       feather.replace();
