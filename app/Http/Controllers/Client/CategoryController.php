@@ -39,7 +39,22 @@ class CategoryController extends Controller
      */
     public function show(Request $request, $slug)
     {
-        $category = Category::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $category = Category::where('slug', $slug)->where('is_active', true)->first();
+
+        // Fallback thông minh nếu khách hàng vào link cũ hoặc slug biến thể
+        if (!$category) {
+            $cleanSlug = preg_replace('/-(dep|nam|moi|hot)$/', '', $slug);
+            $fallbackCategory = Category::where('slug', $cleanSlug)
+                ->orWhere('slug', 'LIKE', "%{$cleanSlug}%")
+                ->where('is_active', true)
+                ->first();
+
+            if ($fallbackCategory) {
+                return redirect()->route('client.categories.show', $fallbackCategory->slug, 301);
+            }
+
+            return redirect()->route('client.products.index')->with('info', 'Danh mục sản phẩm không tồn tại hoặc đã được cập nhật.');
+        }
 
         $allCategories = Category::active()
             ->withCount(['products' => function ($q) {
@@ -127,6 +142,8 @@ class CategoryController extends Controller
             $query->orderBy('price', 'desc');
         } elseif ($sort === 'newest') {
             $query->latest();
+        } elseif ($sort === 'views_desc') {
+            $query->orderByDesc('views');
         } elseif ($sort === 'rating') {
             $query->orderByDesc('rating')->orderByDesc('sold_count');
         } else {
