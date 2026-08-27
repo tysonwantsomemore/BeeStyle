@@ -1805,6 +1805,8 @@
       updateQvmQtyDisplay(1);
     }
 
+    let selectedVariantId = null;
+
     // Xử lý chọn màu
     function selectQvmColor(color, btn) {
       selectedColor = color;
@@ -1824,6 +1826,8 @@
       btn.style.background = '#fffbeb';
       btn.style.color = '#92400e';
       btn.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.2)';
+
+      updateQvmMatchedVariant();
     }
 
     // Xử lý chọn size
@@ -1849,6 +1853,35 @@
       btn.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.25)';
       const activeHint = btn.querySelector('span:nth-child(2)');
       if (activeHint) activeHint.className = 'text-warning-emphasis lh-1 mt-1';
+
+      updateQvmMatchedVariant();
+    }
+
+    function updateQvmMatchedVariant() {
+      if (currentQvmProduct && currentQvmProduct.variants && selectedColor && selectedSize) {
+        const matched = currentQvmProduct.variants.find(v => v.color === selectedColor && v.size === selectedSize);
+        if (matched) {
+          selectedVariantId = matched.id;
+          if (matched.price) {
+            currentQvmProduct.price = matched.price;
+            currentQvmProduct.price_formatted = matched.price_formatted || (matched.price.toLocaleString('vi-VN') + '₫');
+            const priceEl = document.getElementById('qvmProductPrice');
+            if (priceEl) priceEl.textContent = currentQvmProduct.price_formatted;
+          }
+          if (matched.stock !== undefined) {
+            const stockEl = document.getElementById('qvmStockNumber');
+            if (stockEl) stockEl.textContent = matched.stock;
+          }
+          if (matched.image) {
+            const imgEl = document.getElementById('qvmProductImage');
+            if (imgEl) imgEl.src = matched.image;
+          }
+        } else {
+          selectedVariantId = null;
+        }
+      }
+      const curQty = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
+      updateQvmQtyDisplay(curQty);
     }
 
     function updateQvmQtyDisplay(val) {
@@ -1922,6 +1955,7 @@
       const quantity = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
       const payload = {
         product_id: currentQvmProduct.id,
+        variant_id: selectedVariantId,
         color: selectedColor,
         size: selectedSize,
         quantity: quantity,

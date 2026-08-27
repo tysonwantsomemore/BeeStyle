@@ -207,14 +207,24 @@
           @endif
 
           <!-- FORM ADD TO CART -->
-          <!-- FORM ADD TO CART -->
           <form action="{{ route('client.cart.add') }}" method="POST" id="productForm" onsubmit="return handleProductFormSubmit(event);">
             @csrf
             <input type="hidden" name="product_id" value="{{ $product->id }}">
+            <input type="hidden" name="variant_id" id="selectedVariantId" value="">
 
             <!-- COLOR SELECTION -->
             @php
-              $prodColors = is_array($product->colors) ? $product->colors : ['Đen', 'Trắng', 'Xanh Navy'];
+              $prodColors = is_array($product->colors) ? $product->colors : [];
+              $prodSizes = is_array($product->sizes) ? $product->sizes : [];
+              if ($product->variants && $product->variants->isNotEmpty()) {
+                $vColors = $product->variants->pluck('color')->filter()->unique()->values()->all();
+                $vSizes = $product->variants->pluck('size')->filter()->unique()->values()->all();
+                if (!empty($vColors)) $prodColors = array_values(array_unique(array_merge($prodColors, $vColors)));
+                if (!empty($vSizes)) $prodSizes = array_values(array_unique(array_merge($prodSizes, $vSizes)));
+              }
+              if (empty($prodColors)) $prodColors = ['Tiêu chuẩn'];
+              if (empty($prodSizes)) $prodSizes = ['Freesize'];
+
               if (!function_exists('getShowColorHex')) {
                 function getShowColorHex($name) {
                   $c = mb_strtolower(trim($name));
@@ -269,9 +279,6 @@
             @endif
 
             <!-- SIZE SELECTION -->
-            @php
-              $prodSizes = is_array($product->sizes) ? $product->sizes : ['M', 'L', 'XL', 'XXL'];
-            @endphp
             @if(count($prodSizes) > 0)
               <div class="mb-3.5 p-3 rounded-3 border" id="sizeGroupSection" style="transition: all 0.3s ease; background: #ffffff;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -297,6 +304,16 @@
                 </div>
               </div>
             @endif
+
+            <!-- DYNAMIC VARIANT LIVE FEEDBACK -->
+            <div id="variantLiveFeedback" class="p-2.5 rounded-3 mb-3 border bg-light d-none align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2 small">
+                <i class="fa-solid fa-circle-check text-success" id="variantLiveIcon"></i>
+                <span class="fw-semibold text-dark" id="variantLiveLabel">Phiên bản đã chọn:</span>
+                <span class="badge bg-dark text-warning border border-warning" id="variantLiveDetail">Đen / Size L</span>
+              </div>
+              <span class="badge bg-success-subtle text-success fw-bold" id="variantLiveStockBadge">Còn hàng</span>
+            </div>
 
             <!-- QUANTITY STEPPER (GIỚI HẠN TỐI ĐA 10 SẢN PHẨM) -->
             <div class="mb-4 p-3.5 rounded-3 border" style="background: #f8fafc;">
@@ -491,6 +508,54 @@
             </div>
           </div>
         </div>
+
+        @if($product->variants && $product->variants->count() > 0)
+          <div class="mt-4 pt-3 border-top">
+            <h6 class="fw-bold text-dark mb-2.5 d-flex align-items-center gap-2">
+              <i class="fa-solid fa-boxes-stacked text-warning"></i>
+              <span>Danh Sách Tất Cả Phiên Bản &amp; Biến Thể Có Sẵn ({{ $product->variants->count() }} phiên bản):</span>
+            </h6>
+            <div class="table-responsive">
+              <table class="table table-hover table-bordered small align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 50px;">STT</th>
+                    <th>Mã SKU</th>
+                    <th>Màu Sắc</th>
+                    <th class="text-center">Kích Thước</th>
+                    <th class="text-end">Đơn Giá</th>
+                    <th class="text-center">Tình Trạng Kho</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($product->variants as $vIdx => $pv)
+                    <tr>
+                      <td class="text-center fw-semibold text-muted">{{ $vIdx + 1 }}</td>
+                      <td><span class="font-monospace fw-bold text-dark">{{ $pv->sku }}</span></td>
+                      <td>
+                        <span class="d-inline-flex align-items-center gap-1.5 fw-semibold text-dark">
+                          <span class="rounded-circle d-inline-block border" style="width: 12px; height: 12px; background-color: {{ getShowColorHex($pv->color) }};"></span>
+                          {{ $pv->color }}
+                        </span>
+                      </td>
+                      <td class="text-center"><span class="badge bg-secondary-subtle text-dark fw-bold px-2 py-1">{{ $pv->size }}</span></td>
+                      <td class="text-end fw-bold text-danger">{{ number_format($pv->price, 0, ',', '.') }}₫</td>
+                      <td class="text-center">
+                        @if($pv->stock > 10)
+                          <span class="badge bg-success-subtle text-success fw-bold px-2 py-1"><i class="fa-solid fa-circle-check me-1"></i> Còn {{ $pv->stock }} cái</span>
+                        @elseif($pv->stock > 0)
+                          <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1"><i class="fa-solid fa-clock me-1"></i> Chỉ còn {{ $pv->stock }} cái</span>
+                        @else
+                          <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-1"><i class="fa-solid fa-ban me-1"></i> Tạm hết hàng</span>
+                        @endif
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </div>
+        @endif
       </div>
 
       <!-- Tab 3: Reviews -->
@@ -1126,7 +1191,39 @@
     }
   }
 
+  const productVariants = @json($product->variants->map(function($v) {
+    return [
+      'id' => $v->id,
+      'sku' => $v->sku,
+      'color' => $v->color,
+      'size' => $v->size,
+      'price' => $v->price,
+      'price_formatted' => number_format($v->price, 0, ',', '.') . '₫',
+      'original_price' => $v->original_price,
+      'original_price_formatted' => $v->original_price ? number_format($v->original_price, 0, ',', '.') . '₫' : null,
+      'stock' => $v->stock,
+      'image' => $v->image ? asset($v->image) : null,
+      'status' => $v->status
+    ];
+  }));
+
+  const baseProduct = {
+    id: {{ $product->id }},
+    price: {{ $product->price }},
+    price_formatted: '{{ number_format($product->price, 0, ',', '.') }}₫',
+    original_price: {{ $product->original_price ?? 0 }},
+    original_price_formatted: '{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}',
+    sku: '{{ $product->sku }}',
+    stock: {{ $product->stock ?? 999 }},
+    image: '{{ asset($product->image) }}'
+  };
+
+  let selectedProductColor = null;
+  let selectedProductSize = null;
+  let currentProductUnitPrice = {{ $product->price }};
+
   function selectProductColor(color) {
+    selectedProductColor = color;
     const el = document.getElementById('selectedColorText');
     if (el) {
       el.className = 'badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold';
@@ -1139,6 +1236,24 @@
     }
     hideFormAlert();
 
+    // Cập nhật trạng thái tồn kho cho các nút Size tương ứng với màu đã chọn
+    if (productVariants && productVariants.length > 0) {
+      document.querySelectorAll('.product-size-radio').forEach(input => {
+        const sz = input.value;
+        const v = productVariants.find(item => item.color === selectedProductColor && item.size === sz);
+        const label = document.querySelector(`label[for="${input.id}"]`);
+        if (label) {
+          if (v && v.stock <= 0) {
+            label.style.opacity = '0.45';
+            label.title = 'Tạm hết hàng phiên bản này';
+          } else {
+            label.style.opacity = '1';
+            label.title = '';
+          }
+        }
+      });
+    }
+
     // Tự động tìm ảnh phù hợp với màu sắc đã chọn nếu có
     if (galleryImages && galleryImages.length > 1) {
       const colorLower = color.toLowerCase();
@@ -1147,9 +1262,12 @@
         setGalleryIndex(matchIdx);
       }
     }
+
+    updateVariantMatchedState();
   }
 
   function selectProductSize(size, hint) {
+    selectedProductSize = size;
     const el = document.getElementById('selectedSizeText');
     if (el) {
       el.className = 'badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold';
@@ -1161,9 +1279,111 @@
       sizeSec.style.backgroundColor = '#ffffff';
     }
     hideFormAlert();
+
+    updateVariantMatchedState();
   }
 
-  const PRODUCT_UNIT_PRICE = {{ $product->price }};
+  function updateVariantMatchedState() {
+    const feedbackBox = document.getElementById('variantLiveFeedback');
+    const feedbackDetail = document.getElementById('variantLiveDetail');
+    const feedbackStock = document.getElementById('variantLiveStockBadge');
+    const variantIdInput = document.getElementById('selectedVariantId');
+    const displayPrice = document.getElementById('displayPrice');
+    const displayOriginalPrice = document.getElementById('displayOriginalPrice');
+    const displayDiscountBadge = document.getElementById('displayDiscountBadge');
+    const displaySku = document.getElementById('displaySku');
+    const displayStock = document.getElementById('displayStockCount');
+    const btnAddToCart = document.getElementById('btnAddToCart');
+    const btnBuyNow = document.getElementById('btnBuyNow');
+
+    if (selectedProductColor && selectedProductSize) {
+      let matchedVariant = null;
+      if (productVariants && productVariants.length > 0) {
+        matchedVariant = productVariants.find(v => v.color === selectedProductColor && v.size === selectedProductSize);
+      }
+
+      if (matchedVariant) {
+        if (variantIdInput) variantIdInput.value = matchedVariant.id;
+        currentProductUnitPrice = matchedVariant.price;
+
+        if (displayPrice) displayPrice.textContent = matchedVariant.price_formatted;
+        if (displaySku) displaySku.textContent = matchedVariant.sku;
+        if (displayStock) displayStock.textContent = matchedVariant.stock;
+
+        if (matchedVariant.original_price && matchedVariant.original_price > matchedVariant.price) {
+          if (displayOriginalPrice) {
+            displayOriginalPrice.textContent = matchedVariant.original_price_formatted;
+            displayOriginalPrice.style.display = 'inline';
+          }
+          if (displayDiscountBadge) {
+            displayDiscountBadge.textContent = 'Tiết kiệm ' + (matchedVariant.original_price - matchedVariant.price).toLocaleString('vi-VN') + '₫';
+            displayDiscountBadge.style.display = 'inline-block';
+          }
+        }
+
+        if (matchedVariant.image) {
+          changeMainImg(matchedVariant.image, null);
+        }
+
+        if (feedbackBox && feedbackDetail && feedbackStock) {
+          feedbackBox.classList.remove('d-none');
+          feedbackBox.classList.add('d-flex');
+          feedbackDetail.textContent = `${selectedProductColor} / Size ${selectedProductSize} (SKU: ${matchedVariant.sku})`;
+          
+          if (matchedVariant.stock > 0) {
+            feedbackStock.className = 'badge bg-success-subtle text-success fw-bold';
+            feedbackStock.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> Còn ${matchedVariant.stock} sản phẩm`;
+            if (btnAddToCart) {
+              btnAddToCart.disabled = false;
+              btnAddToCart.innerHTML = '<i class="fa-solid fa-cart-plus me-1.5"></i> Thêm Vào Giỏ';
+            }
+            if (btnBuyNow) {
+              btnBuyNow.disabled = false;
+            }
+          } else {
+            feedbackStock.className = 'badge bg-danger-subtle text-danger fw-bold';
+            feedbackStock.innerHTML = '<i class="fa-solid fa-ban me-1"></i> Tạm hết hàng';
+            if (btnAddToCart) {
+              btnAddToCart.disabled = true;
+              btnAddToCart.innerHTML = '<i class="fa-solid fa-ban me-1.5"></i> Hết Hàng';
+            }
+            if (btnBuyNow) {
+              btnBuyNow.disabled = true;
+            }
+          }
+        }
+      } else {
+        // Biến thể cơ bản
+        if (variantIdInput) variantIdInput.value = '';
+        currentProductUnitPrice = baseProduct.price;
+        if (displayPrice) displayPrice.textContent = baseProduct.price_formatted;
+        if (displaySku) displaySku.textContent = baseProduct.sku;
+        if (displayStock) displayStock.textContent = baseProduct.stock;
+
+        if (feedbackBox && feedbackDetail && feedbackStock) {
+          feedbackBox.classList.remove('d-none');
+          feedbackBox.classList.add('d-flex');
+          feedbackDetail.textContent = `${selectedProductColor} / Size ${selectedProductSize}`;
+          feedbackStock.className = 'badge bg-success-subtle text-success fw-bold';
+          feedbackStock.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> Sẵn hàng (${baseProduct.stock} cái)`;
+        }
+        if (btnAddToCart) {
+          btnAddToCart.disabled = false;
+          btnAddToCart.innerHTML = '<i class="fa-solid fa-cart-plus me-1.5"></i> Thêm Vào Giỏ';
+        }
+        if (btnBuyNow) btnBuyNow.disabled = false;
+      }
+    } else {
+      if (feedbackBox) {
+        feedbackBox.classList.add('d-none');
+        feedbackBox.classList.remove('d-flex');
+      }
+    }
+
+    const qtyInput = document.getElementById('productQty');
+    const curQty = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
+    updateQtyDisplay(curQty);
+  }
 
   function updateQtyDisplay(val) {
     const input = document.getElementById('productQty');
@@ -1181,7 +1401,7 @@
       badge.classList.add('animate-scale');
     }
     if (subtotal) {
-      const total = PRODUCT_UNIT_PRICE * val;
+      const total = currentProductUnitPrice * val;
       subtotal.textContent = total.toLocaleString('vi-VN') + '₫';
     }
     if (btnMinus) {
