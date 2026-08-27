@@ -18,7 +18,12 @@
     <div class="card-body p-4 p-md-5">
       <div class="d-flex align-items-center gap-4 flex-wrap">
         <div class="bg-white rounded-circle p-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-          <i class="fa-solid fa-crown text-warning fs-2"></i>
+          @if(!empty($brand->logo))
+            <img src="{{ asset($brand->logo) }}" alt="{{ $brand->name }}" style="max-width: 50px; max-height: 50px; object-fit: contain;" onerror="this.onerror=null; this.src=''; this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');">
+            <i class="fa-solid fa-crown text-warning fs-2 d-none"></i>
+          @else
+            <i class="fa-solid fa-crown text-warning fs-2"></i>
+          @endif
         </div>
         <div>
           <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-2">THƯƠNG HIỆU ĐỘC QUYỀN</span>

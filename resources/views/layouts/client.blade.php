@@ -385,48 +385,61 @@
               </a>
             </li>
 
+            <!-- Tất cả danh mục -->
+            <li class="nav-item">
+              <a class="nav-link bee-nav-link {{ request()->routeIs('client.categories.index') ? 'active' : '' }}" href="{{ route('client.categories.index') }}">
+                <i class="fa-solid fa-layer-group me-1 text-warning"></i> DANH MỤC
+              </a>
+            </li>
+
             <!-- Áo Polo Nam -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-polo-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}">
+              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-polo-nam') || request()->get('category') == 'ao-polo-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-polo-nam') }}">
                 Áo Polo
               </a>
             </li>
 
             <!-- Áo Sơ Mi Nam -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-so-mi-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}">
+              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-so-mi-nam') || request()->get('category') == 'ao-so-mi-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-so-mi-nam') }}">
                 Áo Sơ Mi
               </a>
             </li>
 
             <!-- Áo Phông & T-Shirt -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-phong-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-phong-tshirt-nam']) }}">
+              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-phong-tshirt-nam') || request()->get('category') == 'ao-phong-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}">
                 Áo Phông
               </a>
             </li>
 
             <!-- Áo Khoác & Blazer -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-khoac-blazer-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}">
+              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-khoac-blazer-nam') || request()->get('category') == 'ao-khoac-blazer-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}">
                 Áo Khoác &amp; Blazer
               </a>
             </li>
 
             <!-- Áo Thun Nam -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-thun-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}">
+              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-thun-nam') || request()->get('category') == 'ao-thun-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-thun-nam') }}">
                 Áo Thun
               </a>
             </li>
 
             <!-- Áo Thu Đông -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-thu-dong-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-thu-dong-nam']) }}">
+              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-thu-dong-nam') || request()->get('category') == 'ao-thu-dong-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}">
                 Áo Thu Đông
               </a>
             </li>
 
+            <!-- BST Mùa Hè -->
+            <li class="nav-item">
+              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'bo-suu-tap-mua-he') || request()->get('category') == 'bo-suu-tap-mua-he' ? 'active' : '' }}" href="{{ route('client.categories.show', 'bo-suu-tap-mua-he') }}">
+                <i class="fa-solid fa-sun me-1 text-warning"></i> BST Mùa Hè
+              </a>
+            </li>
 
             <!-- Thương Hiệu (Brands) -->
             <li class="nav-item">
@@ -580,8 +593,15 @@
 
         <!-- Quick Links -->
         <div class="col-lg-2 col-md-6 col-6">
-          <h6 class="text-white fw-bold mb-3">DANH MỤC ÁO NAM</h6>
+          <h6 class="text-white fw-bold mb-3"><a href="{{ route('client.categories.index') }}" class="text-white text-decoration-none hover-warning">DANH MỤC ÁO NAM</a></h6>
           <ul class="list-unstyled d-flex flex-column gap-2 small">
+            <li><a href="{{ route('client.categories.show', 'ao-polo-nam') }}">Áo Polo Nam</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-so-mi-nam') }}">Áo Sơ Mi Nam</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}">Áo Phông (T-Shirt)</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}">Áo Khoác &amp; Blazer</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-thun-nam') }}">Áo Thun Nam</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}">Áo Thu Đông</a></li>
+            <li><a href="{{ route('client.categories.show', 'bo-suu-tap-mua-he') }}">BST Mùa Hè</a></li>
             <li><a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}">Áo Polo Nam</a></li>
             <li><a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}">Áo Sơ Mi Nam</a></li>
             <li><a href="{{ route('client.products.index', ['category' => 'ao-phong-tshirt-nam']) }}">Áo Phông (T-Shirt)</a></li>
@@ -1780,6 +1800,8 @@
       updateQvmQtyDisplay(1);
     }
 
+    let selectedVariantId = null;
+
     // Xử lý chọn màu
     function selectQvmColor(color, btn) {
       selectedColor = color;
@@ -1799,6 +1821,8 @@
       btn.style.background = '#fffbeb';
       btn.style.color = '#92400e';
       btn.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.2)';
+
+      updateQvmMatchedVariant();
     }
 
     // Xử lý chọn size
@@ -1824,6 +1848,35 @@
       btn.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.25)';
       const activeHint = btn.querySelector('span:nth-child(2)');
       if (activeHint) activeHint.className = 'text-warning-emphasis lh-1 mt-1';
+
+      updateQvmMatchedVariant();
+    }
+
+    function updateQvmMatchedVariant() {
+      if (currentQvmProduct && currentQvmProduct.variants && selectedColor && selectedSize) {
+        const matched = currentQvmProduct.variants.find(v => v.color === selectedColor && v.size === selectedSize);
+        if (matched) {
+          selectedVariantId = matched.id;
+          if (matched.price) {
+            currentQvmProduct.price = matched.price;
+            currentQvmProduct.price_formatted = matched.price_formatted || (matched.price.toLocaleString('vi-VN') + '₫');
+            const priceEl = document.getElementById('qvmProductPrice');
+            if (priceEl) priceEl.textContent = currentQvmProduct.price_formatted;
+          }
+          if (matched.stock !== undefined) {
+            const stockEl = document.getElementById('qvmStockNumber');
+            if (stockEl) stockEl.textContent = matched.stock;
+          }
+          if (matched.image) {
+            const imgEl = document.getElementById('qvmProductImage');
+            if (imgEl) imgEl.src = matched.image;
+          }
+        } else {
+          selectedVariantId = null;
+        }
+      }
+      const curQty = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
+      updateQvmQtyDisplay(curQty);
     }
 
     function updateQvmQtyDisplay(val) {
@@ -1897,6 +1950,7 @@
       const quantity = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
       const payload = {
         product_id: currentQvmProduct.id,
+        variant_id: selectedVariantId,
         color: selectedColor,
         size: selectedSize,
         quantity: quantity,
