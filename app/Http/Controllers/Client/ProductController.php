@@ -202,6 +202,8 @@ class ProductController extends Controller
             $query->orderBy('price', 'desc');
         } elseif ($sort === 'newest') {
             $query->latest();
+        } elseif ($sort === 'views_desc') {
+            $query->orderByDesc('views')->orderByDesc('sold_count');
         } else {
             $query->orderByDesc('sold_count')->orderByDesc('rating');
         }
@@ -226,6 +228,51 @@ class ProductController extends Controller
     {
         $product = Product::with(['category', 'brand', 'variants' => fn($q) => $q->active(), 'images', 'reviews', 'dailyDeals'])->active()->findOrFail($id);
 
+        // 1. Theo dõi lượt xem & Chống spam F5 qua Session
+        $viewKey = 'viewed_product_' . $product->id;
+        if (!session()->has($viewKey)) {
+            try {
+                $product->increment('views');
+            } catch (\Exception $e) {
+                // Fallback an toàn nếu chưa migrate
+            }
+            session()->put($viewKey, now()->timestamp);
+        }
+
+        // 2. Quản lý lịch sử sản phẩm đã xem gần đây (Recently Viewed Products)
+        $recentIds = session()->get('recently_viewed_products', []);
+        $recentIds = array_values(array_diff($recentIds, [$product->id]));
+        array_unshift($recentIds, $product->id);
+        $recentIds = array_slice($recentIds, 0, 10);
+        session()->put('recently_viewed_products', $recentIds);
+
+        // Lấy các sản phẩm đã xem trước đó (loại trừ sản phẩm hiện tại)
+        $viewedIdsToFetch = array_values(array_diff($recentIds, [$product->id]));
+        $recentlyViewedProducts = collect([]);
+        if (!empty($viewedIdsToFetch)) {
+            $recentlyViewedProducts = Product::with(['category', 'brand', 'variants'])
+                ->active()
+                ->whereIn('id', $viewedIdsToFetch)
+                ->get()
+                ->sortBy(function ($p) use ($viewedIdsToFetch) {
+                    return array_search($p->id, $viewedIdsToFetch);
+                })
+                ->values()
+                ->take(6);
+        }
+
+        // 3. Lấy danh sách Voucher / Mã giảm giá khả dụng của Shop
+        $availableCoupons = \App\Models\Coupon::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+            })
+            ->orderBy('min_order_value', 'asc')
+            ->take(4)
+            ->get();
+
         $relatedProducts = Product::with(['category', 'brand', 'variants'])
             ->active()
             ->where('id', '!=', $product->id)
@@ -248,7 +295,7 @@ class ProductController extends Controller
             $userReview = \App\Models\Review::where('product_id', $id)->where('user_id', $user->id)->first();
         }
 
-        return view('client.products.show', compact('product', 'relatedProducts', 'categories', 'userHasPurchased', 'userReview'));
+        return view('client.products.show', compact('product', 'relatedProducts', 'categories', 'userHasPurchased', 'userReview', 'recentlyViewedProducts', 'availableCoupons'));
     }
 
     /**
