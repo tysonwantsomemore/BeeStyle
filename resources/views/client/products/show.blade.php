@@ -168,8 +168,8 @@
             {{ $product->name }}
           </h1>
 
-          <!-- RATING & REVIEWS SUMMARY -->
-          <div class="d-flex align-items-center gap-2 mb-3">
+          <!-- RATING, REVIEWS & VIEW COUNT SUMMARY -->
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
             <div class="text-warning small">
               @for($i=1; $i<=5; $i++)
                 <i class="fa-solid fa-star {{ $i <= round($product->rating) ? 'text-warning' : 'text-secondary-subtle' }}"></i>
@@ -182,6 +182,22 @@
             </a>
             <span class="text-muted small">•</span>
             <span class="small text-muted">Đã bán <strong>{{ number_format($product->sold_count ?? 128) }}</strong></span>
+            <span class="text-muted small">•</span>
+            <span class="small text-muted"><i class="fa-regular fa-eye text-primary me-1"></i><strong>{{ number_format($product->views ?? 256) }}</strong> lượt xem</span>
+          </div>
+
+          <!-- SOCIAL PROOF & LIVE ACTIVITY BADGE -->
+          <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+            <div class="d-inline-flex align-items-center gap-1.5 py-1 px-2.5 rounded-pill bg-danger-subtle text-danger border border-danger-subtle small fw-semibold" style="font-size: 0.76rem;">
+              <span class="spinner-grow spinner-grow-sm text-danger" style="width: 7px; height: 7px;"></span>
+              <span>Đang có <strong id="liveViewerCount">{{ rand(9, 24) }}</strong> người cùng xem</span>
+            </div>
+            @if($product->stock <= 15 && $product->stock > 0)
+              <div class="d-inline-flex align-items-center gap-1.5 py-1 px-2.5 rounded-pill bg-warning-subtle text-dark border border-warning-subtle small fw-bold" style="font-size: 0.76rem;">
+                <i class="fa-solid fa-bolt text-danger"></i>
+                <span>Chỉ còn lại <strong class="text-danger">{{ $product->stock }}</strong> sản phẩm</span>
+              </div>
+            @endif
           </div>
 
           <!-- PRICE -->
@@ -198,6 +214,40 @@
               </span>
             @endif
           </div>
+
+          <!-- MÃ GIẢM GIÁ / VOUCHER CỦA SHOP (SHOPEE STYLE) -->
+          @if(isset($availableCoupons) && $availableCoupons->count() > 0)
+            <div class="p-3 rounded-3 mb-3 border" style="background: #fffbeb; border-color: #fde68a !important;">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small fw-bold text-dark d-flex align-items-center gap-1.5">
+                  <i class="fa-solid fa-ticket text-warning fs-6"></i>
+                  <span>Mã Giảm Giá Của Shop:</span>
+                </span>
+                <span class="badge bg-warning text-dark font-monospace fw-bold" style="font-size: 0.72rem;">Áp dụng khi thanh toán</span>
+              </div>
+              <div class="d-flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                @foreach($availableCoupons as $cpn)
+                  <div class="d-inline-flex align-items-center gap-2 p-1.5 px-2.5 bg-white border border-warning rounded-2 shadow-xs flex-shrink-0 cursor-pointer transition-all hover-lift" 
+                       onclick="copyCouponCode('{{ $cpn->code }}')" 
+                       title="Nhấp để sao chép mã {{ $cpn->code }}">
+                    <div class="d-flex flex-column">
+                      <span class="fw-bold text-danger font-monospace fs-12">{{ $cpn->code }}</span>
+                      <small class="text-muted" style="font-size: 0.68rem;">
+                        @if($cpn->discount_type === 'percent')
+                          Giảm {{ $cpn->discount_value }}% (Đơn từ {{ number_format($cpn->min_order_value, 0, ',', '.') }}₫)
+                        @else
+                          Giảm {{ number_format($cpn->discount_value, 0, ',', '.') }}₫ (Đơn từ {{ number_format($cpn->min_order_value, 0, ',', '.') }}₫)
+                        @endif
+                      </small>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-xs py-0.5 px-2 rounded-pill fw-semibold" style="font-size: 0.68rem;">
+                      Lưu mã
+                    </button>
+                  </div>
+                @endforeach
+              </div>
+            </div>
+          @endif
 
           <!-- SHORT DESCRIPTION -->
           @if($product->short_description)
@@ -762,6 +812,53 @@
     </div>
   </div>
 
+  <!-- RECENTLY VIEWED PRODUCTS (SẢN PHẨM ĐÃ XEM GẦN ĐÂY) -->
+  @if(isset($recentlyViewedProducts) && $recentlyViewedProducts->count() > 0)
+    <div class="mb-5">
+      <div class="bee-section-header">
+        <div>
+          <h3 class="bee-section-title d-flex align-items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-warning"></i>
+            <span>Sản Phẩm Bạn Đã Xem Gần Đây</span>
+          </h3>
+          <p class="bee-section-subtitle">Dễ dàng xem lại các sản phẩm thời trang bạn vừa quan tâm</p>
+        </div>
+      </div>
+
+      <div class="row g-3 g-md-4">
+        @foreach($recentlyViewedProducts as $rItem)
+          <div class="col-lg-2 col-md-4 col-6">
+            <div class="bee-product-card h-100 shadow-xs border transition-all hover-lift" style="border-radius: 14px;">
+              <div class="bee-product-img-wrapper position-relative overflow-hidden" style="border-radius: 12px 12px 0 0;">
+                <img src="{{ asset($rItem->image) }}" alt="{{ $rItem->name }}" class="w-100 object-fit-cover" style="height: 180px;">
+                @if($rItem->original_price && $rItem->original_price > $rItem->price)
+                  <span class="position-absolute top-0 start-0 m-2 badge bg-danger text-white rounded-pill small fw-bold">
+                    -{{ round((($rItem->original_price - $rItem->price) / $rItem->original_price) * 100) }}%
+                  </span>
+                @endif
+              </div>
+              <div class="bee-product-body p-2.5">
+                <span class="bee-product-category fs-11 text-muted d-block text-truncate">{{ $rItem->category->name ?? 'Thời Trang Nam' }}</span>
+                <a href="{{ route('client.products.show', $rItem->id) }}" class="bee-product-title text-dark fw-semibold text-decoration-none d-block text-truncate small" title="{{ $rItem->name }}">
+                  {{ $rItem->name }}
+                </a>
+                <div class="bee-product-price-row mt-1">
+                  <span class="bee-product-price text-danger fw-bold small">{{ number_format($rItem->price, 0, ',', '.') }}₫</span>
+                  @if($rItem->original_price && $rItem->original_price > $rItem->price)
+                    <span class="text-muted text-decoration-line-through fs-11 ms-1">{{ number_format($rItem->original_price, 0, ',', '.') }}₫</span>
+                  @endif
+                </div>
+                <a href="{{ route('client.products.show', $rItem->id) }}" class="btn btn-outline-dark btn-xs w-100 mt-2 py-1 rounded-pill fw-semibold" style="font-size: 0.72rem;">
+                  Xem Lại
+                </a>
+              </div>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  @endif
+
   <!-- RELATED PRODUCTS -->
   @if($relatedProducts->count() > 0)
     <div class="mb-5">
@@ -795,34 +892,131 @@
   @endif
 </div>
 
-<!-- SIZE GUIDE MODAL -->
+<!-- STICKY ADD TO CART BOTTOM BAR (TMĐT CHUYÊN NGHIỆP) -->
+<div id="stickyAddToCartBar" class="sticky-bottom-cart-bar position-fixed bottom-0 start-0 end-0 bg-white border-top shadow-lg py-2.5 px-3 px-md-4 z-3 d-none transition-all" style="backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.96) !important;">
+  <div class="container d-flex align-items-center justify-content-between gap-3">
+    <!-- Left: Product Snapshot -->
+    <div class="d-flex align-items-center gap-3 min-w-0">
+      <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="rounded-3 border shadow-xs flex-shrink-0" style="width: 48px; height: 48px; object-fit: cover;">
+      <div class="min-w-0">
+        <h6 class="fw-bold text-dark mb-0 text-truncate small" style="max-width: 320px;">{{ $product->name }}</h6>
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-danger fw-bold fs-6">{{ number_format($product->price, 0, ',', '.') }}₫</span>
+          @if($product->original_price && $product->original_price > $product->price)
+            <small class="text-muted text-decoration-line-through fs-11">{{ number_format($product->original_price, 0, ',', '.') }}₫</small>
+          @endif
+          <span class="badge bg-light text-muted border fs-11 d-none d-md-inline" id="stickySelectedVariantText">Mặc định</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Action Buttons -->
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+      <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-2 fw-semibold d-none d-sm-inline-flex align-items-center gap-1.5" onclick="scrollToProductOptions()">
+        <i class="fa-solid fa-sliders text-warning"></i> Chọn Size/Màu
+      </button>
+      <button type="button" class="btn btn-bee-outline btn-sm rounded-pill px-3 py-2 fw-bold" onclick="triggerStickySubmit(false)">
+        <i class="fa-solid fa-cart-plus me-1"></i> Thêm Vào Giỏ
+      </button>
+      <button type="button" class="btn btn-bee-primary btn-sm rounded-pill px-3.5 py-2 fw-bold shadow-xs" onclick="triggerStickySubmit(true)">
+        <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SIZE GUIDE & SMART FIT FINDER MODAL (TƯ VẤN SIZE THÔNG MINH) -->
 <div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
-      <div class="modal-header border-bottom">
-        <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-ruler-horizontal text-warning me-2"></i> Bảng Quy Đổi Size Nam Chuẩn BeeStyle</h5>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+      <div class="modal-header border-bottom pb-3">
+        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+          <i class="fa-solid fa-ruler-combined text-warning"></i>
+          <span>Tư Vấn Kích Thước &amp; Bảng Quy Đổi Size Chuẩn</span>
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-4">
-        <p class="small text-muted mb-3">Thông số được đo chuẩn theo thể trạng người Việt Nam. Nếu bạn phân vân giữa 2 size, nên chọn size lớn hơn để mặc thoải mái.</p>
-        <div class="table-responsive">
-          <table class="table table-bordered text-center align-middle small mb-0">
-            <thead class="table-dark">
-              <tr>
-                <th>Size</th>
-                <th>Chiều Cao</th>
-                <th>Cân Nặng</th>
-                <th>Dáng Người</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><strong class="text-warning">S</strong></td><td>1m55 - 1m65</td><td>48 - 55 kg</td><td>Gầy / Nhỏ</td></tr>
-              <tr><td><strong class="text-warning">M</strong></td><td>1m64 - 1m72</td><td>56 - 65 kg</td><td>Cân đối</td></tr>
-              <tr><td><strong class="text-warning">L</strong></td><td>1m70 - 1m78</td><td>66 - 74 kg</td><td>Đậm người / Cao</td></tr>
-              <tr><td><strong class="text-warning">XL</strong></td><td>1m75 - 1m83</td><td>75 - 82 kg</td><td>To cao</td></tr>
-              <tr><td><strong class="text-warning">XXL</strong></td><td>1m80 - 1m90</td><td>83 - 92 kg</td><td>Ngoại cỡ</td></tr>
-            </tbody>
-          </table>
+        <!-- Tabs in Modal -->
+        <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-pill" id="sizeModalTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-bold small py-2" id="smart-calc-tab" data-bs-toggle="pill" data-bs-target="#smart-calc" type="button" role="tab">
+              <i class="fa-solid fa-wand-magic-sparkles text-warning me-1.5"></i> Tính Size Tự Động Cho Bạn
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold small py-2" id="table-size-tab" data-bs-toggle="pill" data-bs-target="#table-size" type="button" role="tab">
+              <i class="fa-solid fa-table-list text-warning me-1.5"></i> Bảng Thông Số Chuẩn
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="sizeModalTabsContent">
+          <!-- Tab 1: Smart Size Calculator -->
+          <div class="tab-pane fade show active" id="smart-calc" role="tabpanel">
+            <div class="p-3.5 bg-light rounded-4 border mb-3">
+              <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-user-check text-warning me-1.5"></i> Nhập số đo để BeeStyle gợi ý size chính xác:</h6>
+              <div class="row g-3 align-items-end">
+                <div class="col-md-4 col-6">
+                  <label class="form-label small fw-semibold text-muted mb-1">Chiều cao của bạn (cm):</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" id="calcHeight" class="form-control" placeholder="VD: 172" min="140" max="210" value="170">
+                    <span class="input-group-text">cm</span>
+                  </div>
+                </div>
+                <div class="col-md-4 col-6">
+                  <label class="form-label small fw-semibold text-muted mb-1">Cân nặng của bạn (kg):</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" id="calcWeight" class="form-control" placeholder="VD: 68" min="35" max="130" value="65">
+                    <span class="input-group-text">kg</span>
+                  </div>
+                </div>
+                <div class="col-md-4 col-12">
+                  <button type="button" class="btn btn-bee-primary btn-sm w-100 py-2 fw-bold" onclick="calculateSmartFitSize()">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Gợi Ý Size Ngay
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Result Box -->
+            <div id="smartFitResultBox" class="p-3.5 rounded-4 border bg-white text-center shadow-xs">
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-dark mb-2" style="width: 54px; height: 54px;">
+                <span class="fs-4 fw-bold text-warning font-monospace" id="suggestedSizeBadge">L</span>
+              </div>
+              <h5 class="fw-bold text-dark mb-1">Size khuyên dùng cho bạn: <span class="text-danger fw-bolder fs-4" id="suggestedSizeName">Size L</span></h5>
+              <p class="small text-muted mb-3" id="suggestedSizeDesc">Phù hợp hoàn hảo với chiều cao 170cm và cân nặng 65kg, mặc vừa vặn, tôn dáng chuẩn Regular Fit.</p>
+              
+              <button type="button" class="btn btn-dark btn-sm px-4 py-2 rounded-pill fw-bold" onclick="applySuggestedSize()">
+                <i class="fa-solid fa-check me-1.5 text-warning"></i> Chọn Size Này Cho Sản Phẩm
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab 2: Standard Size Table -->
+          <div class="tab-pane fade" id="table-size" role="tabpanel">
+            <p class="small text-muted mb-3">Thông số may đo chuẩn theo vóc dáng nam giới Việt Nam:</p>
+            <div class="table-responsive">
+              <table class="table table-bordered text-center align-middle small mb-0">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Size</th>
+                    <th>Chiều Cao (cm)</th>
+                    <th>Cân Nặng (kg)</th>
+                    <th>Rộng Ngực (cm)</th>
+                    <th>Dài Áo (cm)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong class="text-warning">S</strong></td><td>155 - 165</td><td>48 - 55</td><td>92 - 96</td><td>66</td></tr>
+                  <tr><td><strong class="text-warning">M</strong></td><td>164 - 172</td><td>56 - 65</td><td>96 - 100</td><td>68</td></tr>
+                  <tr><td><strong class="text-warning">L</strong></td><td>170 - 178</td><td>66 - 74</td><td>100 - 104</td><td>70</td></tr>
+                  <tr><td><strong class="text-warning">XL</strong></td><td>175 - 183</td><td>75 - 82</td><td>104 - 108</td><td>72</td></tr>
+                  <tr><td><strong class="text-warning">XXL</strong></td><td>180 - 190</td><td>83 - 92</td><td>108 - 114</td><td>74</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1126,6 +1320,10 @@
     }
   }
 
+  // VARIANT MATRIX & DYNAMIC DATA
+  const PRODUCT_VARIANTS = @json($product->variants ?? []);
+  let selectedVariant = null;
+
   function selectProductColor(color) {
     const el = document.getElementById('selectedColorText');
     if (el) {
@@ -1139,7 +1337,10 @@
     }
     hideFormAlert();
 
-    // Tự động tìm ảnh phù hợp với màu sắc đã chọn nếu có
+    // Đồng bộ với Sticky Bottom Bar
+    updateStickyVariantLabel();
+
+    // 1. Tự động chuyển ảnh nếu có ảnh theo màu sắc
     if (galleryImages && galleryImages.length > 1) {
       const colorLower = color.toLowerCase();
       const matchIdx = galleryImages.findIndex(img => img.toLowerCase().includes(colorLower));
@@ -1147,6 +1348,28 @@
         setGalleryIndex(matchIdx);
       }
     }
+
+    // 2. Kiểm tra tồn kho chéo cho các Size theo Màu đã chọn (Matrix Checking)
+    if (PRODUCT_VARIANTS && PRODUCT_VARIANTS.length > 0) {
+      const sizeRadios = document.querySelectorAll('.product-size-radio');
+      sizeRadios.forEach(radio => {
+        const sVal = radio.value;
+        const matchedVariant = PRODUCT_VARIANTS.find(v => (v.color === color || !v.color) && v.size === sVal);
+        const label = document.querySelector(`label[for="${radio.id}"]`);
+        if (label) {
+          if (matchedVariant && matchedVariant.stock <= 0) {
+            label.classList.add('opacity-50', 'text-decoration-line-through');
+            label.title = 'Hết hàng tạm thời';
+          } else {
+            label.classList.remove('opacity-50', 'text-decoration-line-through');
+            label.title = '';
+          }
+        }
+      });
+    }
+
+    // 3. Cập nhật biến thể hoàn chỉnh nếu đã chọn cả Size
+    checkAndApplyFullVariant();
   }
 
   function selectProductSize(size, hint) {
@@ -1161,6 +1384,194 @@
       sizeSec.style.backgroundColor = '#ffffff';
     }
     hideFormAlert();
+
+    // Đồng bộ với Sticky Bottom Bar
+    updateStickyVariantLabel();
+
+    // Cập nhật biến thể hoàn chỉnh nếu đã chọn cả Màu
+    checkAndApplyFullVariant();
+  }
+
+  function checkAndApplyFullVariant() {
+    const checkedColor = document.querySelector('input[name="color"]:checked');
+    const checkedSize = document.querySelector('input[name="size"]:checked');
+    const color = checkedColor ? checkedColor.value : null;
+    const size = checkedSize ? checkedSize.value : null;
+
+    if (color && size && PRODUCT_VARIANTS && PRODUCT_VARIANTS.length > 0) {
+      selectedVariant = PRODUCT_VARIANTS.find(v => v.color === color && v.size === size);
+      if (selectedVariant) {
+        // Cập nhật SKU nếu có
+        if (selectedVariant.sku) {
+          const skuEl = document.getElementById('displaySku');
+          if (skuEl) skuEl.textContent = selectedVariant.sku;
+        }
+
+        // Cập nhật tồn kho
+        const stockEl = document.getElementById('displayStockCount');
+        if (stockEl) stockEl.textContent = selectedVariant.stock;
+
+        // Cập nhật giá bán nếu có giá riêng
+        if (selectedVariant.price && selectedVariant.price > 0) {
+          const priceEl = document.getElementById('displayPrice');
+          if (priceEl) priceEl.textContent = selectedVariant.price.toLocaleString('vi-VN') + '₫';
+        }
+
+        // Cập nhật ảnh chính nếu biến thể có ảnh riêng
+        if (selectedVariant.image) {
+          const mainImg = document.getElementById('mainProductImg');
+          if (mainImg) {
+            mainImg.src = `/${selectedVariant.image}`;
+          }
+        }
+      }
+    }
+  }
+
+  function updateStickyVariantLabel() {
+    const checkedColor = document.querySelector('input[name="color"]:checked');
+    const checkedSize = document.querySelector('input[name="size"]:checked');
+    const stickyText = document.getElementById('stickySelectedVariantText');
+    if (stickyText) {
+      const c = checkedColor ? checkedColor.value : '';
+      const s = checkedSize ? 'Size ' + checkedSize.value : '';
+      if (c || s) {
+        stickyText.textContent = [c, s].filter(Boolean).join(' • ');
+        stickyText.className = 'badge bg-warning text-dark border border-warning fs-11 d-none d-md-inline fw-bold';
+      } else {
+        stickyText.textContent = 'Mặc định';
+        stickyText.className = 'badge bg-light text-muted border fs-11 d-none d-md-inline';
+      }
+    }
+  }
+
+  // STICKY BOTTOM BAR CONTROLLER
+  window.addEventListener('scroll', function () {
+    const stickyBar = document.getElementById('stickyAddToCartBar');
+    const mainFormBtn = document.getElementById('btnAddToCart');
+    if (!stickyBar || !mainFormBtn) return;
+
+    const btnRect = mainFormBtn.getBoundingClientRect();
+    if (btnRect.bottom < 0) {
+      stickyBar.classList.remove('d-none');
+    } else {
+      stickyBar.classList.add('d-none');
+    }
+  });
+
+  function scrollToProductOptions() {
+    const target = document.getElementById('colorGroupSection') || document.getElementById('sizeGroupSection') || document.getElementById('productForm');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function triggerStickySubmit(isBuyNow) {
+    const form = document.getElementById('productForm');
+    if (!form) return;
+
+    if (isBuyNow) {
+      let buyNowInput = form.querySelector('input[name="buy_now"]');
+      if (!buyNowInput) {
+        buyNowInput = document.createElement('input');
+        buyNowInput.type = 'hidden';
+        buyNowInput.name = 'buy_now';
+        buyNowInput.value = '1';
+        form.appendChild(buyNowInput);
+      } else {
+        buyNowInput.value = '1';
+      }
+    }
+
+    if (handleProductFormSubmit({ preventDefault: () => {} })) {
+      form.submit();
+    }
+  }
+
+  // SMART SIZE FIT CALCULATOR
+  function calculateSmartFitSize() {
+    const height = parseInt(document.getElementById('calcHeight').value) || 170;
+    const weight = parseInt(document.getElementById('calcWeight').value) || 65;
+
+    let suggestedSize = 'L';
+    let description = '';
+
+    if (weight < 55 && height < 165) {
+      suggestedSize = 'S';
+      description = `Với chiều cao ${height}cm và cân nặng ${weight}kg, dáng người gọn nhẹ, bạn nên chọn Size S để áo ôm vừa vặn, không bị thùng thình.`;
+    } else if (weight <= 65 && height <= 172) {
+      suggestedSize = 'M';
+      description = `Với chiều cao ${height}cm và cân nặng ${weight}kg, dáng người cân đối chuẩn, Size M sẽ giúp tôn dáng cực đẹp và thoải mái cả ngày.`;
+    } else if (weight <= 74 && height <= 178) {
+      suggestedSize = 'L';
+      description = `Với chiều cao ${height}cm và cân nặng ${weight}kg, vóc dáng đậm người cao ráo, Size L là lựa chọn hoàn hảo nhất cho phom dáng Regular Fit.`;
+    } else if (weight <= 82 && height <= 184) {
+      suggestedSize = 'XL';
+      description = `Với chiều cao ${height}cm và cân nặng ${weight}kg, dáng to cao đầy đặn, Size XL sẽ mang lại sự thoải mái tối đa cho phần ngực và vai.`;
+    } else {
+      suggestedSize = 'XXL';
+      description = `Với chiều cao ${height}cm và cân nặng ${weight}kg, bạn nên chọn Size XXL để đảm bảo sự rộng rãi, thoải mái khi vận động.`;
+    }
+
+    document.getElementById('suggestedSizeBadge').textContent = suggestedSize;
+    document.getElementById('suggestedSizeName').textContent = 'Size ' + suggestedSize;
+    document.getElementById('suggestedSizeDesc').textContent = description;
+  }
+
+  function applySuggestedSize() {
+    const suggestedSize = document.getElementById('suggestedSizeBadge').textContent.trim();
+    const sizeRadios = document.querySelectorAll('.product-size-radio');
+    let found = false;
+
+    sizeRadios.forEach(radio => {
+      if (radio.value.toUpperCase() === suggestedSize.toUpperCase()) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
+        found = true;
+      }
+    });
+
+    // Đóng modal
+    const modalEl = document.getElementById('sizeGuideModal');
+    if (modalEl) {
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+    }
+
+    if (found) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Đã Chọn ' + suggestedSize + '!',
+          text: 'Hệ thống đã tự động áp dụng kích cỡ này vào đơn hàng của bạn.',
+          timer: 2000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      }
+    }
+  }
+
+  // COPY COUPON CODE FUNCTION (SHOPEE STYLE)
+  function copyCouponCode(code) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Đã Sao Chép Mã: ' + code,
+            text: 'Mã giảm giá đã được lưu vào bộ nhớ tạm. Hãy dán mã vào bước thanh toán nhé!',
+            timer: 2500,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+          });
+        } else {
+          alert('Đã sao chép mã giảm giá: ' + code);
+        }
+      });
+    }
   }
 
   const PRODUCT_UNIT_PRICE = {{ $product->price }};
