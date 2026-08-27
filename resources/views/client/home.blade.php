@@ -192,14 +192,14 @@
         <h2 class="bee-section-title">DANH MỤC ÁO NAM NỔI BẬT</h2>
         <p class="bee-section-subtitle">Lựa chọn phong cách phù hợp cho công sở, dạo phố và thể thao</p>
       </div>
-      <a href="{{ route('client.categories.index') }}" class="text-dark fw-bold small text-decoration-none text-uppercase">
-        Xem tất cả danh mục <i class="fa-solid fa-arrow-right ms-1"></i>
+      <a href="{{ route('client.products.index') }}" class="text-dark fw-bold small text-decoration-none text-uppercase">
+        Xem tất cả sản phẩm <i class="fa-solid fa-arrow-right ms-1"></i>
       </a>
     </div>
 
     <div class="row g-3">
       <!-- Cat 1: Polo -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-4 col-6">
         <a href="{{ route('client.categories.show', 'ao-polo-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/polo_01.jpg') }}" alt="Áo Polo Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -211,7 +211,7 @@
       </div>
 
       <!-- Cat 2: Sơ mi -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-4 col-6">
         <a href="{{ route('client.categories.show', 'ao-so-mi-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/somi_01.jpg') }}" alt="Áo Sơ Mi Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -223,7 +223,7 @@
       </div>
 
       <!-- Cat 3: T-shirt -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-4 col-6">
         <a href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/tshirt_01.jpg') }}" alt="Áo Phông Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -235,7 +235,7 @@
       </div>
 
       <!-- Cat 4: Blazer -->
-      <div class="col-lg-3 col-md-6 col-6">
+      <div class="col-lg-4 col-md-4 col-6">
         <a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/outerwear_01.jpg') }}" alt="Áo Khoác & Blazer" class="cat-bg-img">
           <div class="cat-overlay"></div>
@@ -266,18 +266,6 @@
           <div class="cat-content">
             <h5 class="cat-title">ÁO THU ĐÔNG &amp; HOODIE</h5>
             <span class="cat-count"><i class="fa-solid fa-snowflake me-1 text-info"></i> 10 Mẫu nỉ bông ấm</span>
-          </div>
-        </a>
-      </div>
-
-      <!-- Cat 7: BST Mùa Hè -->
-      <div class="col-lg-4 col-md-4 col-12">
-        <a href="{{ route('client.categories.show', 'bo-suu-tap-mua-he') }}" class="bee-cat-card-modern" style="height: 200px;">
-          <img src="{{ asset('assets/img/products/somi_linen_white.jpg') }}" alt="Bộ Sưu Tập Mùa Hè" class="cat-bg-img">
-          <div class="cat-overlay"></div>
-          <div class="cat-content">
-            <h5 class="cat-title">BỘ SƯU TẬP MÙA HÈ</h5>
-            <span class="cat-count"><i class="fa-solid fa-sun me-1 text-warning"></i> 10 Mẫu đũi linen &amp; polo hè</span>
           </div>
         </a>
       </div>
@@ -580,8 +568,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -655,8 +643,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -730,8 +718,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -803,8 +791,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -877,8 +865,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"

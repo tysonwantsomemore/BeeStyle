@@ -102,8 +102,8 @@
                     data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                     data-stock="{{ $product->stock ?? 999 }}"
                     onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                    title="Thêm vào giỏ hàng" style="font-size: 0.8rem; padding-top: 6px; padding-bottom: 6px;">
-                    <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
+                    title="Thêm vào giỏ hàng" style="font-size: 0.76rem; padding-top: 6px; padding-bottom: 6px;">
+                    <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
                   </button>
                   <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap shadow-xs" 
                     data-id="{{ $product->id }}"

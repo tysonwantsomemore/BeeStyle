@@ -108,7 +108,7 @@ Route::name('client.')->group(function () {
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
     
     // Categories (Xem danh mục sản phẩm)
-    Route::get('/danh-muc', [ClientCategoryController::class, 'index'])->name('categories.index');
+    Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
     Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
 
     // Brands

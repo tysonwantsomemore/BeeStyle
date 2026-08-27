@@ -75,7 +75,7 @@ class CartController extends Controller
             return back()->with('error', $result['message']);
         }
 
-        if ($request->has('buy_now')) {
+        if ($request->filled('buy_now') && in_array($request->buy_now, ['1', 1, true, 'true'])) {
             return redirect()->route('client.checkout');
         }
 
