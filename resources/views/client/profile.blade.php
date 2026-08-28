@@ -773,7 +773,7 @@
                 <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
                   <i class="fa-solid fa-map-location-dot me-2 text-danger"></i> Sổ Địa Chỉ Nhận Hàng ({{ $addresses->count() }})
                 </h5>
-                <p class="text-muted small mb-0">Quản lý các địa chỉ giao hàng để thanh toán nhanh hơn khi mua sắm</p>
+                <p class="text-muted small mb-0">Quản lý danh sách địa chỉ giao hàng giúp đặt hàng và thanh toán nhanh chóng hơn</p>
               </div>
               <button type="button" class="btn btn-bee-primary btn-sm px-3" data-bs-toggle="collapse" data-bs-target="#addAddressBox">
                 <i class="fa-solid fa-plus me-1"></i> Thêm Địa Chỉ Mới
@@ -782,54 +782,63 @@
 
             <!-- Collapse Add Address Box -->
             <div class="collapse mb-4" id="addAddressBox">
-              <div class="card card-body bg-light border p-4 rounded-3">
-                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-location-crosshairs me-1 text-danger"></i> Thêm địa chỉ giao hàng mới:</h6>
+              <div class="card card-body bg-light border p-4 rounded-3 shadow-xs">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-location-crosshairs me-1 text-danger"></i> Thêm địa chỉ nhận hàng mới:</h6>
+                  <button type="button" class="btn-close btn-sm" data-bs-toggle="collapse" data-bs-target="#addAddressBox"></button>
+                </div>
                 <form action="{{ route('client.profile.address.store') }}" method="POST">
                   @csrf
                   <div class="row g-3">
                     <div class="col-md-6">
-                      <label class="form-label small fw-semibold text-dark">Tên người nhận <span class="text-danger">*</span></label>
-                      <input type="text" name="recipient_name" class="form-control form-control-sm" value="{{ old('recipient_name', $user->name) }}" required>
+                      <label class="form-label small fw-semibold text-dark">Họ và tên người nhận <span class="text-danger">*</span></label>
+                      <input type="text" name="recipient_name" class="form-control form-control-sm" value="{{ old('recipient_name', $user->name) }}" placeholder="Ví dụ: Nguyễn Văn A" required>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label small fw-semibold text-dark">Số điện thoại nhận hàng <span class="text-danger">*</span></label>
-                      <input type="tel" name="phone" class="form-control form-control-sm" value="{{ old('phone', $user->phone) }}" required>
+                      <label class="form-label small fw-semibold text-dark">Số điện thoại người nhận <span class="text-danger">*</span></label>
+                      <input type="tel" name="phone" class="form-control form-control-sm" value="{{ old('phone', $user->phone) }}" placeholder="Ví dụ: 0987654321" required>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label small fw-semibold text-dark">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                      <input type="text" name="city" class="form-control form-control-sm" placeholder="Hà Nội, TP. HCM..." required>
+                      <input type="text" name="city" class="form-control form-control-sm" value="{{ old('city', $user->city ?? 'Hà Nội') }}" placeholder="Hà Nội, TP. HCM..." required>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label small fw-semibold text-dark">Quận / Huyện <span class="text-danger">*</span></label>
-                      <input type="text" name="district" class="form-control form-control-sm" placeholder="Cầu Giấy, Quận 1..." required>
+                      <input type="text" name="district" class="form-control form-control-sm" value="{{ old('district', $user->district ?? '') }}" placeholder="Cầu Giấy, Quận 1..." required>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label small fw-semibold text-dark">Phường / Xã</label>
-                      <input type="text" name="ward" class="form-control form-control-sm" placeholder="Phường Dịch Vọng...">
+                      <input type="text" name="ward" class="form-control form-control-sm" value="{{ old('ward') }}" placeholder="Phường Dịch Vọng...">
                     </div>
                     <div class="col-md-8">
-                      <label class="form-label small fw-semibold text-dark">Địa chỉ chi tiết (Số nhà, ngõ, đường) <span class="text-danger">*</span></label>
-                      <input type="text" name="address" class="form-control form-control-sm" placeholder="Số 18 Phố Huế..." required>
+                      <label class="form-label small fw-semibold text-dark">Địa chỉ chi tiết (Số nhà, tên ngõ/đường) <span class="text-danger">*</span></label>
+                      <input type="text" name="address" class="form-control form-control-sm" value="{{ old('address') }}" placeholder="Số 18 Phố Huế..." required>
                     </div>
                     <div class="col-md-4">
                       <label class="form-label small fw-semibold text-dark">Loại địa chỉ</label>
                       <select name="label" class="form-select form-select-sm">
-                        <option value="Nhà riêng">Nhà riêng</option>
-                        <option value="Văn phòng">Văn phòng / Công ty</option>
-                        <option value="Khác">Khác</option>
+                        <option value="Nhà riêng" {{ old('label') === 'Nhà riêng' ? 'selected' : '' }}>Nhà riêng</option>
+                        <option value="Văn phòng" {{ old('label') === 'Văn phòng' ? 'selected' : '' }}>Văn phòng / Công ty</option>
+                        <option value="Khác" {{ old('label') === 'Khác' ? 'selected' : '' }}>Khác</option>
                       </select>
                     </div>
                     <div class="col-12">
+                      <label class="form-label small fw-semibold text-dark">Ghi chú giao hàng (không bắt buộc)</label>
+                      <input type="text" name="notes" class="form-control form-control-sm" value="{{ old('notes') }}" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao...">
+                    </div>
+                    <div class="col-12">
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="is_default" value="1" id="isDefaultCheck">
-                        <label class="form-check-label small text-dark cursor-pointer" for="isDefaultCheck">
-                          Đặt làm địa chỉ nhận hàng mặc định
+                        <input class="form-check-input" type="checkbox" name="is_default" value="1" id="isDefaultCheck" {{ $addresses->count() === 0 ? 'checked' : '' }}>
+                        <label class="form-check-label small text-dark cursor-pointer fw-semibold" for="isDefaultCheck">
+                          Thiết lập làm địa chỉ giao hàng mặc định
                         </label>
                       </div>
                     </div>
-                    <div class="col-12 text-end mt-3">
-                      <button type="button" class="btn btn-outline-secondary btn-sm me-2" data-bs-toggle="collapse" data-bs-target="#addAddressBox">Hủy</button>
-                      <button type="submit" class="btn btn-bee-primary btn-sm px-3"><i class="fa-solid fa-floppy-disk me-1"></i> Lưu Địa Chỉ</button>
+                    <div class="col-12 text-end mt-3 border-top pt-3">
+                      <button type="button" class="btn btn-outline-secondary btn-sm me-2 rounded-pill px-3" data-bs-toggle="collapse" data-bs-target="#addAddressBox">Hủy Bỏ</button>
+                      <button type="submit" class="btn btn-bee-primary btn-sm px-4 rounded-pill fw-bold shadow-xs">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Địa Chỉ
+                      </button>
                     </div>
                   </div>
                 </form>
@@ -839,40 +848,146 @@
             <!-- Current Addresses List -->
             <div class="d-flex flex-column gap-3">
               @forelse($addresses as $addr)
-                <div class="p-3 bg-light rounded-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
-                  <div>
-                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                      <strong class="text-dark">{{ $addr->recipient_name }}</strong>
+                <div class="p-3.5 bg-white rounded-3 border {{ $addr->is_default ? 'border-warning shadow-xs' : 'border-light-subtle' }} d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative">
+                  <div class="flex-grow-1" style="max-width: 580px;">
+                    <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
+                      <strong class="text-dark fs-6">{{ $addr->recipient_name }}</strong>
                       <span class="text-muted small">|</span>
-                      <span class="text-muted small">{{ $addr->phone }}</span>
-                      <span class="badge bg-secondary-subtle text-dark small">{{ $addr->label ?? 'Địa chỉ' }}</span>
+                      <span class="text-dark small font-monospace fw-semibold"><i class="fa-solid fa-phone fs-11 text-muted me-1"></i>{{ $addr->phone }}</span>
+                      
+                      @if($addr->label === 'Văn phòng')
+                        <span class="badge bg-info-subtle text-info small"><i class="fa-solid fa-building me-1"></i>Văn phòng</span>
+                      @elseif($addr->label === 'Nhà riêng')
+                        <span class="badge bg-secondary-subtle text-secondary small"><i class="fa-solid fa-house me-1"></i>Nhà riêng</span>
+                      @else
+                        <span class="badge bg-light text-dark border small">{{ $addr->label ?? 'Địa chỉ' }}</span>
+                      @endif
+
                       @if($addr->is_default)
-                        <span class="badge bg-danger-subtle text-danger small fw-bold"><i class="fa-solid fa-check me-1"></i> Mặc định</span>
+                        <span class="badge bg-warning text-dark small fw-bold px-2 py-1">
+                          <i class="fa-solid fa-circle-check me-1"></i> Mặc định
+                        </span>
                       @endif
                     </div>
-                    <p class="text-secondary small mb-0">{{ $addr->address }}{{ $addr->ward ? ', ' . $addr->ward : '' }}{{ $addr->district ? ', ' . $addr->district : '' }}{{ $addr->city ? ', ' . $addr->city : '' }}</p>
+                    
+                    <p class="text-secondary small mb-1">
+                      <i class="fa-solid fa-location-dot text-danger me-1.5"></i>
+                      <span>{{ $addr->address }}</span>@if($addr->ward)<span>, {{ $addr->ward }}</span>@endif@if($addr->district)<span>, {{ $addr->district }}</span>@endif@if($addr->city)<span>, {{ $addr->city }}</span>@endif
+                    </p>
+
                     @if($addr->notes)
-                      <small class="text-muted fst-italic">Ghi chú: {{ $addr->notes }}</small>
+                      <p class="text-muted small mb-0 fst-italic" style="font-size: 0.8rem;">
+                        <i class="fa-regular fa-comment-dots me-1"></i> Ghi chú: {{ $addr->notes }}
+                      </p>
                     @endif
                   </div>
-                  <div>
-                    <form action="{{ route('client.profile.address.delete', $addr->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');" class="d-inline">
+
+                  <!-- Actions buttons -->
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    @if(!$addr->is_default)
+                      <form action="{{ route('client.profile.address.default', $addr->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-dark btn-sm py-1 px-2.5 rounded-pill" title="Đặt làm địa chỉ nhận hàng mặc định">
+                          <i class="fa-regular fa-star me-1 text-warning"></i> Đặt mặc định
+                        </button>
+                      </form>
+                    @endif
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2.5 rounded-pill" data-bs-toggle="modal" data-bs-target="#editAddressModal{{ $addr->id }}" title="Chỉnh sửa thông tin địa chỉ">
+                      <i class="fa-regular fa-pen-to-square me-1"></i> Sửa
+                    </button>
+
+                    <form action="{{ route('client.profile.address.delete', $addr->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này khỏi sổ địa chỉ?');" class="d-inline">
                       @csrf
                       @method('DELETE')
-                      <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2.5">
+                      <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2.5 rounded-pill" title="Xóa địa chỉ này">
                         <i class="fa-regular fa-trash-can me-1"></i> Xóa
                       </button>
                     </form>
                   </div>
                 </div>
-              @empty
-                <div class="p-3 bg-light rounded-3 border">
-                  <div class="d-flex align-items-center gap-2 mb-1">
-                    <strong class="text-dark">{{ $user->name }}</strong>
-                    <span class="text-muted small">|</span>
-                    <span class="text-muted small">{{ $user->phone ?? 'Chưa cập nhật SĐT' }}</span>
-                    <span class="badge bg-danger-subtle text-danger small">Hồ sơ chính</span>
+
+                <!-- MODAL CHỈNH SỬA ĐỊA CHỈ NHẬN HÀNG -->
+                <div class="modal fade" id="editAddressModal{{ $addr->id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                      <form action="{{ route('client.profile.address.update', $addr->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-header border-bottom p-4">
+                          <h5 class="modal-title fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-map-location-dot text-danger me-2"></i> Chỉnh Sửa Địa Chỉ Giao Hàng
+                          </h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label small fw-semibold text-dark">Họ và tên người nhận <span class="text-danger">*</span></label>
+                              <input type="text" name="recipient_name" class="form-control form-control-sm" value="{{ old('recipient_name', $addr->recipient_name) }}" required>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label small fw-semibold text-dark">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                              <input type="tel" name="phone" class="form-control form-control-sm" value="{{ old('phone', $addr->phone) }}" required>
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label small fw-semibold text-dark">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                              <input type="text" name="city" class="form-control form-control-sm" value="{{ old('city', $addr->city) }}" required>
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label small fw-semibold text-dark">Quận / Huyện <span class="text-danger">*</span></label>
+                              <input type="text" name="district" class="form-control form-control-sm" value="{{ old('district', $addr->district) }}" required>
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label small fw-semibold text-dark">Phường / Xã</label>
+                              <input type="text" name="ward" class="form-control form-control-sm" value="{{ old('ward', $addr->ward) }}">
+                            </div>
+                            <div class="col-md-8">
+                              <label class="form-label small fw-semibold text-dark">Địa chỉ chi tiết (Số nhà, tên ngõ/đường) <span class="text-danger">*</span></label>
+                              <input type="text" name="address" class="form-control form-control-sm" value="{{ old('address', $addr->address) }}" required>
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label small fw-semibold text-dark">Loại địa chỉ</label>
+                              <select name="label" class="form-select form-select-sm">
+                                <option value="Nhà riêng" {{ old('label', $addr->label) === 'Nhà riêng' ? 'selected' : '' }}>Nhà riêng</option>
+                                <option value="Văn phòng" {{ old('label', $addr->label) === 'Văn phòng' ? 'selected' : '' }}>Văn phòng / Công ty</option>
+                                <option value="Khác" {{ old('label', $addr->label) === 'Khác' ? 'selected' : '' }}>Khác</option>
+                              </select>
+                            </div>
+                            <div class="col-12">
+                              <label class="form-label small fw-semibold text-dark">Ghi chú giao hàng</label>
+                              <input type="text" name="notes" class="form-control form-control-sm" value="{{ old('notes', $addr->notes) }}" placeholder="Ví dụ: Giao giờ hành chính, gọi trước...">
+                            </div>
+                            <div class="col-12">
+                              <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_default" value="1" id="editDefaultCheck{{ $addr->id }}" {{ $addr->is_default ? 'checked' : '' }}>
+                                <label class="form-check-label small text-dark cursor-pointer fw-semibold" for="editDefaultCheck{{ $addr->id }}">
+                                  Đặt làm địa chỉ nhận hàng mặc định
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer border-top bg-light p-3">
+                          <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Hủy Bỏ</button>
+                          <button type="submit" class="btn btn-bee-primary btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Cập Nhật
+                          </button>
+                        </div>
+                      </form>
+                    </div>
                   </div>
+                </div>
+              @empty
+                <div class="text-center py-5 bg-light rounded-3 border">
+                  <div class="rounded-circle bg-white shadow-xs d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-map-location-dot fs-3 text-warning"></i>
+                  </div>
+                  <h6 class="fw-bold text-dark mb-1">Bạn chưa lưu địa chỉ giao hàng nào</h6>
+                  <p class="text-muted small mb-3">Lưu sẵn địa chỉ nhận hàng để thanh toán nhanh hơn khi đặt mua áo polo, sơ mi tại BeeStyle!</p>
+                  <button type="button" class="btn btn-bee-primary btn-sm px-4 rounded-pill fw-semibold" data-bs-toggle="collapse" data-bs-target="#addAddressBox">
+                    <i class="fa-solid fa-plus me-1"></i> Thêm Địa Chỉ Đầu Tiên
+                  </button>
                 </div>
               @endforelse
             </div>

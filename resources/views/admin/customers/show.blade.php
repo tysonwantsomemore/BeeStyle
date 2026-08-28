@@ -169,16 +169,22 @@
             <i class="fa-solid fa-box-archive me-1 text-danger"></i> Đơn Hàng Của Khách ({{ $customer->orders->count() }})
           </button>
         </li>
-        <!-- Tab 2: Tổng Hợp Chi Tiêu TẤT CẢ Khách Hàng -->
+        <!-- Tab 2: Sổ Địa Chỉ Giao Hàng -->
         <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-all-spending-tab" data-bs-toggle="tab" data-bs-target="#cust-all-spending" type="button" role="tab">
-            <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Chi Tiêu Tất Cả Khách Hàng ({{ $allPurchasingCustomers->count() }})
+          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-addresses-tab" data-bs-toggle="tab" data-bs-target="#cust-addresses" type="button" role="tab">
+            <i class="fa-solid fa-map-location-dot me-1 text-primary"></i> Sổ Địa Chỉ ({{ $customer->addresses->count() }})
           </button>
         </li>
-        <!-- Tab 3: Đánh Giá Đã Viết -->
+        <!-- Tab 3: Tổng Hợp Chi Tiêu TẤT CẢ Khách Hàng -->
+        <li class="nav-item" role="presentation">
+          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-all-spending-tab" data-bs-toggle="tab" data-bs-target="#cust-all-spending" type="button" role="tab">
+            <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Chi Tiêu Toàn Shop ({{ $allPurchasingCustomers->count() }})
+          </button>
+        </li>
+        <!-- Tab 4: Đánh Giá Đã Viết -->
         <li class="nav-item" role="presentation">
           <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-reviews-tab" data-bs-toggle="tab" data-bs-target="#cust-reviews" type="button" role="tab">
-            <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá Đã Viết ({{ $customer->reviews->count() }})
+            <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá ({{ $customer->reviews->count() }})
           </button>
         </li>
       </ul>
@@ -248,7 +254,61 @@
           </div>
         </div>
 
-        <!-- Tab 2: Tổng hợp chi tiêu của TẤT CẢ các tài khoản khách hàng -->
+        <!-- Tab 2: Sổ Địa Chỉ Nhận Hàng Của Khách Hàng -->
+        <div class="tab-pane fade" id="cust-addresses" role="tabpanel">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h6 class="fw-bold text-dark mb-0">Danh Sách Sổ Địa Chỉ Đã Lưu ({{ $customer->addresses->count() }})</h6>
+              <small class="text-muted">Các địa chỉ giao nhận hàng được khách hàng lưu trên hệ thống</small>
+            </div>
+            <span class="badge bg-light text-dark border px-3 py-2 fw-semibold rounded-pill">
+              <i class="fa-solid fa-map-pin text-danger me-1"></i> {{ $customer->addresses->where('is_default', true)->count() > 0 ? 'Đã có địa chỉ mặc định' : 'Chưa đặt mặc định' }}
+            </span>
+          </div>
+
+          <div class="d-flex flex-column gap-3">
+            @forelse($customer->addresses as $cAddr)
+              <div class="p-3 bg-light rounded-3 border {{ $cAddr->is_default ? 'border-warning shadow-xs bg-white' : '' }}">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <strong class="text-dark">{{ $cAddr->recipient_name }}</strong>
+                    <span class="text-muted small">|</span>
+                    <span class="text-dark small font-monospace"><i class="fa-solid fa-phone fs-11 text-muted me-1"></i>{{ $cAddr->phone }}</span>
+                    
+                    @if($cAddr->label === 'Văn phòng')
+                      <span class="badge bg-info-subtle text-info small"><i class="fa-solid fa-building me-1"></i>Văn phòng</span>
+                    @elseif($cAddr->label === 'Nhà riêng')
+                      <span class="badge bg-secondary-subtle text-secondary small"><i class="fa-solid fa-house me-1"></i>Nhà riêng</span>
+                    @else
+                      <span class="badge bg-light text-dark border small">{{ $cAddr->label ?? 'Địa chỉ' }}</span>
+                    @endif
+
+                    @if($cAddr->is_default)
+                      <span class="badge bg-warning text-dark small fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Mặc định</span>
+                    @endif
+                  </div>
+                  <small class="text-muted fs-11">Ngày tạo: {{ $cAddr->created_at ? $cAddr->created_at->format('d/m/Y H:i') : 'N/A' }}</small>
+                </div>
+                <p class="text-secondary small mb-1">
+                  <i class="fa-solid fa-location-dot text-danger me-1.5"></i>
+                  <span>{{ $cAddr->address }}</span>@if($cAddr->ward)<span>, {{ $cAddr->ward }}</span>@endif@if($cAddr->district)<span>, {{ $cAddr->district }}</span>@endif@if($cAddr->city)<span>, {{ $cAddr->city }}</span>@endif
+                </p>
+                @if($cAddr->notes)
+                  <small class="text-muted fst-italic d-block">
+                    <i class="fa-regular fa-comment-dots me-1"></i> Ghi chú: {{ $cAddr->notes }}
+                  </small>
+                @endif
+              </div>
+            @empty
+              <div class="text-center py-4 text-muted bg-light rounded-3 border">
+                <i class="fa-solid fa-map-location-dot fs-2 mb-2 d-block text-secondary"></i>
+                Khách hàng này chưa thêm địa chỉ nào vào sổ địa chỉ.
+              </div>
+            @endforelse
+          </div>
+        </div>
+
+        <!-- Tab 3: Tổng hợp chi tiêu của TẤT CẢ các tài khoản khách hàng -->
         <div class="tab-pane fade" id="cust-all-spending" role="tabpanel">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
