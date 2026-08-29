@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Beestyle - Thời trang thiết kế đương đại, sang trọng & tối giản. Khám phá bộ sưu tập quần áo, phụ kiện và lookbook mới nhất 2026.">
+  <title>BEESTYLE — Contemporary Fashion & Studio</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./v1.24.0/assets/img/favicons/favicon-32x32.png">
+
+  <!-- Google Fonts: Libre Franklin & Cormorant Garamond -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Libre Franklin"', 'sans-serif'],
+            serif: ['"Cormorant Garamond"', 'serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#faf8f5',
+              100: '#f5f0e8',
+              200: '#e8dcce',
+              300: '#d7c2ad',
+              400: '#c3a388',
+              500: '#b48c6f',
+              600: '#a3775f',
+              700: '#875f4d',
+              800: '#6f4e41',
+              900: '#1c1917',
+              950: '#0c0a09'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-serif-luxury {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+    .collection-card img {
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .collection-card:hover img {
+      transform: scale(1.05);
+    }
+    nav a {
+      position: relative;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: currentColor;
+      transition: width 0.3s ease;
+    }
+    nav a:hover::after, nav a.active::after {
+      width: 100%;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c5b8a5;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #998877;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-toast {
+      animation: slideDown 0.3s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.35s ease-out forwards;
+    }
+  </style>
+</head>
+
+<body class="bg-brand-50 text-neutral-900 selection:bg-neutral-900 selection:text-white flex flex-col min-h-screen">
+
+  <!-- Announcement Bar -->
+  <div class="bg-neutral-950 text-neutral-200 py-2 px-4 text-xs tracking-widest uppercase border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex justify-between items-center text-[11px]">
+      <div class="flex items-center gap-4">
+        <span><span class="text-amber-400 font-semibold">ƯU ĐÃI THÀNH VIÊN:</span> MÃ <strong class="text-white bg-neutral-800 px-1.5 py-0.5 rounded cursor-pointer" onclick="BeeCore.copyCode('BEESTYLE15')">BEESTYLE15</strong> GIẢM 15% | <strong class="text-white bg-neutral-800 px-1.5 py-0.5 rounded cursor-pointer" onclick="BeeCore.copyCode('BEESTYLE50')">BEESTYLE50</strong> GIẢM 50K</span>
+        <span class="hidden lg:inline text-neutral-500">|</span>
+        <span class="hidden lg:inline text-neutral-400">FREESHIP ĐƠN TỪ 500.000₫</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <button onclick="BeeCore.openOrderLookup()" class="hover:text-white flex items-center gap-1 transition-colors">
+          <i data-lucide="package" class="w-3.5 h-3.5"></i>
+          <span>Tra Cứu Đơn Hàng</span>
+        </button>
+        <button onclick="BeeCore.openRefundModal()" class="hover:text-white flex items-center gap-1 transition-colors">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Đổi Trả & Hoàn Tiền</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Sticky Navigation Header -->
+  <header class="sticky top-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 transition-all duration-300 shadow-sm" id="main-header">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      
+      <!-- Mobile Menu Button -->
+      <div class="flex items-center gap-3 md:hidden">
+        <button onclick="MainPage.toggleMobileNav()" class="p-1.5 text-neutral-800 hover:text-black">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <button onclick="BeeCore.openSearchModal()" class="p-1.5 text-neutral-800 hover:text-black">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Main Desktop Navigation Links -->
+      <nav class="hidden md:flex items-center gap-8 text-xs tracking-[0.2em] uppercase font-medium text-neutral-700">
+        <a href="1.html#home" class="hover:text-black transition-colors active text-neutral-950 font-bold">Trang Chủ</a>
+        <a href="1.html#collections" class="hover:text-black transition-colors">Bộ Sưu Tập</a>
+        
+        <!-- ZARA MEGA MENU TRIGGER (SẢN PHẨM) -->
+        <div class="relative group/mega py-3">
+          <a href="shop.html" class="hover:text-black transition-colors flex items-center gap-1 font-semibold text-neutral-900">
+            <span>Sản Phẩm</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 group-hover/mega:rotate-180 transition-transform duration-300 text-neutral-400"></i>
+          </a>
+
+          <!-- Dark backdrop overlay to isolate and focus on menu -->
+          <div class="fixed inset-0 top-[65px] bg-neutral-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none z-40"></div>
+
+          <!-- ZARA MEGA MENU DROPDOWN (100% Solid White, High Contrast) -->
+          <div class="fixed top-[65px] left-0 w-full bg-white border-b-2 border-neutral-950 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-200 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none group-hover/mega:pointer-events-auto z-50">
+            <div class="max-w-7xl mx-auto px-8 py-10 grid grid-cols-12 gap-8 text-neutral-950 bg-white">
+              
+              <!-- Col 1: Big Typography Departments (Zara Style) -->
+              <div class="col-span-3 space-y-2 pr-6 border-r border-neutral-200">
+                <a href="shop.html?cat=2" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  NỮ
+                </a>
+                <a href="shop.html?cat=1" class="block font-serif text-3xl xl:text-4xl text-neutral-950 font-bold hover:text-amber-800 transition-colors uppercase tracking-tight py-0.5 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-neutral-950 inline-block"></span>
+                  NAM
+                </a>
+                <a href="shop.html?cat=3" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  PHỤ KIỆN
+                </a>
+                <a href="shop.html?cat=4" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  GIÀY DÉP
+                </a>
+                <a href="1.html#lookbook" class="block font-serif text-2xl xl:text-3xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  LOOKBOOK 2026
+                </a>
+                <div class="pt-6 border-t border-neutral-100 mt-4">
+                  <span class="font-serif-luxury text-sm tracking-[0.3em] text-neutral-950 font-bold uppercase block">BEESTYLE</span>
+                  <span class="text-[9px] tracking-[0.4em] text-neutral-500 uppercase font-sans font-semibold">ATELIER VIETNAM</span>
+                </div>
+              </div>
+
+              <!-- Col 2: Numbered Categories & Lists (Zara Style) -->
+              <div class="col-span-4 space-y-5 text-xs tracking-wider uppercase font-medium pl-4">
+                <!-- [01] MỚI -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[01] MỚI</span>
+                  <a href="shop.html" class="block text-neutral-950 hover:text-amber-800 font-bold text-sm transition-colors">THE NEW 2026</a>
+                  <a href="shop.html?cat=1" class="block text-neutral-600 hover:text-black transition-colors">AARON LEVINE x BEESTYLE</a>
+                </div>
+
+                <!-- [02] DÒNG THIẾT KẾ -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[02]</span>
+                  <a href="shop.html" class="block text-neutral-800 hover:text-black font-semibold transition-colors">BEESTYLE ORIGINS</a>
+                </div>
+
+                <!-- [03] SPOTLIGHT -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[03]</span>
+                  <a href="shop.html?cat=1" class="block text-neutral-950 font-bold hover:text-amber-800 transition-colors">ATHLETICZ / 26 1 18 1</a>
+                </div>
+
+                <!-- [04] BỘ SƯU TẬP & DANH MỤC -->
+                <div class="space-y-2 pt-4 border-t border-neutral-200">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[04] BỘ SƯU TẬP & DANH MỤC</span>
+                  <div class="grid grid-cols-2 gap-y-2.5 gap-x-4 text-xs leading-relaxed">
+                    <a href="shop.html" class="text-neutral-950 font-bold hover:underline">XEM TẤT CẢ</a>
+                    <a href="shop.html?cat=sale" class="text-rose-700 font-bold hover:underline">BEST SELLERS</a>
+                    <a href="shop.html?cat=1" class="text-neutral-700 hover:text-black font-medium">LINEN STYLES</a>
+                    <a href="product-detail.html?id=1" class="text-neutral-700 hover:text-black font-medium">ÁO SƠ MI LỤA</a>
+                    <a href="product-detail.html?id=2" class="text-neutral-700 hover:text-black font-medium">BLAZER MAY ĐO</a>
+                    <a href="product-detail.html?id=9" class="text-neutral-700 hover:text-black font-medium">MĂNG TÔ DẠ</a>
+                    <a href="product-detail.html?id=7" class="text-neutral-700 hover:text-black font-medium">QUẦN ÂU PHÁP</a>
+                    <a href="product-detail.html?id=3" class="text-neutral-700 hover:text-black font-medium">ĐẦM MAXI LỤA</a>
+                    <a href="shop.html?cat=3" class="text-neutral-700 hover:text-black font-medium">TÚI DA MILL Ý</a>
+                    <a href="shop.html?cat=4" class="text-neutral-700 hover:text-black font-medium">GIÀY LOAFER</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Col 3: Visual Curated Image Thumbnails (4 tall photos like Zara) -->
+              <div class="col-span-5 grid grid-cols-4 gap-3.5 pl-6 border-l border-neutral-200">
+                
+                <!-- Card 1 -->
+                <a href="product-detail.html?id=9" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?q=80&w=400&auto=format&fit=crop" alt="Aaron Levine" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">AARON LEVINE</span>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="product-detail.html?id=2" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=400&auto=format&fit=crop" alt="The New" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">THE NEW</span>
+                </a>
+
+                <!-- Card 3 -->
+                <a href="product-detail.html?id=7" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1506629082955-511b1aa562c8?q=80&w=400&auto=format&fit=crop" alt="Quần Bò & Âu" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">QUẦN ÂU</span>
+                </a>
+
+                <!-- Card 4 -->
+                <a href="product-detail.html?id=1" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop" alt="Áo Sơ Mi Lụa" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">ÁO SƠ MI</span>
+                </a>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <a href="1.html#lookbook" class="hover:text-black transition-colors">Lookbook</a>
+        <a href="1.html#about" class="hover:text-black transition-colors">Beestyle</a>
+      </nav>
+
+      <!-- Brand Logo -->
+      <div class="text-center">
+        <a href="1.html" class="inline-block group">
+          <span class="font-serif-luxury text-2xl md:text-3xl font-bold tracking-[0.25em] text-neutral-900 uppercase group-hover:opacity-80 transition-opacity">
+            BEESTYLE
+          </span>
+          <span class="block text-[9px] tracking-[0.4em] text-neutral-500 uppercase -mt-1 font-sans">
+            STUDIO • 2026
+          </span>
+        </a>
+      </div>
+
+      <!-- Action Icons -->
+      <div class="flex items-center gap-5 text-neutral-800">
+        <button onclick="BeeCore.openSearchModal()" class="hidden md:flex items-center gap-1.5 text-xs uppercase tracking-wider hover:text-black transition-colors p-1" title="Tìm kiếm">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span class="hidden lg:inline text-[11px]">Tìm kiếm</span>
+        </button>
+
+        <button onclick="BeeCore.openWishlistModal()" class="relative hover:text-black transition-colors p-1" title="Yêu thích">
+          <i data-lucide="heart" class="w-5 h-5"></i>
+          <span class="wishlist-count-badge absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="display: none;">0</span>
+        </button>
+
+        <button onclick="BeeCore.toggleCart(true)" class="relative hover:text-black transition-colors flex items-center gap-2 p-1" title="Túi mua hàng">
+          <div class="relative">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span class="cart-count-badge absolute -top-1.5 -right-1.5 bg-neutral-900 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="display: none;">0</span>
+          </div>
+          <span class="cart-header-total hidden lg:inline text-xs font-semibold tracking-wider text-neutral-900">0₫</span>
+        </button>
+
+        <div class="header-auth-area relative">
+          <!-- Rendered dynamically by BeeCore -->
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-nav" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden">
+      <div class="w-4/5 max-w-sm h-full bg-white p-6 flex flex-col justify-between shadow-2xl animate-fade-in">
+        <div>
+          <div class="flex justify-between items-center pb-4 border-b border-neutral-200">
+            <span class="font-serif-luxury text-xl font-bold tracking-[0.2em]">BEESTYLE</span>
+            <button onclick="MainPage.toggleMobileNav()" class="p-2 text-neutral-500 hover:text-black">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <nav class="flex flex-col gap-4 mt-6 text-sm tracking-[0.2em] uppercase font-medium">
+            <a href="#home" onclick="MainPage.toggleMobileNav()" class="py-2 border-b border-neutral-100">Trang Chủ</a>
+            <a href="#collections" onclick="MainPage.toggleMobileNav()" class="py-2 border-b border-neutral-100">Bộ Sưu Tập 2026</a>
+            <a href="shop.html" class="py-2 border-b border-neutral-100 text-neutral-950 font-bold">Tất Cả Sản Phẩm</a>
+            <a href="#lookbook" onclick="MainPage.toggleMobileNav()" class="py-2 border-b border-neutral-100">Lookbook Editorial</a>
+            <a href="#about" onclick="MainPage.toggleMobileNav()" class="py-2 border-b border-neutral-100">Beestyle Atelier</a>
+            <a href="javascript:void(0)" onclick="BeeCore.openOrderLookup(); MainPage.toggleMobileNav();" class="py-2 text-amber-700 flex items-center gap-2">
+              <i data-lucide="package" class="w-4 h-4"></i> Tra cứu đơn hàng
+            </a>
+            <div class="mt-2 pt-3 border-t border-neutral-100 flex flex-col gap-2">
+              <span class="text-[10px] tracking-widest uppercase text-neutral-400 font-semibold">TÀI KHOẢN KHÁCH HÀNG</span>
+              <a href="javascript:void(0)" onclick="BeeCore.openProfileModal('info'); MainPage.toggleMobileNav();" class="py-1 text-xs text-neutral-800 flex items-center gap-2 font-normal">
+                <i data-lucide="user" class="w-4 h-4 text-neutral-500"></i> Thông tin tài khoản
+              </a>
+              <a href="javascript:void(0)" onclick="BeeCore.openProfileModal('password'); MainPage.toggleMobileNav();" class="py-1 text-xs text-neutral-800 flex items-center gap-2 font-normal">
+                <i data-lucide="key-round" class="w-4 h-4 text-amber-600"></i> Đổi mật khẩu
+              </a>
+              <a href="javascript:void(0)" onclick="BeeCore.openProfileModal('orders'); MainPage.toggleMobileNav();" class="py-1 text-xs text-neutral-800 flex items-center gap-2 font-normal">
+                <i data-lucide="shopping-bag" class="w-4 h-4 text-neutral-500"></i> Đơn hàng của tôi
+              </a>
+            </div>
+          </nav>
+        </div>
+        <div class="pt-6 border-t border-neutral-200 text-xs text-neutral-500">
+          <p class="font-medium text-neutral-800 mb-1">BEESTYLE ATELIER VIETNAM</p>
+          <p>Hotline: 1900 8899 (8:00 - 22:00)</p>
+          <p class="mt-2 text-[11px]">© 2026 Beestyle. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN EDITORIAL LANDING CONTENT -->
+  <!-- ========================================================================= -->
+  <main class="w-full flex-grow">
+
+    <!-- HERO SECTION: Haute Couture Editorial Fashion Banner -->
+    <section id="home" class="relative w-full min-h-[85vh] md:min-h-[90vh] bg-neutral-900 flex items-center justify-center overflow-hidden">
+      <div class="absolute inset-0 z-0">
+        <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2000&auto=format&fit=crop" alt="Beestyle Fashion Editorial 2026" class="w-full h-full object-cover object-top opacity-60">
+        <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent"></div>
+      </div>
+
+      <div class="relative z-10 max-w-5xl mx-auto px-6 text-center text-white flex flex-col items-center">
+        <span class="text-xs md:text-sm tracking-[0.4em] uppercase text-amber-300/90 font-medium mb-4 animate-fade-in">
+          THE 2026 SARTORIAL COLLECTION
+        </span>
+        <h1 class="font-serif-luxury text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-wide leading-none mb-6">
+          Nghệ Thuật Cắt May<br><span class="italic font-serif">Đương Đại & Tối Giản</span>
+        </h1>
+        <p class="text-sm md:text-base text-neutral-300 font-light max-w-xl mb-10 leading-relaxed">
+          Tôn vinh vẻ đẹp tự nhiên thông qua chất liệu lụa tơ tằm dệt tay, len dạ Cashmere và kỹ thuật may đo chuẩn Ý.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <a href="shop.html" class="w-full sm:w-auto px-8 py-4 bg-white text-neutral-950 text-xs tracking-[0.25em] uppercase font-semibold hover:bg-amber-400 hover:text-black transition-all duration-300 shadow-2xl rounded-sm">
+            Khám Phá Sản Phẩm
+          </a>
+          <a href="#lookbook" class="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/60 text-white text-xs tracking-[0.25em] uppercase font-semibold hover:bg-white/10 transition-all duration-300 rounded-sm">
+            Xem Lookbook 2026
+          </a>
+        </div>
+      </div>
+
+      <!-- Scroll Indicator -->
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 text-white/60 flex flex-col items-center gap-2">
+        <span class="text-[9px] tracking-[0.3em] uppercase">Cuộn xuống</span>
+        <div class="w-4 h-8 border border-white/30 rounded-full flex justify-center p-1">
+          <div class="w-1 h-2 bg-white/70 rounded-full animate-bounce"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STORE VALUE PROPOSITION / HIGHLIGHTS BAR -->
+    <section class="w-full bg-white border-b border-neutral-200/80 py-10 px-6">
+      <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+        
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-neutral-800 shrink-0">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs uppercase tracking-wider font-semibold text-neutral-900">Thiết Kế Độc Bản</h4>
+            <p class="text-xs text-neutral-500 font-light mt-0.5">May đo giới hạn số lượng</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-neutral-800 shrink-0">
+            <i data-lucide="truck" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs uppercase tracking-wider font-semibold text-neutral-900">Freeship Toàn Quốc</h4>
+            <p class="text-xs text-neutral-500 font-light mt-0.5">Áp dụng đơn từ 500.000₫</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-neutral-800 shrink-0">
+            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs uppercase tracking-wider font-semibold text-neutral-900">Đổi Trả 30 Ngày</h4>
+            <p class="text-xs text-neutral-500 font-light mt-0.5">Hỗ trợ đổi size tận nơi</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-neutral-800 shrink-0">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="text-xs uppercase tracking-wider font-semibold text-neutral-900">Bảo Hành Đường May</h4>
+            <p class="text-xs text-neutral-500 font-light mt-0.5">Cam kết 100% chất lượng</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FEATURED COLLECTIONS GRID -->
+    <section id="collections" class="w-full py-24 px-6 max-w-7xl mx-auto">
+      <div class="text-center max-w-xl mx-auto mb-16">
+        <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-semibold block mb-2">BỘ SƯU TẬP 2026</span>
+        <h2 class="font-serif-luxury text-3xl md:text-5xl text-neutral-900 font-light">
+          Danh Mục Tuyển Chọn
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Collection 1: Nam -->
+        <a href="shop.html?cat=1" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-8">
+          <img src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop" alt="Thời Trang Nam Beestyle" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-neutral-950/30 to-transparent"></div>
+          <div class="relative z-10 text-white">
+            <span class="text-[10px] tracking-[0.3em] uppercase text-amber-300 font-medium">ATELIER TAILORING</span>
+            <h3 class="font-serif-luxury text-2xl font-normal mt-1 mb-2">Thời Trang Nam</h3>
+            <p class="text-xs text-neutral-300 font-light mb-4 opacity-90 line-clamp-2">Sơ mi lụa tơ tằm, blazer may đo chuẩn Ý và quần âu linen Pháp.</p>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-white group-hover:text-amber-400 transition-colors">
+              Khám Phá <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"></i>
+            </span>
+          </div>
+        </a>
+
+        <!-- Collection 2: Nữ -->
+        <a href="shop.html?cat=2" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-8">
+          <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop" alt="Thời Trang Nữ Beestyle" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-neutral-950/30 to-transparent"></div>
+          <div class="relative z-10 text-white">
+            <span class="text-[10px] tracking-[0.3em] uppercase text-amber-300 font-medium">STUDIO FEMININE</span>
+            <h3 class="font-serif-luxury text-2xl font-normal mt-1 mb-2">Thời Trang Nữ</h3>
+            <p class="text-xs text-neutral-300 font-light mb-4 opacity-90 line-clamp-2">Đầm maxi lụa hở lưng, chân váy xếp ly nhuyễn và corset dạ tweed.</p>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-white group-hover:text-amber-400 transition-colors">
+              Khám Phá <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"></i>
+            </span>
+          </div>
+        </a>
+
+        <!-- Collection 3: Phụ Kiện -->
+        <a href="shop.html?cat=3" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-8">
+          <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=800&auto=format&fit=crop" alt="Phụ Kiện Da Beestyle" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-neutral-950/30 to-transparent"></div>
+          <div class="relative z-10 text-white">
+            <span class="text-[10px] tracking-[0.3em] uppercase text-amber-300 font-medium">FINE LEATHER</span>
+            <h3 class="font-serif-luxury text-2xl font-normal mt-1 mb-2">Phụ Kiện Da Thật</h3>
+            <p class="text-xs text-neutral-300 font-light mb-4 opacity-90 line-clamp-2">Túi crossbody da bò Mill Ý, thắt lưng khóa đồng đúc thảo mộc.</p>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-white group-hover:text-amber-400 transition-colors">
+              Khám Phá <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"></i>
+            </span>
+          </div>
+        </a>
+
+        <!-- Collection 4: Giày Dép -->
+        <a href="shop.html?cat=4" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-8">
+          <img src="https://images.unsplash.com/photo-1614252369475-531eba835eb1?q=80&w=800&auto=format&fit=crop" alt="Giày Thủ Công Beestyle" class="absolute inset-0 w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/90 via-neutral-950/30 to-transparent"></div>
+          <div class="relative z-10 text-white">
+            <span class="text-[10px] tracking-[0.3em] uppercase text-amber-300 font-medium">HANDMADE SHOES</span>
+            <h3 class="font-serif-luxury text-2xl font-normal mt-1 mb-2">Giày & Dép Thủ Công</h3>
+            <p class="text-xs text-neutral-300 font-light mb-4 opacity-90 line-clamp-2">Penny Loafer đế phíp mạch Goodyear, Chelsea boot da lộn êm ái.</p>
+            <span class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-white group-hover:text-amber-400 transition-colors">
+              Khám Phá <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform"></i>
+            </span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- EDITORIAL LOOKBOOK SECTION -->
+    <section id="lookbook" class="w-full bg-neutral-900 text-white py-24 px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16 pb-6 border-b border-neutral-800">
+          <div>
+            <span class="text-xs tracking-[0.4em] uppercase text-amber-400 font-semibold block mb-2">EDITORIAL 2026</span>
+            <h2 class="font-serif-luxury text-3xl md:text-5xl font-light">
+              Lookbook: "Vũ Điệu Của Lụa & Dạ"
+            </h2>
+          </div>
+          <p class="text-xs text-neutral-400 max-w-md font-light leading-relaxed">
+            Mỗi khung hình là câu chuyện về ánh sáng, phom dáng và sự thăng hoa của vật liệu tự nhiên trong không gian sống hiện đại.
+          </p>
+        </div>
+
+        <!-- Editorial Magazine Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+          
+          <div class="md:col-span-7 aspect-[4/5] rounded-2xl overflow-hidden bg-neutral-800 shadow-2xl relative group">
+            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop" alt="Lookbook Editorial Shot 1" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+            <div class="absolute bottom-6 left-6 right-6 p-6 bg-black/60 backdrop-blur-md rounded-xl text-white">
+              <span class="text-[10px] tracking-widest uppercase text-amber-300 block mb-1">LOOK 01 — THE AUTUMN COAT</span>
+              <h3 class="font-serif-luxury text-xl mb-2">Măng Tô Dạ Cashmere & Sơ Mi Lụa</h3>
+              <a href="product-detail.html?id=9" class="text-xs text-amber-200 hover:text-white inline-flex items-center gap-1 font-semibold">
+                Xem tác phẩm chi tiết <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="md:col-span-5 flex flex-col gap-8">
+            <div class="aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-800 shadow-xl relative group">
+              <img src="https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=800&auto=format&fit=crop" alt="Lookbook Editorial Shot 2" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+              <div class="absolute bottom-4 left-4 p-4 bg-black/60 backdrop-blur-md rounded-lg text-white">
+                <span class="text-[9px] tracking-widest uppercase text-amber-300 block">LOOK 02 — THE GALA SILK</span>
+                <a href="product-detail.html?id=3" class="font-serif-luxury text-base hover:underline block">Đầm Lụa Maxi Thắt Nơ Lưng</a>
+              </div>
+            </div>
+
+            <div class="aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-800 shadow-xl relative group">
+              <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop" alt="Lookbook Editorial Shot 3" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+              <div class="absolute bottom-4 left-4 p-4 bg-black/60 backdrop-blur-md rounded-lg text-white">
+                <span class="text-[9px] tracking-widest uppercase text-amber-300 block">LOOK 03 — ITALIAN SARTORIAL</span>
+                <a href="product-detail.html?id=2" class="font-serif-luxury text-base hover:underline block">Blazer May Đo Peak Lapel Chuẩn Ý</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CURATED CATALOG CALLOUT -->
+    <section class="w-full py-20 px-6 bg-brand-100 border-y border-brand-200 text-center">
+      <div class="max-w-3xl mx-auto">
+        <span class="text-xs tracking-[0.4em] uppercase text-amber-900 font-semibold block mb-3">KHÁM PHÁ TOÀN DIỆN</span>
+        <h2 class="font-serif-luxury text-3xl md:text-5xl text-neutral-900 font-light mb-4">
+          Bộ Sưu Tập Đầy Đủ 2026
+        </h2>
+        <p class="text-xs md:text-sm text-neutral-600 font-light leading-relaxed mb-8 max-w-xl mx-auto">
+          Tất cả các sản phẩm thời trang nam, nữ, phụ kiện da và giày dép được phân loại chi tiết với bộ lọc chuyên sâu tại danh mục Sản Phẩm.
+        </p>
+        <a href="shop.html" class="inline-flex items-center gap-3 px-8 py-4 bg-neutral-950 text-white text-xs font-semibold tracking-[0.25em] uppercase rounded-sm shadow-xl hover:bg-neutral-800 transition-all">
+          <span>Xem Tất Cả Sản Phẩm</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 text-amber-400"></i>
+        </a>
+      </div>
+    </section>
+
+    <!-- BRAND STORY SECTION -->
+    <section id="about" class="w-full bg-white py-24 px-6">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        
+        <div class="aspect-[4/3] rounded-2xl overflow-hidden shadow-xl bg-neutral-200">
+          <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop" alt="Beestyle Atelier Studio" class="w-full h-full object-cover">
+        </div>
+
+        <div class="lg:pl-6">
+          <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-semibold block mb-2">TRIẾT LÝ THIẾT KẾ</span>
+          <h2 class="font-serif-luxury text-3xl md:text-5xl text-neutral-900 font-light mb-6 leading-tight">
+            Beestyle: Tôn Vinh Nét Đẹp Tối Giản & Chuẩn Mực
+          </h2>
+          <p class="text-xs md:text-sm text-neutral-600 font-light leading-relaxed mb-4">
+            Thành lập tại Sài Gòn, Beestyle ra đời với ước vọng kiến tạo nên những tác phẩm may mặc vượt qua vòng xoáy của thời trang nhanh. Chúng tôi tập trung vào 3 giá trị cốt lõi: <strong>Chất liệu tự nhiên cao cấp</strong>, <strong>Kỹ thuật may đo thủ công</strong> và <strong>Phom dáng tối giản bền vững</strong>.
+          </p>
+          <p class="text-xs md:text-sm text-neutral-600 font-light leading-relaxed mb-8">
+            Mỗi chiếc áo sơ mi lụa, blazer hay đôi giày tây đều được người nghệ nhân dồn trọn tâm huyết, mang đến cho bạn trải nghiệm mặc êm ái, thanh lịch và tự tin trong mọi khoảnh khắc.
+          </p>
+
+          <div class="grid grid-cols-3 gap-6 pt-6 border-t border-neutral-200 text-center">
+            <div>
+              <span class="font-serif-luxury text-3xl md:text-4xl text-neutral-900 font-bold block">100%</span>
+              <span class="text-[10px] tracking-wider uppercase text-neutral-500">Chất liệu tự nhiên</span>
+            </div>
+            <div>
+              <span class="font-serif-luxury text-3xl md:text-4xl text-neutral-900 font-bold block">12+</span>
+              <span class="text-[10px] tracking-wider uppercase text-neutral-500">Nghệ nhân Atelier</span>
+            </div>
+            <div>
+              <span class="font-serif-luxury text-3xl md:text-4xl text-neutral-900 font-bold block">2026</span>
+              <span class="text-[10px] tracking-wider uppercase text-neutral-500">Lookbook Mới Nhất</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIP MEMBER NEWSLETTER -->
+    <section class="w-full bg-neutral-950 text-white py-20 px-6 text-center">
+      <div class="max-w-2xl mx-auto">
+        <span class="text-xs tracking-[0.4em] uppercase text-amber-400 block mb-2">BEESTYLE PRIVÉ</span>
+        <h2 class="font-serif-luxury text-3xl md:text-4xl font-light mb-4">Đăng Ký Nhận Đặc Quyền Thành Viên</h2>
+        <p class="text-xs text-neutral-400 font-light leading-relaxed mb-8">
+          Nhận ngay <strong>mã giảm 15% (BEESTYLE15)</strong> cho đơn hàng đầu tiên cùng đặc quyền nhận vé mời các buổi ra mắt bộ sưu tập kín.
+        </p>
+
+        <form onsubmit="MainPage.subscribeNewsletter(event)" class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+          <input type="email" id="newsletter-email" placeholder="Nhập địa chỉ email của bạn..." required class="bg-neutral-900 border border-neutral-800 rounded px-4 py-3 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-400 flex-grow">
+          <button type="submit" class="px-6 py-3 bg-white text-neutral-950 text-xs tracking-widest uppercase font-semibold hover:bg-amber-400 transition-colors rounded">
+            Đăng Ký
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER -->
+  <!-- ========================================================================= -->
+  <footer class="w-full bg-neutral-950 text-neutral-400 pt-16 pb-12 border-t border-neutral-800">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      
+      <div>
+        <span class="font-serif-luxury text-2xl font-bold tracking-[0.25em] text-white uppercase block mb-3">BEESTYLE</span>
+        <p class="text-xs leading-relaxed text-neutral-400 font-light mb-4">
+          Nhà may đương đại & thời trang thiết kế tối giản. Tôn vinh vẻ đẹp tự nhiên và sự chuẩn mực trong từng đường kim mũi chỉ.
+        </p>
+        <span class="text-xs text-neutral-300">Hotline: 1900 8899 (8:00 - 22:00)</span>
+      </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Danh Mục</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="shop.html?cat=1" class="hover:text-white transition-colors">Thời Trang Nam</a></li>
+          <li><a href="shop.html?cat=2" class="hover:text-white transition-colors">Thời Trang Nữ</a></li>
+          <li><a href="shop.html?cat=3" class="hover:text-white transition-colors">Phụ Kiện Da</a></li>
+          <li><a href="shop.html?cat=4" class="hover:text-white transition-colors">Giày Thủ Công</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Dịch Vụ Khách Hàng</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="javascript:void(0)" onclick="BeeCore.openOrderLookup()" class="hover:text-white transition-colors">Tra Cứu Đơn Hàng</a></li>
+          <li><a href="javascript:void(0)" onclick="BeeCore.openRefundModal()" class="hover:text-white transition-colors">Đổi Trả & Bảo Hành 30 Ngày</a></li>
+          <li><a href="javascript:void(0)" onclick="BeeCore.openSizeGuideModal()" class="hover:text-white transition-colors">Bảng Chọn Size Chuẩn</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Atelier Vietnam</h4>
+        <p class="text-xs leading-relaxed text-neutral-400 mb-2">
+          Flagship Store: 88 Lê Lợi, Bến Nghé, Quận 1, TP. Hồ Chí Minh
+        </p>
+        <p class="text-[11px] text-neutral-500">© 2026 Beestyle Atelier. All rights reserved.</p>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- App Core JS -->
+  <script src="./assets/js/app-core.js"></script>
+
+  <script>
+    const MainPage = {
+      toggleMobileNav: function() {
+        document.getElementById('mobile-nav')?.classList.toggle('hidden');
+      },
+
+      subscribeNewsletter: function(e) {
+        e?.preventDefault();
+        const email = document.getElementById('newsletter-email')?.value;
+        BeeCore.showToast(`Cảm ơn bạn (${email}) đã đăng ký nhận tin Beestyle Privé!`);
+        document.getElementById('newsletter-email').value = '';
+      }
+    };
+  </script>
+
+</body>
+</html>
