@@ -474,8 +474,8 @@ window.BeeDB = {
       address: "88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
       note: "Giao trong giờ hành chính",
       payment_name: "Thanh toán khi nhận hàng (COD)",
-      total_amount: 1360000,
-      is_paid: 0,
+      total_amount: 2230000,
+      is_paid: 1,
       is_refund: 0,
       coupon_id: 1,
       coupon_code: "BEESTYLE15",
@@ -485,17 +485,142 @@ window.BeeDB = {
       max_discount_value: null,
       is_refund_cancel: 0,
       check_refund_cancel: 0,
-      order_status_id: 3, // 3 -> shipping (Đang giao hàng)
-      status_name: "Đang Giao Hàng (Shipping)",
-      created_at: "16/08/2026 09:30",
+      order_status_id: 5, // 5 -> completed (Giao hàng thành công)
+      status_name: "Hoàn Thành (Delivered)",
+      created_at: "10/08/2026 09:30",
+      delivered_at: "12/08/2026 14:15",
       items: [
-        { product_id: 1, product_variant_id: 101, name: "Áo Sơ Mi Lụa Dệt Tinh Xảo", name_variant: "Màu Trắng Ngà - Size M", price: 680000, quantity: 2, thumbnail: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=800&auto=format&fit=crop" }
+        { product_id: 1, product_variant_id: 101, name: "Áo Sơ Mi Lụa Dệt Tinh Xảo", name_variant: "Màu Trắng Ngà - Size M", price: 680000, quantity: 1, thumbnail: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=800&auto=format&fit=crop" },
+        { product_id: 2, product_variant_id: 201, name: "Blazer May Đo 2 Hàng Khuy Chuẩn Ý", name_variant: "Đen Obsidian - Size M", price: 1550000, quantity: 1, thumbnail: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=800&auto=format&fit=crop" }
       ],
       timeline: [
-        { status: "Chờ xử lý (Pending)", note: "Đơn hàng đã được tạo và tiếp nhận", time: "16/08 - 09:30", done: true },
-        { status: "Đang xử lý (Processing)", note: "Kho Atelier TP.HCM hoàn tất đóng kiện", time: "16/08 - 14:15", done: true },
-        { status: "Đang giao hàng (Shipping)", note: "Shipper đang giao tới địa chỉ của bạn", time: "Hôm nay", done: true, current: true },
+        { status: "Chờ xử lý (Pending)", note: "Đơn hàng đã được tạo và tiếp nhận", time: "10/08 - 09:30", done: true },
+        { status: "Đang xử lý (Processing)", note: "Kho Atelier TP.HCM hoàn tất đóng kiện", time: "10/08 - 14:15", done: true },
+        { status: "Đang giao hàng (Shipping)", note: "Shipper đã bàn giao tận tay khách hàng", time: "12/08 - 14:00", done: true },
+        { status: "Hoàn thành (Completed)", note: "Khách hàng đã nhận hàng & thanh toán thành công", time: "12/08 - 14:15", done: true, current: true }
+      ]
+    },
+    {
+      id: 1002,
+      code: "BEE-2026-002",
+      user_id: 1,
+      payment_id: 2,
+      fullname: "Nguyễn Văn An",
+      phone_number: "0988776655",
+      email: "customer@beestyle.vn",
+      address: "88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+      note: "Gói quà sang trọng",
+      payment_name: "Chuyển khoản QR Bank (VietQR)",
+      total_amount: 1450000,
+      is_paid: 1,
+      is_refund: 0,
+      order_status_id: 5,
+      status_name: "Hoàn Thành (Delivered)",
+      created_at: "18/08/2026 15:00",
+      delivered_at: "20/08/2026 11:30",
+      items: [
+        { product_id: 5, product_variant_id: 501, name: "Túi Da Bò Mill Minimalist Crossbody", name_variant: "Màu Nâu Tan - Freesize", price: 1450000, quantity: 1, thumbnail: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=800&auto=format&fit=crop" }
+      ],
+      timeline: [
+        { status: "Chờ xử lý (Pending)", note: "Đơn hàng đã được tạo", time: "18/08 - 15:00", done: true },
+        { status: "Đang xử lý (Processing)", note: "Xưởng đồ da đã đóng gói hộp quà", time: "18/08 - 17:30", done: true },
+        { status: "Đang giao hàng (Shipping)", note: "Vận chuyển hỏa tốc nội thành", time: "20/08 - 09:00", done: true },
+        { status: "Hoàn thành (Completed)", note: "Giao hàng thành công", time: "20/08 - 11:30", done: true, current: true }
+      ]
+    },
+    {
+      id: 1003,
+      code: "BEE-2026-003",
+      user_id: 1,
+      payment_id: 1,
+      fullname: "Nguyễn Văn An",
+      phone_number: "0988776655",
+      email: "customer@beestyle.vn",
+      address: "88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+      note: "Gọi trước khi giao",
+      payment_name: "Thanh toán khi nhận hàng (COD)",
+      total_amount: 1390000,
+      is_paid: 0,
+      is_refund: 0,
+      order_status_id: 3,
+      status_name: "Đang Giao Hàng (Shipping)",
+      created_at: "28/08/2026 10:15",
+      items: [
+        { product_id: 6, product_variant_id: 602, name: "Giày Penny Loafer Da Thật Cổ Điển", name_variant: "Màu Đen Bóng - Size 40", price: 1390000, quantity: 1, thumbnail: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?q=80&w=800&auto=format&fit=crop" }
+      ],
+      timeline: [
+        { status: "Chờ xử lý (Pending)", note: "Đơn hàng đã tạo", time: "28/08 - 10:15", done: true },
+        { status: "Đang xử lý (Processing)", note: "Kiểm định đóng gói xưởng giày", time: "28/08 - 14:00", done: true },
+        { status: "Đang giao hàng (Shipping)", note: "Shipper đang giao hàng tới địa chỉ của bạn", time: "Hôm nay", done: true, current: true },
         { status: "Hoàn thành (Completed)", note: "Khách hàng nhận hàng và thanh toán", time: "Dự kiến chiều nay", done: false }
+      ]
+    }
+  ],
+
+  refunds: [
+    {
+      id: 1,
+      refund_code: "REF-2026-08101",
+      order_code: "BEE-2026-001",
+      order_id: 1001,
+      user_id: 1,
+      user_fullname: "Nguyễn Văn An",
+      phone_number: "0988776655",
+      product_name: "Áo Sơ Mi Lụa Dệt Tinh Xảo (Size M)",
+      reason: "Đổi sang size L do mặc hơi rộng",
+      customer_notes: "Áo còn nguyên tem mác Atelier, đã quay clip unbox và kiểm tra cúc áo.",
+      refund_amount: 680000,
+      refund_method: "bank",
+      bank_name: "Vietcombank",
+      bank_account: "0071001234567",
+      bank_account_name: "NGUYEN VAN AN",
+      images: [
+        "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop"
+      ],
+      video_proof: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      video_name: "clip_unbox_aomi_beestyle.mp4",
+      status: "completed", // pending, inspecting, picking_up, completed, rejected
+      status_badge: "Đã Hoàn Tiền Thành Công",
+      transaction_code: "VCB-883920148",
+      created_at: "15/08/2026 10:20",
+      completed_at: "16/08/2026 15:45",
+      timeline: [
+        { step: 1, title: "Đã gửi yêu cầu đổi trả", desc: "Hệ thống đã tiếp nhận yêu cầu kèm Ảnh & Video Unbox", time: "15/08 10:20", done: true },
+        { step: 2, title: "Thẩm định video unbox & kiểm tra tem mác", desc: "Chuyên viên QC đã thẩm định video unbox nguyên vẹn", time: "15/08 14:00", done: true },
+        { step: 3, title: "Thu hồi sản phẩm về xưởng", desc: "Shipper đã nhận lại hàng tại 88 Lê Lợi, Quận 1", time: "16/08 09:30", done: true },
+        { step: 4, title: "Hoàn tất chuyển khoản hoàn tiền", desc: "Đã giải ngân 680.000₫ về STK Vietcombank (0071001234567) - Mã GD: VCB-883920148", time: "16/08 15:45", done: true, current: true }
+      ]
+    },
+    {
+      id: 2,
+      refund_code: "REF-2026-08202",
+      order_code: "BEE-2026-002",
+      order_id: 1002,
+      user_id: 1,
+      user_fullname: "Nguyễn Văn An",
+      phone_number: "0988776655",
+      product_name: "Túi Da Bò Mill Minimalist Crossbody",
+      reason: "Muốn đổi sang mẫu túi màu đen tuyền",
+      customer_notes: "Gửi clip mở hộp và ảnh chi tiết khóa đồng.",
+      refund_amount: 1450000,
+      refund_method: "bank",
+      bank_name: "Vietcombank",
+      bank_account: "0071001234567",
+      bank_account_name: "NGUYEN VAN AN",
+      images: [
+        "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=600&auto=format&fit=crop"
+      ],
+      video_proof: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      video_name: "video_unbox_tui_da.mp4",
+      status: "inspecting",
+      status_badge: "Đang Thẩm Định Video Unbox",
+      transaction_code: null,
+      created_at: "28/08/2026 15:30",
+      timeline: [
+        { step: 1, title: "Đã gửi yêu cầu đổi trả", desc: "Đã nộp ảnh tem mác và video unbox", time: "28/08 15:30", done: true },
+        { step: 2, title: "Đang thẩm định video unbox", desc: "Bộ phận CSKH & QC đang đối soát video mở hộp", time: "Hôm nay", done: true, current: true },
+        { step: 3, title: "Thu hồi sản phẩm", desc: "Chờ điều phối shipper thu hồi hàng tận nơi", time: "Dự kiến ngày mai", done: false },
+        { step: 4, title: "Chuyển tiền hoàn", desc: "Hoàn 1.450.000₫ về tài khoản ngân hàng sau khi nhận hàng", time: "Dự kiến 2 ngày tới", done: false }
       ]
     }
   ]
@@ -1240,11 +1365,242 @@ window.BeeCore = {
     lucide.createIcons();
   },
 
+  // ================= VERIFIED BUYER & ORDER HELPERS =================
+  getOrders: function() {
+    try {
+      const stored = localStorage.getItem('beestyle_orders');
+      if (stored) return JSON.parse(stored);
+    } catch(e) {}
+    return BeeDB.orders || [];
+  },
+
+  getRefunds: function() {
+    try {
+      const stored = localStorage.getItem('beestyle_refunds');
+      if (stored) return JSON.parse(stored);
+    } catch(e) {}
+    return BeeDB.refunds || [];
+  },
+
+  saveRefunds: function(list) {
+    localStorage.setItem('beestyle_refunds', JSON.stringify(list));
+  },
+
+  /**
+   * Kiểm tra khách hàng đã từng mua sản phẩm này và đơn hàng đã hoàn tất/giao thành công hay chưa
+   */
+  hasPurchasedProduct: function(productId) {
+    const user = this.currentUser;
+    if (!user) {
+      return { purchased: false, reason: 'not_logged_in', message: 'Vui lòng đăng nhập để kiểm tra điều kiện đánh giá!' };
+    }
+
+    const orders = this.getOrders().filter(o => o.user_id === user.id || o.email === user.email || o.phone_number === user.phone || o.phone_number === user.phone_number);
+
+    for (let order of orders) {
+      const isDelivered = order.order_status_id === 5 || (order.status_name && (order.status_name.toLowerCase().includes('hoàn thành') || order.status_name.toLowerCase().includes('delivered') || order.status_name.toLowerCase().includes('giao')));
+      if (isDelivered) {
+        const item = (order.items || []).find(it => it.product_id === productId);
+        if (item) {
+          return {
+            purchased: true,
+            orderCode: order.code,
+            orderId: order.id,
+            deliveredAt: order.delivered_at || order.created_at,
+            item: item
+          };
+        }
+      }
+    }
+
+    return {
+      purchased: false,
+      reason: 'not_purchased',
+      message: 'Chỉ khách hàng đã đặt mua và nhận hàng thành công mới có thể gửi đánh giá sản phẩm này.'
+    };
+  },
+
+  // ================= PROFILE & PASSWORD OPERATIONS =================
+  openProfileModal: function(tab = 'info') {
+    if (!this.currentUser) {
+      this.showToast('Vui lòng đăng nhập để xem thông tin tài khoản!', 'error');
+      this.openAuthModal('login');
+      return;
+    }
+    const modal = document.getElementById('profile-modal');
+    if (!modal) return;
+
+    // Populate user profile data in fields
+    const u = this.currentUser;
+    const fnInput = document.getElementById('profile-fullname');
+    const emInput = document.getElementById('profile-email');
+    const phInput = document.getElementById('profile-phone');
+    const gdInput = document.getElementById('profile-gender');
+    const bdInput = document.getElementById('profile-birthday');
+    const adInput = document.getElementById('profile-address');
+    const adDetail = document.getElementById('profile-address-detail');
+    const bnInput = document.getElementById('profile-bank-name');
+    const baInput = document.getElementById('profile-bank-account');
+    const buInput = document.getElementById('profile-user-bank-name');
+
+    if (fnInput) fnInput.value = u.fullname || '';
+    if (emInput) emInput.value = u.email || '';
+    if (phInput) phInput.value = u.phone_number || u.phone || '';
+    if (gdInput) gdInput.value = u.gender || 'male';
+    if (bdInput) bdInput.value = u.birthday || '1995-08-15';
+    if (adInput) adInput.value = u.address || '88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh';
+    if (adDetail) adDetail.value = u.address || '88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh';
+    if (bnInput) bnInput.value = u.bank_name || 'Vietcombank';
+    if (baInput) baInput.value = u.bank_account || '0071001234567';
+    if (buInput) buInput.value = u.user_bank_name || (u.fullname || '').toUpperCase();
+
+    // Summary elements
+    const avatarEl = document.getElementById('profile-avatar-letter');
+    const nameEl = document.getElementById('profile-display-name');
+    const tierEl = document.getElementById('profile-display-tier');
+
+    if (avatarEl) avatarEl.innerText = u.fullname ? u.fullname.charAt(0).toUpperCase() : 'U';
+    if (nameEl) nameEl.innerText = u.fullname || 'Thành viên Beestyle';
+    if (tierEl) tierEl.innerText = u.tier || 'VIP Gold';
+
+    // Render my orders & refunds tab
+    this.renderProfileOrders();
+    this.renderProfileRefunds();
+
+    // Switch to requested tab
+    this.switchProfileTab(tab);
+
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+  },
+
+  closeProfileModal: function() {
+    document.getElementById('profile-modal')?.classList.add('hidden');
+  },
+
+  switchProfileTab: function(tabName) {
+    const tabs = ['info', 'password', 'orders', 'address', 'refunds'];
+    tabs.forEach(t => {
+      const btn = document.getElementById(`profile-tab-btn-${t}`);
+      const pane = document.getElementById(`profile-tab-pane-${t}`);
+      if (btn) {
+        if (t === tabName) {
+          btn.className = 'w-full text-left px-4 py-3 rounded-lg bg-neutral-900 text-white font-semibold text-xs flex items-center gap-2.5 transition-all shadow-sm';
+        } else {
+          btn.className = 'w-full text-left px-4 py-3 rounded-lg text-neutral-600 hover:bg-neutral-100 font-medium text-xs flex items-center gap-2.5 transition-all';
+        }
+      }
+      if (pane) {
+        if (t === tabName) {
+          pane.classList.remove('hidden');
+        } else {
+          pane.classList.add('hidden');
+        }
+      }
+    });
+    lucide.createIcons();
+  },
+
+  updateProfile: function(e) {
+    e?.preventDefault();
+    if (!this.currentUser) return;
+
+    const fullname = document.getElementById('profile-fullname')?.value?.trim();
+    const phone = document.getElementById('profile-phone')?.value?.trim();
+    const gender = document.getElementById('profile-gender')?.value;
+    const birthday = document.getElementById('profile-birthday')?.value;
+    const address = document.getElementById('profile-address')?.value?.trim() || document.getElementById('profile-address-detail')?.value?.trim();
+    const bank_name = document.getElementById('profile-bank-name')?.value?.trim();
+    const bank_account = document.getElementById('profile-bank-account')?.value?.trim();
+    const user_bank_name = document.getElementById('profile-user-bank-name')?.value?.trim();
+
+    if (!fullname) {
+      this.showToast('Vui lòng nhập họ và tên!', 'error');
+      return;
+    }
+
+    this.currentUser.fullname = fullname;
+    this.currentUser.phone = phone;
+    this.currentUser.phone_number = phone;
+    this.currentUser.gender = gender;
+    this.currentUser.birthday = birthday;
+    if (address) this.currentUser.address = address;
+    if (bank_name) this.currentUser.bank_name = bank_name;
+    if (bank_account) this.currentUser.bank_account = bank_account;
+    if (user_bank_name) this.currentUser.user_bank_name = user_bank_name;
+
+    this.saveUser();
+    this.showToast('Cập nhật hồ sơ tài khoản thành công!');
+
+    this.renderAuthStatus();
+    const nameEl = document.getElementById('profile-display-name');
+    const avatarEl = document.getElementById('profile-avatar-letter');
+    if (nameEl) nameEl.innerText = fullname;
+    if (avatarEl) avatarEl.innerText = fullname.charAt(0).toUpperCase();
+  },
+
+  changePassword: function(e) {
+    e?.preventDefault();
+    if (!this.currentUser) return;
+
+    const currentPass = document.getElementById('pwd-current')?.value;
+    const newPass = document.getElementById('pwd-new')?.value;
+    const confirmPass = document.getElementById('pwd-confirm')?.value;
+
+    const storedPass = this.currentUser.password || '123456';
+
+    if (currentPass !== storedPass) {
+      this.showToast('Mật khẩu hiện tại không chính xác!', 'error');
+      return;
+    }
+
+    if (!newPass || newPass.length < 6) {
+      this.showToast('Mật khẩu mới phải chứa ít nhất 6 ký tự!', 'error');
+      return;
+    }
+
+    if (newPass !== confirmPass) {
+      this.showToast('Xác nhận mật khẩu mới không trùng khớp!', 'error');
+      return;
+    }
+
+    if (newPass === currentPass) {
+      this.showToast('Mật khẩu mới không được giống mật khẩu cũ!', 'error');
+      return;
+    }
+
+    this.currentUser.password = newPass;
+    this.currentUser.is_change_password = 1;
+    this.saveUser();
+
+    const p1 = document.getElementById('pwd-current');
+    const p2 = document.getElementById('pwd-new');
+    const p3 = document.getElementById('pwd-confirm');
+    if (p1) p1.value = '';
+    if (p2) p2.value = '';
+    if (p3) p3.value = '';
+
+    this.showToast('Đổi mật khẩu thành công! Hãy ghi nhớ mật khẩu mới.');
+  },
+
+  togglePasswordVisibility: function(inputId, iconBtn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      iconBtn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4 text-neutral-600"></i>';
+    } else {
+      input.type = 'password';
+      iconBtn.innerHTML = '<i data-lucide="eye" class="w-4 h-4 text-neutral-400"></i>';
+    }
+    lucide.createIcons();
+  },
+
   renderProfileOrders: function() {
     const container = document.getElementById('profile-orders-list');
     if (!container) return;
 
-    const userOrders = BeeDB.orders || [];
+    const userOrders = this.getOrders();
     if (userOrders.length === 0) {
       container.innerHTML = `
         <div class="text-center py-10 text-neutral-400">
@@ -1252,45 +1608,122 @@ window.BeeCore = {
           <p class="text-sm">Bạn chưa có đơn hàng nào.</p>
         </div>
       `;
+      lucide.createIcons();
       return;
     }
 
-    container.innerHTML = userOrders.map(order => `
-      <div class="border border-neutral-200 rounded-xl p-4 bg-white hover:border-neutral-400 transition-all">
-        <div class="flex flex-wrap justify-between items-start gap-2 border-b border-neutral-100 pb-3">
-          <div>
-            <div class="flex items-center gap-2">
-              <strong class="font-mono text-neutral-900 font-bold">${order.code}</strong>
-              <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-semibold">${order.status_name}</span>
-            </div>
-            <p class="text-[11px] text-neutral-400 mt-0.5">Đặt ngày: ${order.created_at}</p>
-          </div>
-          <div class="text-right">
-            <span class="text-[10px] text-neutral-400 uppercase tracking-wider block">Tổng thanh toán</span>
-            <strong class="font-serif-luxury text-sm font-bold text-neutral-900">${this.formatMoney(order.total_amount)}</strong>
-          </div>
-        </div>
-
-        <div class="py-3 space-y-2">
-          ${(order.items || []).map(it => `
-            <div class="flex items-center justify-between text-xs text-neutral-700">
-              <div class="flex items-center gap-2 truncate pr-2">
-                <img src="${it.thumbnail || 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=100'}" class="w-8 h-8 rounded object-cover border shrink-0">
-                <span class="truncate">${it.name} <span class="text-[10px] text-neutral-400">(${it.name_variant || 'Mặc định'}) × ${it.quantity}</span></span>
+    container.innerHTML = userOrders.map(order => {
+      const isDelivered = order.order_status_id === 5 || (order.status_name && order.status_name.toLowerCase().includes('hoàn thành'));
+      return `
+        <div class="border border-neutral-200 rounded-xl p-4 bg-white hover:border-neutral-400 transition-all">
+          <div class="flex flex-wrap justify-between items-start gap-2 border-b border-neutral-100 pb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <strong class="font-mono text-neutral-900 font-bold">${order.code}</strong>
+                <span class="px-2 py-0.5 ${isDelivered ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} rounded text-[10px] font-semibold">${order.status_name}</span>
               </div>
-              <span class="font-semibold shrink-0">${this.formatMoney(it.price * it.quantity)}</span>
+              <p class="text-[11px] text-neutral-400 mt-0.5">Đặt ngày: ${order.created_at}</p>
             </div>
-          `).join('')}
-        </div>
+            <div class="text-right">
+              <span class="text-[10px] text-neutral-400 uppercase tracking-wider block">Tổng thanh toán</span>
+              <strong class="font-serif-luxury text-sm font-bold text-neutral-900">${this.formatMoney(order.total_amount)}</strong>
+            </div>
+          </div>
 
-        <div class="flex justify-between items-center pt-2 border-t border-neutral-100 text-xs">
-          <span class="text-[11px] text-neutral-500">PTTT: ${order.payment_name || 'COD'}</span>
-          <button onclick="BeeCore.closeProfileModal(); BeeCore.openOrderSuccess(BeeDB.orders.find(o => o.code === '${order.code}'))" class="px-3 py-1 bg-neutral-900 text-white rounded text-[11px] font-medium hover:bg-neutral-800 flex items-center gap-1">
-            <i data-lucide="truck" class="w-3 h-3"></i> Theo Dõi Hành Trình
-          </button>
+          <div class="py-3 space-y-2">
+            ${(order.items || []).map(it => `
+              <div class="flex items-center justify-between text-xs text-neutral-700">
+                <div class="flex items-center gap-2 truncate pr-2">
+                  <img src="${it.thumbnail || 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=100'}" class="w-8 h-8 rounded object-cover border shrink-0">
+                  <span class="truncate">${it.name} <span class="text-[10px] text-neutral-400">(${it.name_variant || 'Mặc định'}) × ${it.quantity}</span></span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="font-semibold">${this.formatMoney(it.price * it.quantity)}</span>
+                  ${isDelivered ? `
+                    <a href="product-detail.html?id=${it.product_id}#reviews-section" class="px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-300 rounded text-[10px] font-semibold hover:bg-amber-100 flex items-center gap-1">
+                      <i data-lucide="star" class="w-2.5 h-2.5 fill-amber-500 text-amber-500"></i> Đánh Giá
+                    </a>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="flex flex-wrap justify-between items-center pt-2 border-t border-neutral-100 text-xs gap-2">
+            <span class="text-[11px] text-neutral-500">PTTT: ${order.payment_name || 'COD'}</span>
+            <div class="flex items-center gap-2">
+              ${isDelivered ? `
+                <button onclick="BeeCore.closeProfileModal(); BeeCore.openRefundModal('${order.code}')" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded text-[11px] font-semibold flex items-center gap-1">
+                  <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Đổi Trả / Hoàn Tiền
+                </button>
+              ` : ''}
+              <button onclick="BeeCore.closeProfileModal(); BeeCore.openOrderSuccess(BeeCore.getOrders().find(o => o.code === '${order.code}'))" class="px-3 py-1 bg-neutral-900 text-white rounded text-[11px] font-medium hover:bg-neutral-800 flex items-center gap-1">
+                <i data-lucide="truck" class="w-3 h-3"></i> Theo Dõi Đơn
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
+    lucide.createIcons();
+  },
+
+  renderProfileRefunds: function() {
+    const container = document.getElementById('profile-refunds-list');
+    if (!container) return;
+
+    const userRefunds = this.getRefunds();
+    if (userRefunds.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-10 text-neutral-400">
+          <i data-lucide="rotate-ccw" class="w-12 h-12 stroke-1 mx-auto mb-2 opacity-50"></i>
+          <p class="text-sm">Bạn chưa có yêu cầu đổi trả hoặc hoàn tiền nào.</p>
+        </div>
+      `;
+      lucide.createIcons();
+      return;
+    }
+
+    container.innerHTML = userRefunds.map(ref => {
+      const isDone = ref.status === 'completed';
+      const isInspecting = ref.status === 'inspecting' || ref.status === 'pending';
+      return `
+        <div class="border border-neutral-200 rounded-xl p-4 bg-white hover:border-neutral-400 transition-all space-y-3">
+          <div class="flex flex-wrap justify-between items-start gap-2 border-b border-neutral-100 pb-2.5">
+            <div>
+              <div class="flex items-center gap-2">
+                <strong class="font-mono text-neutral-950 font-bold text-xs">${ref.refund_code}</strong>
+                <span class="px-2 py-0.5 ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'} rounded text-[10px] font-bold uppercase">${ref.status_badge || ref.status}</span>
+              </div>
+              <p class="text-[11px] text-neutral-400 mt-0.5">Áp dụng cho đơn: <strong class="text-neutral-700 font-mono">${ref.order_code}</strong> — Tạo ngày: ${ref.created_at}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-neutral-400 uppercase tracking-wider block">Số tiền hoàn</span>
+              <strong class="font-serif-luxury text-sm font-bold text-rose-700">${this.formatMoney(ref.refund_amount)}</strong>
+            </div>
+          </div>
+
+          <div class="text-xs text-neutral-700 space-y-1 bg-neutral-50 p-2.5 rounded-lg border border-neutral-100">
+            <p><span class="font-semibold text-neutral-900">Sản phẩm:</span> ${ref.product_name || 'Toàn bộ đơn hàng'}</p>
+            <p><span class="font-semibold text-neutral-900">Lý do:</span> ${ref.reason}</p>
+            <p><span class="font-semibold text-neutral-900">Tài khoản nhận:</span> ${ref.bank_name} - ${ref.bank_account} (${ref.bank_account_name || ref.user_bank_name})</p>
+            ${ref.transaction_code ? `<p><span class="font-semibold text-emerald-800">Mã GD chuyển khoản:</span> <strong class="font-mono text-emerald-700">${ref.transaction_code}</strong></p>` : ''}
+          </div>
+
+          <!-- Video & Image attachments preview summary -->
+          <div class="flex items-center justify-between pt-1 border-t border-neutral-100 text-xs">
+            <div class="flex items-center gap-3 text-[11px] text-neutral-500">
+              <span class="flex items-center gap-1 text-emerald-700 font-medium"><i data-lucide="video" class="w-3.5 h-3.5"></i> Video Unbox đính kèm</span>
+              <span class="flex items-center gap-1 text-neutral-600"><i data-lucide="image" class="w-3.5 h-3.5"></i> ${(ref.images || []).length} ảnh minh chứng</span>
+            </div>
+            <button onclick="BeeCore.closeProfileModal(); BeeCore.openRefundTracking('${ref.refund_code}')" class="px-3 py-1 bg-neutral-900 text-white rounded text-[11px] font-semibold hover:bg-neutral-800 flex items-center gap-1">
+              <i data-lucide="search" class="w-3 h-3"></i> Xem Tiến Trình
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    lucide.createIcons();
   },
 
   clearCart: function() {
@@ -1315,23 +1748,31 @@ window.BeeCore = {
     }
 
     this.toggleCart(false);
-    // Direct link to dedicated checkout page
     window.location.href = 'checkout.html';
   },
 
   openOrderSuccess: function(order) {
-    const modal = document.getElementById('order-lookup-modal');
-    if (!modal) return;
-    this.renderOrderDetails(order);
-    modal.classList.remove('hidden');
+    this.openOrderLookup('order', order?.code || '');
   },
 
-  // ================= ORDER LOOKUP =================
-  openOrderLookup: function() {
+  // ================= ORDER & REFUND LOOKUP MODAL =================
+  openOrderLookup: function(tab = 'order', code = '') {
     const modal = document.getElementById('order-lookup-modal');
     if (!modal) return;
-    const content = document.getElementById('order-lookup-result');
-    if (content) content.innerHTML = '<p class="text-xs text-neutral-400 text-center py-6">Nhập mã đơn hàng (ví dụ: BEE-2026-001) để tra cứu trạng thái.</p>';
+
+    this.switchLookupTab(tab);
+    if (code) {
+      if (tab === 'order') {
+        const input = document.getElementById('order-search-code');
+        if (input) input.value = code;
+        this.searchOrder();
+      } else {
+        const input = document.getElementById('refund-search-code');
+        if (input) input.value = code;
+        this.searchRefund(code);
+      }
+    }
+
     modal.classList.remove('hidden');
     lucide.createIcons();
   },
@@ -1340,13 +1781,43 @@ window.BeeCore = {
     document.getElementById('order-lookup-modal')?.classList.add('hidden');
   },
 
+  switchLookupTab: function(tab) {
+    const orderBtn = document.getElementById('lookup-tab-btn-order');
+    const refundBtn = document.getElementById('lookup-tab-btn-refund');
+    const orderPane = document.getElementById('lookup-tab-pane-order');
+    const refundPane = document.getElementById('lookup-tab-pane-refund');
+
+    if (tab === 'order') {
+      orderBtn?.classList.add('border-neutral-900', 'text-neutral-900', 'font-bold');
+      orderBtn?.classList.remove('border-transparent', 'text-neutral-500');
+      refundBtn?.classList.remove('border-neutral-900', 'text-neutral-900', 'font-bold');
+      refundBtn?.classList.add('border-transparent', 'text-neutral-500');
+
+      orderPane?.classList.remove('hidden');
+      refundPane?.classList.add('hidden');
+    } else {
+      refundBtn?.classList.add('border-neutral-900', 'text-neutral-900', 'font-bold');
+      refundBtn?.classList.remove('border-transparent', 'text-neutral-500');
+      orderBtn?.classList.remove('border-neutral-900', 'text-neutral-900', 'font-bold');
+      orderBtn?.classList.add('border-transparent', 'text-neutral-500');
+
+      refundPane?.classList.remove('hidden');
+      orderPane?.classList.add('hidden');
+    }
+    lucide.createIcons();
+  },
+
+  openRefundTracking: function(refundCode) {
+    this.openOrderLookup('refund', refundCode);
+  },
+
   searchOrder: function() {
     const code = document.getElementById('order-search-code')?.value?.trim().toUpperCase();
     if (!code) {
       this.showToast('Vui lòng nhập mã đơn hàng!', 'error');
       return;
     }
-    const order = BeeDB.orders.find(o => o.code.toUpperCase() === code);
+    const order = this.getOrders().find(o => o.code.toUpperCase() === code);
     if (order) {
       this.renderOrderDetails(order);
     } else {
@@ -1354,7 +1825,7 @@ window.BeeCore = {
         <div class="text-center py-8 text-neutral-500">
           <i data-lucide="package-x" class="w-12 h-12 stroke-1 mx-auto mb-2 text-rose-500 opacity-60"></i>
           <p class="font-serif-luxury text-base text-neutral-800">Không tìm thấy đơn hàng "${code}"</p>
-          <p class="text-xs text-neutral-400 mt-1">Vui lòng kiểm tra lại mã đơn hoặc số điện thoại.</p>
+          <p class="text-xs text-neutral-400 mt-1">Vui lòng kiểm tra lại mã đơn hàng hoặc đăng nhập để xem lịch sử.</p>
         </div>
       `;
       lucide.createIcons();
@@ -1365,15 +1836,17 @@ window.BeeCore = {
     const content = document.getElementById('order-lookup-result');
     if (!content) return;
 
+    const isDelivered = order.order_status_id === 5 || (order.status_name && order.status_name.toLowerCase().includes('hoàn thành'));
+
     content.innerHTML = `
-      <div class="bg-neutral-50 p-4 rounded-lg border border-neutral-200 space-y-4">
+      <div class="bg-neutral-50 p-4 rounded-xl border border-neutral-200 space-y-4">
         <div class="flex justify-between items-start border-b border-neutral-200 pb-3">
           <div>
-            <span class="text-[10px] tracking-widest uppercase text-neutral-500 block">MÃ ĐƠN HÀNG</span>
+            <span class="text-[10px] tracking-widest uppercase text-neutral-500 block font-semibold">MÃ ĐƠN HÀNG</span>
             <strong class="font-mono text-sm text-neutral-950">${order.code}</strong>
             <p class="text-xs text-neutral-500 mt-0.5">Đặt lúc: ${order.created_at}</p>
           </div>
-          <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">${order.status_name}</span>
+          <span class="px-3 py-1 ${isDelivered ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} rounded-full text-xs font-semibold">${order.status_name}</span>
         </div>
 
         <div>
@@ -1393,9 +1866,14 @@ window.BeeCore = {
           <span class="text-[10px] tracking-wider uppercase text-neutral-500 font-semibold block mb-2">SẢN PHẨM (${order.items?.length || 0})</span>
           <div class="space-y-2">
             ${(order.items || []).map(it => `
-              <div class="flex justify-between text-xs">
-                <span>${it.name} (${it.variant_name || 'Mặc định'}) × ${it.quantity}</span>
-                <span class="font-serif-luxury font-bold">${this.formatMoney(it.price * it.quantity)}</span>
+              <div class="flex justify-between items-center text-xs">
+                <span>${it.name} <span class="text-neutral-400 font-normal">(${it.name_variant || 'Mặc định'}) × ${it.quantity}</span></span>
+                <div class="flex items-center gap-2">
+                  <span class="font-serif-luxury font-bold">${this.formatMoney(it.price * it.quantity)}</span>
+                  ${isDelivered ? `
+                    <a href="product-detail.html?id=${it.product_id}#reviews-section" class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded text-[10px] font-semibold hover:bg-amber-200">Đánh giá</a>
+                  ` : ''}
+                </div>
               </div>
             `).join('')}
           </div>
@@ -1404,15 +1882,186 @@ window.BeeCore = {
             <span class="font-serif-luxury text-base text-amber-900">${this.formatMoney(order.total_amount)}</span>
           </div>
         </div>
+
+        ${isDelivered ? `
+          <div class="pt-2 border-t border-neutral-200 flex justify-end">
+            <button onclick="BeeCore.closeOrderLookup(); BeeCore.openRefundModal('${order.code}')" class="px-4 py-2 bg-amber-50 text-amber-900 border border-amber-300 rounded text-xs font-semibold hover:bg-amber-100 flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Yêu Cầu Đổi Trả / Hoàn Tiền Đơn Này
+            </button>
+          </div>
+        ` : ''}
       </div>
     `;
     lucide.createIcons();
   },
 
-  // ================= REFUND & RETURN =================
-  openRefundModal: function() {
+  searchRefund: function(customCode = null) {
+    const code = customCode || document.getElementById('refund-search-code')?.value?.trim().toUpperCase();
+    if (!code) {
+      this.showToast('Vui lòng nhập mã hoàn tiền (REF-...) hoặc mã đơn hàng!', 'error');
+      return;
+    }
+    const refund = this.getRefunds().find(r => r.refund_code.toUpperCase() === code || r.order_code.toUpperCase() === code);
+    if (refund) {
+      this.renderRefundTrackingDetails(refund);
+    } else {
+      document.getElementById('refund-lookup-result').innerHTML = `
+        <div class="text-center py-8 text-neutral-500">
+          <i data-lucide="rotate-ccw" class="w-12 h-12 stroke-1 mx-auto mb-2 text-amber-600 opacity-60"></i>
+          <p class="font-serif-luxury text-base text-neutral-800">Không tìm thấy yêu cầu hoàn tiền nào khớp với "${code}"</p>
+          <p class="text-xs text-neutral-400 mt-1">Vui lòng kiểm tra lại mã yêu cầu (ví dụ: REF-2026-08101) hoặc mã đơn hàng.</p>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+  },
+
+  renderRefundTrackingDetails: function(refund) {
+    const content = document.getElementById('refund-lookup-result');
+    if (!content) return;
+
+    const isDone = refund.status === 'completed';
+
+    content.innerHTML = `
+      <div class="bg-neutral-50 p-5 rounded-xl border border-neutral-200 space-y-4">
+        <!-- Header Info -->
+        <div class="flex flex-wrap justify-between items-start border-b border-neutral-200 pb-3 gap-2">
+          <div>
+            <span class="text-[10px] tracking-widest uppercase text-amber-800 font-bold block">YÊU CẦU HOÀN TIỀN / RMA</span>
+            <strong class="font-mono text-sm text-neutral-950">${refund.refund_code}</strong>
+            <p class="text-xs text-neutral-500 mt-0.5">Đơn hàng gốc: <strong class="text-neutral-800 font-mono">${refund.order_code}</strong></p>
+          </div>
+          <div class="text-right">
+            <span class="px-3 py-1 ${isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'} rounded-full text-xs font-bold uppercase">${refund.status_badge || refund.status}</span>
+            <span class="font-serif-luxury text-base font-bold text-rose-700 block mt-1">${this.formatMoney(refund.refund_amount)}</span>
+          </div>
+        </div>
+
+        <!-- Refund Stepper Timeline -->
+        <div>
+          <span class="text-[10px] tracking-wider uppercase text-neutral-600 font-semibold block mb-3">TIẾN TRÌNH XỬ LÝ HOÀN TIỀN</span>
+          <div class="space-y-4 pl-2 border-l-2 border-amber-300">
+            ${(refund.timeline || []).map(t => `
+              <div class="relative pl-4">
+                <div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full ${t.done ? (t.current ? 'bg-amber-600 ring-4 ring-amber-100' : 'bg-emerald-600') : 'bg-neutral-300'}"></div>
+                <p class="text-xs font-semibold ${t.current ? 'text-amber-800' : (t.done ? 'text-emerald-900' : 'text-neutral-400')}">
+                  ${t.title} <span class="text-[10px] text-neutral-400 font-normal">(${t.time})</span>
+                </p>
+                <p class="text-[11px] text-neutral-600 font-light mt-0.5">${t.desc}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Attached Proofs (Unbox Video & Images) -->
+        <div class="border-t border-neutral-200 pt-3 space-y-2">
+          <span class="text-[10px] tracking-wider uppercase text-neutral-600 font-semibold block">CHỨNG CỨ ĐÃ CUNG CẤP</span>
+          
+          <!-- Unbox Video Stream Box -->
+          ${refund.video_proof ? `
+            <div class="p-3 bg-white rounded-lg border border-neutral-200 space-y-2">
+              <div class="flex items-center justify-between text-xs font-semibold text-neutral-900">
+                <span class="flex items-center gap-1.5 text-emerald-700">
+                  <i data-lucide="video" class="w-4 h-4"></i> Video Unbox Mở Hộp Sản Phẩm
+                </span>
+                <span class="text-[10px] text-neutral-400 font-mono">${refund.video_name || 'video_unbox.mp4'}</span>
+              </div>
+              <div class="aspect-video bg-neutral-900 rounded overflow-hidden max-h-48">
+                <video src="${refund.video_proof}" controls class="w-full h-full object-contain" poster="${refund.images?.[0] || ''}">
+                  Trình duyệt không hỗ trợ xem video.
+                </video>
+              </div>
+            </div>
+          ` : `
+            <p class="text-xs text-amber-700 bg-amber-50 p-2 rounded">Chưa có video unbox đính kèm.</p>
+          `}
+
+          <!-- Images Proof Grid -->
+          ${(refund.images && refund.images.length > 0) ? `
+            <div class="flex gap-2 overflow-x-auto py-1">
+              ${refund.images.map(img => `
+                <img src="${img}" class="w-16 h-20 object-cover rounded border border-neutral-300 shrink-0 cursor-pointer" onclick="window.open('${img}', '_blank')">
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Bank Account & Transaction Info -->
+        <div class="border-t border-neutral-200 pt-3 bg-amber-50/70 p-3 rounded-lg text-xs space-y-1">
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Ngân hàng thụ hưởng:</span>
+            <strong class="text-neutral-900">${refund.bank_name} - ${refund.bank_account}</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-neutral-600">Chủ tài khoản:</span>
+            <strong class="text-neutral-900 uppercase">${refund.bank_account_name || refund.user_bank_name}</strong>
+          </div>
+          ${refund.transaction_code ? `
+            <div class="flex justify-between border-t border-amber-200 pt-1 mt-1 text-emerald-800 font-bold">
+              <span>Mã giao dịch ngân hàng (Ủy nhiệm chi):</span>
+              <span class="font-mono">${refund.transaction_code}</span>
+            </div>
+          ` : `
+            <div class="text-[11px] text-neutral-500 pt-1 italic">
+              * Sau khi chuyên viên QC thẩm định video unbox & nhận lại hàng, số tiền sẽ được chuyển tự động vào STK trên trong 24h.
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+  },
+
+  // ================= REFUND & RETURN OPERATIONS =================
+  _tempRefundImages: [],
+  _tempRefundVideo: null,
+
+  openRefundModal: function(prefilledOrderCode = null) {
+    if (!this.currentUser) {
+      this.showToast('Vui lòng đăng nhập để tạo yêu cầu đổi trả / hoàn tiền!', 'error');
+      this.openAuthModal('login');
+      return;
+    }
+
     const modal = document.getElementById('refund-modal');
     if (!modal) return;
+
+    // Reset temp uploads
+    this._tempRefundImages = [];
+    this._tempRefundVideo = null;
+    document.getElementById('refund-images-preview')?.replaceChildren();
+    const vidBox = document.getElementById('refund-video-preview-box');
+    if (vidBox) vidBox.classList.add('hidden');
+
+    // Populate order dropdown
+    const orderSelect = document.getElementById('refund-order-select');
+    const userOrders = this.getOrders();
+    const deliveredOrders = userOrders.filter(o => o.order_status_id === 5 || (o.status_name && o.status_name.toLowerCase().includes('hoàn thành')));
+
+    if (orderSelect) {
+      if (deliveredOrders.length === 0) {
+        orderSelect.innerHTML = `<option value="">(Không có đơn hàng đã giao - Vui lòng nhập mã)</option>`;
+      } else {
+        orderSelect.innerHTML = deliveredOrders.map(o => `
+          <option value="${o.code}" ${prefilledOrderCode === o.code ? 'selected' : ''}>
+            Đơn #${o.code} - ${this.formatMoney(o.total_amount)} (${o.items?.map(it => it.name).join(', ')})
+          </option>
+        `).join('');
+      }
+    }
+
+    // Prefill bank account from user profile
+    const u = this.currentUser;
+    const bName = document.getElementById('refund-bank-name');
+    const bAcc = document.getElementById('refund-bank-account');
+    const bUser = document.getElementById('refund-user-bank-name');
+    const bPhone = document.getElementById('refund-phone');
+
+    if (bName) bName.value = u.bank_name || 'Vietcombank';
+    if (bAcc) bAcc.value = u.bank_account || '0071001234567';
+    if (bUser) bUser.value = (u.user_bank_name || u.fullname || 'NGUYEN VAN AN').toUpperCase();
+    if (bPhone) bPhone.value = u.phone_number || u.phone || '0988776655';
+
     modal.classList.remove('hidden');
     lucide.createIcons();
   },
@@ -1421,40 +2070,152 @@ window.BeeCore = {
     document.getElementById('refund-modal')?.classList.add('hidden');
   },
 
-  submitRefund: function(e) {
-    e?.preventDefault();
-    const code = document.getElementById('refund-order-code')?.value || 'BEE-2026-001';
-    const reason = document.getElementById('refund-reason')?.value || 'Đổi size';
-    const bankName = document.getElementById('refund-bank-name')?.value || 'Vietcombank';
-    const bankAccount = document.getElementById('refund-bank-account')?.value || '0071001234567';
-    const userBankName = document.getElementById('refund-user-bank-name')?.value || 'NGUYEN VAN AN';
-    const phone = document.getElementById('refund-phone')?.value || '0988776655';
+  handleRefundImagesSelect: function(input) {
+    if (!input.files || input.files.length === 0) return;
+    const previewContainer = document.getElementById('refund-images-preview');
+    if (!previewContainer) return;
 
-    const order = BeeDB.orders.find(o => o.code === code) || { id: 1001, total_amount: 1360000 };
+    Array.from(input.files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target.result;
+        this._tempRefundImages.push(url);
+        
+        const wrap = document.createElement('div');
+        wrap.className = 'relative w-16 h-20 rounded border border-neutral-300 overflow-hidden shrink-0 group';
+        wrap.innerHTML = `
+          <img src="${url}" class="w-full h-full object-cover">
+          <button type="button" class="absolute top-0 right-0 bg-neutral-900/80 text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-bl opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+        `;
+        wrap.querySelector('button').onclick = () => {
+          this._tempRefundImages = this._tempRefundImages.filter(img => img !== url);
+          wrap.remove();
+        };
+        previewContainer.appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  },
 
-    const newRefund = {
-      id: Date.now(),
-      order_id: order.id,
-      user_id: this.currentUser?.id || 1,
-      total_amount: order.total_amount,
-      bank_name: bankName,
-      bank_account: bankAccount,
-      user_bank_name: userBankName,
-      phone_number: phone,
-      reason: reason,
-      status: 'pending',
-      bank_account_status: 'unverified',
-      created_at: new Date().toLocaleString('vi-VN')
+  handleRefundVideoSelect: function(input) {
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const vidBox = document.getElementById('refund-video-preview-box');
+    const vidPlayer = document.getElementById('refund-video-player');
+    const vidName = document.getElementById('refund-video-filename');
+    if (!vidBox || !vidPlayer) return;
+
+    const objUrl = URL.createObjectURL(file);
+    this._tempRefundVideo = {
+      url: objUrl,
+      name: file.name,
+      size: (file.size / (1024 * 1024)).toFixed(1) + ' MB'
     };
 
-    try {
-      const refunds = JSON.parse(localStorage.getItem('beestyle_refunds') || '[]');
-      refunds.unshift(newRefund);
-      localStorage.setItem('beestyle_refunds', JSON.stringify(refunds));
-    } catch(err) {}
+    vidPlayer.src = objUrl;
+    if (vidName) vidName.innerText = `${file.name} (${this._tempRefundVideo.size})`;
+    vidBox.classList.remove('hidden');
+    lucide.createIcons();
+  },
 
-    this.showToast(`Yêu cầu đổi trả cho đơn ${code} đã được tiếp nhận ở trạng thái [Pending].`);
+  removeRefundVideo: function() {
+    this._tempRefundVideo = null;
+    const vidBox = document.getElementById('refund-video-preview-box');
+    const vidPlayer = document.getElementById('refund-video-player');
+    const fileInput = document.getElementById('refund-video-input');
+    if (vidBox) vidBox.classList.add('hidden');
+    if (vidPlayer) vidPlayer.src = '';
+    if (fileInput) fileInput.value = '';
+  },
+
+  submitRefund: function(e) {
+    e?.preventDefault();
+
+    const orderCode = document.getElementById('refund-order-select')?.value || document.getElementById('refund-order-code')?.value?.trim().toUpperCase();
+    const reason = document.getElementById('refund-reason')?.value || 'Đổi size do rộng/chật';
+    const notes = document.getElementById('refund-notes')?.value?.trim();
+    const bankName = document.getElementById('refund-bank-name')?.value?.trim();
+    const bankAccount = document.getElementById('refund-bank-account')?.value?.trim();
+    const userBankName = document.getElementById('refund-user-bank-name')?.value?.trim();
+    const phone = document.getElementById('refund-phone')?.value?.trim();
+
+    // 1. Validate Order
+    if (!orderCode) {
+      this.showToast('Vui lòng chọn hoặc nhập mã đơn hàng cần hoàn trả!', 'error');
+      return;
+    }
+
+    const order = this.getOrders().find(o => o.code.toUpperCase() === orderCode) || {
+      id: 1001,
+      code: orderCode,
+      total_amount: 1360000,
+      items: [{ name: 'Sản phẩm may đo Beestyle' }]
+    };
+
+    // 2. VALIDATION CHÍNH XÁC: Bắt buộc phải có HÌNH ẢNH sản phẩm/tem mác
+    if (!this._tempRefundImages || this._tempRefundImages.length === 0) {
+      this.showToast('⚠️ Bắt buộc: Vui lòng tải lên ít nhất 1 ảnh chụp sản phẩm hoặc tem mác để làm chứng cứ!', 'error');
+      document.getElementById('refund-images-input')?.focus();
+      return;
+    }
+
+    // 3. VALIDATION CHÍNH XÁC: Bắt buộc phải có VIDEO UNBOX mở hộp
+    if (!this._tempRefundVideo || !this._tempRefundVideo.url) {
+      this.showToast('⚠️ Bắt buộc: Vui lòng tải lên Video Clip Unbox mở hộp sản phẩm để nhân viên QC đối soát quyền lợi!', 'error');
+      document.getElementById('refund-video-input')?.focus();
+      return;
+    }
+
+    // 4. Validate Bank info
+    if (!bankAccount || !userBankName) {
+      this.showToast('Vui lòng nhập đầy đủ Số tài khoản & Tên chủ thẻ ngân hàng nhận tiền hoàn!', 'error');
+      return;
+    }
+
+    // Generate refund record
+    const refundCode = 'REF-2026-' + Math.floor(10000 + Math.random() * 90000);
+    const newRefund = {
+      id: Date.now(),
+      refund_code: refundCode,
+      order_code: order.code,
+      order_id: order.id,
+      user_id: this.currentUser?.id || 1,
+      user_fullname: this.currentUser?.fullname || 'Nguyễn Văn An',
+      phone_number: phone || this.currentUser?.phone_number || '0988776655',
+      product_name: order.items?.map(it => it.name).join(', ') || 'Sản phẩm theo đơn ' + order.code,
+      reason: reason,
+      customer_notes: notes,
+      refund_amount: order.total_amount || 680000,
+      refund_method: 'bank',
+      bank_name: bankName,
+      bank_account: bankAccount,
+      bank_account_name: userBankName.toUpperCase(),
+      images: [...this._tempRefundImages],
+      video_proof: this._tempRefundVideo.url,
+      video_name: this._tempRefundVideo.name,
+      status: 'inspecting',
+      status_badge: 'Đang Thẩm Định Video Unbox',
+      transaction_code: null,
+      created_at: new Date().toLocaleString('vi-VN', { hour12: false }),
+      timeline: [
+        { step: 1, title: 'Đã gửi yêu cầu đổi trả', desc: 'Hệ thống đã ghi nhận video unbox và ảnh chứng cứ', time: 'Vừa xong', done: true },
+        { step: 2, title: 'Đang thẩm định video unbox', desc: 'Bộ phận CSKH & QC đang kiểm tra clip mở hộp', time: 'Hôm nay', done: true, current: true },
+        { step: 3, title: 'Thu hồi sản phẩm', desc: 'Chờ shipper đến nhận hàng tận nơi', time: 'Dự kiến ngày mai', done: false },
+        { step: 4, title: 'Chuyển tiền hoàn', desc: `Hoàn tiền vào STK ${bankName} (${bankAccount}) sau khi kiểm tra`, time: 'Dự kiến 2 ngày tới', done: false }
+      ]
+    };
+
+    const refunds = this.getRefunds();
+    refunds.unshift(newRefund);
+    this.saveRefunds(refunds);
+
+    this.showToast(`Yêu cầu đổi trả #${refundCode} (Kèm Video Unbox) đã được gửi thành công!`);
     this.closeRefundModal();
+
+    // Directly open refund tracking modal for instant verification
+    setTimeout(() => {
+      this.openRefundTracking(refundCode);
+    }, 400);
   },
 
   // ================= SEARCH MODAL =================
@@ -1578,150 +2339,162 @@ window.BeeCore = {
         </div>
       </div>
 
-      <!-- Checkout Modal -->
-      <div id="checkout-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden overflow-y-auto">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 md:p-8 shadow-2xl relative my-8 animate-fade-in border border-neutral-200">
-          <button onclick="BeeCore.closeCheckout()" class="absolute top-5 right-5 text-neutral-400 hover:text-black">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-          <div class="border-b border-neutral-200 pb-4 mb-6">
-            <span class="text-[10px] tracking-[0.3em] uppercase text-neutral-500 font-semibold block">ATELIER CHECKOUT</span>
-            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Thanh Toán Đơn Hàng</h3>
-          </div>
-          <form onsubmit="BeeCore.submitOrder(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <div>
-                <label class="block text-xs font-semibold uppercase text-neutral-700 mb-1">Họ & Tên Người Nhận *</label>
-                <input type="text" id="checkout-name" value="Nguyễn Văn An" required class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold uppercase text-neutral-700 mb-1">Số Điện Thoại *</label>
-                <input type="tel" id="checkout-phone" value="0988776655" required class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold uppercase text-neutral-700 mb-1">Địa Chỉ Nhận Hàng *</label>
-                <input type="text" id="checkout-address" value="88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh" required class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold uppercase text-neutral-700 mb-1">Ghi Chú Giao Hàng</label>
-                <input type="text" id="checkout-note" placeholder="Giao giờ hành chính, gọi trước khi giao..." class="w-full bg-neutral-50 border border-neutral-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
-              </div>
-              <div>
-                <label class="block text-xs font-semibold uppercase text-neutral-700 mb-2">Phương Thức Thanh Toán</label>
-                <div class="space-y-2 text-xs">
-                  <label class="flex items-center gap-2 p-2.5 border border-neutral-900 rounded bg-neutral-50 cursor-pointer">
-                    <input type="radio" name="payment-method" value="COD" checked class="text-neutral-900">
-                    <span class="font-medium text-neutral-900">COD - Thanh toán tiền mặt khi nhận hàng</span>
-                  </label>
-                  <label class="flex items-center gap-2 p-2.5 border border-neutral-200 rounded hover:bg-neutral-50 cursor-pointer">
-                    <input type="radio" name="payment-method" value="BANK" class="text-neutral-900">
-                    <span class="text-neutral-700">Chuyển khoản QR Bank (VietQR)</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Summary on right -->
-            <div class="bg-neutral-50 p-5 rounded-xl border border-neutral-200 flex flex-col justify-between">
-              <div>
-                <span class="text-xs font-semibold uppercase tracking-wider text-neutral-700 block mb-3">Tóm Tắt Đơn Hàng</span>
-                <div id="checkout-items-summary" class="max-h-48 overflow-y-auto mb-4">
-                  <!-- Rendered by JS -->
-                </div>
-                <div id="checkout-total-display">
-                  <!-- Rendered by JS -->
-                </div>
-              </div>
-              <button type="submit" class="w-full mt-4 py-3.5 bg-neutral-950 text-white text-xs font-semibold tracking-widest uppercase hover:bg-amber-400 hover:text-black transition-all rounded shadow-lg">
-                Xác Nhận Đặt Hàng
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Wishlist Modal -->
-      <div id="wishlist-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl relative border border-neutral-200 animate-fade-in">
-          <button onclick="BeeCore.closeWishlistModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-black">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-          <div class="flex items-center gap-2 mb-6 border-b border-neutral-200 pb-3">
-            <i data-lucide="heart" class="w-5 h-5 text-rose-600 fill-rose-600"></i>
-            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Danh Sách Yêu Thích</h3>
-          </div>
-          <div id="wishlist-items-content">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Order Lookup Modal -->
-      <div id="order-lookup-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-neutral-200 animate-fade-in">
+      <!-- Order & Refund Lookup Modal -->
+      <div id="order-lookup-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl relative border border-neutral-200 animate-fade-in my-8 max-h-[92vh] flex flex-col">
           <button onclick="BeeCore.closeOrderLookup()" class="absolute top-5 right-5 text-neutral-400 hover:text-black">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
+          
           <div class="border-b border-neutral-200 pb-3 mb-4">
-            <span class="text-[10px] tracking-widest uppercase text-neutral-500 font-semibold block">TRA CỨU TRỰC TUYẾN</span>
-            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Kiểm Tra Trạng Thái Đơn Hàng</h3>
+            <span class="text-[10px] tracking-widest uppercase text-neutral-500 font-semibold block">TRUNG TÂM TRA CỨU TRỰC TUYẾN</span>
+            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Theo Dõi Đơn Hàng & Hoàn Tiền</h3>
           </div>
-          <div class="flex gap-2 mb-4">
-            <input type="text" id="order-search-code" placeholder="Nhập mã đơn (vd: BEE-2026-001)" class="bg-neutral-50 border border-neutral-300 rounded px-3 py-2 text-xs flex-grow focus:outline-none focus:border-neutral-900 uppercase">
-            <button onclick="BeeCore.searchOrder()" class="px-4 py-2 bg-neutral-900 text-white rounded text-xs font-semibold uppercase hover:bg-neutral-800">Tra Cứu</button>
+
+          <!-- Tabs: Tra Cứu Vận Chuyển VS Theo Dõi Hoàn Tiền -->
+          <div class="flex border-b border-neutral-200 mb-4 text-xs">
+            <button id="lookup-tab-btn-order" onclick="BeeCore.switchLookupTab('order')" class="flex-1 pb-3 text-center border-b-2 border-neutral-900 text-neutral-900 font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+              <i data-lucide="truck" class="w-4 h-4"></i>
+              <span>Vận Chuyển Đơn Hàng</span>
+            </button>
+            <button id="lookup-tab-btn-refund" onclick="BeeCore.switchLookupTab('refund')" class="flex-1 pb-3 text-center border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 font-medium uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Tiến Trình Hoàn Tiền (RMA)</span>
+            </button>
           </div>
-          <div id="order-lookup-result">
-            <!-- Rendered by JS -->
+
+          <!-- Pane 1: Order Tracking -->
+          <div id="lookup-tab-pane-order" class="space-y-4 overflow-y-auto pr-1">
+            <div class="flex gap-2">
+              <input type="text" id="order-search-code" placeholder="Nhập mã đơn hàng (vd: BEE-2026-001)" class="bg-neutral-50 border border-neutral-300 rounded px-3 py-2 text-xs flex-grow focus:outline-none focus:border-neutral-900 uppercase font-mono">
+              <button onclick="BeeCore.searchOrder()" class="px-4 py-2 bg-neutral-900 text-white rounded text-xs font-semibold uppercase hover:bg-neutral-800 flex items-center gap-1">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i> Tra Cứu
+              </button>
+            </div>
+            <div id="order-lookup-result">
+              <p class="text-xs text-neutral-400 text-center py-8">Nhập mã đơn hàng của bạn để kiểm tra lộ trình giao vận.</p>
+            </div>
+          </div>
+
+          <!-- Pane 2: Refund / Return Tracking -->
+          <div id="lookup-tab-pane-refund" class="space-y-4 hidden overflow-y-auto pr-1">
+            <div class="flex gap-2">
+              <input type="text" id="refund-search-code" placeholder="Nhập mã hoàn tiền (vd: REF-2026-08101) hoặc mã đơn..." class="bg-neutral-50 border border-neutral-300 rounded px-3 py-2 text-xs flex-grow focus:outline-none focus:border-neutral-900 uppercase font-mono">
+              <button onclick="BeeCore.searchRefund()" class="px-4 py-2 bg-amber-600 text-white rounded text-xs font-semibold uppercase hover:bg-amber-700 flex items-center gap-1">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i> Kiểm Tra
+              </button>
+            </div>
+            <div id="refund-lookup-result">
+              <p class="text-xs text-neutral-400 text-center py-8">Nhập mã yêu cầu đổi trả (REF-...) hoặc mã đơn để theo dõi tiến độ thẩm định video unbox và hoàn tiền ngân hàng.</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Refund Modal -->
-      <div id="refund-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-neutral-200 animate-fade-in">
+      <!-- Refund / Return Request Modal with Video & Photo Unbox Proofs -->
+      <div id="refund-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-neutral-200 animate-fade-in my-8 max-h-[92vh] flex flex-col">
           <button onclick="BeeCore.closeRefundModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-black">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
+          
           <div class="border-b border-neutral-200 pb-3 mb-4">
-            <span class="text-[10px] tracking-widest uppercase text-neutral-500 font-semibold block">CHÍNH SÁCH ATELIER</span>
+            <span class="text-[10px] tracking-widest uppercase text-amber-700 font-bold block">CHÍNH SÁCH ĐỔI TRẢ ATELIER 30 NGÀY</span>
             <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Yêu Cầu Đổi Trả / Hoàn Tiền</h3>
+            <p class="text-xs text-neutral-500 mt-1">Yêu cầu cần cung cấp hình ảnh & video unbox mở hộp để shop đối soát nhanh nhất.</p>
           </div>
-          <form onsubmit="BeeCore.submitRefund(event)" class="space-y-3 text-xs">
+
+          <form onsubmit="BeeCore.submitRefund(event)" class="space-y-3.5 text-xs overflow-y-auto pr-1">
+            <!-- Order selection -->
             <div>
-              <label class="block font-semibold uppercase text-neutral-700 mb-1">Mã Đơn Hàng *</label>
-              <input type="text" id="refund-order-code" value="BEE-2026-001" required class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2 uppercase">
-            </div>
-            <div>
-              <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Đổi Trả / Hoàn Tiền *</label>
-              <select id="refund-reason" class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2">
-                <option>Muốn đổi sang size khác (Rộng/Chật)</option>
-                <option>Muốn đổi sang màu sắc khác</option>
-                <option>Sản phẩm không vừa ý muốn hoàn tiền</option>
-                <option>Lỗi sản phẩm từ nhà sản xuất</option>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1">Chọn Đơn Hàng Hoàn Trả *</label>
+              <select id="refund-order-select" class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2 text-xs focus:outline-none focus:border-neutral-900 font-medium">
+                <!-- Populated dynamically by openRefundModal() -->
               </select>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1">Ngân Hàng Thụ Hưởng</label>
-                <input type="text" id="refund-bank-name" value="Vietcombank" class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2">
+
+            <!-- Return Reason -->
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Đổi Trả / Hoàn Tiền *</label>
+              <select id="refund-reason" class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
+                <option value="Đổi size do mặc rộng/chật">Đổi kích cỡ (Size) do mặc không vừa</option>
+                <option value="Đổi sang màu sắc khác">Muốn đổi sang màu sắc / phiên bản khác</option>
+                <option value="Sản phẩm lỗi đường may/chất vải">Lỗi sản xuất (Lỗi vải, đường may, phụ kiện)</option>
+                <option value="Giao sai mẫu/sai sản phẩm">Giao sai sản phẩm so với đơn đặt</option>
+                <option value="Hoàn tiền trả hàng nguyên vẹn">Không ưng ý, muốn trả hàng và hoàn tiền 100%</option>
+              </select>
+            </div>
+
+            <!-- Notes -->
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1">Mô Tả Chi Tiết Vấn Đề</label>
+              <textarea id="refund-notes" rows="2" placeholder="Ghi chú chi tiết về tình trạng sản phẩm, yêu cầu đổi size mong muốn..." class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"></textarea>
+            </div>
+
+            <!-- REQUIRED PHOTO PROOFS -->
+            <div class="p-3 bg-amber-50/70 rounded-xl border border-amber-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
+                  <i data-lucide="camera" class="w-4 h-4 text-amber-700"></i>
+                  <span>1. Hình Ảnh Sản Phẩm / Tem Mác <span class="text-rose-600">* (Bắt buộc)</span></span>
+                </label>
+                <span class="text-[10px] text-amber-800 font-semibold">Tối thiểu 1 ảnh</span>
               </div>
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1">Số Tài Khoản</label>
-                <input type="text" id="refund-bank-account" value="0071001234567" class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2">
+              <input type="file" id="refund-images-input" accept="image/*" multiple onchange="BeeCore.handleRefundImagesSelect(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-neutral-800 cursor-pointer">
+              <div id="refund-images-preview" class="flex gap-2 overflow-x-auto py-1 empty:hidden"></div>
+            </div>
+
+            <!-- REQUIRED VIDEO UNBOX PROOF -->
+            <div class="p-3 bg-rose-50/70 rounded-xl border border-rose-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
+                  <i data-lucide="video" class="w-4 h-4 text-rose-700"></i>
+                  <span>2. Video Clip Unbox Mở Hộp <span class="text-rose-600">* (Bắt buộc)</span></span>
+                </label>
+                <span class="text-[10px] text-rose-800 font-semibold">Định dạng MP4/MOV</span>
+              </div>
+              <p class="text-[11px] text-neutral-500 leading-tight">Clip quay liền mạch từ lúc nguyên bao bì niêm phong đến khi kiểm tra sản phẩm để bảo vệ 100% quyền lợi hoàn tiền.</p>
+              
+              <input type="file" id="refund-video-input" accept="video/*" onchange="BeeCore.handleRefundVideoSelect(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-rose-900 file:text-white hover:file:bg-rose-800 cursor-pointer">
+              
+              <!-- Video Player Preview -->
+              <div id="refund-video-preview-box" class="hidden bg-black/90 p-2 rounded-lg relative space-y-1">
+                <div class="flex items-center justify-between text-white text-[11px] px-1">
+                  <span id="refund-video-filename" class="truncate max-w-[240px] font-mono">video.mp4</span>
+                  <button type="button" onclick="BeeCore.removeRefundVideo()" class="text-rose-400 hover:text-white font-bold text-xs">Xóa clip ✕</button>
+                </div>
+                <video id="refund-video-player" controls class="w-full max-h-40 rounded object-contain bg-black"></video>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1">Tên Chủ Tài Khoản</label>
-                <input type="text" id="refund-user-bank-name" value="NGUYEN VAN AN" class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2 uppercase">
+
+            <!-- Bank Refund Details -->
+            <div class="pt-2 border-t border-neutral-200">
+              <span class="font-semibold uppercase text-neutral-700 block mb-2 text-xs">Thông Tin Tài Khoản Nhận Tiền Hoàn *</span>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-medium text-neutral-600 mb-0.5">Tên Ngân Hàng</label>
+                  <input type="text" id="refund-bank-name" value="Vietcombank" required class="w-full bg-neutral-50 border border-neutral-300 rounded px-2.5 py-1.5 text-xs">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-medium text-neutral-600 mb-0.5">Số Tài Khoản</label>
+                  <input type="text" id="refund-bank-account" value="0071001234567" required class="w-full bg-neutral-50 border border-neutral-300 rounded px-2.5 py-1.5 text-xs font-mono">
+                </div>
               </div>
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1">Số Điện Thoại</label>
-                <input type="text" id="refund-phone" value="0988776655" class="w-full bg-neutral-50 border border-neutral-300 rounded px-3 py-2">
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <label class="block text-[11px] font-medium text-neutral-600 mb-0.5">Tên Chủ Tài Khoản</label>
+                  <input type="text" id="refund-user-bank-name" value="NGUYEN VAN AN" required class="w-full bg-neutral-50 border border-neutral-300 rounded px-2.5 py-1.5 text-xs uppercase">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-medium text-neutral-600 mb-0.5">Số Điện Thoại</label>
+                  <input type="tel" id="refund-phone" value="0988776655" required class="w-full bg-neutral-50 border border-neutral-300 rounded px-2.5 py-1.5 text-xs">
+                </div>
               </div>
             </div>
-            <button type="submit" class="w-full py-3 bg-neutral-950 text-white rounded font-semibold uppercase tracking-wider hover:bg-neutral-800 transition-colors">
-              Gửi Yêu Cầu Hoàn Hàng / Hoàn Tiền
+
+            <button type="submit" class="w-full py-3 bg-neutral-950 text-white rounded font-semibold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-lg flex items-center justify-center gap-2 mt-2">
+              <i data-lucide="check-circle" class="w-4 h-4 text-amber-400"></i>
+              <span>Gửi Yêu Cầu Hoàn Tiền (Kèm Video & Ảnh)</span>
             </button>
           </form>
         </div>
@@ -1743,9 +2516,9 @@ window.BeeCore = {
         </div>
       </div>
 
-      <!-- Customer Profile & Security Modal -->
+      <!-- Customer Profile & Security Modal (With 5 Tabs including Refunds) -->
       <div id="profile-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-3xl w-full p-6 md:p-8 shadow-2xl relative border border-neutral-200 animate-fade-in max-h-[92vh] flex flex-col">
+        <div class="bg-white rounded-2xl max-w-4xl w-full p-6 md:p-8 shadow-2xl relative border border-neutral-200 animate-fade-in max-h-[92vh] flex flex-col">
           <button onclick="BeeCore.closeProfileModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-black transition-colors z-10">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
@@ -1790,6 +2563,11 @@ window.BeeCore = {
                   <span>Đơn Hàng Của Tôi</span>
                 </button>
 
+                <button id="profile-tab-btn-refunds" onclick="BeeCore.switchProfileTab('refunds')" class="w-full text-left px-4 py-3 rounded-lg text-neutral-600 hover:bg-neutral-100 font-medium text-xs flex items-center gap-2.5 transition-all">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                  <span>Đổi Trả & Hoàn Tiền (RMA)</span>
+                </button>
+
                 <button id="profile-tab-btn-address" onclick="BeeCore.switchProfileTab('address')" class="w-full text-left px-4 py-3 rounded-lg text-neutral-600 hover:bg-neutral-100 font-medium text-xs flex items-center gap-2.5 transition-all">
                   <i data-lucide="map-pin" class="w-4 h-4"></i>
                   <span>Sổ Địa Chỉ & Ngân Hàng</span>
@@ -1800,11 +2578,11 @@ window.BeeCore = {
               <div class="hidden md:block p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-neutral-600 space-y-1">
                 <div class="flex items-center gap-1.5 font-bold text-neutral-900 text-xs">
                   <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i>
-                  <span>Đặc Quyền Hội Viên</span>
+                  <span>Chính Sách Khách Hàng</span>
                 </div>
-                <p>• Chiết khấu 15% trọn đời mọi đơn hàng</p>
-                <p>• Freeship hỏa tốc toàn quốc</p>
-                <p>• May đo chỉnh phom dáng miễn phí</p>
+                <p>• Đổi trả 30 ngày tận nhà</p>
+                <p>• Bắt buộc video unbox bảo vệ quyền lợi</p>
+                <p>• Hoàn tiền trong 24h sau khi duyệt</p>
               </div>
             </div>
 
@@ -1919,10 +2697,10 @@ window.BeeCore = {
                 <div class="border-b border-neutral-100 pb-2 flex justify-between items-center">
                   <div>
                     <h4 class="font-serif-luxury text-lg font-bold text-neutral-900">Đơn Hàng Của Bạn</h4>
-                    <p class="text-xs text-neutral-500">Lịch sử và trạng thái vận chuyển các sản phẩm may đo.</p>
+                    <p class="text-xs text-neutral-500">Lịch sử đơn hàng và quyền viết đánh giá cho các sản phẩm đã nhận.</p>
                   </div>
-                  <button onclick="BeeCore.closeProfileModal(); BeeCore.openOrderLookup()" class="text-xs text-amber-700 hover:underline font-semibold flex items-center gap-1">
-                    <i data-lucide="search" class="w-3.5 h-3.5"></i> Tra cứu mã đơn khác
+                  <button onclick="BeeCore.closeProfileModal(); BeeCore.openOrderLookup('order')" class="text-xs text-amber-700 hover:underline font-semibold flex items-center gap-1">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i> Tra cứu mã khác
                   </button>
                 </div>
 
@@ -1931,7 +2709,24 @@ window.BeeCore = {
                 </div>
               </div>
 
-              <!-- Tab 4: Address & Bank Account -->
+              <!-- Tab 4: Refund History -->
+              <div id="profile-tab-pane-refunds" class="space-y-4 hidden">
+                <div class="border-b border-neutral-100 pb-2 flex justify-between items-center">
+                  <div>
+                    <h4 class="font-serif-luxury text-lg font-bold text-neutral-900">Yêu Cầu Đổi Trả & Hoàn Tiền (RMA)</h4>
+                    <p class="text-xs text-neutral-500">Theo dõi quá trình thẩm định video unbox và giải ngân hoàn tiền vào STK.</p>
+                  </div>
+                  <button onclick="BeeCore.closeProfileModal(); BeeCore.openRefundModal()" class="px-3 py-1.5 bg-amber-600 text-white rounded text-xs font-semibold hover:bg-amber-700 flex items-center gap-1 shadow-sm">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tạo Yêu Cầu Mới
+                  </button>
+                </div>
+
+                <div id="profile-refunds-list" class="space-y-3">
+                  <!-- Rendered dynamically by BeeCore.renderProfileRefunds() -->
+                </div>
+              </div>
+
+              <!-- Tab 5: Address & Bank Account -->
               <div id="profile-tab-pane-address" class="space-y-4 hidden">
                 <div class="border-b border-neutral-100 pb-2">
                   <h4 class="font-serif-luxury text-lg font-bold text-neutral-900">Sổ Địa Chỉ & Tài Khoản Ngân Hàng</h4>
