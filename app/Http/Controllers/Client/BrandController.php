@@ -56,6 +56,9 @@ class BrandController extends Controller
                 case 'popular':
                     $query->orderBy('sold_count', 'desc');
                     break;
+                case 'views_desc':
+                    $query->orderBy('views', 'desc');
+                    break;
                 case 'rating':
                     $query->orderBy('rating', 'desc');
                     break;

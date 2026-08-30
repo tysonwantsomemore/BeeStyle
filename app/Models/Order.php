@@ -30,6 +30,9 @@ class Order extends Model
         'coupon_code',
         'admin_notes',
         'review_notified',
+        'cancel_reason',
+        'cancelled_by',
+        'cancelled_at',
     ];
 
     protected $casts = [
@@ -39,8 +42,8 @@ class Order extends Model
         'shipping_fee' => 'integer',
         'total_amount' => 'integer',
         'review_notified' => 'boolean',
+        'cancelled_at' => 'datetime',
     ];
-
 
     public function user()
     {
@@ -52,36 +55,8 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function getStatusLabelAttribute(): string
+    public function reviews()
     {
-        return match ($this->shipping_status) {
-            'pending' => 'Chờ xác nhận',
-            'confirmed' => 'Đã xác nhận',
-            'processing' => 'Đang đóng gói',
-            'shipping' => 'Đang giao hàng',
-            'delivered' => 'Đã giao hàng',
-            'completed' => 'Hoàn tất',
-            'cancelled' => 'Đã hủy',
-            default => 'Đang xử lý',
-        };
-    }
-
-    public function getPaymentStatusLabelAttribute(): string
-    {
-        return match ($this->payment_status) {
-            'paid' => 'Đã thanh toán',
-            'refunded' => 'Đã hoàn tiền',
-            default => 'Chưa thanh toán',
-        };
-    }
-
-    public function getPaymentMethodNameAttribute(): string
-    {
-        return match ($this->payment_method) {
-            'vietqr' => 'Chuyển khoản VietQR',
-            'momo' => 'Ví điện tử MoMo',
-            'vnpay' => 'Cổng VNPAY',
-            default => 'Thanh toán khi nhận hàng (COD)',
-        };
+        return $this->hasMany(Review::class);
     }
 }

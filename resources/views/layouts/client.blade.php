@@ -372,6 +372,8 @@
 
 
 
+
+
           <!-- Mobile Toggle Button -->
           <button class="navbar-toggler d-lg-none bee-icon-btn ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#beeMainNav">
             <i class="fa-solid fa-bars"></i>
@@ -523,13 +525,26 @@
             <button class="btn btn-bee-accent btn-sm px-3" type="button">ĐĂNG KÝ</button>
           </div>
           <div class="mt-3">
-            <p class="small text-secondary mb-1">Phương thức thanh toán bảo mật:</p>
-            <div class="d-flex gap-2 flex-wrap text-white-50 fs-4">
-              <i class="fa-brands fa-cc-visa text-white"></i>
-              <i class="fa-brands fa-cc-mastercard text-white"></i>
-              <i class="fa-solid fa-qrcode text-warning" title="VietQR"></i>
-              <i class="fa-solid fa-wallet text-info" title="Ví MoMo/VNPAY"></i>
-              <i class="fa-solid fa-hand-holding-dollar text-success" title="COD"></i>
+            <p class="small text-secondary mb-2 fw-semibold">Phương thức thanh toán bảo mật:</p>
+            <div class="d-flex gap-2 flex-wrap text-white-50 fs-4 align-items-center">
+              <i class="fa-brands fa-cc-visa text-white" title="Visa"></i>
+              <i class="fa-brands fa-cc-mastercard text-white" title="Mastercard"></i>
+              <span class="badge bg-dark border border-warning text-warning fs-11 px-2 py-1"><i class="fa-solid fa-qrcode me-1"></i> VietQR</span>
+              <span class="badge bg-primary text-white fs-11 px-2 py-1">VNPAY-QR</span>
+              <span class="badge bg-danger text-white fs-11 px-2 py-1">MoMo</span>
+              <span class="badge bg-success text-white fs-11 px-2 py-1"><i class="fa-solid fa-money-bill-wave me-1"></i> COD</span>
+            </div>
+          </div>
+
+          <!-- Trust Badges -->
+          <div class="mt-3 pt-2 d-flex align-items-center gap-2">
+            <div class="p-1 px-2 rounded border border-secondary border-opacity-25 bg-black bg-opacity-40 d-inline-flex align-items-center gap-1.5">
+              <i class="fa-solid fa-lock text-success small"></i>
+              <span class="text-white-50" style="font-size: 0.68rem;">SSL 256-BIT SECURE</span>
+            </div>
+            <div class="p-1 px-2 rounded border border-secondary border-opacity-25 bg-black bg-opacity-40 d-inline-flex align-items-center gap-1.5">
+              <i class="fa-solid fa-circle-check text-warning small"></i>
+              <span class="text-white-50" style="font-size: 0.68rem;">ĐÃ THÔNG BÁO BỘ CÔNG THƯƠNG</span>
             </div>
           </div>
         </div>
@@ -539,12 +554,14 @@
         <div class="text-secondary">
           &copy; {{ date('Y') }} <strong>BEESTYLE MENSWEAR</strong> - Always Be Casual. All Rights Reserved.
         </div>
-        <div class="d-flex gap-3 text-secondary small">
-          <a href="#">Điều khoản sử dụng</a>
+        <div class="d-flex gap-3 text-secondary small flex-wrap">
+          <a href="#" class="text-secondary text-decoration-none hover-warning">Điều khoản sử dụng</a>
           <span>•</span>
           <a href="#">Chính sách giao hàng</a>
           <span>•</span>
-          <a href="#">Hotline: 1900 8888</a>
+          <a href="#" class="text-secondary text-decoration-none hover-warning">Hệ thống phân phối</a>
+          <span>•</span>
+          <a href="tel:19008888" class="text-warning fw-bold text-decoration-none"><i class="fa-solid fa-phone me-1"></i> 1900 8888</a>
         </div>
       </div>
     </div>
@@ -765,6 +782,7 @@
   <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
   <script src="{{ asset('vendors/swiper/swiper-bundle.min.js') }}"></script>
   <script src="{{ asset('vendors/feather-icons/feather.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     if (typeof feather !== 'undefined') {
       feather.replace();
@@ -1631,6 +1649,8 @@
     // Hàm render dữ liệu vào Modal với giao diện cao cấp
     function renderQvmProductData(data) {
       document.getElementById('qvmCategoryName').textContent = data.category_name || 'Thời trang nam';
+      document.getElementById('qvmBrandText').textContent = data.brand_name || 'BeeStyle Signature';
+      document.getElementById('qvmSkuText').textContent = `SKU: ${data.sku || ('BS-' + data.id)}`;
       document.getElementById('qvmProductName').textContent = data.name || 'Sản phẩm';
       document.getElementById('qvmProductPrice').textContent = data.price_formatted || '0₫';
       if (data.image) document.getElementById('qvmProductImage').src = data.image;
@@ -1797,15 +1817,7 @@
     function submitQvmAction(isBuyNow) {
       if (!currentQvmProduct) return;
 
-      // Kiểm tra xem khách đã chọn màu và size chưa
-      if (!selectedColor || !selectedSize) {
-        document.getElementById('qvmValidationAlert').style.display = 'block';
-        return;
-      }
-
-      const quantity = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
-      const payload = {
-        product_id: currentQvmProduct.id,
+        variant_id: selectedVariantId,
         color: selectedColor,
         size: selectedSize,
         quantity: quantity,

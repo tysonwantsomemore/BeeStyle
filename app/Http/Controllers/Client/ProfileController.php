@@ -24,7 +24,8 @@ class ProfileController extends Controller
             return redirect()->route('auth.login')->with('error', 'Vui lòng đăng nhập để xem thông tin tài khoản!');
         }
 
-        $orders = Order::with('items')->where('user_id', $user->id)->latest()->get();
+        $orders = Order::with(['items.product', 'returns'])->where('user_id', $user->id)->latest()->get();
+        $returns = \App\Models\OrderReturn::with(['order.items.product'])->where('user_id', $user->id)->latest()->get();
         $addresses = UserAddress::where('user_id', $user->id)->orderBy('is_default', 'desc')->latest()->get();
         $pendingReviewItems = method_exists($user, 'getPendingReviewItems') ? $user->getPendingReviewItems() : collect();
 

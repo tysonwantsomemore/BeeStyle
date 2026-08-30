@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Thanh toán đơn hàng thời trang may đo cao cấp Beestyle Atelier. Bảo mật 100%, đổi trả tận nhà trong 30 ngày.">
+  <title>Thanh Toán Đơn Hàng — BEESTYLE Studio</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./v1.24.0/assets/img/favicons/favicon-32x32.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Libre Franklin"', 'sans-serif'],
+            serif: ['"Cormorant Garamond"', 'serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#faf8f5',
+              100: '#f5f0e8',
+              200: '#e8dcce',
+              300: '#d7c2ad',
+              400: '#c3a388',
+              500: '#b48c6f',
+              600: '#a3775f',
+              700: '#875f4d',
+              800: '#6f4e41',
+              900: '#1c1917',
+              950: '#0c0a09'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-serif-luxury {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+  </style>
+</head>
+
+<body class="bg-brand-50 text-neutral-900 selection:bg-neutral-900 selection:text-white flex flex-col min-h-screen">
+
+  <!-- Simple Luxury Checkout Header -->
+  <header class="w-full bg-white border-b border-neutral-200/90 py-5 px-6 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      
+      <!-- Back Link -->
+      <a href="shop.html" class="flex items-center gap-2 text-xs uppercase tracking-widest text-neutral-600 hover:text-black transition-colors font-medium">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span class="hidden sm:inline">Tiếp tục chọn đồ</span>
+      </a>
+
+      <!-- Center Logo -->
+      <div class="text-center">
+        <a href="1.html" class="inline-block group">
+          <span class="font-serif-luxury text-2xl md:text-3xl font-bold tracking-[0.25em] text-neutral-900 uppercase">
+            BEESTYLE
+          </span>
+          <span class="block text-[8px] tracking-[0.4em] text-neutral-500 uppercase -mt-1 font-sans">
+            SECURE CHECKOUT
+          </span>
+        </a>
+      </div>
+
+      <!-- Trust Badge -->
+      <div class="flex items-center gap-1.5 text-xs text-neutral-500">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+        <span class="hidden sm:inline text-[11px] font-medium text-neutral-700">Bảo mật SSL 256-bit</span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CHECKOUT CONTENT -->
+  <!-- ========================================================================= -->
+  <main class="w-full flex-grow py-10 px-6 max-w-6xl mx-auto">
+    
+    <!-- Breadcrumb Steps -->
+    <div class="flex items-center justify-center gap-4 text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-10 pb-4 border-b border-neutral-200">
+      <span class="text-neutral-900 flex items-center gap-1">
+        <span class="w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center text-[10px]">1</span>
+        Túi Hàng
+      </span>
+      <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neutral-300"></i>
+      <span class="text-neutral-900 font-bold flex items-center gap-1">
+        <span class="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[10px]">2</span>
+        Thông Tin & Thanh Toán
+      </span>
+      <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neutral-300"></i>
+      <span class="flex items-center gap-1">
+        <span class="w-5 h-5 rounded-full bg-neutral-200 text-neutral-600 flex items-center justify-center text-[10px]">3</span>
+        Hoàn Tất
+      </span>
+    </div>
+
+    <!-- Empty Cart Warning (if any) -->
+    <div id="checkout-empty-view" class="hidden bg-white p-12 rounded-2xl border border-neutral-200 text-center max-w-md mx-auto shadow-sm">
+      <i data-lucide="shopping-bag" class="w-16 h-16 mx-auto mb-4 text-neutral-300 stroke-1"></i>
+      <h2 class="font-serif-luxury text-2xl text-neutral-900 mb-2">Túi mua hàng của bạn đang trống</h2>
+      <p class="text-xs text-neutral-500 font-light mb-6">Hãy thêm những tác phẩm thời trang ưng ý từ bộ sưu tập trước khi thanh toán.</p>
+      <a href="shop.html" class="inline-block px-8 py-3.5 bg-neutral-950 text-white text-xs font-semibold tracking-widest uppercase rounded hover:bg-neutral-800 transition-colors">
+        Xem Danh Mục Sản Phẩm
+      </a>
+    </div>
+
+    <!-- Main 2-Column Checkout Form -->
+    <div id="checkout-main-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      
+      <!-- Left Column: Delivery, Shipping & Payment (7 cols) -->
+      <div class="lg:col-span-7 space-y-8">
+        
+        <form id="checkout-form" onsubmit="CheckoutPage.submitOrder(event)" class="space-y-8">
+          
+          <!-- STEP 1: Thông Tin Giao Hàng -->
+          <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+            <div class="flex items-center gap-2 pb-4 mb-6 border-b border-neutral-100">
+              <span class="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">1</span>
+              <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Thông Tin Người Nhận</h3>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Họ và Tên *</label>
+                  <input type="text" id="order-fullname" value="Nguyễn Văn An" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                </div>
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Số Điện Thoại *</label>
+                  <input type="tel" id="order-phone" value="0988776655" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Email Nhận Hóa Đơn *</label>
+                <input type="email" id="order-email" value="customer@beestyle.vn" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Địa Chỉ Giao Hàng Chi Tiết *</label>
+                <input type="text" id="order-address" value="88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ghi Chú Cho Đơn Vị Vận Chuyển</label>
+                <input type="text" id="order-note" placeholder="Ví dụ: Giao giờ hành chính, gọi trước 15 phút khi đến..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: Phương Thức Giao Hàng -->
+          <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+            <div class="flex items-center gap-2 pb-4 mb-6 border-b border-neutral-100">
+              <span class="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">2</span>
+              <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Phương Thức Giao Hàng</h3>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <label class="flex items-center justify-between p-4 border-2 border-neutral-900 bg-neutral-50 rounded-xl cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="shipping-method" value="standard" checked class="text-neutral-900 w-4 h-4">
+                  <div>
+                    <strong class="text-neutral-900 block font-semibold">Giao Hàng Tiêu Chuẩn (24h - 48h)</strong>
+                    <span class="text-neutral-500 text-[11px]">Đơn vị vận chuyển Giao Hàng Nhanh Express</span>
+                  </div>
+                </div>
+                <span class="font-semibold text-emerald-700" id="shipping-display-fee">FREESHIP</span>
+              </label>
+
+              <label class="flex items-center justify-between p-4 border border-neutral-200 rounded-xl hover:bg-neutral-50 cursor-pointer transition-colors">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="shipping-method" value="express" class="text-neutral-900 w-4 h-4">
+                  <div>
+                    <strong class="text-neutral-900 block font-semibold">Giao Hỏa Tốc Trong Ngày (2h - 4h)</strong>
+                    <span class="text-neutral-500 text-[11px]">Áp dụng nội thành TP.HCM & Hà Nội</span>
+                  </div>
+                </div>
+                <span class="font-serif-luxury font-bold text-neutral-900">45.000₫</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 3: Phương Thức Thanh Toán -->
+          <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+            <div class="flex items-center gap-2 pb-4 mb-6 border-b border-neutral-100">
+              <span class="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">3</span>
+              <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Phương Thức Thanh Toán</h3>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              
+              <!-- Option 1: COD -->
+              <label class="flex items-center justify-between p-4 border border-neutral-900 bg-brand-50 rounded-xl cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="payment-method" value="COD" checked class="text-neutral-900 w-4 h-4">
+                  <div>
+                    <strong class="text-neutral-900 block font-semibold flex items-center gap-2">
+                      <i data-lucide="banknote" class="w-4 h-4 text-neutral-800"></i>
+                      Thanh Toán Tiền Mặt Khi Nhận Hàng (COD)
+                    </strong>
+                    <span class="text-neutral-500 text-[11px]">Kiểm tra sản phẩm & đường may trước khi thanh toán</span>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Option 2: VietQR Bank -->
+              <label class="flex items-center justify-between p-4 border border-neutral-200 rounded-xl hover:bg-neutral-50 cursor-pointer transition-colors">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="payment-method" value="BANK" class="text-neutral-900 w-4 h-4">
+                  <div>
+                    <strong class="text-neutral-900 block font-semibold flex items-center gap-2">
+                      <i data-lucide="qr-code" class="w-4 h-4 text-neutral-800"></i>
+                      Chuyển Khoản QR Bank Tự Động (VietQR)
+                    </strong>
+                    <span class="text-neutral-500 text-[11px]">Hỗ trợ mọi app ngân hàng Vietcombank, Techcombank, MB, ACB 24/7</span>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Option 3: MoMo -->
+              <label class="flex items-center justify-between p-4 border border-neutral-200 rounded-xl hover:bg-neutral-50 cursor-pointer transition-colors">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="payment-method" value="MOMO" class="text-neutral-900 w-4 h-4">
+                  <div>
+                    <strong class="text-neutral-900 block font-semibold flex items-center gap-2">
+                      <i data-lucide="wallet" class="w-4 h-4 text-neutral-800"></i>
+                      Ví Điện Tử MoMo / VNPay
+                    </strong>
+                    <span class="text-neutral-500 text-[11px]">Quét mã ví điện tử an toàn một chạm</span>
+                  </div>
+                </div>
+              </label>
+
+            </div>
+          </div>
+
+          <!-- Submit Order Button -->
+          <button type="submit" class="w-full py-4 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-bold tracking-[0.25em] uppercase rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+            <span>Hoàn Tất Đặt Hàng & Thanh Toán</span>
+          </button>
+
+        </form>
+
+      </div>
+
+      <!-- Right Column: Order Summary (5 cols) -->
+      <div class="lg:col-span-5">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm sticky top-28">
+          
+          <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Đơn Hàng Của Bạn</h3>
+            <span id="summary-items-count" class="text-xs text-neutral-500 font-medium">0 sản phẩm</span>
+          </div>
+
+          <!-- Items List -->
+          <div id="checkout-items-list" class="space-y-4 max-h-[340px] overflow-y-auto pr-1 mb-6 divide-y divide-neutral-100">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Coupon Code Input -->
+          <div class="pt-4 border-t border-neutral-200 mb-6">
+            <span class="text-[11px] uppercase tracking-wider font-semibold text-neutral-700 block mb-2">Mã Ưu Đãi / Coupon</span>
+            <div class="flex gap-2">
+              <input type="text" id="checkout-coupon-input" placeholder="BEESTYLE15..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2 text-xs uppercase focus:outline-none focus:border-neutral-900">
+              <button onclick="CheckoutPage.applyCoupon()" class="px-4 py-2 bg-neutral-900 text-white text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-neutral-800 shrink-0">
+                Áp Dụng
+              </button>
+            </div>
+            <p class="text-[10px] text-neutral-400 mt-1.5">Gợi ý: Nhập <strong>BEESTYLE15</strong> (giảm 15%) hoặc <strong>BEESTYLE50</strong> (giảm 50k).</p>
+          </div>
+
+          <!-- Price Calculation Breakdown -->
+          <div class="space-y-3 text-xs text-neutral-600 pt-4 border-t border-neutral-200">
+            <div class="flex justify-between">
+              <span>Tạm tính tiền hàng:</span>
+              <span id="summary-subtotal" class="font-medium text-neutral-900">0₫</span>
+            </div>
+
+            <div id="summary-discount-row" class="flex justify-between text-emerald-700 hidden">
+              <span class="flex items-center gap-1">
+                Giảm giá (<span id="summary-coupon-code"></span>):
+                <button onclick="CheckoutPage.removeCoupon()" class="text-neutral-400 hover:text-rose-600">×</button>
+              </span>
+              <span id="summary-discount" class="font-medium">-0₫</span>
+            </div>
+
+            <div class="flex justify-between">
+              <span>Phí vận chuyển:</span>
+              <span id="summary-shipping" class="font-medium text-emerald-600">Miễn phí</span>
+            </div>
+
+            <div class="flex justify-between items-baseline pt-4 border-t border-neutral-200 text-neutral-900">
+              <span class="font-bold text-sm">Tổng thanh toán:</span>
+              <span id="summary-total" class="font-serif-luxury text-2xl font-bold text-amber-950">0₫</span>
+            </div>
+          </div>
+
+          <!-- Guarantees -->
+          <div class="mt-6 pt-4 border-t border-neutral-100 space-y-2 text-[11px] text-neutral-500">
+            <div class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Kiểm tra hàng trước khi nhận</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Miễn phí đổi kích cỡ trong 30 ngày</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Cam kết 100% lụa & len may đo chính hãng</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- ONLINE QR PAYMENT MODAL (VietQR / MoMo) -->
+  <!-- ========================================================================= -->
+  <div id="qr-payment-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 md:p-8 shadow-2xl relative border border-neutral-200 animate-fade-in max-h-[95vh] overflow-y-auto">
+      
+      <!-- Close / Back Button -->
+      <button onclick="CheckoutPage.closeQrModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-black p-1 rounded-full hover:bg-neutral-100 transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-4 mb-6">
+        <div>
+          <span class="text-[10px] tracking-[0.3em] uppercase text-amber-800 font-bold block" id="qr-modal-tag">VIETQR NAPAS 247</span>
+          <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900" id="qr-modal-title">Quét Mã QR Để Thanh Toán</h3>
+        </div>
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-amber-800 text-xs font-semibold">
+          <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+          <span id="qr-countdown">15:00</span>
+        </div>
+      </div>
+
+      <!-- Main QR & Transfer Information Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        
+        <!-- Left: QR Code Card (5 cols) -->
+        <div class="md:col-span-5 flex flex-col items-center justify-center p-4 bg-neutral-50 rounded-xl border border-neutral-200 text-center">
+          <div class="relative w-52 h-52 bg-white p-2 rounded-xl shadow-md border border-neutral-200 overflow-hidden group">
+            <img id="qr-code-img" src="" alt="Mã QR Thanh Toán" class="w-full h-full object-contain">
+            
+            <!-- Scanning Laser Line Animation -->
+            <div class="absolute inset-x-0 h-0.5 bg-rose-500/80 shadow-[0_0_8px_rgba(244,63,94,0.9)] animate-scan pointer-events-none"></div>
+          </div>
+
+          <p class="text-[11px] text-neutral-500 mt-3 flex items-center gap-1">
+            <i data-lucide="smartphone" class="w-3.5 h-3.5 text-neutral-700"></i>
+            Mở App Ngân Hàng / Ví để quét
+          </p>
+          <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded mt-1">Tự động điền số tiền & nội dung</span>
+        </div>
+
+        <!-- Right: Transfer Details (7 cols) -->
+        <div class="md:col-span-7 space-y-3 text-xs">
+          
+          <!-- Bank Info Box -->
+          <div class="p-3 bg-neutral-50 rounded-lg border border-neutral-200 flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-neutral-400 uppercase tracking-wider block font-medium">Ngân Hàng Thụ Hưởng</span>
+              <strong class="text-neutral-900 text-sm font-semibold" id="qr-bank-name">Vietcombank (VCB)</strong>
+            </div>
+            <span class="px-2 py-1 bg-neutral-200 text-neutral-800 text-[10px] font-bold rounded">NAPAS 24/7</span>
+          </div>
+
+          <!-- Account Number -->
+          <div class="p-3 bg-neutral-50 rounded-lg border border-neutral-200 flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-neutral-400 uppercase tracking-wider block font-medium">Số Tài Khoản</span>
+              <strong class="text-neutral-950 font-mono text-sm tracking-wider" id="qr-account-number">0071001234567</strong>
+            </div>
+            <button onclick="CheckoutPage.copyText(document.getElementById('qr-account-number').innerText, 'Số tài khoản')" class="px-2.5 py-1 bg-white border border-neutral-300 hover:bg-neutral-900 hover:text-white rounded text-[11px] font-medium transition-colors">
+              Sao chép
+            </button>
+          </div>
+
+          <!-- Account Owner -->
+          <div class="p-3 bg-neutral-50 rounded-lg border border-neutral-200 flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-neutral-400 uppercase tracking-wider block font-medium">Chủ Tài Khoản</span>
+              <strong class="text-neutral-900 font-semibold uppercase" id="qr-account-name">NGUYEN VAN AN</strong>
+            </div>
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+          </div>
+
+          <!-- Exact Amount -->
+          <div class="p-3 bg-amber-50/70 rounded-lg border border-amber-200 flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-amber-800 uppercase tracking-wider block font-medium">Số Tiền Chuyển Khoản</span>
+              <strong class="text-amber-950 font-serif-luxury text-base font-bold" id="qr-amount">0₫</strong>
+            </div>
+            <button onclick="CheckoutPage.copyText(CheckoutPage.pendingOrder?.total_amount || 0, 'Số tiền')" class="px-2.5 py-1 bg-white border border-amber-300 text-amber-900 hover:bg-amber-900 hover:text-white rounded text-[11px] font-medium transition-colors">
+              Sao chép
+            </button>
+          </div>
+
+          <!-- Transfer Code / Note -->
+          <div class="p-3 bg-rose-50/70 rounded-lg border border-rose-200 flex justify-between items-center">
+            <div>
+              <span class="text-[10px] text-rose-800 uppercase tracking-wider block font-medium">Nội Dung Chuyển Khoản (Bắt buộc)</span>
+              <strong class="text-rose-950 font-mono text-sm font-bold tracking-wider" id="qr-order-code">BEE-2026-0000</strong>
+            </div>
+            <button onclick="CheckoutPage.copyText(document.getElementById('qr-order-code').innerText, 'Nội dung chuyển khoản')" class="px-2.5 py-1 bg-white border border-rose-300 text-rose-900 hover:bg-rose-900 hover:text-white rounded text-[11px] font-medium transition-colors">
+              Sao chép
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Action Bottom Buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t border-neutral-200 mt-6">
+        <button onclick="CheckoutPage.confirmQrPayment()" class="flex-grow py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold tracking-wider uppercase rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span>Tôi Đã Chuyển Khoản Thành Công</span>
+        </button>
+        <button onclick="CheckoutPage.closeQrModal()" class="px-6 py-3.5 border border-neutral-300 text-neutral-700 hover:bg-neutral-100 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors">
+          Đổi Phương Thức
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <style>
+    @keyframes scan {
+      0% { top: 4%; }
+      50% { top: 92%; }
+      100% { top: 4%; }
+    }
+    .animate-scan {
+      animation: scan 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+  </style>
+
+  <!-- App Core JS -->
+  <script src="./assets/js/app-core.js"></script>
+
+  <!-- Checkout Page Controller Script -->
+  <script>
+    const CheckoutPage = {
+      pendingOrder: null,
+      countdownInterval: null,
+
+      init: function() {
+        if (!BeeCore.currentUser) {
+          BeeCore.showToast('Vui lòng đăng nhập tài khoản trước khi thanh toán!', 'error');
+          setTimeout(() => BeeCore.openAuthModal('login'), 350);
+        } else {
+          const nameInput = document.getElementById('order-fullname');
+          if (nameInput && BeeCore.currentUser.fullname) nameInput.value = BeeCore.currentUser.fullname;
+          const emailInput = document.getElementById('order-email');
+          if (emailInput && BeeCore.currentUser.email) emailInput.value = BeeCore.currentUser.email;
+          const phoneInput = document.getElementById('order-phone');
+          if (phoneInput && BeeCore.currentUser.phone) phoneInput.value = BeeCore.currentUser.phone;
+        }
+
+        this.renderCheckoutSummary();
+        lucide.createIcons();
+      },
+
+      renderCheckoutSummary: function() {
+        const cart = BeeCore.cart;
+        const mainGrid = document.getElementById('checkout-main-grid');
+        const emptyView = document.getElementById('checkout-empty-view');
+
+        if (cart.length === 0) {
+          if (mainGrid) mainGrid.classList.add('hidden');
+          if (emptyView) emptyView.classList.remove('hidden');
+          return;
+        }
+
+        if (mainGrid) mainGrid.classList.remove('hidden');
+        if (emptyView) emptyView.classList.add('hidden');
+
+        const { subtotal, discount, shipping, total, totalCount } = BeeCore.getCartCalculations();
+
+        // Items count
+        document.getElementById('summary-items-count').innerText = `${totalCount} món`;
+
+        // Render items
+        const listContainer = document.getElementById('checkout-items-list');
+        listContainer.innerHTML = cart.map((item, idx) => `
+          <div class="flex items-center gap-3 pt-3 first:pt-0">
+            <img src="${item.thumbnail}" alt="${item.name}" class="w-14 h-18 object-cover rounded bg-neutral-200 shrink-0">
+            <div class="flex-grow min-w-0">
+              <h4 class="text-xs font-semibold text-neutral-900 truncate">${item.name}</h4>
+              <p class="text-[11px] text-neutral-500">${item.variant_name} × <strong class="text-neutral-800">${item.quantity}</strong></p>
+              <span class="font-serif-luxury text-xs font-bold text-neutral-900">${BeeCore.formatMoney(item.price * item.quantity)}</span>
+            </div>
+          </div>
+        `).join('');
+
+        // Breakdown
+        document.getElementById('summary-subtotal').innerText = BeeCore.formatMoney(subtotal);
+        document.getElementById('summary-shipping').innerText = shipping === 0 ? 'FREESHIP' : BeeCore.formatMoney(shipping);
+        document.getElementById('summary-total').innerText = BeeCore.formatMoney(total);
+
+        const discountRow = document.getElementById('summary-discount-row');
+        if (discount > 0 && BeeCore.appliedCoupon) {
+          discountRow.classList.remove('hidden');
+          document.getElementById('summary-coupon-code').innerText = BeeCore.appliedCoupon.code;
+          document.getElementById('summary-discount').innerText = `-${BeeCore.formatMoney(discount)}`;
+        } else {
+          discountRow.classList.add('hidden');
+        }
+      },
+
+      applyCoupon: function() {
+        const val = document.getElementById('checkout-coupon-input').value;
+        if (val) {
+          BeeCore.applyCoupon(val);
+          this.renderCheckoutSummary();
+        }
+      },
+
+      removeCoupon: function() {
+        BeeCore.removeCoupon();
+        this.renderCheckoutSummary();
+      },
+
+      copyText: function(text, label) {
+        navigator.clipboard.writeText(String(text)).then(() => {
+          BeeCore.showToast(`Đã sao chép ${label}: ${text}`);
+        });
+      },
+
+      submitOrder: function(e) {
+        e?.preventDefault();
+
+        if (!BeeCore.currentUser) {
+          BeeCore.showToast('Vui lòng đăng nhập tài khoản để đặt hàng!', 'error');
+          BeeCore.openAuthModal('login');
+          return;
+        }
+
+        const fullname = document.getElementById('order-fullname').value;
+        const phone = document.getElementById('order-phone').value;
+        const email = document.getElementById('order-email').value;
+        const address = document.getElementById('order-address').value;
+        const note = document.getElementById('order-note').value;
+        const paymentRadio = document.querySelector('input[name="payment-method"]:checked');
+        const paymentCode = paymentRadio ? paymentRadio.value : 'COD';
+        const paymentMap = { 'COD': 1, 'BANK': 2, 'MOMO': 3 };
+        const paymentId = paymentMap[paymentCode] || 1;
+        const paymentNames = {
+          'COD': 'Thanh toán COD khi nhận hàng',
+          'BANK': 'Chuyển khoản QR Bank (VietQR)',
+          'MOMO': 'Ví điện tử MoMo / VNPay'
+        };
+
+        const orderCode = 'BEE-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+        const { subtotal, discount, shipping, total } = BeeCore.getCartCalculations();
+
+        const order = {
+          id: Date.now(),
+          code: orderCode,
+          user_id: BeeCore.currentUser?.id || 1,
+          payment_id: paymentId,
+          payment_code: paymentCode,
+          phone_number: phone,
+          email: email,
+          fullname: fullname,
+          address: address,
+          note: note,
+          total_amount: total,
+          is_paid: 0,
+          is_refund: 0,
+          coupon_id: BeeCore.appliedCoupon?.id || null,
+          coupon_code: BeeCore.appliedCoupon?.code || null,
+          coupon_description: BeeCore.appliedCoupon?.title || null,
+          coupon_discount_type: BeeCore.appliedCoupon?.discount_type || null,
+          coupon_discount_value: BeeCore.appliedCoupon?.discount_value || null,
+          max_discount_value: null,
+          is_refund_cancel: 0,
+          check_refund_cancel: 0,
+          payment_name: paymentNames[paymentCode] || 'Thanh toán COD',
+          order_status_id: 1, // 1 -> pending (Chờ xử lý)
+          status_name: "Chờ Xử Lý (Pending)",
+          created_at: new Date().toLocaleString('vi-VN'),
+          items: BeeCore.cart.map(item => ({
+            product_id: item.product_id,
+            product_variant_id: item.variant_id,
+            name: item.name,
+            name_variant: item.variant_name,
+            price: item.price,
+            quantity: item.quantity,
+            thumbnail: item.thumbnail
+          })),
+          timeline: [
+            { status: "Chờ xử lý (Pending)", note: "Đơn hàng đã được tạo và tiếp nhận vào hệ thống", time: "Vừa xong", done: true, current: true },
+            { status: "Đang xử lý (Processing)", note: "Kho Atelier TP.HCM tiếp nhận và chuẩn bị kiện hàng", time: "Dự kiến", done: false },
+            { status: "Đang giao hàng (Shipping)", note: "Bàn giao đơn vị vận chuyển nhanh", time: "1-2 ngày", done: false },
+            { status: "Hoàn thành (Completed)", note: "Khách hàng nhận hàng và hoàn tất", time: "Dự kiến", done: false }
+          ]
+        };
+
+        this.pendingOrder = order;
+
+        // If online payment (BANK or MOMO), display QR Code modal first!
+        if (paymentCode === 'BANK' || paymentCode === 'MOMO') {
+          this.openQrModal(order);
+          return;
+        }
+
+        // If COD, complete immediately
+        this.finalizeOrder(order);
+      },
+
+      openQrModal: function(order) {
+        const modal = document.getElementById('qr-payment-modal');
+        if (!modal) return;
+
+        const isMomo = order.payment_code === 'MOMO';
+        const tag = document.getElementById('qr-modal-tag');
+        const title = document.getElementById('qr-modal-title');
+        const bankName = document.getElementById('qr-bank-name');
+        const accNum = document.getElementById('qr-account-number');
+        const accName = document.getElementById('qr-account-name');
+        const amount = document.getElementById('qr-amount');
+        const orderCode = document.getElementById('qr-order-code');
+        const qrImg = document.getElementById('qr-code-img');
+
+        if (isMomo) {
+          if (tag) tag.innerText = 'VÍ ĐIỆN TỬ MOMO';
+          if (title) title.innerText = 'Quét Mã Ví MoMo Để Thanh Toán';
+          if (bankName) bankName.innerText = 'Ví Điện Tử MoMo (Napas 247)';
+          if (accNum) accNum.innerText = '0988776655';
+          if (accName) accName.innerText = 'NGUYEN VAN AN';
+          if (qrImg) qrImg.src = `https://api.vietqr.io/image/970436-0071001234567-compact2.jpg?amount=${order.total_amount}&addInfo=${order.code}&accountName=NGUYEN%20VAN%20AN`;
+        } else {
+          if (tag) tag.innerText = 'VIETQR NAPAS 247';
+          if (title) title.innerText = 'Quét Mã QR Ngân Hàng Để Chuyển Khoản';
+          if (bankName) bankName.innerText = 'Vietcombank (Chi nhánh TP.HCM)';
+          if (accNum) accNum.innerText = '0071001234567';
+          if (accName) accName.innerText = 'NGUYEN VAN AN';
+          if (qrImg) qrImg.src = `https://api.vietqr.io/image/970436-0071001234567-compact2.jpg?amount=${order.total_amount}&addInfo=${order.code}&accountName=NGUYEN%20VAN%20AN`;
+        }
+
+        if (amount) amount.innerText = BeeCore.formatMoney(order.total_amount);
+        if (orderCode) orderCode.innerText = order.code;
+
+        // Start countdown timer 15 mins
+        this.startCountdown(15 * 60);
+
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+      },
+
+      closeQrModal: function() {
+        document.getElementById('qr-payment-modal')?.classList.add('hidden');
+        if (this.countdownInterval) clearInterval(this.countdownInterval);
+      },
+
+      startCountdown: function(durationSeconds) {
+        if (this.countdownInterval) clearInterval(this.countdownInterval);
+        let remain = durationSeconds;
+        const countdownEl = document.getElementById('qr-countdown');
+
+        this.countdownInterval = setInterval(() => {
+          if (remain <= 0) {
+            clearInterval(this.countdownInterval);
+            if (countdownEl) countdownEl.innerText = '00:00 (Hết hạn)';
+            BeeCore.showToast('Mã QR thanh toán đã hết hạn, vui lòng thao tác lại!', 'error');
+            return;
+          }
+          const m = Math.floor(remain / 60);
+          const s = remain % 60;
+          if (countdownEl) {
+            countdownEl.innerText = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+          }
+          remain--;
+        }, 1000);
+      },
+
+      confirmQrPayment: function() {
+        if (!this.pendingOrder) return;
+        this.pendingOrder.is_paid = 1; // Mark as paid
+        this.finalizeOrder(this.pendingOrder);
+      },
+
+      finalizeOrder: function(order) {
+        if (this.countdownInterval) clearInterval(this.countdownInterval);
+
+        // Save order to store and localStorage
+        BeeDB.orders.unshift(order);
+        try {
+          localStorage.setItem('beestyle_latest_order', JSON.stringify(order));
+          const allOrders = JSON.parse(localStorage.getItem('beestyle_orders') || '[]');
+          allOrders.unshift(order);
+          localStorage.setItem('beestyle_orders', JSON.stringify(allOrders));
+        } catch(err) {}
+
+        // Clear cart
+        BeeCore.clearCart();
+
+        // Redirect to dedicated order success page
+        window.location.href = `order-success.html?code=${order.code}`;
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      CheckoutPage.init();
+    });
+  </script>
+
+</body>
+</html>

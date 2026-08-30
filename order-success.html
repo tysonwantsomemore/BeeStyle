@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Đặt hàng thành công tại Beestyle Atelier. Đơn hàng của bạn đã được tiếp nhận và chuẩn bị đóng gói.">
+  <title>Đặt Hàng Thành Công — BEESTYLE Studio</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./v1.24.0/assets/img/favicons/favicon-32x32.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Libre Franklin"', 'sans-serif'],
+            serif: ['"Cormorant Garamond"', 'serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#faf8f5',
+              100: '#f5f0e8',
+              200: '#e8dcce',
+              300: '#d7c2ad',
+              400: '#c3a388',
+              500: '#b48c6f',
+              600: '#a3775f',
+              700: '#875f4d',
+              800: '#6f4e41',
+              900: '#1c1917',
+              950: '#0c0a09'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-serif-luxury {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+  </style>
+</head>
+
+<body class="bg-brand-50 text-neutral-900 selection:bg-neutral-900 selection:text-white flex flex-col min-h-screen">
+
+  <!-- Top Header -->
+  <header class="w-full bg-white border-b border-neutral-200 py-5 px-6">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="1.html" class="inline-block group">
+        <span class="font-serif-luxury text-2xl font-bold tracking-[0.25em] text-neutral-900 uppercase">
+          BEESTYLE
+        </span>
+        <span class="block text-[8px] tracking-[0.4em] text-neutral-500 uppercase -mt-1 font-sans">
+          ATELIER STUDIO
+        </span>
+      </a>
+
+      <a href="shop.html" class="text-xs uppercase tracking-widest text-neutral-700 hover:text-black font-semibold">
+        Tiếp tục xem sản phẩm →
+      </a>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN SUCCESS CONTENT -->
+  <!-- ========================================================================= -->
+  <main class="w-full flex-grow py-12 px-6 max-w-4xl mx-auto">
+    
+    <!-- Success Banner -->
+    <div class="text-center mb-12">
+      <div class="w-20 h-20 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
+        <i data-lucide="check" class="w-10 h-10 stroke-[2.5]"></i>
+      </div>
+      <span class="text-xs tracking-[0.35em] uppercase text-emerald-800 font-semibold block mb-1">CẢM ƠN QUÝ KHÁCH</span>
+      <h1 class="font-serif-luxury text-3xl md:text-5xl text-neutral-900 font-light mb-3">
+        Đặt Hàng Thành Công!
+      </h1>
+      <p class="text-xs text-neutral-600 font-light max-w-md mx-auto leading-relaxed">
+        Chúng tôi đã tiếp nhận đơn hàng và gửi email xác nhận. Nghệ nhân Atelier đang tiến hành kiểm tra và đóng gói tác phẩm của bạn.
+      </p>
+    </div>
+
+    <!-- Order Card Details -->
+    <div class="bg-white rounded-2xl border border-neutral-200 shadow-sm p-6 md:p-8 space-y-8">
+      
+      <!-- Top info bar -->
+      <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-neutral-200">
+        <div>
+          <span class="text-[10px] tracking-widest uppercase text-neutral-400 block mb-0.5">MÃ ĐƠN HÀNG</span>
+          <strong class="font-mono text-base text-neutral-900 font-bold" id="success-order-code">BEE-2026-0000</strong>
+        </div>
+        <div>
+          <span class="text-[10px] tracking-widest uppercase text-neutral-400 block mb-0.5">NGÀY ĐẶT HÀNG</span>
+          <span class="text-xs text-neutral-800 font-medium" id="success-order-date">17/08/2026</span>
+        </div>
+        <div>
+          <span class="text-[10px] tracking-widest uppercase text-neutral-400 block mb-0.5">TRẠNG THÁI</span>
+          <span class="px-3 py-1 bg-amber-100 text-amber-900 text-xs font-semibold rounded-full">Đã Tiếp Nhận</span>
+        </div>
+        <div>
+          <span class="text-[10px] tracking-widest uppercase text-neutral-400 block mb-0.5">DỰ KIẾN GIAO</span>
+          <span class="text-xs text-emerald-700 font-bold">1 - 2 Ngày Làm Việc</span>
+        </div>
+      </div>
+
+      <!-- Realtime Timeline -->
+      <div>
+        <h3 class="text-xs uppercase tracking-wider font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+          <i data-lucide="clock" class="w-4 h-4 text-amber-700"></i> Tiến Trình Xử Lý Đơn Hàng
+        </h3>
+        <div class="space-y-4 pl-3 border-l-2 border-amber-600">
+          <div class="relative pl-5">
+            <div class="absolute -left-[19px] top-1 w-3.5 h-3.5 rounded-full bg-amber-600 ring-4 ring-amber-100"></div>
+            <strong class="text-xs text-neutral-900 block">Đã tiếp nhận đơn hàng thành công</strong>
+            <p class="text-[11px] text-neutral-500">Đơn hàng đã được lưu trữ trên hệ thống Beestyle Atelier</p>
+          </div>
+          <div class="relative pl-5">
+            <div class="absolute -left-[19px] top-1 w-3.5 h-3.5 rounded-full bg-neutral-300"></div>
+            <strong class="text-xs text-neutral-500 block">Kiểm tra chất lượng & Đóng hộp quà cao cấp</strong>
+            <p class="text-[11px] text-neutral-400">Dự kiến hoàn tất trong 2-4 giờ tới</p>
+          </div>
+          <div class="relative pl-5">
+            <div class="absolute -left-[19px] top-1 w-3.5 h-3.5 rounded-full bg-neutral-300"></div>
+            <strong class="text-xs text-neutral-500 block">Bàn giao đơn vị vận chuyển GHN Express</strong>
+            <p class="text-[11px] text-neutral-400">Shipper liên hệ giao hàng tận tay</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recipient & Payment info -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-neutral-100 text-xs">
+        <div class="bg-neutral-50 p-4 rounded-xl border border-neutral-200/80">
+          <h4 class="font-bold text-neutral-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-neutral-700"></i> Địa Chỉ Nhận Hàng
+          </h4>
+          <p class="font-semibold text-neutral-900" id="success-fullname">Nguyễn Văn An</p>
+          <p class="text-neutral-600 mt-0.5" id="success-phone">0988776655</p>
+          <p class="text-neutral-600 mt-0.5" id="success-address">88 Lê Lợi, P. Bến Nghé, Quận 1, TP.HCM</p>
+        </div>
+
+        <div class="bg-neutral-50 p-4 rounded-xl border border-neutral-200/80">
+          <h4 class="font-bold text-neutral-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i data-lucide="credit-card" class="w-3.5 h-3.5 text-neutral-700"></i> Thanh Toán & Ghi Chú
+          </h4>
+          <p class="text-neutral-700"><span class="text-neutral-500">Hình thức:</span> <strong id="success-payment">Thanh toán khi nhận hàng (COD)</strong></p>
+          <p class="text-neutral-700 mt-1"><span class="text-neutral-500">Email:</span> <span id="success-email">customer@beestyle.vn</span></p>
+          <p class="text-neutral-700 mt-1"><span class="text-neutral-500">Ghi chú:</span> <span id="success-note">Không có</span></p>
+        </div>
+      </div>
+
+      <!-- Online QR Payment Review Card (if Bank or MoMo) -->
+      <div id="success-qr-card" class="hidden p-5 bg-amber-50/60 rounded-xl border border-amber-200 text-xs">
+        <div class="flex flex-col sm:flex-row items-center gap-6">
+          <div class="w-36 h-36 bg-white p-2 rounded-xl shadow-sm border border-amber-200 shrink-0">
+            <img id="success-qr-img" src="" alt="Mã QR Chuyển Khoản" class="w-full h-full object-contain">
+          </div>
+          <div class="space-y-1.5 flex-grow text-neutral-800">
+            <span class="text-[10px] tracking-widest uppercase text-amber-800 font-bold block">THÔNG TIN CHUYỂN KHOẢN ĐÃ LƯU</span>
+            <p><strong>Ngân hàng:</strong> <span id="success-qr-bank">Vietcombank</span></p>
+            <p><strong>Số tài khoản:</strong> <span class="font-mono font-bold text-neutral-950" id="success-qr-acc">0071001234567</span></p>
+            <p><strong>Chủ tài khoản:</strong> <span class="font-semibold uppercase" id="success-qr-name">NGUYEN VAN AN</span></p>
+            <p><strong>Số tiền:</strong> <span class="font-serif-luxury font-bold text-base text-amber-900" id="success-qr-amount">0₫</span></p>
+            <p><strong>Nội dung:</strong> <span class="font-mono font-bold text-rose-700" id="success-qr-msg">BEE-2026-0000</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ordered Items list -->
+      <div class="pt-6 border-t border-neutral-100">
+        <h4 class="text-xs uppercase tracking-wider font-semibold text-neutral-900 mb-4">Danh Sách Sản Phẩm Đã Đặt</h4>
+        <div id="success-items-list" class="space-y-3 divide-y divide-neutral-100">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div class="flex justify-between items-center pt-4 border-t border-neutral-200 mt-4 text-xs font-bold text-neutral-900">
+          <span class="text-sm uppercase tracking-wider">Tổng giá trị đơn hàng:</span>
+          <span class="font-serif-luxury text-2xl text-amber-900" id="success-total-amount">0₫</span>
+        </div>
+      </div>
+
+      <!-- Action CTA Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-neutral-200">
+        <a href="shop.html" class="flex-grow py-3.5 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-widest uppercase rounded-lg text-center transition-colors">
+          Tiếp Tục Mua Sắm Sản Phẩm
+        </a>
+        <a href="1.html" class="px-8 py-3.5 border border-neutral-300 text-neutral-700 hover:border-black hover:text-black text-xs font-semibold tracking-widest uppercase rounded-lg text-center transition-colors">
+          Về Trang Chủ
+        </a>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- App Core JS -->
+  <script src="./assets/js/app-core.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+
+      // Look up order
+      let order = null;
+      if (code) {
+        order = BeeDB.orders.find(o => o.code === code);
+      }
+      if (!order) {
+        try {
+          order = JSON.parse(localStorage.getItem('beestyle_latest_order'));
+        } catch(e) {}
+      }
+      if (!order) {
+        order = BeeDB.orders[0];
+      }
+
+      if (order) {
+        document.getElementById('success-order-code').innerText = order.code;
+        document.getElementById('success-order-date').innerText = order.created_at || 'Hôm nay';
+        document.getElementById('success-fullname').innerText = order.fullname;
+        document.getElementById('success-phone').innerText = order.phone_number;
+        document.getElementById('success-address').innerText = order.address;
+        document.getElementById('success-payment').innerText = order.payment_name || 'Thanh toán COD khi nhận hàng';
+        document.getElementById('success-email').innerText = order.email || 'customer@beestyle.vn';
+        document.getElementById('success-note').innerText = order.note || 'Không có';
+        document.getElementById('success-total-amount').innerText = BeeCore.formatMoney(order.total_amount);
+
+        // QR display for Bank or MoMo
+        const isOnline = order.payment_id === 2 || order.payment_id === 3 || order.payment_code === 'BANK' || order.payment_code === 'MOMO';
+        const qrCard = document.getElementById('success-qr-card');
+        if (isOnline && qrCard) {
+          qrCard.classList.remove('hidden');
+          const isMomo = order.payment_id === 3 || order.payment_code === 'MOMO';
+          document.getElementById('success-qr-bank').innerText = isMomo ? 'Ví Điện Tử MoMo (Napas 247)' : 'Vietcombank (VCB)';
+          document.getElementById('success-qr-acc').innerText = isMomo ? '0988776655' : '0071001234567';
+          document.getElementById('success-qr-name').innerText = 'NGUYEN VAN AN';
+          document.getElementById('success-qr-amount').innerText = BeeCore.formatMoney(order.total_amount);
+          document.getElementById('success-qr-msg').innerText = order.code;
+          document.getElementById('success-qr-img').src = `https://api.vietqr.io/image/970436-0071001234567-compact2.jpg?amount=${order.total_amount}&addInfo=${order.code}&accountName=NGUYEN%20VAN%20AN`;
+        }
+
+        const itemsList = document.getElementById('success-items-list');
+        itemsList.innerHTML = (order.items || []).map(it => `
+          <div class="flex justify-between items-center pt-3 first:pt-0 text-xs">
+            <div class="flex items-center gap-3">
+              <img src="${it.thumbnail}" class="w-12 h-14 object-cover rounded bg-neutral-200">
+              <div>
+                <p class="font-semibold text-neutral-900">${it.name}</p>
+                <p class="text-[11px] text-neutral-500">${it.variant_name || 'Tiêu Chuẩn'} × ${it.quantity}</p>
+              </div>
+            </div>
+            <span class="font-serif-luxury text-sm font-bold text-neutral-900">${BeeCore.formatMoney(it.price * it.quantity)}</span>
+          </div>
+        `).join('');
+      }
+
+      lucide.createIcons();
+    });
+  </script>
+
+</body>
+</html>

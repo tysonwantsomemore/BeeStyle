@@ -58,6 +58,7 @@ class User extends Authenticatable
                 return $this->avatar;
             }
         }
+
         
         // Sinh avatar chuẩn nhận diện thương hiệu theo tên tài khoản khách
         $name = urlencode($this->name ?: 'Khách Hàng');
@@ -96,6 +97,11 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class)->orderBy('created_at', 'desc');
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(OrderReturn::class)->orderBy('created_at', 'desc');
     }
 
     public function reviews()

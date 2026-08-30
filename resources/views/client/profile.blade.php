@@ -15,19 +15,7 @@
     </ol>
   </nav>
 
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
-      <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  @endif
 
-  @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
-      <i class="fa-solid fa-circle-exclamation me-2"></i> {{ session('error') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  @endif
 
   @if(isset($errors) && $errors->any())
     <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
@@ -180,6 +168,34 @@
                     </div>
                   </div>
 
+                  <!-- Cancelled Order Info Banner -->
+                  @if($order->shipping_status === 'cancelled')
+                    <div class="alert alert-danger border-0 py-2 px-3 mb-3 rounded-2 small d-flex align-items-center gap-2" style="background: #fef2f2;">
+                      <i class="fa-solid fa-ban text-danger fs-5"></i>
+                      <div>
+                        <strong class="text-danger">Đơn hàng đã hủy:</strong>
+                        <span class="text-dark">{{ $order->cancel_reason ?: 'Hủy theo yêu cầu của khách hàng' }}</span>
+                        <small class="text-muted d-block" style="font-size: 0.72rem;">Thời gian hủy: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i') : ($order->updated_at ? $order->updated_at->format('d/m/Y H:i') : '') }}</small>
+                      </div>
+                    </div>
+                  @endif
+
+                  <!-- Active RMA / Return Request Banner -->
+                  @if($order->latestReturn)
+                    <div class="alert alert-warning border-0 py-2 px-3 mb-3 rounded-2 small d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
+                      <div>
+                        <i class="fa-solid fa-arrow-rotate-left text-warning me-1"></i>
+                        <strong>Yêu Cầu Đổi Trả #{{ $order->latestReturn->return_code }}:</strong> {{ $order->latestReturn->type_label }} - <em>{{ $order->latestReturn->reason }}</em>
+                      </div>
+                      <div class="d-flex align-items-center gap-2">
+                        {!! $order->latestReturn->status_badge !!}
+                        <button type="button" class="btn btn-sm btn-outline-dark py-0.5 px-2 fw-bold" style="font-size: 0.72rem;" onclick="document.getElementById('returns-tab').click()">
+                          Xem Tiến Trình
+                        </button>
+                      </div>
+                    </div>
+                  @endif
+
                   <!-- Completed Order Prompt Banner -->
                   @if($order->shipping_status === 'delivered' || $order->shipping_status === 'completed' || $order->status_step >= 5)
                     <div class="alert alert-success border-0 py-2 px-3 mb-3 rounded-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #ecfdf5;">
@@ -228,11 +244,6 @@
 
 
 
-                  <!-- Order Footer -->
-                  <div class="d-flex justify-content-between align-items-center pt-2 border-top flex-wrap gap-2">
-                    <div>
-                      <span class="small text-muted">Phương thức: <strong>{{ $order->payment_method_name }}</strong></span>
-                      <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-dark' }} ms-1">
                         {{ $order->payment_status_label }}
                       </span>
                     </div>
@@ -836,40 +847,3 @@
       'vip': 'rewards-tab',
       'reviews': 'my-reviews-tab',
       '#tab-orders': 'orders-tab',
-      '#tab-profile': 'edit-profile-tab',
-      '#tab-bank': 'bank-tab',
-      '#tab-password': 'password-tab',
-      '#tab-addresses': 'addresses-tab',
-      '#tab-vip': 'rewards-tab',
-      '#tab-my-reviews': 'my-reviews-tab'
-    };
-
-    let targetTabId = null;
-    if (tabParam && tabMap[tabParam]) {
-      targetTabId = tabMap[tabParam];
-    } else if (hash && tabMap[hash]) {
-      targetTabId = tabMap[hash];
-    }
-
-    // 2. Nếu có lỗi validation của form thì tự động mở tab tương ứng
-    @if(isset($errors) && ($errors->has('current_password') || $errors->has('password')))
-      targetTabId = 'password-tab';
-    @elseif(isset($errors) && ($errors->has('bank_name') || $errors->has('bank_account_number') || $errors->has('bank_account_name') || $errors->has('bank_branch')))
-      targetTabId = 'bank-tab';
-    @elseif(isset($errors) && ($errors->has('recipient_name') || $errors->has('address') || $errors->has('city')))
-      targetTabId = 'addresses-tab';
-    @endif
-
-    if (targetTabId) {
-      const tabButton = document.getElementById(targetTabId);
-      if (tabButton) {
-        const tabTrigger = new bootstrap.Tab(tabButton);
-        tabTrigger.show();
-      }
-    }
-  });
-</script>
-@endpush
-
-@endsection
-

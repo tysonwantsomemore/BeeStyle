@@ -75,7 +75,9 @@
           <div class="d-flex align-items-center gap-2">
             <label class="small text-muted text-nowrap">Sắp xếp:</label>
             <select class="form-select form-select-sm" style="width: 170px;" onchange="location = this.value;">
-              <option value="{{ request()->fullUrlWithQuery(['sort' => 'popular']) }}" {{ request('sort') === 'popular' ? 'selected' : '' }}>Phổ biến nhất</option>
+              <option value="{{ request()->fullUrlWithQuery(['sort' => 'popular']) }}" {{ request('sort', 'popular') === 'popular' ? 'selected' : '' }}>Phổ biến nhất</option>
+              <option value="{{ request()->fullUrlWithQuery(['sort' => 'views_desc']) }}" {{ request('sort') === 'views_desc' ? 'selected' : '' }}>Xem nhiều nhất</option>
+              <option value="{{ request()->fullUrlWithQuery(['sort' => 'newest']) }}" {{ request('sort') === 'newest' ? 'selected' : '' }}>Mới nhất</option>
               <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_asc']) }}" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>Giá: Thấp đến Cao</option>
               <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_desc']) }}" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Giá: Cao đến Thấp</option>
               <option value="{{ request()->fullUrlWithQuery(['sort' => 'rating']) }}" {{ request('sort') === 'rating' ? 'selected' : '' }}>Đánh giá cao nhất</option>

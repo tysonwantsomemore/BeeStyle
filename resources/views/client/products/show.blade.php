@@ -13,26 +13,24 @@
     </ol>
   </nav>
 
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
-      <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
-      <a href="{{ route('client.cart') }}" class="fw-bold text-success text-decoration-underline ms-2">Xem giỏ hàng ngay</a>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  @endif
 
-  @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
-      <i class="fa-solid fa-circle-exclamation me-2"></i> {{ session('error') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  @endif
 
   <!-- PRODUCT MAIN SECTION -->
   <div class="card border-0 shadow-sm p-4 p-md-5 mb-5" style="border-radius: 20px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
     <div class="row g-4 g-lg-5">
       
-      <!-- IMAGE GALLERY -->
+      <!-- IMAGE GALLERY (CHUẨN TMĐT CHUYÊN NGHIỆP: HOVER ZOOM, ARROWS, LIGHTBOX, THUMBNAIL FILMSTRIP) -->
+      @php
+        $allGalleryImages = collect([$product->image]);
+        if ($product->images) {
+          foreach ($product->images as $pImg) {
+            if ($pImg->image_path && $pImg->image_path !== $product->image) {
+              $allGalleryImages->push($pImg->image_path);
+            }
+          }
+        }
+        $allGalleryImages = $allGalleryImages->unique()->values();
+      @endphp
       <div class="col-lg-6">
         <div class="position-relative bg-light rounded-4 p-4 text-center mb-3" style="min-height: 420px; display: flex; align-items: center; justify-content: center;">
           @if($product->original_price && $product->original_price > $product->price)
@@ -54,9 +52,28 @@
                 <div class="border rounded-3 p-1 bg-white cursor-pointer thumb-item" style="width: 70px; height: 70px; cursor: pointer;" onclick="changeMainImg('{{ asset($img->image_path) }}', this)">
                   <img src="{{ asset($img->image_path) }}" alt="thumb" class="w-100 h-100 object-fit-cover rounded">
                 </div>
-              @endif
-            @endforeach
-          @endif
+              @endforeach
+            </div>
+          </div>
+        @endif
+
+        <!-- GUARANTEE TRUST BADGES UNDER GALLERY -->
+        <div class="row g-2 mt-3 text-center small">
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border text-muted d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.74rem;">
+              <i class="fa-solid fa-camera text-warning"></i> 100% Ảnh Chụp Thật
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border text-muted d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.74rem;">
+              <i class="fa-solid fa-rotate-left text-success"></i> 7 Ngày Đổi Trả
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border text-muted d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.74rem;">
+              <i class="fa-solid fa-shield-halved text-primary"></i> Bảo Hành Chuẩn
+            </div>
+          </div>
         </div>
       </div>
 
@@ -173,32 +190,6 @@
             @php
               $prodSizes = is_array($product->sizes) ? $product->sizes : ['M', 'L', 'XL', 'XXL'];
             @endphp
-            @if(count($prodSizes) > 0)
-              <div class="mb-3.5 p-3 rounded-3 border" id="sizeGroupSection" style="transition: all 0.3s ease; background: #ffffff;">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label small fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-ruler-combined text-warning me-1"></i> 2. Chọn Kích Thước (Size):
-                    <span class="badge bg-light text-muted border px-2 py-0.5 ms-1 fw-bold" id="selectedSizeText">Chưa chọn</span>
-                  </label>
-                  <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-danger-subtle text-danger fw-bold fs-11">* Bắt buộc chọn</span>
-                    <button type="button" class="btn btn-link text-decoration-none p-0 small text-danger fw-bold" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
-                      <i class="fa-solid fa-ruler-horizontal me-1"></i> Bảng Size
-                    </button>
-                  </div>
-                </div>
-                <div class="d-flex flex-wrap gap-2" id="sizeOptionList">
-                  @foreach($prodSizes as $s)
-                    <input type="radio" class="btn-check product-size-radio" name="size" id="size_{{ $loop->index }}" value="{{ $s }}" onchange="selectProductSize(this.value, '{{ getShowSizeHint($s) }}')">
-                    <label class="btn btn-outline-secondary btn-sm d-flex flex-column align-items-center justify-content-center rounded-3 p-1.5 shadow-xs" for="size_{{ $loop->index }}" style="min-width: 64px; height: 48px;">
-                      <span class="fw-bold fs-6 lh-1">{{ $s }}</span>
-                      <span class="text-muted lh-1 mt-1" style="font-size: 0.65rem;">{{ getShowSizeHint($s) }}</span>
-                    </label>
-                  @endforeach
-                </div>
-              </div>
-            @endif
-
             <!-- QUANTITY STEPPER (GIỚI HẠN TỐI ĐA 10 SẢN PHẨM) -->
             <div class="mb-4 p-3.5 rounded-3 border" style="background: #f8fafc;">
               <div class="d-flex justify-content-between align-items-center mb-2.5">
@@ -975,6 +966,438 @@
       });
     }
   });
+
+  // Filter Reviews by Stars or Photos
+  function filterReviews(filterType, btnEl) {
+    document.querySelectorAll('.filter-review-btn').forEach(btn => {
+      btn.classList.remove('btn-dark', 'active', 'shadow-xs');
+      btn.classList.add('btn-outline-secondary');
+    });
+    btnEl.classList.remove('btn-outline-secondary');
+    btnEl.classList.add('btn-dark', 'active', 'shadow-xs');
+
+    const items = document.querySelectorAll('.review-card-item');
+    let visibleCount = 0;
+    items.forEach(item => {
+      const rating = item.getAttribute('data-rating');
+      const hasPhoto = item.getAttribute('data-has-photo');
+      let show = false;
+      if (filterType === 'all') {
+        show = true;
+      } else if (filterType === 'photo') {
+        show = (hasPhoto === '1');
+      } else {
+        show = (rating === filterType);
+      }
+
+      if (show) {
+        item.style.display = '';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    const emptyEl = document.getElementById('reviewFilterEmptyMsg');
+    if (emptyEl) {
+      emptyEl.style.display = (visibleCount === 0) ? 'block' : 'none';
+    }
+  }
+
+  // Open customer review photo in Ultra-HD Lightbox
+  function openReviewImageLightbox(imgUrl) {
+    const modalImg = document.getElementById('modalGalleryImg');
+    if (modalImg) {
+      modalImg.src = imgUrl;
+      const modalEl = document.getElementById('galleryModal');
+      if (modalEl) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+      }
+    }
+  }
+
+  // Open Reviewer Profile Modal (Xem hồ sơ khách hàng đánh giá)
+  function openReviewerModal(reviewId) {
+    fetch(`/san-pham/api-reviewer-profile/${reviewId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) return;
+
+        document.getElementById('revModalName').textContent = data.user_name || 'Khách Hàng';
+        document.getElementById('revModalAvatar').src = data.avatar_url;
+        document.getElementById('revModalJoined').innerHTML = `<i class="fa-solid fa-calendar-check me-1 text-warning"></i> ${data.joined_at}`;
+        document.getElementById('revModalOrdersCount').textContent = data.total_orders;
+        document.getElementById('revModalReviewsCount').textContent = data.total_reviews;
+
+        const rankBadge = document.getElementById('revModalRankBadge');
+        if (rankBadge) {
+          rankBadge.className = data.rank_class + ' px-2 py-0.5';
+          rankBadge.innerHTML = `<i class="fa-solid ${data.rank_icon} me-1"></i> ${data.rank_name}`;
+        }
+
+        // Populate other reviews list
+        const listEl = document.getElementById('revModalOtherReviewsList');
+        if (listEl) {
+          listEl.innerHTML = '';
+          if (data.other_reviews && data.other_reviews.length > 0) {
+            data.other_reviews.forEach(or => {
+              let stars = '';
+              for (let i = 1; i <= 5; i++) {
+                stars += `<i class="fa-solid fa-star ${i <= or.rating ? 'text-warning' : 'text-secondary-subtle'}"></i>`;
+              }
+              const itemHtml = `
+                <div class="p-2.5 bg-light rounded-3 border d-flex align-items-center gap-2.5">
+                  <img src="${or.product_image}" alt="${or.product_name}" class="rounded border shadow-xs" style="width: 48px; height: 48px; object-fit: cover;">
+                  <div class="flex-grow-1 min-w-0">
+                    <a href="${or.product_url}" class="text-dark fw-bold text-decoration-none d-block text-truncate small" style="font-size: 0.8rem;">${or.product_name}</a>
+                    <div class="d-flex align-items-center gap-1.5 small text-warning" style="font-size: 0.7rem;">
+                      ${stars} <span class="text-muted ms-1">${or.date}</span>
+                    </div>
+                    <p class="text-muted mb-0 small text-truncate" style="font-size: 0.72rem;">${or.comment}</p>
+                  </div>
+                  <a href="${or.product_url}" class="btn btn-outline-dark btn-xs px-2 rounded-pill flex-shrink-0" style="font-size: 0.68rem;">Xem</a>
+                </div>
+              `;
+              listEl.innerHTML += itemHtml;
+            });
+          } else {
+            listEl.innerHTML = `
+              <div class="p-3 bg-light rounded-3 text-center border">
+                <small class="text-muted">Khách hàng này hiện tại chưa chia sẻ thêm bài đánh giá nào khác.</small>
+              </div>
+            `;
+          }
+        }
+
+        // Admin Link
+        const adminBox = document.getElementById('revModalAdminBox');
+        const adminLink = document.getElementById('revModalAdminLink');
+        if (adminBox && adminLink) {
+          if (data.is_admin && data.admin_customer_url) {
+            adminLink.href = data.admin_customer_url;
+            adminBox.classList.remove('d-none');
+          } else {
+            adminBox.classList.add('d-none');
+          }
+        }
+
+        // Show Modal
+        const modalEl = document.getElementById('customerReviewerProfileModal');
+        if (modalEl) {
+          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal.show();
+        }
+      })
+      .catch(err => console.error('Error loading reviewer profile:', err));
+  }
+
+  // ========================================================
+  // BỘ TÍNH SIZE THÔNG MINH AI & TỰ ĐỘNG CHỌN SIZE CHO KHÁCH
+  // ========================================================
+  let currentTabCalculatedSize = 'L';
+  let currentModalCalculatedSize = 'L';
+
+  function calculateSizeByHeightWeight(h, w) {
+    h = parseInt(h) || 170;
+    w = parseInt(w) || 65;
+    let recSize = 'L';
+    let desc = 'Vừa vặn thoải mái, tôn dáng chuẩn phom';
+
+    if (w < 58 && h < 168) {
+      recSize = 'S';
+      desc = 'Chuẩn phom dáng vừa vặn, gọn gàng (50-58kg, 1m55-1m65)';
+    } else if (w <= 65 && h <= 173) {
+      recSize = 'M';
+      desc = 'Phom dáng Slim Fit hiện đại, ôm nhẹ (58-65kg, 1m65-1m72)';
+    } else if (w <= 72 && h <= 178) {
+      recSize = 'L';
+      desc = 'Vừa vặn thoải mái, vận động tự tin cả ngày (65-72kg, 1m70-1m77)';
+    } else if (w <= 80 && h <= 183) {
+      recSize = 'XL';
+      desc = 'Phom Regular Fit rộng rãi, thoáng mát (72-80kg, 1m75-1m82)';
+    } else if (w <= 88) {
+      recSize = 'XXL';
+      desc = 'Form dáng rộng thoải mái, che khuyết điểm (80-88kg, 1m78-1m88)';
+    } else {
+      recSize = '3XL';
+      desc = 'Form dáng cực rộng thoải mái (> 88kg)';
+    }
+    return { size: recSize, desc: desc, height: h, weight: w };
+  }
+
+  // 1. Tính toán trong Tab 3 (Dưới phần Tabs chi tiết)
+  function calculateTabRecommendedSize() {
+    const hInput = document.getElementById('tabCalcHeight');
+    const wInput = document.getElementById('tabCalcWeight');
+    const h = hInput ? hInput.value : 170;
+    const w = wInput ? wInput.value : 65;
+    const res = calculateSizeByHeightWeight(h, w);
+    currentTabCalculatedSize = res.size;
+
+    const badge = document.getElementById('tabRecommendedSizeBadge');
+    const descEl = document.getElementById('tabRecommendedSizeDesc');
+    const resBox = document.getElementById('tabCalcSizeResult');
+
+    if (badge) badge.textContent = 'Size ' + res.size;
+    if (descEl) descEl.textContent = res.desc;
+    if (resBox) resBox.classList.remove('d-none');
+  }
+
+  function applyTabRecommendedSize() {
+    applySizeToProductForm(currentTabCalculatedSize);
+  }
+
+  // 2. Tính toán trong Modal Hướng Dẫn Chọn Size
+  function calculateModalSmartFitSize() {
+    const hInput = document.getElementById('modalCalcHeight');
+    const wInput = document.getElementById('modalCalcWeight');
+    const h = hInput ? hInput.value : 170;
+    const w = wInput ? wInput.value : 65;
+    const res = calculateSizeByHeightWeight(h, w);
+    currentModalCalculatedSize = res.size;
+
+    const badge = document.getElementById('suggestedSizeBadge');
+    const nameEl = document.getElementById('suggestedSizeName');
+    const descEl = document.getElementById('suggestedSizeDesc');
+
+    if (badge) badge.textContent = res.size;
+    if (nameEl) nameEl.textContent = `Size ${res.size} (Phom Regular Fit)`;
+    if (descEl) descEl.textContent = `Dựa trên chiều cao ${res.height}cm và cân nặng ${res.weight}kg, size ${res.size} sẽ mang lại cảm giác thoải mái và tôn dáng nhất (${res.desc}).`;
+  }
+
+  function applySuggestedSize() {
+    applySizeToProductForm(currentModalCalculatedSize);
+  }
+
+  // 3. Hàm áp dụng size trực tiếp vào Form mua hàng (chọn radio size, kích hoạt tick vàng, cuộn lên form)
+  function applySizeToProductForm(size) {
+    if (!size) return;
+    const sizeRadios = document.querySelectorAll('.product-size-radio');
+    let matched = false;
+    sizeRadios.forEach(r => {
+      if (r.value.toUpperCase() === size.toUpperCase()) {
+        r.checked = true;
+        matched = true;
+        r.dispatchEvent(new Event('change'));
+      }
+    });
+
+    // Gọi trực tiếp hàm selectProductSize nếu có
+    if (typeof selectProductSize === 'function') {
+      selectProductSize(size, typeof getShowSizeHint === 'function' ? getShowSizeHint(size) : '');
+    }
+
+    // Đóng modal Size Guide nếu đang mở
+    const modalEl = document.getElementById('sizeGuideModal');
+    if (modalEl) {
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+    }
+
+    // Cuộn mượt mà lên vị trí chọn size
+    const sizeSec = document.getElementById('sizeGroupSection');
+    if (sizeSec) {
+      sizeSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      sizeSec.style.border = '2px solid #f59e0b';
+      sizeSec.style.backgroundColor = '#fffbeb';
+      sizeSec.style.boxShadow = '0 0 16px rgba(245, 158, 11, 0.35)';
+      setTimeout(() => {
+        sizeSec.style.border = '1px solid var(--atino-border)';
+        sizeSec.style.backgroundColor = '#ffffff';
+        sizeSec.style.boxShadow = 'none';
+      }, 2500);
+    }
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã Chọn Size Thành Công!',
+        text: matched 
+          ? `Hệ thống đã tự động chọn Size ${size} cho bạn. Bạn chỉ cần chọn thêm Màu sắc là có thể đặt hàng ngay!`
+          : `Sản phẩm này hiện có các size khác. Bạn có thể chọn size phù hợp trong danh sách bên trên!`,
+        toast: true,
+        position: 'top-end',
+        timer: 3500,
+        showConfirmButton: false
+      });
+    }
+  }
+
+  // HIỆU ỨNG TƯƠNG TÁC LƯỢT XEM TRỰC TIẾP (LIVE VIEWERS PULSE)
+  setInterval(() => {
+    const viewerEl = document.getElementById('liveViewerCount');
+    if (viewerEl) {
+      const current = parseInt(viewerEl.textContent) || 14;
+      const delta = (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 3 + 1);
+      let next = current + delta;
+      if (next < 9) next = 11;
+      if (next > 26) next = 22;
+      viewerEl.textContent = next;
+    }
+  }, 9000);
+
+  // HIỆU ỨNG THÔNG BÁO MUA HÀNG THỜI GIAN THỰC (REALTIME SOCIAL PROOF TOAST)
+  const sampleBuyers = [
+    { name: 'Anh Minh Tuấn', loc: 'Đống Đa, Hà Nội', time: '2 phút trước', variant: 'Size L / Đen' },
+    { name: 'Anh Hoàng Nam', loc: 'Quận 1, TP.HCM', time: '5 phút trước', variant: 'Size XL / Trắng' },
+    { name: 'Anh Đức Hải', loc: 'Hải Châu, Đà Nẵng', time: '8 phút trước', variant: 'Size M / Xanh Navy' },
+    { name: 'Anh Quốc Bảo', loc: 'Cầu Giấy, Hà Nội', time: '11 phút trước', variant: 'Size L / Xám Ghi' },
+    { name: 'Anh Việt Hưng', loc: 'Thủ Đức, TP.HCM', time: '14 phút trước', variant: 'Size XXL / Đen' },
+    { name: 'Anh Quang Huy', loc: 'Ninh Kiều, Cần Thơ', time: '18 phút trước', variant: 'Size M / Be' }
+  ];
+
+  function triggerLivePurchaseToast() {
+    const randomBuyer = sampleBuyers[Math.floor(Math.random() * sampleBuyers.length)];
+    let toastContainer = document.getElementById('beeLivePurchaseToast');
+    
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'beeLivePurchaseToast';
+      toastContainer.style.position = 'fixed';
+      toastContainer.style.bottom = '24px';
+      toastContainer.style.left = '24px';
+      toastContainer.style.zIndex = '1070';
+      toastContainer.style.maxWidth = '360px';
+      toastContainer.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+      toastContainer.style.transform = 'translateY(120px)';
+      toastContainer.style.opacity = '0';
+      document.body.appendChild(toastContainer);
+    }
+
+    toastContainer.innerHTML = `
+      <div class="card border-0 shadow-lg p-2.5 rounded-4 bg-white border border-warning-subtle d-flex flex-row align-items-center gap-2.5">
+        <div class="position-relative flex-shrink-0">
+          <img src="{{ asset($product->image) }}" class="rounded-3 border bg-light" style="width: 52px; height: 52px; object-fit: contain;">
+          <span class="position-absolute top-0 start-0 badge bg-danger rounded-circle p-1" style="transform: translate(-30%, -30%);">
+            <i class="fa-solid fa-bolt" style="font-size: 8px;"></i>
+          </span>
+        </div>
+        <div class="flex-grow-1 min-w-0">
+          <div class="d-flex justify-content-between align-items-center mb-0.5">
+            <strong class="text-dark small text-truncate" style="font-size: 0.82rem;">${randomBuyer.name}</strong>
+            <small class="text-muted" style="font-size: 0.7rem;">${randomBuyer.time}</small>
+          </div>
+          <p class="mb-0 text-muted small text-truncate" style="font-size: 0.74rem;">
+            Vừa đặt mua <strong class="text-dark">{{ $product->name }}</strong>
+          </p>
+          <div class="d-flex align-items-center gap-1.5 mt-0.5" style="font-size: 0.68rem;">
+            <span class="text-success fw-bold"><i class="fa-solid fa-circle-check"></i> Đã xác nhận</span>
+            <span class="text-muted">• ${randomBuyer.loc}</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-sm p-1 align-self-start" onclick="this.closest('#beeLivePurchaseToast').style.opacity='0'; this.closest('#beeLivePurchaseToast').style.transform='translateY(120px)'" style="font-size: 0.65rem;"></button>
+      </div>
+    `;
+
+    setTimeout(() => {
+      toastContainer.style.opacity = '1';
+      toastContainer.style.transform = 'translateY(0)';
+    }, 100);
+
+    setTimeout(() => {
+      toastContainer.style.opacity = '0';
+      toastContainer.style.transform = 'translateY(120px)';
+    }, 5500);
+  }
+
+  // ========================================================
+  // THANH MUA HÀNG NỔI DƯỚI ĐÁY (STICKY FLOATING PURCHASE BAR)
+  // ========================================================
+  const stickyBar = document.getElementById('stickyAddToCartBar');
+
+  function updateStickyBarVariantInfo() {
+    const variantBadge = document.getElementById('stickySelectedVariantText');
+    const subtotalEl = document.getElementById('stickySubtotalText');
+    const qtyInput = document.getElementById('productQty');
+    const qty = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
+
+    if (variantBadge) {
+      if (selectedProductColor && selectedProductSize) {
+        variantBadge.textContent = `${selectedProductColor} / Size ${selectedProductSize} (SL: ${qty})`;
+        variantBadge.className = 'badge bg-dark text-warning border border-warning px-2 py-0.5 fw-bold';
+      } else if (selectedProductColor) {
+        variantBadge.textContent = `${selectedProductColor} / Chưa chọn size`;
+        variantBadge.className = 'badge bg-light text-warning border border-warning px-2 py-0.5';
+      } else if (selectedProductSize) {
+        variantBadge.textContent = `Chưa chọn màu / Size ${selectedProductSize}`;
+        variantBadge.className = 'badge bg-light text-warning border border-warning px-2 py-0.5';
+      } else {
+        variantBadge.textContent = 'Chưa chọn màu & size';
+        variantBadge.className = 'badge bg-light text-muted border px-2 py-0.5';
+      }
+    }
+
+    if (subtotalEl) {
+      const unitPrice = currentProductUnitPrice || {{ (int)$product->price }};
+      const total = unitPrice * qty;
+      subtotalEl.textContent = total.toLocaleString('vi-VN') + '₫';
+    }
+  }
+
+  // Xử lý hiện / ẩn thanh dính khi cuộn chuột qua form sản phẩm
+  window.addEventListener('scroll', function () {
+    if (!stickyBar) return;
+    const triggerPoint = 460;
+    if (window.scrollY > triggerPoint) {
+      stickyBar.style.transform = 'translateY(0)';
+    } else {
+      stickyBar.style.transform = 'translateY(120%)';
+    }
+  });
+
+  // Xử lý bấm nút trên thanh Sticky Bottom Bar
+  function triggerStickySubmit(isBuyNow) {
+    if (!selectedProductColor || !selectedProductSize) {
+      // Cuộn mượt mà lên vùng chọn biến thể
+      const targetSec = (!selectedProductColor) ? document.getElementById('colorGroupSection') : document.getElementById('sizeGroupSection');
+      if (targetSec) {
+        targetSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetSec.style.border = '2px solid #ef4444';
+        targetSec.style.backgroundColor = '#fef2f2';
+        setTimeout(() => {
+          targetSec.style.border = '1px solid var(--atino-border)';
+          targetSec.style.backgroundColor = '#ffffff';
+        }, 2500);
+      }
+
+      const alertEl = document.getElementById('productFormAlert');
+      if (alertEl) {
+        alertEl.classList.remove('d-none');
+        document.getElementById('productFormAlertText').textContent = 'Quý khách vui lòng chọn Màu sắc và Kích thước (Size) trước khi tiếp tục!';
+      }
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Chưa Chọn Biến Thể',
+          text: 'Quý khách vui lòng chọn Màu sắc và Kích thước (Size) trước khi đặt hàng!',
+          toast: true,
+          position: 'top-end',
+          timer: 3000,
+          showConfirmButton: false
+        });
+      }
+      return;
+    }
+
+    const form = document.getElementById('productForm');
+    if (form) {
+      if (isBuyNow) {
+        let buyNowInput = form.querySelector('input[name="buy_now"]');
+        if (!buyNowInput) {
+          buyNowInput = document.createElement('input');
+          buyNowInput.type = 'hidden';
+          buyNowInput.name = 'buy_now';
+          form.appendChild(buyNowInput);
+        }
+        buyNowInput.value = '1';
+      }
+      form.submit();
+    }
+  }
+
+  // Khởi tạo trạng thái ban đầu cho thanh Sticky Bar
+  setTimeout(updateStickyBarVariantInfo, 500);
 </script>
 @endpush
-@endsection

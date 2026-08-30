@@ -22,6 +22,7 @@ class Product extends Model
         'discount_percent',
         'stock',
         'sold_count',
+        'views',
         'rating',
         'reviews_count',
         'image',
@@ -44,6 +45,7 @@ class Product extends Model
             'discount_percent' => 'integer',
             'stock' => 'integer',
             'sold_count' => 'integer',
+            'views' => 'integer',
             'rating' => 'float',
             'reviews_count' => 'integer',
             'colors' => 'array',
@@ -189,12 +191,29 @@ class Product extends Model
         });
     }
 
+    /**
+     * Accessor kiểm tra trạng thái đang kinh doanh hay tạm dừng
+     */
+    public function getIsActiveAttribute(): bool
+    {
+        return ($this->attributes['status'] ?? 'active') === 'active';
+    }
+
+    /**
+     * Mutator thiết lập trạng thái kinh doanh
+     */
+    public function setIsActiveAttribute($value): void
+    {
+        $this->attributes['status'] = $value ? 'active' : 'inactive';
+    }
+
     // Phạm vi truy vấn (Scopes)
 
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
     }
+
 
     public function scopeFeatured($query)
     {

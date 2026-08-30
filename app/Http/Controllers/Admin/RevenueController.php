@@ -107,6 +107,7 @@ class RevenueController extends Controller
             'completedOrdersCount',
             'cancelledOrdersCount',
             'totalCustomersInMonth',
+            'monthlyCustomersList',
             'aovMonth',
             'growthRate',
             'availableMonths',

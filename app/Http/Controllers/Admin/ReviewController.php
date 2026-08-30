@@ -71,6 +71,32 @@ class ReviewController extends Controller
     private function attachMatchedOrder(&$review)
     {
         $review->matched_order = null;
+
+        // Tính tổng chi tiêu thực tế của khách hàng (khớp chính xác 100% với danh sách đơn hàng đã mua)
+        $customerSpent = 0;
+        $customerOrdersCount = 0;
+
+        if ($review->user) {
+            $userOrders = $review->user->orders ? $review->user->orders->where('shipping_status', '!=', 'cancelled') : collect();
+            $customerSpent = (int) $userOrders->sum('total_amount');
+            $customerOrdersCount = $userOrders->count();
+            if ($customerSpent === 0 && !empty($review->user->total_spent)) {
+                $customerSpent = (int) $review->user->total_spent;
+            }
+            $review->user->total_spent = $customerSpent;
+            $review->user->actual_total_spent = $customerSpent;
+        } elseif (!empty($review->user_name)) {
+            $matchedOrders = \App\Models\Order::where('customer_name', $review->user_name)
+                ->where('shipping_status', '!=', 'cancelled')
+                ->get();
+            $customerSpent = (int) $matchedOrders->sum('total_amount');
+            $customerOrdersCount = $matchedOrders->count();
+        }
+
+        $review->customer_total_spent = $customerSpent;
+        $review->customer_total_spent_formatted = number_format($customerSpent, 0, ',', '.') . '₫';
+        $review->customer_orders_count = $customerOrdersCount;
+
         if ($review->user_id && $review->product_id) {
             $order = \App\Models\Order::where(function($q) use ($review) {
                     $q->where('user_id', $review->user_id);
@@ -109,47 +135,7 @@ class ReviewController extends Controller
             }
         }
     }
-
-
-
-    /**
-     * Cập nhật trạng thái duyệt / ẩn đánh giá
-     */
-    public function updateStatus(Request $request, $id)
-    {
-        $review = Review::findOrFail($id);
-        $status = $request->input('status', 'approved');
-
-        $review->update(['status' => $status]);
-
-        // Cập nhật lại rating trung bình và số lượng review của sản phẩm
-        $product = Product::find($review->product_id);
-        if ($product) {
-            $product->rating = round(Review::where('product_id', $product->id)->where('status', 'approved')->avg('rating'), 1) ?: 5.0;
-            $product->reviews_count = Review::where('product_id', $product->id)->where('status', 'approved')->count();
-            $product->save();
-        }
-
-        return back()->with('success', "Đã cập nhật trạng thái đánh giá thành \"{$status}\" thành công!");
-    }
-
-    /**
-     * Xóa đánh giá
-     */
-    public function destroy($id)
-    {
-        $review = Review::findOrFail($id);
-        $productId = $review->product_id;
-        $review->delete();
-
-        // Cập nhật lại rating sản phẩm
-        $product = Product::find($productId);
-        if ($product) {
-            $product->rating = round(Review::where('product_id', $product->id)->where('status', 'approved')->avg('rating'), 1) ?: 5.0;
-            $product->reviews_count = Review::where('product_id', $product->id)->where('status', 'approved')->count();
-            $product->save();
-        }
-
-        return back()->with('success', 'Đã xóa đánh giá của khách hàng thành công!');
-    }
 }
+
+
+

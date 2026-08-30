@@ -151,7 +151,20 @@
         <h5 class="fw-bold text-dark mb-3 text-start">4. Ảnh Đại Diện</h5>
         <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid rounded border p-1 bg-light mb-3" style="max-height: 220px; width: 100%; object-fit: cover;">
         <input type="file" name="image" class="form-control form-control-sm mb-2" accept="image/*">
-        <input type="text" name="image_url" class="form-control form-control-sm" value="{{ $product->image }}" placeholder="Hoặc nhập URL ảnh">
+        <input type="text" name="image_url" class="form-control form-control-sm mb-3" value="{{ $product->image }}" placeholder="Hoặc nhập URL ảnh">
+
+        @if($product->images && $product->images->count() > 0)
+          <div class="border-top pt-3 text-start">
+            <label class="form-label small fw-semibold text-muted mb-2">Ảnh phụ trong thư viện ({{ $product->images->count() }} ảnh):</label>
+            <div class="d-flex gap-2 flex-wrap">
+              @foreach($product->images as $gImg)
+                <div class="position-relative">
+                  <img src="{{ asset($gImg->image_path) }}" alt="Gallery image" class="rounded border" style="width: 54px; height: 54px; object-fit: cover;">
+                </div>
+              @endforeach
+            </div>
+          </div>
+        @endif
       </div>
 
       <button type="submit" class="btn btn-bee-primary w-100 py-3 fs-6">

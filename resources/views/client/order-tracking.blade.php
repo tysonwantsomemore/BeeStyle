@@ -207,6 +207,46 @@
       @endif
     @endif
 
+
+    <!-- CANCELLED ORDER INFO BANNER -->
+    @if($currentOrder->shipping_status === 'cancelled')
+      <div class="alert alert-danger border-0 shadow-sm p-4 mb-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fef2f2; border-left: 6px solid #ef4444 !important;">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
+            <i class="fa-solid fa-ban fs-3"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold text-danger mb-1">ĐƠN HÀNG ĐÃ BỊ HỦY (#{{ $currentOrder->order_code }})</h5>
+            <p class="mb-0 text-muted small">Lý do hủy: <strong>{{ $currentOrder->cancel_reason ?: 'Hủy theo yêu cầu của khách hàng' }}</strong> • Thời gian hủy: {{ $currentOrder->cancelled_at ? $currentOrder->cancelled_at->format('d/m/Y H:i') : ($currentOrder->updated_at ? $currentOrder->updated_at->format('d/m/Y H:i') : '') }}</p>
+          </div>
+        </div>
+        <span class="badge bg-danger px-3.5 py-2.5 fw-bold fs-6 rounded-pill shadow-sm">
+          <i class="fa-solid fa-xmark me-1"></i> ĐÃ HỦY ĐƠN
+        </span>
+      </div>
+    @endif
+
+    <!-- ACTIVE RMA RETURN REQUEST BANNER -->
+    @if($currentOrder->latestReturn)
+      <div class="alert alert-warning border-0 shadow-sm p-4 mb-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fffbeb; border-left: 6px solid #f59e0b !important;">
+        <div class="d-flex align-items-center gap-3">
+          <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
+            <i class="fa-solid fa-arrow-rotate-left fs-3"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold text-dark mb-1">ĐƠN HÀNG CÓ YÊU CẦU ĐỔI TRẢ (#{{ $currentOrder->latestReturn->return_code }})</h5>
+            <p class="mb-0 text-muted small">{{ $currentOrder->latestReturn->type_label }}: <strong>{{ $currentOrder->latestReturn->reason }}</strong></p>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          {!! $currentOrder->latestReturn->status_badge !!}
+          <a href="{{ route('client.profile', ['tab' => 'returns']) }}" class="btn btn-dark btn-sm px-3 fw-bold rounded-pill">
+            Xem Tiến Trình RMA
+          </a>
+        </div>
+      </div>
+    @endif
+
     <!-- ORDER STATUS & TRACKER -->
     <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff; border: 1px solid #e2e8f0 !important;">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 border-bottom">
@@ -221,100 +261,12 @@
         <div>
           <span class="text-muted small">Trạng thái:</span>
           <div>
-            <span class="badge bg-warning text-dark px-3 py-1.5 fw-bold rounded-pill">
-              {{ $currentOrder->status_label }}
-            </span>
-          </div>
-        </div>
-        <div>
-          <span class="text-muted small">Tổng tiền:</span>
-          <div class="fw-bold text-danger fs-5">{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</div>
-        </div>
-      </div>
-
-      <!-- 6-STEP TIMELINE TRACKER -->
-      <div class="bee-timeline-steps my-5">
-        @php
-          $steps = [
-            1 => 'Chờ xác nhận',
-            2 => 'Đã xác nhận',
-            3 => 'Đang đóng gói',
-            4 => 'Đang giao hàng',
-            5 => 'Đã giao hàng',
-            6 => 'Hoàn tất'
-          ];
-          $currentStep = $currentOrder->status_step;
-        @endphp
-
-        @foreach($steps as $stepNum => $stepLabel)
-          <div class="bee-timeline-step {{ $currentStep > $stepNum ? 'completed' : ($currentStep == $stepNum ? 'active' : '') }}">
-            <div class="bee-timeline-step-icon">
-              @if($currentStep > $stepNum)
-                <i class="fa-solid fa-check"></i>
-              @else
-                {{ $stepNum }}
-              @endif
-            </div>
-            <div class="bee-timeline-step-label">{{ $stepLabel }}</div>
-          </div>
-        @endforeach
-      </div>
-
-      <!-- COMPLETED ORDER REVIEW NOTIFICATION BANNER -->
-      @if($currentOrder->status_step >= 5 || in_array($currentOrder->shipping_status, ['delivered', 'completed']))
-        <div class="alert alert-success border-0 shadow-sm p-4 my-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 6px solid #10b981 !important;">
-          <div class="d-flex align-items-center gap-3">
-            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px; min-width: 48px;">
-              <i class="fa-solid fa-heart fs-4"></i>
-            </div>
-            <div>
-              <h6 class="fw-bold text-success mb-1 fs-6">CẢM ƠN QUÝ KHÁCH ĐÃ MUA HÀNG TẠI BEESTYLE!</h6>
-              <p class="mb-0 text-muted small">BeeStyle chân thành cảm ơn Quý khách đã tin tưởng mua sắm. Hãy chia sẻ cảm nhận của bạn để giúp chúng tôi ngày càng hoàn thiện nhé!</p>
-            </div>
-          </div>
-          <button type="button" onclick="openQuickReviewModal({{ $currentOrder->items->first()->product_id ?? 1 }})" class="btn btn-bee-primary px-4 py-2.5 text-nowrap fw-bold rounded-pill shadow-sm">
-            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM
-          </button>
-        </div>
-      @endif
-
-      <!-- ORDER DETAILS & CUSTOMER INFO -->
-      <div class="row g-4 pt-3 border-top">
-        <!-- Cột 1: Thông tin người nhận -->
-        <div class="col-md-6 border-end">
-          <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-user me-2 text-warning"></i> Thông Tin Nhận Hàng</h6>
-          <div class="p-3 bg-light rounded-3 border d-flex flex-column gap-2 small">
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Người nhận:</span>
-              <strong class="text-dark">{{ $currentOrder->customer_name }}</strong>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Số điện thoại:</span>
-              <strong class="text-dark">{{ $currentOrder->customer_phone }}</strong>
-            </div>
-            @if($currentOrder->customer_email)
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Email:</span>
-                <span class="text-dark">{{ $currentOrder->customer_email }}</span>
-              </div>
-            @endif
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Địa chỉ giao:</span>
-              <span class="text-dark text-end fw-semibold" style="max-width: 250px;">{{ $currentOrder->shipping_address }}{{ $currentOrder->city ? ', ' . $currentOrder->city : '' }}</span>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Phương thức:</span>
-              <span class="text-dark fw-bold">{{ $currentOrder->payment_method_name }}</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="text-muted">Trạng thái thanh toán:</span>
-              <span class="badge {{ $currentOrder->payment_status === 'paid' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-dark border border-warning-subtle' }} fw-bold">
-                {{ $currentOrder->payment_status_label }}
-              </span>
-            </div>
-            @if($currentOrder->notes)
-              <div class="pt-1.5 border-top text-muted">
-                <strong>Ghi chú:</strong> "{{ $currentOrder->notes }}"
+            @if($currentOrder->admin_notes)
+              <div class="p-2 bg-info-subtle text-info rounded-3 border border-info-subtle d-flex align-items-center gap-2 mt-1">
+                <i class="fa-solid fa-truck-fast fs-5 text-primary"></i>
+                <div class="small text-dark">
+                  <strong class="text-primary d-block">Vận Đơn Giao Hàng:</strong> {{ $currentOrder->admin_notes }}
+                </div>
               </div>
             @endif
           </div>
@@ -384,6 +336,55 @@
       </div>
 
     </div>
+
+    <!-- MODAL HỦY ĐƠN HÀNG DÀNH CHO KHÁCH HÀNG TẠI TRANG TRACKING -->
+    @if(Auth::check() && Auth::id() === $currentOrder->user_id && $currentOrder->canBeCancelledByCustomer())
+      <div class="modal fade" id="cancelTrackingOrderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+            <form action="{{ route('client.orders.cancel', $currentOrder->id) }}" method="POST">
+              @csrf
+              <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-danger">
+                  <i class="fa-solid fa-triangle-exclamation me-2"></i> Hủy Đơn Hàng #{{ $currentOrder->order_code }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body p-4">
+                <div class="alert alert-warning border-0 p-3 rounded-3 small mb-3" style="background: #fffbeb;">
+                  <i class="fa-solid fa-circle-info text-warning me-1"></i>
+                  Khi bạn xác nhận hủy đơn, hệ thống sẽ tự động khôi phục số lượng tồn kho sản phẩm và hoàn lại lượt sử dụng mã giảm giá (voucher) cho bạn.
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-dark">Lý do hủy đơn hàng <span class="text-danger">*</span></label>
+                  <select name="reason" class="form-select" required>
+                    <option value="" selected disabled>-- Chọn lý do hủy đơn --</option>
+                    <option value="Tôi muốn thay đổi địa chỉ giao hàng">Tôi muốn thay đổi địa chỉ giao hàng</option>
+                    <option value="Tôi muốn thay đổi kích cỡ (Size) hoặc màu sắc áo">Tôi muốn thay đổi kích cỡ (Size) hoặc màu sắc áo</option>
+                    <option value="Tôi muốn thêm/bớt sản phẩm trong đơn">Tôi muốn thêm/bớt sản phẩm trong đơn</option>
+                    <option value="Tôi tìm thấy giá tốt hơn ở nơi khác">Tôi tìm thấy giá tốt hơn ở nơi khác</option>
+                    <option value="Tôi đổi ý, không có nhu cầu mua nữa">Tôi đổi ý, không có nhu cầu mua nữa</option>
+                    <option value="Lý do khác">Lý do khác</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-dark">Ghi chú thêm (không bắt buộc)</label>
+                  <textarea name="notes" class="form-control" rows="2" placeholder="Nhập thêm chi tiết nếu cần..."></textarea>
+                </div>
+              </div>
+              <div class="modal-footer border-top bg-light">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
+                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                  Xác Nhận Hủy Đơn
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    @endif
   @else
     <div class="card border-0 shadow-sm p-5 text-center" style="border-radius: 20px; background: #ffffff;">
       <i class="fa-solid fa-magnifying-glass fs-1 text-muted mb-3"></i>
