@@ -33,8 +33,8 @@
           <div class="row g-0 h-100 align-items-center">
             <!-- Brand Logo Column -->
             <div class="col-sm-4 p-4 text-center bg-light d-flex flex-column justify-content-center align-items-center border-end">
-              <div class="bg-white rounded-circle shadow-sm p-3 mb-2 d-flex align-items-center justify-content-center" style="width: 90px; height: 90px;">
-                <i class="fa-solid fa-crown text-warning fs-1"></i>
+              <div class="bg-white rounded-circle shadow-sm p-2 mb-2 d-flex align-items-center justify-content-center" style="width: 90px; height: 90px; overflow: hidden;">
+                <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
               </div>
               <span class="badge bg-warning-subtle text-dark fw-bold px-3 py-1 rounded-pill small">
                 {{ $brand->products_count }} sản phẩm

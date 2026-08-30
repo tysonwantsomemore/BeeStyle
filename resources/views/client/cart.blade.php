@@ -65,19 +65,24 @@
                           @csrf
                           <input type="hidden" name="key" value="{{ $item['key'] }}">
                           <input type="hidden" name="quantity" value="{{ $item['quantity'] - 1 }}">
-                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;">-</button>
+                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;" title="Giảm số lượng">-</button>
                         </form>
 
-                        <span class="px-2 fw-bold text-dark">{{ $item['quantity'] }}</span>
+                        <form action="{{ route('client.cart.update') }}" method="POST" class="d-inline mx-1">
+                          @csrf
+                          <input type="hidden" name="key" value="{{ $item['key'] }}">
+                          <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1" max="999" class="form-control form-control-sm text-center fw-bold text-dark px-1 border-secondary-subtle" style="width: 52px; height: 28px;" title="Nhập số lượng bạn muốn mua" onchange="this.form.submit()">
+                        </form>
 
                         <form action="{{ route('client.cart.update') }}" method="POST" class="d-inline">
                           @csrf
                           <input type="hidden" name="key" value="{{ $item['key'] }}">
                           <input type="hidden" name="quantity" value="{{ $item['quantity'] + 1 }}">
-                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;">+</button>
+                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;" title="Tăng số lượng">+</button>
                         </form>
                       </div>
                     </td>
+
 
                     <!-- Total -->
                     <td>
@@ -172,9 +177,21 @@
             <span class="fs-4 fw-bold text-danger">{{ number_format($total, 0, ',', '.') }}₫</span>
           </div>
 
-          <a href="{{ route('client.checkout') }}" class="btn btn-bee-primary w-100 py-3 fs-6">
-            Tiến Hành Thanh Toán <i class="fa-solid fa-arrow-right ms-1"></i>
-          </a>
+          @auth
+            <a href="{{ route('client.checkout') }}" class="btn btn-bee-primary w-100 py-3 fs-6">
+              Tiến Hành Thanh Toán <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+          @else
+            <div class="alert alert-warning border-0 d-flex align-items-center gap-2 small p-2 mb-3" style="border-radius: 8px;">
+              <i class="fa-solid fa-shield-halved text-warning fs-5"></i>
+              <div>
+                <strong>Yêu cầu đăng nhập:</strong> Vui lòng đăng nhập để tiến hành thanh toán và lưu lịch sử đơn hàng.
+              </div>
+            </div>
+            <a href="{{ route('client.checkout') }}" class="btn btn-bee-accent w-100 py-3 fs-6">
+              <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng Nhập Để Thanh Toán <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+          @endauth
 
           <div class="mt-3 text-center text-muted small">
             <i class="fa-solid fa-lock me-1 text-warning"></i> Giao dịch bảo mật 100% chuẩn SSL
