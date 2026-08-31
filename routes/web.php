@@ -103,34 +103,6 @@ Route::name('auth.')->group(function () {
 */
 
 Route::name('client.')->group(function () {
-    Route::get('/', [HomeController::class, 'index'])->name('home');
-    Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
-    Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
-    
-    // Categories (Xem danh mục sản phẩm)
-    Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
-    Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
-
-    // Brands
-    Route::get('/thuong-hieu', [ClientBrandController::class, 'index'])->name('brands.index');
-    Route::get('/thuong-hieu/{slug}', [ClientBrandController::class, 'show'])->name('brands.show');
-
-    // Product Review (BẮT BUỘC ĐÃ MUA HÀNG VÀ ĐĂNG NHẬP)
-    Route::get('/san-pham/{id}/danh-gia-chi-tiet', [ReviewController::class, 'getProductReviewsData'])->name('products.reviews.data');
-    Route::post('/san-pham/{id}/danh-gia', [ReviewController::class, 'store'])->middleware('auth')->name('products.review');
-    Route::post('/danh-dau-thong-bao-danh-gia', [ReviewController::class, 'dismissNotification'])->middleware('auth')->name('reviews.dismissNotification');
-
-
-    // Cart Routes (Khách vãng lai và Thành viên đều tự do thêm/sửa/xóa sản phẩm vào giỏ hàng)
-    Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
-    Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
-    Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
-    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-    Route::delete('/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
-    
-    // Checkout Routes (BẮT BUỘC ĐĂNG NHẬP: Khách hàng phải đăng nhập mới được tiến hành thanh toán & lưu đơn hàng)
 
     /*
     |--------------------------------------------------------------------------
@@ -141,6 +113,10 @@ Route::name('client.')->group(function () {
         '/',
         [HomeController::class, 'index']
     )->name('home');
+
+    // Categories (Xem danh mục sản phẩm)
+    Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
+    Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
 
 
     /*
