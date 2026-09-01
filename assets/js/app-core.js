@@ -656,6 +656,8 @@ window.BeeCore = {
       if (u) this.currentUser = JSON.parse(u);
       const cp = localStorage.getItem('beestyle_coupon');
       if (cp) this.appliedCoupon = JSON.parse(cp);
+      const rv = localStorage.getItem('beestyle_reviews');
+      if (rv) BeeDB.reviews = JSON.parse(rv);
     } catch(e) {
       console.error('Error loading localStorage state', e);
     }
@@ -1365,7 +1367,7 @@ window.BeeCore = {
     lucide.createIcons();
   },
 
-  // ================= VERIFIED BUYER & ORDER HELPERS =================
+  // ================= VERIFIED BUYER, REVIEW & ORDER HELPERS =================
   getOrders: function() {
     try {
       const stored = localStorage.getItem('beestyle_orders');
@@ -1384,6 +1386,198 @@ window.BeeCore = {
 
   saveRefunds: function(list) {
     localStorage.setItem('beestyle_refunds', JSON.stringify(list));
+  },
+
+  getReviews: function() {
+    try {
+      const stored = localStorage.getItem('beestyle_reviews');
+      if (stored) return JSON.parse(stored);
+    } catch(e) {}
+    return BeeDB.reviews || [];
+  },
+
+  saveReviews: function(list) {
+    BeeDB.reviews = list;
+    localStorage.setItem('beestyle_reviews', JSON.stringify(list));
+  },
+
+  getUserReviewedItems: function() {
+    try {
+      const stored = localStorage.getItem('beestyle_user_reviewed_items');
+      if (stored) return JSON.parse(stored);
+    } catch(e) {}
+    return [];
+  },
+
+  saveUserReviewedItems: function(list) {
+    localStorage.setItem('beestyle_user_reviewed_items', JSON.stringify(list));
+  },
+
+  hasUserReviewedItem: function(productId, orderCode) {
+    const list = this.getUserReviewedItems();
+    return list.includes(`${orderCode}_${productId}`);
+  },
+
+  // ================= REVIEW MODAL LOGIC & STATE =================
+  _tempReviewRating: 5,
+  _tempReviewImages: [],
+  _tempReviewProduct: null,
+
+  openProductReviewModal: function(productId, orderCode, variantName, productName, productThumb) {
+    if (!this.currentUser) {
+      this.showToast('Vui lòng đăng nhập để đánh giá sản phẩm!', 'error');
+      this.openAuthModal('login');
+      return;
+    }
+
+    const p = BeeDB.products.find(item => item.id === productId);
+    const modal = document.getElementById('product-review-modal');
+    if (!modal) return;
+
+    this._tempReviewProduct = {
+      productId: productId,
+      orderCode: orderCode,
+      variantName: variantName || 'Mặc định',
+      productName: productName || (p ? p.name : 'Sản phẩm Atelier'),
+      thumbnail: productThumb || (p ? p.thumbnail : 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=300')
+    };
+
+    this._tempReviewRating = 5;
+    this._tempReviewImages = [];
+
+    // Populate modal DOM
+    const thumbEl = document.getElementById('review-modal-product-thumb');
+    const nameEl = document.getElementById('review-modal-product-name');
+    const variantEl = document.getElementById('review-modal-product-variant');
+    const orderEl = document.getElementById('review-modal-order-code');
+    const textEl = document.getElementById('review-modal-comment');
+    const previewContainer = document.getElementById('review-modal-images-preview');
+    const fileInput = document.getElementById('review-modal-images-input');
+
+    if (thumbEl) thumbEl.src = this._tempReviewProduct.thumbnail;
+    if (nameEl) nameEl.innerText = this._tempReviewProduct.productName;
+    if (variantEl) variantEl.innerText = `Phân loại: ${this._tempReviewProduct.variantName}`;
+    if (orderEl) orderEl.innerText = `Đơn hàng: #${this._tempReviewProduct.orderCode}`;
+    if (textEl) textEl.value = '';
+    if (previewContainer) previewContainer.replaceChildren();
+    if (fileInput) fileInput.value = '';
+
+    this.setReviewRating(5);
+
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+  },
+
+  closeProductReviewModal: function() {
+    document.getElementById('product-review-modal')?.classList.add('hidden');
+  },
+
+  setReviewRating: function(rating) {
+    this._tempReviewRating = rating;
+    const starButtons = document.querySelectorAll('#review-star-selector button');
+    const ratingLabel = document.getElementById('review-rating-label');
+    const labels = {
+      1: 'Rất không hài lòng (1 sao)',
+      2: 'Chưa hài lòng (2 sao)',
+      3: 'Bình thường / Tạm ổn (3 sao)',
+      4: 'Hài lòng (4 sao)',
+      5: 'Tuyệt vời / Rất hài lòng (5 sao)'
+    };
+    if (ratingLabel) ratingLabel.innerText = labels[rating] || `${rating} sao`;
+
+    starButtons.forEach((btn, idx) => {
+      const starIcon = btn.querySelector('svg') || btn.querySelector('i');
+      if (idx < rating) {
+        btn.className = 'text-amber-500 hover:scale-110 transition-transform p-1';
+        if (starIcon) {
+          starIcon.classList.add('fill-amber-400', 'text-amber-500');
+          starIcon.classList.remove('text-neutral-300');
+        }
+      } else {
+        btn.className = 'text-neutral-300 hover:scale-110 transition-transform p-1';
+        if (starIcon) {
+          starIcon.classList.remove('fill-amber-400', 'text-amber-500');
+          starIcon.classList.add('text-neutral-300');
+        }
+      }
+    });
+  },
+
+  handleReviewModalImages: function(input) {
+    if (!input.files || input.files.length === 0) return;
+    const previewContainer = document.getElementById('review-modal-images-preview');
+    if (!previewContainer) return;
+
+    Array.from(input.files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target.result;
+        this._tempReviewImages.push(url);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'relative w-16 h-20 rounded-lg border border-neutral-300 overflow-hidden shrink-0 group shadow-sm';
+        wrap.innerHTML = `
+          <img src="${url}" class="w-full h-full object-cover">
+          <button type="button" class="absolute top-1 right-1 bg-neutral-900/80 hover:bg-neutral-950 text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+        `;
+        wrap.querySelector('button').onclick = () => {
+          this._tempReviewImages = this._tempReviewImages.filter(img => img !== url);
+          wrap.remove();
+        };
+        previewContainer.appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+
+  submitProductReview: function(e) {
+    e?.preventDefault();
+    if (!this._tempReviewProduct) return;
+
+    const commentText = document.getElementById('review-modal-comment')?.value?.trim();
+    if (!commentText) {
+      this.showToast('Vui lòng nhập nhận xét của bạn về sản phẩm!', 'error');
+      document.getElementById('review-modal-comment')?.focus();
+      return;
+    }
+
+    const { productId, orderCode, variantName, productName } = this._tempReviewProduct;
+    const user = this.currentUser || { fullname: 'Khách hàng Atelier' };
+
+    const newReview = {
+      id: Date.now(),
+      product_id: productId,
+      order_code: orderCode,
+      variant_name: variantName,
+      user_fullname: user.fullname || 'Nguyễn Văn An',
+      rating: this._tempReviewRating || 5,
+      review_text: commentText,
+      photos: [...this._tempReviewImages],
+      created_at: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    };
+
+    // Save to reviews list
+    const reviews = this.getReviews();
+    reviews.unshift(newReview);
+    this.saveReviews(reviews);
+
+    // Mark product in order as reviewed
+    const reviewedItems = this.getUserReviewedItems();
+    if (!reviewedItems.includes(`${orderCode}_${productId}`)) {
+      reviewedItems.push(`${orderCode}_${productId}`);
+      this.saveUserReviewedItems(reviewedItems);
+    }
+
+    this.closeProductReviewModal();
+    this.showToast(`Đã gửi đánh giá thành công cho sản phẩm "${productName}"! Cảm ơn bạn.`);
+
+    // Re-render profile orders if open
+    this.renderProfileOrders();
+
+    // If on product detail page, re-render reviews
+    if (window.ProductPage && typeof window.ProductPage.renderReviews === 'function') {
+      window.ProductPage.renderReviews();
+    }
   },
 
   /**
@@ -1501,101 +1695,6 @@ window.BeeCore = {
     lucide.createIcons();
   },
 
-  updateProfile: function(e) {
-    e?.preventDefault();
-    if (!this.currentUser) return;
-
-    const fullname = document.getElementById('profile-fullname')?.value?.trim();
-    const phone = document.getElementById('profile-phone')?.value?.trim();
-    const gender = document.getElementById('profile-gender')?.value;
-    const birthday = document.getElementById('profile-birthday')?.value;
-    const address = document.getElementById('profile-address')?.value?.trim() || document.getElementById('profile-address-detail')?.value?.trim();
-    const bank_name = document.getElementById('profile-bank-name')?.value?.trim();
-    const bank_account = document.getElementById('profile-bank-account')?.value?.trim();
-    const user_bank_name = document.getElementById('profile-user-bank-name')?.value?.trim();
-
-    if (!fullname) {
-      this.showToast('Vui lòng nhập họ và tên!', 'error');
-      return;
-    }
-
-    this.currentUser.fullname = fullname;
-    this.currentUser.phone = phone;
-    this.currentUser.phone_number = phone;
-    this.currentUser.gender = gender;
-    this.currentUser.birthday = birthday;
-    if (address) this.currentUser.address = address;
-    if (bank_name) this.currentUser.bank_name = bank_name;
-    if (bank_account) this.currentUser.bank_account = bank_account;
-    if (user_bank_name) this.currentUser.user_bank_name = user_bank_name;
-
-    this.saveUser();
-    this.showToast('Cập nhật hồ sơ tài khoản thành công!');
-
-    this.renderAuthStatus();
-    const nameEl = document.getElementById('profile-display-name');
-    const avatarEl = document.getElementById('profile-avatar-letter');
-    if (nameEl) nameEl.innerText = fullname;
-    if (avatarEl) avatarEl.innerText = fullname.charAt(0).toUpperCase();
-  },
-
-  changePassword: function(e) {
-    e?.preventDefault();
-    if (!this.currentUser) return;
-
-    const currentPass = document.getElementById('pwd-current')?.value;
-    const newPass = document.getElementById('pwd-new')?.value;
-    const confirmPass = document.getElementById('pwd-confirm')?.value;
-
-    const storedPass = this.currentUser.password || '123456';
-
-    if (currentPass !== storedPass) {
-      this.showToast('Mật khẩu hiện tại không chính xác!', 'error');
-      return;
-    }
-
-    if (!newPass || newPass.length < 6) {
-      this.showToast('Mật khẩu mới phải chứa ít nhất 6 ký tự!', 'error');
-      return;
-    }
-
-    if (newPass !== confirmPass) {
-      this.showToast('Xác nhận mật khẩu mới không trùng khớp!', 'error');
-      return;
-    }
-
-    if (newPass === currentPass) {
-      this.showToast('Mật khẩu mới không được giống mật khẩu cũ!', 'error');
-      return;
-    }
-
-    this.currentUser.password = newPass;
-    this.currentUser.is_change_password = 1;
-    this.saveUser();
-
-    const p1 = document.getElementById('pwd-current');
-    const p2 = document.getElementById('pwd-new');
-    const p3 = document.getElementById('pwd-confirm');
-    if (p1) p1.value = '';
-    if (p2) p2.value = '';
-    if (p3) p3.value = '';
-
-    this.showToast('Đổi mật khẩu thành công! Hãy ghi nhớ mật khẩu mới.');
-  },
-
-  togglePasswordVisibility: function(inputId, iconBtn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    if (input.type === 'password') {
-      input.type = 'text';
-      iconBtn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4 text-neutral-600"></i>';
-    } else {
-      input.type = 'password';
-      iconBtn.innerHTML = '<i data-lucide="eye" class="w-4 h-4 text-neutral-400"></i>';
-    }
-    lucide.createIcons();
-  },
-
   renderProfileOrders: function() {
     const container = document.getElementById('profile-orders-list');
     if (!container) return;
@@ -1614,13 +1713,47 @@ window.BeeCore = {
 
     container.innerHTML = userOrders.map(order => {
       const isDelivered = order.order_status_id === 5 || (order.status_name && order.status_name.toLowerCase().includes('hoàn thành'));
+      
+      const itemsHtml = (order.items || []).map(it => {
+        const alreadyReviewed = this.hasUserReviewedItem(it.product_id, order.code);
+        const safeName = (it.name || '').replace(/'/g, "\\'");
+        const safeVariant = (it.name_variant || 'Mặc định').replace(/'/g, "\\'");
+        const safeThumb = (it.thumbnail || '').replace(/'/g, "\\'");
+
+        const reviewBtn = isDelivered ? (
+          alreadyReviewed
+            ? `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-semibold flex items-center gap-1">
+                 <i data-lucide="badge-check" class="w-3 h-3 text-emerald-600"></i> ✓ Đã Đánh Giá
+               </span>`
+            : `<button onclick="BeeCore.openProductReviewModal(${it.product_id}, '${order.code}', '${safeVariant}', '${safeName}', '${safeThumb}')" class="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded text-[10px] font-semibold hover:bg-amber-100 flex items-center gap-1 transition-colors shadow-sm">
+                 <i data-lucide="star" class="w-3 h-3 fill-amber-500 text-amber-500"></i> ⭐ Đánh Giá
+               </button>`
+        ) : '';
+
+        return `
+          <div class="flex items-center justify-between text-xs text-neutral-700 py-2 border-b border-neutral-100 last:border-0">
+            <div class="flex items-center gap-2.5 truncate pr-2">
+              <img src="${it.thumbnail || 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=100'}" class="w-10 h-12 rounded-lg object-cover border border-neutral-200 shrink-0">
+              <div class="min-w-0">
+                <a href="product-detail.html?id=${it.product_id}" class="font-medium text-neutral-900 hover:underline truncate block">${it.name}</a>
+                <span class="text-[11px] text-neutral-400">Phân loại: ${it.name_variant || 'Mặc định'} × ${it.quantity}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="font-semibold text-neutral-900">${this.formatMoney(it.price * it.quantity)}</span>
+              ${reviewBtn}
+            </div>
+          </div>
+        `;
+      }).join('');
+
       return `
-        <div class="border border-neutral-200 rounded-xl p-4 bg-white hover:border-neutral-400 transition-all">
+        <div class="border border-neutral-200 rounded-xl p-4 bg-white hover:border-neutral-300 transition-all shadow-sm">
           <div class="flex flex-wrap justify-between items-start gap-2 border-b border-neutral-100 pb-3">
             <div>
               <div class="flex items-center gap-2">
                 <strong class="font-mono text-neutral-900 font-bold">${order.code}</strong>
-                <span class="px-2 py-0.5 ${isDelivered ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} rounded text-[10px] font-semibold">${order.status_name}</span>
+                <span class="px-2.5 py-0.5 ${isDelivered ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} rounded-full text-[10px] font-bold uppercase">${order.status_name}</span>
               </div>
               <p class="text-[11px] text-neutral-400 mt-0.5">Đặt ngày: ${order.created_at}</p>
             </div>
@@ -1630,26 +1763,11 @@ window.BeeCore = {
             </div>
           </div>
 
-          <div class="py-3 space-y-2">
-            ${(order.items || []).map(it => `
-              <div class="flex items-center justify-between text-xs text-neutral-700">
-                <div class="flex items-center gap-2 truncate pr-2">
-                  <img src="${it.thumbnail || 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=100'}" class="w-8 h-8 rounded object-cover border shrink-0">
-                  <span class="truncate">${it.name} <span class="text-[10px] text-neutral-400">(${it.name_variant || 'Mặc định'}) × ${it.quantity}</span></span>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
-                  <span class="font-semibold">${this.formatMoney(it.price * it.quantity)}</span>
-                  ${isDelivered ? `
-                    <a href="product-detail.html?id=${it.product_id}#reviews-section" class="px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-300 rounded text-[10px] font-semibold hover:bg-amber-100 flex items-center gap-1">
-                      <i data-lucide="star" class="w-2.5 h-2.5 fill-amber-500 text-amber-500"></i> Đánh Giá
-                    </a>
-                  ` : ''}
-                </div>
-              </div>
-            `).join('')}
+          <div class="py-2 space-y-1">
+            ${itemsHtml}
           </div>
 
-          <div class="flex flex-wrap justify-between items-center pt-2 border-t border-neutral-100 text-xs gap-2">
+          <div class="flex flex-wrap justify-between items-center pt-3 border-t border-neutral-100 text-xs gap-2">
             <span class="text-[11px] text-neutral-500">PTTT: ${order.payment_name || 'COD'}</span>
             <div class="flex items-center gap-2">
               ${isDelivered ? `
@@ -1871,7 +1989,7 @@ window.BeeCore = {
                 <div class="flex items-center gap-2">
                   <span class="font-serif-luxury font-bold">${this.formatMoney(it.price * it.quantity)}</span>
                   ${isDelivered ? `
-                    <a href="product-detail.html?id=${it.product_id}#reviews-section" class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded text-[10px] font-semibold hover:bg-amber-200">Đánh giá</a>
+                    <button onclick="BeeCore.closeOrderLookup(); BeeCore.openProductReviewModal(${it.product_id}, '${order.code}', '${(it.name_variant || 'Mặc định').replace(/'/g, "\\'")}', '${(it.name || '').replace(/'/g, "\\'")}', '${(it.thumbnail || '').replace(/'/g, "\\'")}')" class="px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-300 rounded text-[10px] font-semibold hover:bg-amber-100 flex items-center gap-1 transition-colors">⭐ Đánh giá</button>
                   ` : ''}
                 </div>
               </div>
@@ -2841,6 +2959,72 @@ window.BeeCore = {
 
             <p class="text-neutral-500 italic">* Nếu số đo của bạn nằm giữa hai size, chúng tôi khuyên bạn nên chọn size lớn hơn hoặc liên hệ dịch vụ may đo riêng của Atelier.</p>
           </div>
+        </div>
+      </div>
+
+      <!-- Product Review Modal (Dedicated Modal from My Orders) -->
+      <div id="product-review-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-neutral-200 animate-fade-in my-8 max-h-[92vh] flex flex-col">
+          <button onclick="BeeCore.closeProductReviewModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-black">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+
+          <div class="border-b border-neutral-200 pb-3 mb-4">
+            <span class="text-[10px] tracking-widest uppercase text-amber-700 font-bold block">TRẢI NGHIỆM THỰC TẾ SẢN PHẨM</span>
+            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Đánh Giá & Nhận Xét</h3>
+            <p class="text-xs text-neutral-500 mt-1">Chia sẻ cảm nhận chân thực để cộng đồng Atelier cùng trải nghiệm.</p>
+          </div>
+
+          <!-- Product Item Card -->
+          <div class="flex items-center gap-3 p-3 bg-neutral-50 rounded-xl border border-neutral-200 mb-4">
+            <img id="review-modal-product-thumb" src="" alt="Thumbnail" class="w-14 h-16 object-cover rounded-lg border border-neutral-200 shrink-0 bg-white">
+            <div class="min-w-0">
+              <h4 id="review-modal-product-name" class="font-semibold text-xs text-neutral-900 truncate">Tên Sản Phẩm</h4>
+              <p id="review-modal-product-variant" class="text-[11px] text-neutral-500 mt-0.5">Phân loại: ...</p>
+              <span id="review-modal-order-code" class="text-[10px] font-mono text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block mt-1">Đơn hàng: #...</span>
+            </div>
+          </div>
+
+          <form onsubmit="BeeCore.submitProductReview(event)" class="space-y-4 text-xs overflow-y-auto pr-1">
+            <!-- Rating Star Selector -->
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">1. Bạn Đánh Giá Tác Phẩm Này Mấy Sao? *</label>
+              <div class="flex items-center gap-2">
+                <div id="review-star-selector" class="flex items-center gap-1 bg-amber-50/60 p-2 rounded-xl border border-amber-200">
+                  <button type="button" onclick="BeeCore.setReviewRating(1)" class="p-1 text-amber-500 hover:scale-110 transition-transform"><i data-lucide="star" class="w-6 h-6 fill-amber-400 text-amber-500"></i></button>
+                  <button type="button" onclick="BeeCore.setReviewRating(2)" class="p-1 text-amber-500 hover:scale-110 transition-transform"><i data-lucide="star" class="w-6 h-6 fill-amber-400 text-amber-500"></i></button>
+                  <button type="button" onclick="BeeCore.setReviewRating(3)" class="p-1 text-amber-500 hover:scale-110 transition-transform"><i data-lucide="star" class="w-6 h-6 fill-amber-400 text-amber-500"></i></button>
+                  <button type="button" onclick="BeeCore.setReviewRating(4)" class="p-1 text-amber-500 hover:scale-110 transition-transform"><i data-lucide="star" class="w-6 h-6 fill-amber-400 text-amber-500"></i></button>
+                  <button type="button" onclick="BeeCore.setReviewRating(5)" class="p-1 text-amber-500 hover:scale-110 transition-transform"><i data-lucide="star" class="w-6 h-6 fill-amber-400 text-amber-500"></i></button>
+                </div>
+                <span id="review-rating-label" class="text-xs font-bold text-amber-800 ml-2">Tuyệt vời / Rất hài lòng (5 sao)</span>
+              </div>
+            </div>
+
+            <!-- Review Text Area -->
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1">2. Nhận Xét Chi Tiết Về Chất Liệu, Phom Dáng, Đường May *</label>
+              <textarea id="review-modal-comment" rows="3" required placeholder="Ví dụ: Vải lụa mềm mát, màu sắc y hình, đường may cúc vỏ ốc rất tinh tế. Mặc vừa vặn thoải mái..." class="w-full bg-neutral-50 border border-neutral-300 rounded-xl p-3 text-xs focus:outline-none focus:border-neutral-900 leading-relaxed"></textarea>
+            </div>
+
+            <!-- Review Photos Upload -->
+            <div class="p-3 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
+                  <i data-lucide="camera" class="w-4 h-4 text-amber-700"></i>
+                  <span>3. Tải Lên Hình Ảnh Thực Tế (Không bắt buộc)</span>
+                </label>
+                <span class="text-[10px] text-neutral-500">Tối đa 5 ảnh</span>
+              </div>
+              <input type="file" id="review-modal-images-input" accept="image/*" multiple onchange="BeeCore.handleReviewModalImages(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-neutral-800 cursor-pointer">
+              <div id="review-modal-images-preview" class="flex gap-2 overflow-x-auto py-1 empty:hidden"></div>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-neutral-950 text-white rounded-xl font-semibold uppercase tracking-wider hover:bg-neutral-800 transition-colors shadow-lg flex items-center justify-center gap-2 mt-2">
+              <i data-lucide="send" class="w-4 h-4 text-amber-400"></i>
+              <span>Gửi Đánh Giá Sản Phẩm</span>
+            </button>
+          </form>
         </div>
       </div>
     `;
