@@ -113,13 +113,48 @@
           </div>
         </div>
 
-        <!-- KHỐI 2: CHỌN PHƯƠNG THỨC THANH TOÁN (E-COMMERCE STANDARD) -->
-        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px;">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-dark mb-0">
-              <i class="fa-solid fa-credit-card me-2 text-warning"></i> 2. Phương Thức Thanh Toán
-            </h5>
-            <span class="badge bg-success-subtle text-success small fw-bold"><i class="fa-solid fa-shield-halved me-1"></i> Bảo Mật 100%</span>
+        <!-- SECTION 2: PAYMENT METHOD -->
+        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+          <h5 class="fw-bold text-dark mb-3">
+            <i class="fa-solid fa-credit-card me-2 text-warning"></i> 2. Phương Thức Thanh Toán
+          </h5>
+
+          <div class="d-flex flex-column gap-3">
+            <!-- Method 1: COD -->
+            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_cod">
+              <div class="d-flex align-items-center">
+                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_cod" value="cod" checked>
+                <div>
+                  <strong class="text-dark d-block">Thanh toán khi nhận hàng (COD)</strong>
+                  <span class="text-muted small">Thanh toán tiền mặt cho bưu tá khi nhận và thử hàng tận nhà</span>
+                </div>
+              </div>
+              <i class="fa-solid fa-hand-holding-dollar fs-3 text-warning"></i>
+            </label>
+
+            <!-- Method 2: VietQR -->
+            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_vietqr">
+              <div class="d-flex align-items-center">
+                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_vietqr" value="vietqr">
+                <div>
+                  <strong class="text-dark d-block">Chuyển khoản VietQR 24/7 (Khuyên dùng)</strong>
+                  <span class="text-muted small">Quét mã QR qua app mọi ngân hàng - Tự động xác nhận giao dịch</span>
+                </div>
+              </div>
+              <i class="fa-solid fa-qrcode fs-3 text-warning"></i>
+            </label>
+
+            <!-- Method 3: VNPAY / MoMo -->
+            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_vnpay">
+              <div class="d-flex align-items-center">
+                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_vnpay" value="vnpay">
+                <div>
+                  <strong class="text-dark d-block">Ví điện tử VNPAY / MoMo / Thẻ Quốc Tế</strong>
+                  <span class="text-muted small">Cổng thanh toán online an toàn bảo mật tiêu chuẩn quốc tế</span>
+                </div>
+              </div>
+              <i class="fa-solid fa-wallet fs-3 text-info"></i>
+            </label>
           </div>
 
           <div class="d-flex flex-column gap-3" id="paymentMethodContainer">
@@ -234,7 +269,7 @@
                 <div class="d-flex align-items-center gap-2.5">
                   <div class="position-relative bg-white rounded-2 border p-1" style="width: 48px; height: 48px; min-width: 48px;">
                     <img src="{{ asset($item['image']) }}" alt="{{ $item['name'] }}" class="w-100 h-100 object-fit-contain">
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style="font-size: 0.65rem;">{{ $item['quantity'] }}</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark small">{{ $item['quantity'] }}</span>
                   </div>
                   <div>
                     <h6 class="small fw-bold text-dark mb-0 text-truncate" style="max-width: 180px;">{{ $item['name'] }}</h6>

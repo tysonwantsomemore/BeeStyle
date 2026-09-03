@@ -63,66 +63,21 @@ class RevenueController extends Controller
         $cancelledOrdersCount = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->where('shipping_status', 'cancelled')->count();
 
-        // 3. Lấy danh sách đầy đủ tất cả khách hàng duy nhất đã mua hàng trong tháng
-        $monthOrders = Order::with(['items.product', 'user'])
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->where('shipping_status', '!=', 'cancelled')
-            ->latest()
-            ->get();
+        // Lấy danh sách khách hàng duy nhất đã mua đơn trong tháng
+        $customerIds = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->whereNotNull('user_id')
+            ->pluck('user_id')
+            ->unique();
+        
+        $totalCustomersInMonth = $customerIds->count();
+        if ($totalCustomersInMonth === 0 && $monthlyOrdersCount > 0) {
+            $totalCustomersInMonth = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->pluck('customer_phone')
+                ->unique()
+                ->count();
+        }
 
-        $groupedCustomers = $monthOrders->groupBy(function($order) {
-            if ($order->user_id) {
-                return 'user_' . $order->user_id;
-            }
-            return 'guest_' . ($order->customer_phone ?: ($order->customer_email ?: $order->customer_name));
-        });
-
-        $monthlyCustomersList = $groupedCustomers->map(function($cOrders, $key) {
-            $firstOrder = $cOrders->first();
-            $user = $firstOrder->user;
-
-            $cTotalSpent = $cOrders->sum('total_amount');
-            $cOrdersCount = $cOrders->count();
-            $completedCount = $cOrders->whereIn('shipping_status', ['completed', 'delivered'])->count();
-
-            $name = $user ? $user->name : $firstOrder->customer_name;
-            $email = $user ? $user->email : $firstOrder->customer_email;
-            $phone = $user ? $user->phone : $firstOrder->customer_phone;
-            $avatar = $user ? $user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=f59e0b&color=111827&bold=true&size=128';
-            $rank = $user ? $user->rank : 'Khách vãng lai';
-
-            return [
-                'key' => $key,
-                'user_id' => $user ? $user->id : null,
-                'name' => $name,
-                'email' => $email ?: 'Chưa cập nhật email',
-                'phone' => $phone ?: 'Chưa cập nhật SĐT',
-                'avatar' => $avatar,
-                'rank' => $rank,
-                'is_registered' => (bool)$user,
-                'total_spent_in_month' => $cTotalSpent,
-                'total_spent_in_month_formatted' => number_format($cTotalSpent, 0, ',', '.') . '₫',
-                'orders_count' => $cOrdersCount,
-                'completed_count' => $completedCount,
-                'orders' => $cOrders->map(function($o) {
-                    return [
-                        'id' => $o->id,
-                        'order_code' => $o->order_code,
-                        'created_at' => $o->created_at ? $o->created_at->format('d/m/Y H:i') : '',
-                        'total_amount' => $o->total_amount,
-                        'total_amount_formatted' => number_format($o->total_amount, 0, ',', '.') . '₫',
-                        'shipping_status' => $o->shipping_status,
-                        'shipping_status_label' => $o->status_label,
-                        'payment_status' => $o->payment_status,
-                        'payment_status_label' => $o->payment_status_label,
-                        'items_count' => $o->items->sum('quantity'),
-                        'items_names' => $o->items->pluck('product_name')->take(2)->implode(', '),
-                    ];
-                })->values()->all(),
-            ];
-        })->sortByDesc('total_spent_in_month')->values();
-
-        $totalCustomersInMonth = $monthlyCustomersList->count();
+        $monthlyCustomersList = User::whereIn('id', $customerIds)->get();
 
         $aovMonth = $monthlyOrdersCount > 0 ? (int)round($monthlyRevenue / max(1, $monthlyOrdersCount - $cancelledOrdersCount)) : 0;
 
@@ -163,4 +118,3 @@ class RevenueController extends Controller
         ));
     }
 }
-

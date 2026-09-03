@@ -15,6 +15,21 @@
   </div>
 </div>
 
+@if ($errors->any())
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+      <strong class="fs-6">Vui lòng kiểm tra lại thông tin nhập liệu:</strong>
+    </div>
+    <ul class="mb-0 small ps-4">
+      @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
   @csrf
   <div class="row g-4">
@@ -25,22 +40,25 @@
         
         <div class="mb-3">
           <label class="form-label small fw-semibold">Tên sản phẩm <span class="text-danger">*</span></label>
-          <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Ví dụ: Áo Polo Nam Cotton Dệt Tổ Ong..." required>
+          <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="Ví dụ: Áo Polo Nam Cotton Dệt Tổ Ong..." required>
+          @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
         <div class="row g-3 mb-3">
           <div class="col-md-4">
-            <label class="form-label small fw-semibold">Mã SKU <span class="text-danger">*</span></label>
-            <input type="text" name="sku" class="form-control" value="{{ old('sku') }}" placeholder="Ví dụ: BS-PL-099" required>
+            <label class="form-label small fw-semibold">Mã SKU <small class="text-muted fw-normal">(Tùy chọn)</small></label>
+            <input type="text" name="sku" class="form-control font-monospace @error('sku') is-invalid @enderror" value="{{ old('sku') }}" placeholder="Tự sinh nếu để trống (BEE-XXXXXX)">
+            @error('sku') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
           <div class="col-md-4">
             <label class="form-label small fw-semibold">Danh mục thời trang <span class="text-danger">*</span></label>
-            <select name="category_id" class="form-select" required>
+            <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
               <option value="">-- Chọn danh mục --</option>
               @foreach($categories as $cat)
                 <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
               @endforeach
             </select>
+            @error('category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
           <div class="col-md-4">
             <label class="form-label small fw-semibold">Thương hiệu</label>
@@ -71,9 +89,12 @@
         <div class="mb-3">
           <label class="form-label small fw-semibold">Màu sắc có sẵn</label>
           <div class="d-flex flex-wrap gap-2">
+            @php
+              $oldColors = old('colors', ['Đen', 'Trắng']);
+            @endphp
             @foreach(['Đen', 'Trắng', 'Xanh Navy', 'Beige', 'Xám Tro', 'Nâu Cafe', 'Xanh Rêu', 'Xanh Mint'] as $c)
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="colors[]" value="{{ $c }}" id="c_{{ $loop->index }}" {{ in_array($c, ['Đen', 'Trắng']) ? 'checked' : '' }}>
+                <input class="form-check-input" type="checkbox" name="colors[]" value="{{ $c }}" id="c_{{ $loop->index }}" {{ in_array($c, $oldColors) ? 'checked' : '' }}>
                 <label class="form-check-label small" for="c_{{ $loop->index }}">{{ $c }}</label>
               </div>
             @endforeach
@@ -83,13 +104,28 @@
         <div class="mb-0">
           <label class="form-label small fw-semibold">Kích thước (Size) có sẵn</label>
           <div class="d-flex flex-wrap gap-2">
-            @foreach(['S', 'M', 'L', 'XL', 'XXL', '39', '40', '41', '42', '43'] as $s)
+            @php
+              $oldSizes = old('sizes', ['S', 'M', 'L', 'XL']);
+            @endphp
+            @foreach(['S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43'] as $s)
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="sizes[]" value="{{ $s }}" id="s_{{ $loop->index }}" {{ in_array($s, ['S', 'M', 'L', 'XL']) ? 'checked' : '' }}>
+                <input class="form-check-input" type="checkbox" name="sizes[]" value="{{ $s }}" id="s_{{ $loop->index }}" {{ in_array($s, $oldSizes) ? 'checked' : '' }}>
                 <label class="form-check-label small" for="s_{{ $loop->index }}">{{ $s }}</label>
               </div>
             @endforeach
           </div>
+        </div>
+      </div>
+
+      <!-- GALLERY IMAGES -->
+      <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-images text-warning me-2"></i>5. Thư Viện Ảnh Phụ (Gallery Images)</h5>
+        <p class="text-muted small mb-3">Tải lên nhiều ảnh sản phẩm ở các góc chụp khác nhau để hiển thị slider trang chi tiết</p>
+        
+        <div class="border border-dashed p-3 text-center rounded-3 bg-light">
+          <i class="fa-solid fa-images fs-2 text-secondary mb-2"></i>
+          <p class="small text-muted mb-2">Chọn một hoặc nhiều file ảnh từ máy tính</p>
+          <input type="file" name="gallery_images[]" class="form-control form-control-sm" accept="image/*" multiple>
         </div>
       </div>
     </div>
@@ -101,7 +137,8 @@
         
         <div class="mb-3">
           <label class="form-label small fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
-          <input type="number" name="price" class="form-control fw-bold text-danger" value="{{ old('price', 390000) }}" placeholder="390000" required>
+          <input type="number" name="price" class="form-control fw-bold text-danger @error('price') is-invalid @enderror" value="{{ old('price', 390000) }}" placeholder="390000" required>
+          @error('price') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
         <div class="mb-3">
@@ -111,20 +148,29 @@
 
         <div class="mb-3">
           <label class="form-label small fw-semibold">Số lượng trong kho <span class="text-danger">*</span></label>
-          <input type="number" name="stock" class="form-control" value="{{ old('stock', 100) }}" required>
+          <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror" value="{{ old('stock', 100) }}" required>
+          @error('stock') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
         <div class="mb-3">
+          <label class="form-label small fw-semibold">Trạng thái kinh doanh</label>
+          <select name="status" class="form-select">
+            <option value="active" {{ old('status', 'active') === 'active' ? 'selected' : '' }}>Đang mở bán công khai</option>
+            <option value="inactive" {{ old('status') === 'inactive' ? 'selected' : '' }}>Tạm ẩn / Bản nháp</option>
+          </select>
+        </div>
+
+        <div class="mb-0">
           <div class="form-check mb-1">
-            <input class="form-check-input" type="checkbox" name="is_featured" value="1" id="is_featured" checked>
+            <input class="form-check-input" type="checkbox" name="is_featured" value="1" id="is_featured" {{ old('is_featured', 1) ? 'checked' : '' }}>
             <label class="form-check-label small" for="is_featured">Sản phẩm nổi bật (Featured)</label>
           </div>
           <div class="form-check mb-1">
-            <input class="form-check-input" type="checkbox" name="is_best_seller" value="1" id="is_best_seller">
+            <input class="form-check-input" type="checkbox" name="is_best_seller" value="1" id="is_best_seller" {{ old('is_best_seller') ? 'checked' : '' }}>
             <label class="form-check-label small" for="is_best_seller">Bán chạy nhất (Best Seller)</label>
           </div>
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="is_new" value="1" id="is_new" checked>
+            <input class="form-check-input" type="checkbox" name="is_new" value="1" id="is_new" {{ old('is_new', 1) ? 'checked' : '' }}>
             <label class="form-check-label small" for="is_new">Hàng mới về (New Arrival)</label>
           </div>
         </div>
@@ -134,12 +180,12 @@
         <h5 class="fw-bold text-dark mb-3">4. Hình Ảnh Đại Diện</h5>
         <div class="border border-dashed p-3 text-center rounded-3 bg-light mb-3">
           <i class="fa-solid fa-cloud-arrow-up fs-2 text-warning mb-2"></i>
-          <p class="small text-muted mb-2">Chọn file ảnh từ máy tính</p>
+          <p class="small text-muted mb-2">Tải file ảnh từ máy tính</p>
           <input type="file" name="image" class="form-control form-control-sm" accept="image/*">
         </div>
         <div>
-          <label class="form-label small fw-semibold">Hoặc đường dẫn ảnh (URL/Asset):</label>
-          <input type="text" name="image_url" class="form-control form-control-sm" value="/assets/img/products/polo_1.jpg" placeholder="/assets/img/products/polo_1.jpg">
+          <label class="form-label small fw-semibold">Hoặc nhập URL / Asset ảnh demo:</label>
+          <input type="text" name="image_url" class="form-control form-control-sm" value="{{ old('image_url', '/assets/img/products/polo_01.jpg') }}" placeholder="/assets/img/products/polo_01.jpg">
         </div>
       </div>
 

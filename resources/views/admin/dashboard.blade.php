@@ -436,13 +436,7 @@
                 </td>
                 <td><strong>{{ number_format($p->price, 0, ',', '.') }}₫</strong></td>
                 <td><span class="badge bg-success-subtle text-success fw-bold px-2 py-1">{{ $p->sold_count }} đã bán</span></td>
-                <td>
-                  @if($p->stock <= 5)
-                    <span class="badge bg-danger-subtle text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Còn {{ $p->stock }}</span>
-                  @else
-                    <span class="fw-semibold text-dark">{{ $p->stock }} cái</span>
-                  @endif
-                </td>
+                <td><span class="fw-semibold text-dark">{{ $p->stock }}</span></td>
                 <td><span class="badge bg-success-subtle text-success">Đang bán</span></td>
               </tr>
             @endforeach

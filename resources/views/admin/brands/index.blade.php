@@ -15,6 +15,32 @@
   </div>
 </div>
 
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if($errors->any())
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-xmark me-2"></i> <strong>Đã xảy ra lỗi nhập liệu:</strong>
+    <ul class="mb-0 mt-1 small ps-3">
+      @foreach($errors->all() as $err)
+        <li>{{ $err }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 <!-- STATS CARDS -->
 <div class="row g-3 mb-4">
   <div class="col-md-4">
@@ -25,7 +51,7 @@
         </div>
         <div>
           <div class="text-muted small fw-semibold">Tổng Thương Hiệu</div>
-          <div class="fs-4 fw-bold text-dark">{{ count($brands) }}</div>
+          <div class="fs-4 fw-bold text-dark">{{ $totalBrands ?? count($brands) }}</div>
         </div>
       </div>
     </div>
@@ -38,7 +64,7 @@
         </div>
         <div>
           <div class="text-muted small fw-semibold">Đang Hoạt Động</div>
-          <div class="fs-4 fw-bold text-success">{{ $brands->where('is_active', true)->count() }}</div>
+          <div class="fs-4 fw-bold text-success">{{ $activeBrandsCount ?? 0 }}</div>
         </div>
       </div>
     </div>
@@ -51,7 +77,7 @@
         </div>
         <div>
           <div class="text-muted small fw-semibold">Sản Phẩm Đã Liên Kết</div>
-          <div class="fs-4 fw-bold text-primary">{{ $brands->sum('products_count') }}</div>
+          <div class="fs-4 fw-bold text-primary">{{ $totalLinkedProducts ?? 0 }}</div>
         </div>
       </div>
     </div>
@@ -59,6 +85,24 @@
 </div>
 
 <div class="bee-table-card">
+  <!-- FILTER TOOLBAR -->
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <form action="{{ route('admin.brands.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+      <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="Tìm tên hoặc mô tả thương hiệu..." style="width: 260px;">
+      <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 170px;">
+        <option value="all" {{ request('status', 'all') === 'all' ? 'selected' : '' }}>Tất cả trạng thái</option>
+        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Đang hoạt động</option>
+        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Tạm ẩn</option>
+      </select>
+      <button type="submit" class="btn btn-sm btn-outline-secondary">Lọc</button>
+      @if(request('q') || (request('status') && request('status') !== 'all'))
+        <a href="{{ route('admin.brands.index') }}" class="btn btn-sm btn-link text-danger p-0 ms-1">Xóa lọc</a>
+      @endif
+    </form>
+    <div class="text-muted small">
+      Hiển thị: <strong>{{ $brands->count() }}</strong> / <strong>{{ $brands->total() }}</strong> thương hiệu
+    </div>
+  </div>
   <div class="table-responsive">
     <table class="table align-middle mb-0">
       <thead>
@@ -81,15 +125,11 @@
             <td>
               <div class="d-flex align-items-center gap-3">
                 <div class="avatar border rounded p-1 d-flex align-items-center justify-content-center bg-white" style="width: 48px; height: 48px; min-width: 48px;">
-                  @if($brand->logo)
-                    <img src="{{ asset($brand->logo) }}" alt="{{ $brand->name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                  @else
-                    <i class="fa-solid fa-award text-muted fs-4"></i>
-                  @endif
+                  <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                 </div>
                 <div>
                   <strong class="text-dark d-block mb-0 fs-6">{{ $brand->name }}</strong>
-                  @if($brand->banner)
+                  @if($brand->has_banner)
                     <small class="text-muted"><i class="fa-solid fa-image me-1"></i>Có ảnh Banner</small>
                   @endif
                 </div>
@@ -136,7 +176,8 @@
                   data-website="{{ $brand->website }}"
                   data-sort="{{ $brand->sort_order }}"
                   data-active="{{ $brand->is_active ? '1' : '0' }}"
-                  data-logo="{{ $brand->logo }}"
+                  data-logo="{{ $brand->logo_url }}"
+                  data-banner="{{ $brand->banner_url }}"
                   data-description="{{ $brand->description }}"
                   title="Chỉnh sửa thương hiệu">
                   <i class="fa-solid fa-pen-to-square"></i>
@@ -162,6 +203,11 @@
       </tbody>
     </table>
   </div>
+  @if($brands->hasPages())
+    <div class="card-footer d-flex justify-content-center py-3">
+      {{ $brands->links('pagination::bootstrap-5') }}
+    </div>
+  @endif
 </div>
 
 <!-- MODAL ADD BRAND -->
@@ -198,6 +244,8 @@
           <div class="mb-3">
             <label class="form-label small fw-semibold">Ảnh Banner thương hiệu (Tùy chọn)</label>
             <input type="file" name="banner" class="form-control" accept="image/*">
+            <small class="text-muted d-block mt-1">Hoặc nhập URL ảnh Banner có sẵn:</small>
+            <input type="text" name="banner_url" class="form-control form-control-sm mt-1" placeholder="https://example.com/banner.png">
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Mô tả tóm tắt</label>
@@ -257,7 +305,13 @@
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Đổi Banner thương hiệu mới</label>
+            <div id="current_banner_preview" class="mb-2 d-none">
+              <small class="text-muted d-block mb-1">Banner hiện tại:</small>
+              <img id="edit_banner_img" src="" alt="Banner" class="border rounded p-1" style="max-height: 60px; max-width: 100%; object-fit: cover;">
+            </div>
             <input type="file" name="banner" class="form-control" accept="image/*">
+            <small class="text-muted d-block mt-1">Hoặc nhập URL ảnh Banner mới:</small>
+            <input type="text" id="edit_banner_url" name="banner_url" class="form-control form-control-sm mt-1" placeholder="https://example.com/banner.png">
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Mô tả tóm tắt</label>
@@ -308,6 +362,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const editForm = document.getElementById('editBrandForm');
   const currentLogoPreview = document.getElementById('current_logo_preview');
   const editLogoImg = document.getElementById('edit_logo_img');
+  const currentBannerPreview = document.getElementById('current_banner_preview');
+  const editBannerImg = document.getElementById('edit_banner_img');
 
   document.querySelectorAll('.btn-edit-brand').forEach(button => {
     button.addEventListener('click', function () {
@@ -317,6 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const sort = this.dataset.sort;
       const active = this.dataset.active;
       const logo = this.dataset.logo;
+      const banner = this.dataset.banner;
       const description = this.dataset.description;
 
       editForm.action = `/admin/brands/${id}`;
@@ -326,12 +383,22 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('edit_is_active').checked = (active === '1');
       document.getElementById('edit_description').value = description || '';
       document.getElementById('edit_logo_url').value = '';
+      if (document.getElementById('edit_banner_url')) {
+        document.getElementById('edit_banner_url').value = '';
+      }
 
       if (logo) {
-        editLogoImg.src = logo.startsWith('http') ? logo : `/${logo.replace(/^\//, '')}`;
+        editLogoImg.src = logo;
         currentLogoPreview.classList.remove('d-none');
       } else {
         currentLogoPreview.classList.add('d-none');
+      }
+
+      if (banner && editBannerImg) {
+        editBannerImg.src = banner;
+        currentBannerPreview.classList.remove('d-none');
+      } else if (currentBannerPreview) {
+        currentBannerPreview.classList.add('d-none');
       }
 
       editModal.show();

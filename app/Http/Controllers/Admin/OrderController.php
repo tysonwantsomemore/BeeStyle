@@ -65,11 +65,22 @@ class OrderController extends Controller
             'cancelled' => 0,
         ];
 
-        // Xử lý tự động thu tiền COD khi shipper giao hàng thành công (delivered / completed)
-        $paymentStatus = $validated['payment_status'] ?? $order->payment_status;
-        if (in_array($validated['shipping_status'], ['delivered', 'completed']) && $order->payment_method === 'cod') {
-            $paymentStatus = 'paid';
+        // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm
+        if ($validated['shipping_status'] === 'cancelled' && $order->shipping_status !== 'cancelled') {
+            foreach ($order->items as $item) {
+                if ($item->product_id) {
+                    \App\Models\Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                    \App\Models\Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                }
+            }
         }
+
+        $order->update([
+            'shipping_status' => $validated['shipping_status'],
+            'payment_status' => $validated['payment_status'] ?? $order->payment_status,
+            'status_step' => $stepMap[$validated['shipping_status']] ?? 1,
+            'admin_notes' => $validated['admin_notes'] ?? $order->admin_notes,
+        ]);
 
         // Tích lũy điểm thưởng & tổng chi tiêu khi đơn hàng hoàn tất
         if ($validated['shipping_status'] === 'completed' && $order->shipping_status !== 'completed' && $order->user_id) {

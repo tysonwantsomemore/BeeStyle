@@ -7,12 +7,12 @@
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
       <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">KHO HÀNG &amp; SẢN PHẨM</span>
-        <h3 class="fw-bold text-dark mb-0">Quản Lý Sản Phẩm Thời Trang</h3>
+        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">KHO HÀNG</span>
+        <h3 class="fw-bold text-dark mb-0">Danh Sách Sản Phẩm Thời Trang</h3>
       </div>
-      <p class="text-muted small mb-0">Theo dõi tồn kho, giá bán niêm yết, bật/tắt kinh doanh và quản lý các phân loại màu sắc &amp; kích cỡ</p>
+      <p class="text-muted small mb-0">Quản lý kho hàng, giá bán niêm yết, tồn kho và các biến thể size/màu sắc của BeeStyle</p>
     </div>
-    <a href="{{ route('admin.products.create') }}" class="btn btn-bee-primary btn-sm px-3 shadow-xs">
+    <a href="{{ route('admin.products.create') }}" class="btn btn-bee-primary btn-sm px-3">
       <i class="fa-solid fa-plus me-1.5"></i> Thêm Sản Phẩm Mới
     </a>
   </div>
@@ -216,9 +216,9 @@
             <td><span class="font-monospace fw-bold text-secondary">{{ $product->sku }}</span></td>
             <td>
               <div class="d-flex align-items-center gap-2.5">
-                <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" style="width: 44px; height: 44px; object-fit: contain;" class="rounded border bg-white shadow-xs">
+                <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" style="width: 44px; height: 44px; object-fit: contain;" class="rounded border bg-white">
                 <div>
-                  <a href="{{ route('client.products.show', $product->id) }}" target="_blank" class="fw-bold small text-dark text-decoration-none d-block text-truncate" style="max-width: 200px;">
+                  <a href="{{ route('client.products.show', $product->id) }}" target="_blank" class="fw-bold small text-dark text-decoration-none d-block text-truncate" style="max-width: 220px;">
                     {{ $product->name }}
                   </a>
                   <small class="text-muted">{{ $product->variants->count() }} biến thể màu/size</small>
@@ -236,9 +236,7 @@
             <td><strong class="text-danger">{{ number_format($product->price, 0, ',', '.') }}₫</strong></td>
             <td><span class="text-muted text-decoration-line-through small">{{ number_format($product->original_price, 0, ',', '.') }}₫</span></td>
             <td>
-              @if($product->stock <= 0)
-                <span class="badge bg-danger text-white fw-bold"><i class="fa-solid fa-xmark me-1"></i> Hết hàng</span>
-              @elseif($product->stock <= 5)
+              @if($product->stock <= 5)
                 <span class="badge bg-danger-subtle text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Còn {{ $product->stock }}</span>
               @else
                 <span class="fw-semibold text-dark">{{ $product->stock }} cái</span>
@@ -253,22 +251,11 @@
             </td>
             <!-- TRẠNG THÁI: 1-CLICK TOGGLE BUTTON -->
             <td>
-              <form action="{{ route('admin.products.toggle', $product->id) }}" method="POST" class="d-inline">
-                @csrf
-                @if(!$product->is_active)
-                  <button type="submit" class="btn btn-sm btn-light border py-1 px-2.5 text-muted fw-bold shadow-xs" title="Bấm 1-Click để kích hoạt mở bán lại sản phẩm này">
-                    <i class="fa-solid fa-eye-slash me-1 text-secondary"></i> Tạm dừng
-                  </button>
-                @elseif($product->stock <= 0)
-                  <button type="submit" class="btn btn-sm btn-danger-subtle border border-danger-subtle py-1 px-2.5 text-danger fw-bold shadow-xs" title="Kho đã hết hàng (Bấm 1-Click để tạm dừng ẩn sản phẩm)">
-                    <i class="fa-solid fa-circle-exclamation me-1"></i> Hết hàng (Bật)
-                  </button>
-                @else
-                  <button type="submit" class="btn btn-sm btn-success-subtle border border-success-subtle py-1 px-2.5 text-success fw-bold shadow-xs" title="Bấm 1-Click để tạm dừng kinh doanh (ẩn khỏi web)">
-                    <i class="fa-solid fa-circle-check me-1"></i> Kinh doanh
-                  </button>
-                @endif
-              </form>
+              @if($product->is_active)
+                <span class="badge bg-success-subtle text-success fw-bold py-1 px-2"><i class="fa-solid fa-circle-check me-1"></i> Kinh doanh</span>
+              @else
+                <span class="badge bg-secondary-subtle text-muted fw-bold py-1 px-2"><i class="fa-solid fa-eye-slash me-1"></i> Tạm dừng</span>
+              @endif
             </td>
             <td class="text-end">
               <div class="d-flex align-items-center justify-content-end gap-1.5">
@@ -287,7 +274,7 @@
           </tr>
         @empty
           <tr>
-            <td colspan="10" class="text-center py-5 text-muted">
+            <td colspan="11" class="text-center py-5 text-muted">
               <i class="fa-solid fa-shirt fs-2 text-muted mb-2 d-block"></i>
               Không tìm thấy sản phẩm nào phù hợp.
             </td>

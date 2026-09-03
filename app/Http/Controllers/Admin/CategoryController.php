@@ -9,20 +9,46 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::with('parent')
-            ->withCount('products')
-            ->orderBy('sort_order', 'asc')
+        $search = $request->query('q');
+        $statusFilter = $request->query('status', 'all');
+
+        $query = Category::with('parent')->withCount('products');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('slug', 'LIKE', "%{$search}%")
+                  ->orWhere('description', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($statusFilter === 'active') {
+            $query->where('is_active', true);
+        } elseif ($statusFilter === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        $categories = $query->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         $parentCategories = Category::whereNull('parent_id')->get();
+        $totalCategories = Category::count();
+        $activeCategoriesCount = Category::where('is_active', true)->count();
+        $rootCategoriesCount = Category::whereNull('parent_id')->count();
 
-        return view(
-            'admin.categories.index',
-            compact('categories', 'parentCategories')
-        );
+        return view('admin.categories.index', compact(
+            'categories',
+            'parentCategories',
+            'search',
+            'statusFilter',
+            'totalCategories',
+            'activeCategoriesCount',
+            'rootCategoriesCount'
+        ));
     }
 
     public function store(Request $request)

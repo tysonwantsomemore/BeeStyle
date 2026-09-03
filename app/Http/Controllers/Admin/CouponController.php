@@ -8,10 +8,39 @@ use Illuminate\Http\Request;
 
 class CouponController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $coupons = Coupon::latest()->paginate(10);
-        return view('admin.coupons.index', compact('coupons'));
+        $search = $request->query('q');
+        $statusFilter = $request->query('status', 'all');
+
+        $query = Coupon::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'LIKE', "%{$search}%")
+                  ->orWhere('title', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($statusFilter === 'active') {
+            $query->where('is_active', true);
+        } elseif ($statusFilter === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        $coupons = $query->latest()->paginate(10)->withQueryString();
+        $totalCoupons = Coupon::count();
+        $activeCouponsCount = Coupon::where('is_active', true)->count();
+        $totalUsedCount = Coupon::sum('used_count');
+
+        return view('admin.coupons.index', compact(
+            'coupons',
+            'search',
+            'statusFilter',
+            'totalCoupons',
+            'activeCouponsCount',
+            'totalUsedCount'
+        ));
     }
 
     public function store(Request $request)

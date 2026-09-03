@@ -81,8 +81,9 @@ class CheckoutController extends Controller
                 'district' => $validated['district'] ?? '',
                 'notes' => $validated['notes'] ?? null,
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => in_array($validated['payment_method'], ['cod', 'online', 'momo', 'zalopay']) ? 'unpaid' : 'paid',
+                'payment_status' => in_array($validated['payment_method'], ['cod', 'vietqr']) ? 'unpaid' : 'paid',
                 'shipping_status' => 'pending',
+
                 'status_step' => 1,
                 'subtotal' => $cartData['subtotal'],
                 'discount_amount' => $cartData['discount'],
@@ -115,6 +116,14 @@ class CheckoutController extends Controller
                         ->where('color', $item['color'])
                         ->where('size', $item['size'])
                         ->decrement('stock', $item['quantity']);
+                }
+
+                // Cập nhật số lượng đã bán của chương trình Ưu Đãi Trong Ngày (Daily Deal)
+                if (!empty($item['deal_id'])) {
+                    $deal = \App\Models\DailyDeal::find($item['deal_id']);
+                    if ($deal) {
+                        $deal->increment('sold_count', $item['quantity']);
+                    }
                 }
 
                 // Cập nhật số lượng đã bán của chương trình Ưu Đãi Trong Ngày (Daily Deal)

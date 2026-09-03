@@ -169,22 +169,16 @@
             <i class="fa-solid fa-box-archive me-1 text-danger"></i> Đơn Hàng Của Khách ({{ $customer->orders->count() }})
           </button>
         </li>
-        <!-- Tab 2: Sổ Địa Chỉ Giao Hàng -->
-        <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-addresses-tab" data-bs-toggle="tab" data-bs-target="#cust-addresses" type="button" role="tab">
-            <i class="fa-solid fa-map-location-dot me-1 text-primary"></i> Sổ Địa Chỉ ({{ $customer->addresses->count() }})
-          </button>
-        </li>
-        <!-- Tab 3: Tổng Hợp Chi Tiêu TẤT CẢ Khách Hàng -->
+        <!-- Tab 2: Tổng Hợp Chi Tiêu TẤT CẢ Khách Hàng -->
         <li class="nav-item" role="presentation">
           <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-all-spending-tab" data-bs-toggle="tab" data-bs-target="#cust-all-spending" type="button" role="tab">
-            <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Chi Tiêu Toàn Shop ({{ $allPurchasingCustomers->count() }})
+            <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Chi Tiêu Tất Cả Khách Hàng ({{ $allPurchasingCustomers->count() }})
           </button>
         </li>
-        <!-- Tab 4: Đánh Giá Đã Viết -->
+        <!-- Tab 3: Đánh Giá Đã Viết -->
         <li class="nav-item" role="presentation">
           <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-reviews-tab" data-bs-toggle="tab" data-bs-target="#cust-reviews" type="button" role="tab">
-            <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá ({{ $customer->reviews->count() }})
+            <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá Đã Viết ({{ $customer->reviews->count() }})
           </button>
         </li>
       </ul>
@@ -197,8 +191,8 @@
               <thead class="table-light">
                 <tr>
                   <th>Mã Đơn</th>
-                  <th>Sản Phẩm Đã Mua</th>
                   <th>Ngày Đặt</th>
+                  <th>Số Lượng SP</th>
                   <th>Tổng Tiền</th>
                   <th>Trạng Thái</th>
                   <th>Thao Tác</th>
@@ -207,22 +201,10 @@
               <tbody>
                 @forelse($customer->orders as $order)
                   <tr>
-                    <td><strong class="font-monospace text-primary">#{{ $order->order_code }}</strong></td>
-                    <td>
-                      <div class="d-flex align-items-center gap-2 flex-wrap" style="max-width: 280px;">
-                        @foreach($order->items->take(2) as $it)
-                          <div class="d-flex align-items-center gap-1.5 p-1 bg-light rounded border">
-                            <img src="{{ $it->image ? asset($it->image) : asset('/assets/img/products/tshirt_01.jpg') }}" alt="{{ $it->product_name }}" style="width: 32px; height: 32px; object-fit: cover;" class="rounded bg-white">
-                            <span class="small text-dark text-truncate" style="max-width: 100px; font-size: 0.75rem;">{{ $it->product_name }}</span>
-                          </div>
-                        @endforeach
-                        @if($order->items->count() > 2)
-                          <span class="badge bg-secondary-subtle text-secondary small">+{{ $order->items->count() - 2 }}</span>
-                        @endif
-                      </div>
-                    </td>
+                    <td><strong class="font-monospace text-primary">{{ $order->order_code }}</strong></td>
                     <td>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }}</td>
-                    <td><strong class="text-danger fs-6">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong></td>
+                    <td>{{ $order->items->count() }} mặt hàng</td>
+                    <td><strong class="text-danger">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong></td>
                     <td>
                       @if($order->shipping_status === 'completed')
                         <span class="badge bg-success text-white">Hoàn tất</span>
@@ -235,12 +217,12 @@
                       @elseif($order->shipping_status === 'cancelled')
                         <span class="badge bg-danger text-white">Đã hủy</span>
                       @else
-                        <span class="badge bg-secondary text-white">{{ $order->status_label ?? 'Đã hoàn tất' }}</span>
+                        <span class="badge bg-secondary text-white">{{ $order->status_label }}</span>
                       @endif
                     </td>
                     <td>
                       <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold">
-                        <i class="fa-regular fa-eye me-1"></i> Chi Tiết
+                        Chi Tiết
                       </a>
                     </td>
                   </tr>
@@ -254,61 +236,7 @@
           </div>
         </div>
 
-        <!-- Tab 2: Sổ Địa Chỉ Nhận Hàng Của Khách Hàng -->
-        <div class="tab-pane fade" id="cust-addresses" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div>
-              <h6 class="fw-bold text-dark mb-0">Danh Sách Sổ Địa Chỉ Đã Lưu ({{ $customer->addresses->count() }})</h6>
-              <small class="text-muted">Các địa chỉ giao nhận hàng được khách hàng lưu trên hệ thống</small>
-            </div>
-            <span class="badge bg-light text-dark border px-3 py-2 fw-semibold rounded-pill">
-              <i class="fa-solid fa-map-pin text-danger me-1"></i> {{ $customer->addresses->where('is_default', true)->count() > 0 ? 'Đã có địa chỉ mặc định' : 'Chưa đặt mặc định' }}
-            </span>
-          </div>
-
-          <div class="d-flex flex-column gap-3">
-            @forelse($customer->addresses as $cAddr)
-              <div class="p-3 bg-light rounded-3 border {{ $cAddr->is_default ? 'border-warning shadow-xs bg-white' : '' }}">
-                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <strong class="text-dark">{{ $cAddr->recipient_name }}</strong>
-                    <span class="text-muted small">|</span>
-                    <span class="text-dark small font-monospace"><i class="fa-solid fa-phone fs-11 text-muted me-1"></i>{{ $cAddr->phone }}</span>
-                    
-                    @if($cAddr->label === 'Văn phòng')
-                      <span class="badge bg-info-subtle text-info small"><i class="fa-solid fa-building me-1"></i>Văn phòng</span>
-                    @elseif($cAddr->label === 'Nhà riêng')
-                      <span class="badge bg-secondary-subtle text-secondary small"><i class="fa-solid fa-house me-1"></i>Nhà riêng</span>
-                    @else
-                      <span class="badge bg-light text-dark border small">{{ $cAddr->label ?? 'Địa chỉ' }}</span>
-                    @endif
-
-                    @if($cAddr->is_default)
-                      <span class="badge bg-warning text-dark small fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Mặc định</span>
-                    @endif
-                  </div>
-                  <small class="text-muted fs-11">Ngày tạo: {{ $cAddr->created_at ? $cAddr->created_at->format('d/m/Y H:i') : 'N/A' }}</small>
-                </div>
-                <p class="text-secondary small mb-1">
-                  <i class="fa-solid fa-location-dot text-danger me-1.5"></i>
-                  <span>{{ $cAddr->address }}</span>@if($cAddr->ward)<span>, {{ $cAddr->ward }}</span>@endif@if($cAddr->district)<span>, {{ $cAddr->district }}</span>@endif@if($cAddr->city)<span>, {{ $cAddr->city }}</span>@endif
-                </p>
-                @if($cAddr->notes)
-                  <small class="text-muted fst-italic d-block">
-                    <i class="fa-regular fa-comment-dots me-1"></i> Ghi chú: {{ $cAddr->notes }}
-                  </small>
-                @endif
-              </div>
-            @empty
-              <div class="text-center py-4 text-muted bg-light rounded-3 border">
-                <i class="fa-solid fa-map-location-dot fs-2 mb-2 d-block text-secondary"></i>
-                Khách hàng này chưa thêm địa chỉ nào vào sổ địa chỉ.
-              </div>
-            @endforelse
-          </div>
-        </div>
-
-        <!-- Tab 3: Tổng hợp chi tiêu của TẤT CẢ các tài khoản khách hàng -->
+        <!-- Tab 2: Tổng hợp chi tiêu của TẤT CẢ các tài khoản khách hàng -->
         <div class="tab-pane fade" id="cust-all-spending" role="tabpanel">
           <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
@@ -321,39 +249,39 @@
           </div>
 
           <div class="table-responsive">
-            <table class="table align-middle small mb-0">
+            <table class="table table-hover align-middle small mb-0">
               <thead class="table-light">
                 <tr>
-                  <th style="width: 60px;">Hạng</th>
-                  <th>Khách Hàng</th>
-                  <th>Số Đơn</th>
+                  <th style="width: 50px;">Hạng</th>
+                  <th>Tài Khoản Khách Hàng</th>
+                  <th>Số Đơn Đã Mua</th>
                   <th>Tổng Chi Tiêu</th>
-                  <th>Tỷ Lệ Toàn Shop</th>
-                  <th>Hạng Thành Viên</th>
-                  <th>Hành Động</th>
+                  <th>Tỷ Trọng (%)</th>
+                  <th>Hạng VIP</th>
+                  <th>Thao Tác</th>
                 </tr>
               </thead>
               <tbody>
                 @forelse($allPurchasingCustomers as $idx => $c)
                   @php
-                    $isCurrent = ($c->id === $customer->id);
                     $share = $totalAllCustomersSpent > 0 ? round(($c->total_spent / $totalAllCustomersSpent) * 100, 1) : 0;
+                    $isCurrent = ($c->id === $customer->id);
                   @endphp
-                  <tr class="{{ $isCurrent ? 'table-warning fw-bold' : '' }}">
+                  <tr class="{{ $isCurrent ? 'table-warning bg-warning-subtle' : '' }}">
                     <td>
                       @if($idx === 0)
-                        <span class="badge bg-warning text-dark rounded-circle p-2" title="Top 1"><i class="fa-solid fa-crown"></i></span>
+                        <span class="badge bg-warning text-dark fw-bold rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-crown"></i></span>
                       @elseif($idx === 1)
-                        <span class="badge bg-secondary text-white rounded-circle p-2" title="Top 2">2</span>
+                        <span class="badge bg-secondary text-white fw-bold rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
                       @elseif($idx === 2)
-                        <span class="badge bg-danger-subtle text-danger rounded-circle p-2" title="Top 3">3</span>
+                        <span class="badge bg-danger-subtle text-danger fw-bold rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">3</span>
                       @else
-                        <span class="text-muted ps-1">#{{ $idx + 1 }}</span>
+                        <strong class="text-muted ps-1">#{{ $idx + 1 }}</strong>
                       @endif
                     </td>
                     <td>
                       <div class="d-flex align-items-center gap-2">
-                        <img src="{{ $c->avatar_url ?? asset('/assets/img/team/40x40/58.webp') }}" alt="{{ $c->name }}" class="rounded-circle border bg-white" style="width: 38px; height: 38px; object-fit: cover;">
+                        <img src="{{ asset($c->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ $c->name }}" class="rounded-circle border bg-white" style="width: 38px; height: 38px; object-fit: cover;">
                         <div>
                           <strong class="text-dark d-block">
                             {{ $c->name }}
@@ -365,19 +293,23 @@
                         </div>
                       </div>
                     </td>
-                    <td><span class="badge bg-light text-dark border px-2 py-1">{{ $c->orders_count }} đơn</span></td>
-                    <td><strong class="text-danger fs-6">{{ number_format($c->total_spent, 0, ',', '.') }}₫</strong></td>
+                    <td>
+                      <span class="badge bg-light text-dark border px-2 py-1 fw-bold">{{ $c->orders_count }} đơn</span>
+                    </td>
+                    <td>
+                      <strong class="text-danger fs-6">{{ number_format($c->total_spent, 0, ',', '.') }}₫</strong>
+                    </td>
                     <td>
                       <div class="d-flex align-items-center gap-1.5">
                         <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
-                          <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $share }}%"></div>
+                          <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $share }}%" aria-valuenow="{{ $share }}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                         <span class="fw-bold small text-dark">{{ $share }}%</span>
                       </div>
                     </td>
                     <td>
                       <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1">
-                        {{ $c->rank ?? 'Hội Viên' }}
+                        {{ $c->rank }}
                       </span>
                     </td>
                     <td>
@@ -407,31 +339,22 @@
               <div class="p-3 bg-light rounded-3 border">
                 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                   <div class="d-flex align-items-center gap-2">
-                    <img src="{{ $rev->product ? asset($rev->product->image) : asset('/assets/img/products/tshirt_01.jpg') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 44px; height: 44px; object-fit: cover;" class="rounded border bg-white shadow-xs">
+                    <img src="{{ asset($rev->product->image ?? '/assets/img/products/1.png') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 40px; height: 40px; object-fit: cover;" class="rounded border bg-white">
                     <div>
-                      <strong class="text-dark small d-block">{{ $rev->product->name ?? 'Sản phẩm thời trang nam' }}</strong>
+                      <strong class="text-dark small d-block">{{ $rev->product->name ?? 'Sản phẩm' }}</strong>
                       <small class="text-muted">{{ $rev->created_at ? $rev->created_at->format('d/m/Y H:i') : '' }}</small>
                     </div>
                   </div>
-                  <div class="text-warning small bg-white px-2.5 py-1 rounded-pill border shadow-xs">
+                  <div class="text-warning small">
                     @for($i=1; $i<=5; $i++)
                       <i class="fa-solid fa-star {{ $i <= $rev->rating ? 'text-warning' : 'text-secondary-subtle' }}"></i>
                     @endfor
                     <span class="fw-bold text-dark ms-1">({{ $rev->rating }}/5)</span>
                   </div>
                 </div>
-                <p class="small text-secondary mb-2 fst-italic leading-relaxed">
+                <p class="small text-secondary mb-0 fst-italic leading-relaxed">
                   "{{ $rev->comment }}"
                 </p>
-                @if(!empty($rev->images_urls))
-                  <div class="d-flex gap-2 flex-wrap mt-2 pt-2 border-top border-secondary border-opacity-10">
-                    @foreach($rev->images_urls as $pImg)
-                      <a href="{{ $pImg }}" target="_blank" class="d-inline-block">
-                        <img src="{{ $pImg }}" alt="ảnh đánh giá" class="rounded border shadow-xs" style="width: 52px; height: 52px; object-fit: cover;">
-                      </a>
-                    @endforeach
-                  </div>
-                @endif
               </div>
             @empty
               <div class="text-center py-4 text-muted">

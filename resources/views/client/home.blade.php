@@ -193,14 +193,14 @@
         <p class="bee-section-subtitle">Lựa chọn phong cách phù hợp cho công sở, dạo phố và thể thao</p>
       </div>
       <a href="{{ route('client.products.index') }}" class="text-dark fw-bold small text-decoration-none text-uppercase">
-        Xem tất cả sản phẩm <i class="fa-solid fa-arrow-right ms-1"></i>
+        Xem tất cả 50+ mẫu <i class="fa-solid fa-arrow-right ms-1"></i>
       </a>
     </div>
 
     <div class="row g-3">
       <!-- Cat 1: Polo -->
-      <div class="col-lg-4 col-md-4 col-6">
-        <a href="{{ route('client.categories.show', 'ao-polo-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
+      <div class="col-lg-4 col-md-6 col-6">
+        <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/polo_01.jpg') }}" alt="Áo Polo Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
           <div class="cat-content">
@@ -211,8 +211,8 @@
       </div>
 
       <!-- Cat 2: Sơ mi -->
-      <div class="col-lg-4 col-md-4 col-6">
-        <a href="{{ route('client.categories.show', 'ao-so-mi-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
+      <div class="col-lg-4 col-md-6 col-6">
+        <a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/somi_01.jpg') }}" alt="Áo Sơ Mi Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
           <div class="cat-content">
@@ -223,8 +223,8 @@
       </div>
 
       <!-- Cat 3: T-shirt -->
-      <div class="col-lg-4 col-md-4 col-6">
-        <a href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
+      <div class="col-lg-4 col-md-6 col-6">
+        <a href="{{ route('client.products.index', ['category' => 'ao-phong-tshirt-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/tshirt_01.jpg') }}" alt="Áo Phông Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
           <div class="cat-content">
@@ -235,8 +235,8 @@
       </div>
 
       <!-- Cat 4: Blazer -->
-      <div class="col-lg-4 col-md-4 col-6">
-        <a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
+      <div class="col-lg-4 col-md-6 col-6">
+        <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/outerwear_01.jpg') }}" alt="Áo Khoác & Blazer" class="cat-bg-img">
           <div class="cat-overlay"></div>
           <div class="cat-content">
@@ -247,8 +247,8 @@
       </div>
 
       <!-- Cat 5: Áo Thun -->
-      <div class="col-lg-4 col-md-4 col-6">
-        <a href="{{ route('client.categories.show', 'ao-thun-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
+      <div class="col-lg-4 col-md-6 col-6">
+        <a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/tshirt_black.jpg') }}" alt="Áo Thun Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
           <div class="cat-content">
@@ -259,8 +259,8 @@
       </div>
 
       <!-- Cat 6: Áo Thu Đông -->
-      <div class="col-lg-4 col-md-4 col-6">
-        <a href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}" class="bee-cat-card-modern" style="height: 200px;">
+      <div class="col-lg-4 col-md-6 col-6">
+        <a href="{{ route('client.products.index', ['category' => 'ao-thu-dong-nam']) }}" class="bee-cat-card-modern" style="height: 200px;">
           <img src="{{ asset('assets/img/products/hoodie_1.jpg') }}" alt="Áo Thu Đông Nam" class="cat-bg-img">
           <div class="cat-overlay"></div>
           <div class="cat-content">
@@ -271,54 +271,6 @@
       </div>
     </div>
   </div>
-
-  <!-- 3.5 BỘ SƯU TẬP THƯƠNG HIỆU ĐỐI TÁC (BRANDS SHOWCASE) -->
-  @if(isset($brands) && $brands->isNotEmpty())
-  <div class="mb-5">
-    <div class="bee-section-header">
-      <div>
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.75rem;">
-            <i class="fa-solid fa-crown me-1"></i> BỘ SƯU TẬP ĐỘC QUYỀN
-          </span>
-        </div>
-        <h2 class="bee-section-title">THƯƠNG HIỆU THỜI TRANG ĐẲNG CẤP</h2>
-        <p class="bee-section-subtitle">Khám phá các thương hiệu thời trang nam cao cấp độc quyền tại BeeStyle</p>
-      </div>
-      <a href="{{ route('client.brands.index') }}" class="text-dark fw-bold small text-decoration-none text-uppercase">
-        Xem tất cả thương hiệu <i class="fa-solid fa-arrow-right ms-1"></i>
-      </a>
-    </div>
-
-    <div class="row g-3">
-      @foreach($brands as $brand)
-        <div class="col-lg-3 col-md-6 col-6">
-          <a href="{{ route('client.brands.show', $brand->slug) }}" class="card border-0 shadow-sm text-decoration-none h-100 transition-all hover-lift" style="border-radius: 16px; overflow: hidden; background: #ffffff; border: 1px solid rgba(0,0,0,0.06);">
-            <div class="card-body p-4 text-center d-flex flex-column justify-content-between align-items-center">
-              <div class="bg-light rounded-circle p-3 mb-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 70px; height: 70px;">
-                @if(!empty($brand->logo))
-                  <img src="{{ asset($brand->logo) }}" alt="{{ $brand->name }}" style="max-width: 45px; max-height: 45px; object-fit: contain;" onerror="this.onerror=null; this.src=''; this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');">
-                  <i class="fa-solid fa-crown text-warning fs-3 d-none"></i>
-                @else
-                  <i class="fa-solid fa-crown text-warning fs-3"></i>
-                @endif
-              </div>
-              <div>
-                <h6 class="fw-bold text-dark mb-1">{{ $brand->name }}</h6>
-                <p class="text-secondary fs-11 mb-2 text-truncate-2" style="min-height: 32px; line-height: 1.4;">
-                  {{ Str::limit($brand->description, 60) }}
-                </p>
-              </div>
-              <span class="badge bg-warning-subtle text-dark fw-bold px-3 py-1 rounded-pill fs-11 mt-auto">
-                Khám Phá <i class="fa-solid fa-arrow-right ms-1"></i>
-              </span>
-            </div>
-          </a>
-        </div>
-      @endforeach
-    </div>
-  </div>
-  @endif
 
   <!-- 4. FLASH SALE & DEAL OF THE DAY (CHỈ HIỂN THỊ KHI CÓ ƯU ĐÃI ĐANG TRONG KHUNG GIỜ VÀNG) -->
   @if(isset($runningDailyDeals) && $runningDailyDeals->isNotEmpty())
@@ -568,8 +520,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -643,8 +595,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -718,8 +670,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -791,8 +743,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"
@@ -865,8 +817,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"

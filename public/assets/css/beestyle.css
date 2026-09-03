@@ -1,7 +1,6 @@
 /* ==========================================================================
    BEESTYLE - ATINO INSPIRED MENSWEAR LUXURY DESIGN SYSTEM
    Style: Minimalist, Modern Casual, Pure Obsidian Black (#111111), Crisp White & Accent Crimson Red
-   ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Montserrat:wght@400;500;600;700;800&display=swap');
 
@@ -109,87 +108,7 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
   color: var(--atino-red);
 }
 
-.beestyle-logo.logo-light,
-.bee-footer .beestyle-logo {
-  color: #ffffff !important;
-}
-
-.beestyle-logo.logo-light .logo-badge,
-.bee-footer .beestyle-logo .logo-badge {
-  background: var(--atino-red);
-  color: #ffffff;
-}
-
-.beestyle-logo.logo-light .brand-highlight,
-.bee-footer .beestyle-logo .brand-highlight {
-  color: var(--atino-red);
-}
-
-/* Modern RMA & Dashboard UI Utilities */
-.hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.hover-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
-}
-
-.hover-scale {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.hover-scale:hover {
-  transform: scale(1.06);
-  z-index: 2;
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.letter-spacing-2 {
-  letter-spacing: 2.5px;
-}
-
-.ring-2 {
-  box-shadow: 0 0 0 2px var(--bs-primary);
-}
-.ring-primary {
-  box-shadow: 0 0 0 2px #3b82f6 !important;
-}
-.ring-warning {
-  box-shadow: 0 0 0 2px #f59e0b !important;
-}
-.ring-info {
-  box-shadow: 0 0 0 2px #0ea5e9 !important;
-}
-.ring-success {
-  box-shadow: 0 0 0 2px #10b981 !important;
-}
-.ring-danger {
-  box-shadow: 0 0 0 2px #ef4444 !important;
-}
-
-/* Product Gallery Interactive Styles */
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.gallery-nav-btn {
-  opacity: 0.85;
-  transition: all 0.2s ease;
-}
-.main-gallery-container:hover .gallery-nav-btn {
-  opacity: 1;
-}
-
-.modal-thumb-item:hover {
-  opacity: 1 !important;
-  transform: scale(1.08);
-}
+/* Announcement Topbar */
 .bee-announcement-bar {
   background: #0f172a;
   color: #e2e8f0;
@@ -906,7 +825,6 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    PREMIUM 5-SLIDE HERO CAROUSEL (MEN'S FASHION LUXURY)
-   ========================================================================== */
 .bee-hero-carousel {
   border-radius: 20px;
   overflow: hidden;
@@ -1081,7 +999,6 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    CATEGORY MOSAIC / TOP CATEGORIES WITH REAL PHOTOS
-   ========================================================================== */
 .bee-cat-card-modern {
   position: relative;
   border-radius: 14px;
@@ -1144,7 +1061,6 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    LOOKBOOK / MIX & MATCH OUTFIT CARDS
-   ========================================================================== */
 .bee-lookbook-card {
   background: #ffffff;
   border-radius: 16px;
@@ -1172,7 +1088,6 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    TESTIMONIALS & REVIEWS SECTION
-   ========================================================================== */
 .bee-review-box {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1231,7 +1146,6 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 /* ==========================================================================
    BEESTYLE UNIFIED LUXURY ADMIN DESIGN SYSTEM
    Tone: Obsidian Slate (#0f172a) & Amber Gold (#f59e0b) & Crisp White
-   ========================================================================== */
 
 /* Admin Body & Typography */
 body.admin-body, .admin-main-wrapper {
@@ -1474,7 +1388,6 @@ body.admin-body, .admin-main-wrapper {
 
 /* ==========================================================================
    SMART SIZE FINDER & FABRIC TECHNOLOGY SECTION
-   ========================================================================== */
 .bee-size-finder-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1669,7 +1582,6 @@ body.admin-body, .admin-main-wrapper {
 
 /* ==========================================================================
    PRODUCT DETAIL PAGE LUXURY STYLING
-   ========================================================================== */
 .product-color-radio:checked + label {
   background: #fffbeb !important;
   border: 2px solid #f59e0b !important;

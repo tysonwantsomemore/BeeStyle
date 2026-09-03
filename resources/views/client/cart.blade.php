@@ -109,33 +109,35 @@
                       @endif
                     </td>
 
-                    <!-- Quantity Stepper AJAX -->
-                    <td class="text-center text-nowrap">
-                      <div class="d-inline-flex align-items-center border rounded-pill p-1 bg-light shadow-xs">
-                        <button type="button" class="btn btn-sm btn-white bg-white rounded-circle p-0 border shadow-xs d-flex align-items-center justify-content-center btn-step-minus" 
-                                style="width: 26px; height: 26px;" 
-                                onclick="updateCartItemQty('{{ $item['key'] }}', {{ $item['quantity'] - 1 }}, this)" 
-                                title="Giảm 1 sản phẩm" {{ $item['quantity'] <= 1 ? 'disabled' : '' }}>
-                          <i class="fa-solid fa-minus" style="font-size: 0.65rem;"></i>
-                        </button>
+                    <!-- Quantity -->
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <form action="{{ route('client.cart.update') }}" method="POST" class="d-inline">
+                          @csrf
+                          <input type="hidden" name="key" value="{{ $item['key'] }}">
+                          <input type="hidden" name="quantity" value="{{ $item['quantity'] - 1 }}">
+                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;" title="Giảm số lượng">-</button>
+                        </form>
 
-                        <input type="number" class="form-control form-control-sm text-center fw-bold border-0 bg-transparent p-0 cart-qty-input" 
-                               style="width: 38px; font-size: 0.85rem;" 
-                               value="{{ $item['quantity'] }}" min="1" max="10" 
-                               onchange="updateCartItemQty('{{ $item['key'] }}', parseInt(this.value) || 1, this)">
+                        <form action="{{ route('client.cart.update') }}" method="POST" class="d-inline mx-1">
+                          @csrf
+                          <input type="hidden" name="key" value="{{ $item['key'] }}">
+                          <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1" max="999" class="form-control form-control-sm text-center fw-bold text-dark px-1 border-secondary-subtle" style="width: 52px; height: 28px;" title="Nhập số lượng bạn muốn mua" onchange="this.form.submit()">
+                        </form>
 
-                        <button type="button" class="btn btn-sm btn-white bg-white rounded-circle p-0 border shadow-xs d-flex align-items-center justify-content-center btn-step-plus" 
-                                style="width: 26px; height: 26px;" 
-                                onclick="updateCartItemQty('{{ $item['key'] }}', {{ $item['quantity'] + 1 }}, this)" 
-                                title="Tăng 1 sản phẩm" {{ $item['quantity'] >= 10 ? 'disabled' : '' }}>
-                          <i class="fa-solid fa-plus" style="font-size: 0.65rem;"></i>
-                        </button>
+                        <form action="{{ route('client.cart.update') }}" method="POST" class="d-inline">
+                          @csrf
+                          <input type="hidden" name="key" value="{{ $item['key'] }}">
+                          <input type="hidden" name="quantity" value="{{ $item['quantity'] + 1 }}">
+                          <button class="btn btn-outline-secondary btn-sm" type="submit" style="width: 28px; height: 28px; padding: 0;" title="Tăng số lượng">+</button>
+                        </form>
                       </div>
                     </td>
 
-                    <!-- Subtotal Live -->
-                    <td class="text-end text-nowrap">
-                      <strong class="text-danger item-subtotal-live" id="subtotal_{{ $item['key'] }}">{{ number_format($item['subtotal'], 0, ',', '.') }}₫</strong>
+
+                    <!-- Total -->
+                    <td>
+                      <span class="fw-bold text-danger">{{ number_format($item['subtotal'], 0, ',', '.') }}₫</span>
                     </td>
 
                     <!-- Actions: Wishlist & Remove -->
@@ -276,17 +278,17 @@
           </div>
 
           @auth
-            <a href="{{ route('client.checkout') }}" class="btn btn-bee-primary w-100 py-3 fs-6 fw-bold shadow-xs">
+            <a href="{{ route('client.checkout') }}" class="btn btn-bee-primary w-100 py-3 fs-6">
               Tiến Hành Thanh Toán <i class="fa-solid fa-arrow-right ms-1"></i>
             </a>
           @else
-            <div class="alert alert-warning border-0 d-flex align-items-center gap-2 small p-2.5 mb-3 rounded-3" style="font-size: 0.78rem;">
-              <i class="fa-solid fa-shield-halved text-warning fs-5 flex-shrink-0"></i>
+            <div class="alert alert-warning border-0 d-flex align-items-center gap-2 small p-2 mb-3" style="border-radius: 8px;">
+              <i class="fa-solid fa-shield-halved text-warning fs-5"></i>
               <div>
-                <strong>Gợi ý:</strong> Đăng nhập để tự động tích điểm thưởng và áp dụng địa chỉ giao hàng đã lưu.
+                <strong>Yêu cầu đăng nhập:</strong> Vui lòng đăng nhập để tiến hành thanh toán và lưu lịch sử đơn hàng.
               </div>
             </div>
-            <a href="{{ route('client.checkout') }}" class="btn btn-bee-accent w-100 py-3 fs-6 fw-bold shadow-xs">
+            <a href="{{ route('client.checkout') }}" class="btn btn-bee-accent w-100 py-3 fs-6">
               <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng Nhập Để Thanh Toán <i class="fa-solid fa-arrow-right ms-1"></i>
             </a>
           @endauth
