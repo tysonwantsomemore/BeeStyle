@@ -77,6 +77,8 @@ class RevenueController extends Controller
                 ->count();
         }
 
+        $monthlyCustomersList = User::whereIn('id', $customerIds)->get();
+
         $aovMonth = $monthlyOrdersCount > 0 ? (int)round($monthlyRevenue / max(1, $monthlyOrdersCount - $cancelledOrdersCount)) : 0;
 
         // So sánh với tháng trước

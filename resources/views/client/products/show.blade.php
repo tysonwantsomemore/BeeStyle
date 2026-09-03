@@ -52,10 +52,9 @@
                 <div class="border rounded-3 p-1 bg-white cursor-pointer thumb-item" style="width: 70px; height: 70px; cursor: pointer;" onclick="changeMainImg('{{ asset($img->image_path) }}', this)">
                   <img src="{{ asset($img->image_path) }}" alt="thumb" class="w-100 h-100 object-fit-cover rounded">
                 </div>
-              @endforeach
-            </div>
-          </div>
-        @endif
+              @endif
+            @endforeach
+          @endif
 
         <!-- GUARANTEE TRUST BADGES UNDER GALLERY -->
         <div class="row g-2 mt-3 text-center small">

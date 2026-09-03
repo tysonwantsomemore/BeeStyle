@@ -40,10 +40,9 @@
             
             <!-- ADMIN UNIFIED LOGO -->
             <li class="nav-item mb-4 px-3 pt-3">
-              <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
-                <span class="fs-4 fw-black text-white" style="letter-spacing: 1.5px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 900;">
-                  BEE<span class="text-warning">STYLE</span>
-                </span>
+              <a href="{{ route('admin.dashboard') }}" class="beestyle-logo logo-light">
+                <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
+                <span>BEE<span class="brand-highlight">STYLE</span></span>
               </a>
             </li>
 
@@ -185,3 +184,107 @@
             <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
           </button>
           <a class="navbar-brand me-1 me-sm-3 d-lg-none" href="{{ route('admin.dashboard') }}">
+            <div class="beestyle-logo" style="font-size: 1.25rem;">
+              <span class="logo-badge" style="width: 32px; height: 32px; font-size: 0.95rem;"><i class="fa-solid fa-gem"></i></span>
+              <span>BEE<span class="brand-highlight">STYLE</span></span>
+            </div>
+          </a>
+
+        </div>
+
+        <div class="search-box navbar-top-search-box d-none d-lg-block" style="width:25rem;">
+          <form action="{{ route('admin.orders.index') }}" method="GET" class="position-relative">
+            <input name="q" class="form-control form-control-sm rounded-pill search-input" type="search" placeholder="Tìm kiếm mã đơn hàng, sản phẩm, SĐT..." />
+            <span class="fas fa-search search-box-icon"></span>
+          </form>
+        </div>
+
+        <ul class="navbar-nav navbar-nav-icons flex-row align-items-center gap-3">
+          <!-- User Dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link lh-1 pe-0 d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+              <div class="avatar avatar-m">
+                <img class="rounded-circle border" src="{{ asset(Auth::user()->avatar ?? '/assets/img/team/40x40/57.webp') }}" alt="Admin" style="width: 36px; height: 36px; object-fit: cover;" />
+              </div>
+              <div class="d-none d-md-block text-start">
+                <div class="fw-bold small text-dark">{{ Auth::user()->name ?? 'Admin BeeStyle' }}</div>
+                <div class="text-muted fs-10">{{ Auth::user()->email ?? 'admin@beestyle.com' }}</div>
+              </div>
+              <i class="fa-solid fa-chevron-down fs-10 text-muted ms-1"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end py-2 shadow-lg border-0 mt-2" style="border-radius: 12px; min-width: 220px;">
+              <a class="dropdown-item py-2" href="{{ route('client.home') }}" target="_blank"><i class="fa-solid fa-store me-2 text-warning"></i> Xem Cửa Hàng Web</a>
+              <a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="fa-solid fa-chart-pie me-2 text-secondary"></i> Bảng Tổng Quan</a>
+              <a class="dropdown-item py-2" href="{{ route('client.profile', ['tab' => 'password']) }}"><i class="fa-solid fa-key me-2 text-primary"></i> Đổi Mật Khẩu</a>
+              <div class="dropdown-divider"></div>
+
+              <form action="{{ route('auth.logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="dropdown-item py-2 text-danger">
+                  <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng Xuất Admin
+                </button>
+              </form>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- CONTENT WRAPPER -->
+    <div class="content">
+      <!-- FLASH NOTIFICATIONS -->
+      @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center border-0 shadow-sm mb-4" role="alert">
+          <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
+          <div>{{ session('success') }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+      @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center border-0 shadow-sm mb-4" role="alert">
+          <i class="fa-solid fa-circle-exclamation fs-5 me-2 text-danger"></i>
+          <div>{{ session('error') }}</div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+      @if(isset($errors) && $errors->any())
+        <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+          <ul class="mb-0 small ps-3">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+
+      <!-- MAIN PAGE CONTENT -->
+      @yield('content')
+
+      <!-- ADMIN FOOTER -->
+      <footer class="footer position-relative mt-5 pt-3 border-top text-secondary small d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>&copy; {{ date('Y') }} <strong>BEESTYLE MENSWEAR</strong> - Hệ thống Quản trị Bán hàng Đồ án Tốt nghiệp.</div>
+        <div>Phiên bản 2.0 • Laravel 13.x • MySQL 8.x</div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Chart.js for Admin Analytics Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Core JavaScripts -->
+  <script src="{{ asset('vendors/bootstrap/bootstrap.min.js') }}"></script>
+  <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
+  <script src="{{ asset('vendors/feather-icons/feather.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    if (typeof feather !== 'undefined') {
+      feather.replace();
+    }
+  </script>
+  @stack('scripts')
+</body>
+</html>
