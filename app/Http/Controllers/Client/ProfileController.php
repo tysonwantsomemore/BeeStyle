@@ -29,7 +29,7 @@ class ProfileController extends Controller
         $addresses = UserAddress::where('user_id', $user->id)->orderBy('is_default', 'desc')->latest()->get();
         $pendingReviewItems = method_exists($user, 'getPendingReviewItems') ? $user->getPendingReviewItems() : collect();
 
-        return view('client.profile', compact('user', 'orders', 'returns', 'addresses', 'pendingReviewItems'));
+        return view('client.profile', compact('user', 'orders', 'addresses', 'pendingReviewItems'));
     }
 
     /**

@@ -359,10 +359,18 @@
           </a>
 
           <!-- Cart -->
-          <a href="{{ route('client.cart') }}" class="bee-icon-btn position-relative" title="Giỏ hàng">
-            <i class="fa-solid fa-bag-shopping"></i>
-            <span class="bee-badge-count" id="cartCountBadge" style="{{ \App\Services\CartService::count() > 0 ? '' : 'display: none;' }}">{{ \App\Services\CartService::count() }}</span>
-          </a>
+          @auth
+            <a href="{{ route('client.cart') }}" class="bee-icon-btn position-relative" title="Giỏ hàng">
+              <i class="fa-solid fa-bag-shopping"></i>
+              <span class="bee-badge-count" id="cartCountBadge">{{ \App\Services\CartService::count() }}</span>
+            </a>
+          @else
+            <a href="javascript:void(0)" onclick="requireAuthPrompt('xem giỏ hàng và đặt mua sản phẩm')" class="bee-icon-btn position-relative" title="Giỏ hàng">
+              <i class="fa-solid fa-bag-shopping"></i>
+            </a>
+          @endauth
+
+
 
 
 
@@ -387,45 +395,46 @@
 
             <!-- Áo Polo Nam -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-polo-nam') || request()->get('category') == 'ao-polo-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-polo-nam') }}">
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-polo-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}">
                 Áo Polo
               </a>
             </li>
 
             <!-- Áo Sơ Mi Nam -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-so-mi-nam') || request()->get('category') == 'ao-so-mi-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-so-mi-nam') }}">
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-so-mi-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}">
                 Áo Sơ Mi
               </a>
             </li>
 
             <!-- Áo Phông & T-Shirt -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-phong-tshirt-nam') || request()->get('category') == 'ao-phong-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}">
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-phong-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-phong-tshirt-nam']) }}">
                 Áo Phông
               </a>
             </li>
 
             <!-- Áo Khoác & Blazer -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-khoac-blazer-nam') || request()->get('category') == 'ao-khoac-blazer-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}">
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-khoac-blazer-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}">
                 Áo Khoác &amp; Blazer
               </a>
             </li>
 
             <!-- Áo Thun Nam -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-thun-nam') || request()->get('category') == 'ao-thun-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-thun-nam') }}">
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-thun-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}">
                 Áo Thun
               </a>
             </li>
 
             <!-- Áo Thu Đông -->
             <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-thu-dong-nam') || request()->get('category') == 'ao-thu-dong-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}">
+              <a class="nav-link bee-nav-link {{ request()->get('category') == 'ao-thu-dong-nam' ? 'active' : '' }}" href="{{ route('client.products.index', ['category' => 'ao-thu-dong-nam']) }}">
                 Áo Thu Đông
               </a>
             </li>
+
 
             <!-- Thương Hiệu (Brands) -->
             <li class="nav-item">
@@ -455,244 +464,66 @@
 
   <!-- MAIN CONTENT -->
   <main class="bee-main-content">
-    
-    @if(session('success') && !session('payment_success_order'))
-      <div class="container mt-3">
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2" role="alert">
-          <i class="fa-solid fa-circle-check text-success fs-5"></i>
-          <div>{{ session('success') }}</div>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      </div>
-    @endif
-
-    @if(session('error'))
-      <div class="container mt-3">
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2" role="alert">
-          <i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i>
-          <div>{{ session('error') }}</div>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      </div>
-    @endif
-
     @yield('content')
   </main>
 
-  <!-- PAYMENT CELEBRATION MODAL -->
-  @if(session('payment_success_order'))
-    <div class="modal fade" id="globalPaymentSuccessModal" tabindex="-1" aria-labelledby="globalPaymentSuccessModalLabel" aria-hidden="true" data-bs-backdrop="static">
-      <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
-        <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden text-center p-4" style="background: #ffffff;">
-          
-          <!-- Animation Icon -->
-          <div class="my-2 position-relative d-inline-block">
-            <div class="rounded-circle bg-success-subtle text-success p-3 d-inline-flex align-items-center justify-content-center shadow-md" style="width: 80px; height: 80px;">
-              <i class="fa-solid fa-circle-check fs-1 text-success"></i>
-            </div>
-            <span class="position-absolute top-0 end-0 badge rounded-pill bg-warning text-dark fw-bold px-2 py-1 shadow-sm" style="font-size: 0.75rem;">
-              <i class="fa-solid fa-sparkles me-1"></i> Thành Công
-            </span>
-          </div>
-
-          <h4 class="fw-black text-dark mb-1 mt-2">THANH TOÁN THÀNH CÔNG!</h4>
-          <p class="text-muted small mb-3">BeeStyle đã ghi nhận thanh toán cho đơn hàng của bạn.</p>
-
-          <!-- Order Summary Card in Modal -->
-          <div class="p-3 bg-light rounded-3 border text-start mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-              <span class="text-muted">Mã đơn hàng:</span>
-              <strong class="text-primary font-monospace fs-6">#{{ session('payment_success_order') }}</strong>
-            </div>
-            @if(session('payment_success_amount'))
-              <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-                <span class="text-muted">Số tiền thanh toán:</span>
-                <strong class="text-danger fs-5 fw-black">{{ number_format(session('payment_success_amount'), 0, ',', '.') }}₫</strong>
-              </div>
-            @endif
-            @if(session('payment_success_method'))
-              <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-                <span class="text-muted">Hình thức:</span>
-                <span class="badge bg-white border text-dark fw-semibold">{{ session('payment_success_method') }}</span>
-              </div>
-            @endif
-            <div class="d-flex justify-content-between align-items-center small">
-              <span class="text-muted">Trạng thái thanh toán:</span>
-              <span class="badge bg-success text-white fw-bold"><i class="fa-solid fa-check me-1"></i> Đã Thanh Toán</span>
-            </div>
-          </div>
-
-          <!-- Warehouse Processing Notice -->
-          <div class="alert alert-warning py-2.5 px-3 rounded-3 text-start small border-0 mb-3" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
-            <div class="d-flex gap-2">
-              <i class="fa-solid fa-box-open text-warning fs-5 mt-0.5"></i>
-              <div>
-                <strong class="text-dark d-block">Đang Xử Lý Gửi Hàng:</strong>
-                <span class="text-muted" style="font-size: 0.78rem;">Dữ liệu đơn hàng đã được gửi đến bộ phận kho. Nhân viên kho đang kiểm tra và đóng gói để gửi hàng đến cho bạn sớm nhất!</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="d-flex flex-column gap-2">
-            <a href="{{ route('client.order-tracking', ['code' => session('payment_success_order')]) }}" class="btn btn-bee-primary py-2.5 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
-              <i class="fa-solid fa-truck-fast"></i> Tra Cứu Tiến Độ Vận Chuyển
-            </a>
-            <button type="button" class="btn btn-outline-secondary py-2 small fw-semibold rounded-3" data-bs-dismiss="modal">
-              Tiếp Tục Mua Sắm
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var myModal = new bootstrap.Modal(document.getElementById('globalPaymentSuccessModal'));
-        myModal.show();
-      });
-    </script>
-  @endif
-
-
-  <!-- LUXURY PRO E-COMMERCE FOOTER -->
-  <footer class="bee-footer text-light pt-0 pb-4 mt-5" style="background: linear-gradient(180deg, #0f172a 0%, #090d16 100%); border-top: 3px solid #f59e0b;">
-    <!-- 1. BRAND TRUST BAR (4 CỘT CAM KẾT VÀNG) -->
-    <div class="border-bottom py-4" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08) !important;">
-      <div class="container">
-        <div class="row g-4 text-start">
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-truck-fast fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">GIAO HÀNG HỎA TỐC</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Freeship toàn quốc đơn từ 300K</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-arrows-rotate fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">30 NGÀY ĐỔI TRẢ</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Đổi size tận nhà miễn phí 100%</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-shield-halved fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">100% CHÍNH HÃNG</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Sợi tự nhiên cao cấp kháng khuẩn</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-headset fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">HỖ TRỢ 24/7</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Hotline: <strong class="text-warning">1900 8888</strong> (Miễn cước)</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. MAIN FOOTER CONTENT -->
-    <div class="container pt-5">
-      <div class="row g-4 pb-5 border-bottom" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+  <!-- FOOTER -->
+  <footer class="bee-footer pt-5 pb-3 mt-5">
+    <div class="container">
+      <div class="row g-4 pb-4 border-bottom border-secondary-subtle">
         <!-- Brand Info -->
-        <div class="col-lg-4 col-md-6 pe-lg-4">
-          <a href="{{ route('client.home') }}" class="beestyle-logo logo-light mb-3 d-inline-flex align-items-center text-decoration-none">
-            <span class="logo-badge me-2" style="background: #f59e0b; color: #111; padding: 6px 10px; border-radius: 10px;"><i class="fa-solid fa-gem"></i></span>
-            <span class="fs-4 fw-bolder tracking-wide text-white">BEE<span class="brand-highlight text-warning">STYLE</span></span>
-          </a>
-          <p class="text-secondary small mb-3 leading-relaxed">
-            Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất liệu sợi tự nhiên tuyển chọn vượt trội.
-          </p>
-          <div class="d-flex flex-column gap-2 text-secondary small mb-3">
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-location-dot text-warning" style="width: 18px;"></i>
-              <span>Tầng 5, Tòa Nhà BeeStyle Center, Q. Cầu Giấy, Hà Nội</span>
+        <div class="col-lg-4 col-md-6">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="bee-logo-icon">
+              <i class="fa-solid fa-b"></i>
             </div>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-phone text-warning" style="width: 18px;"></i>
-              <span>Hotline đặt hàng: <strong class="text-white">1900 8888</strong> (08:00 - 22:00)</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-envelope text-warning" style="width: 18px;"></i>
-              <span>Email: <strong class="text-white">cskh@beestyle.vn</strong></span>
-            </div>
+            <span class="fs-4 fw-black tracking-wide text-white">BEE<span class="text-warning">STYLE</span></span>
           </div>
-          <div class="d-flex gap-2 pt-1">
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Instagram"><i class="fa-brands fa-instagram text-danger"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="YouTube"><i class="fa-brands fa-youtube text-danger"></i></a>
+          <p class="text-secondary small mb-3">
+            Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất lượng vượt trội.
+          </p>
+          <div class="d-flex gap-2">
+            <a href="#" class="btn btn-sm btn-outline-light rounded-circle" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="btn btn-sm btn-outline-light rounded-circle" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="btn btn-sm btn-outline-light rounded-circle" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" class="btn btn-sm btn-outline-light rounded-circle" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;"><i class="fa-brands fa-youtube"></i></a>
           </div>
         </div>
 
         <!-- Quick Links -->
         <div class="col-lg-2 col-md-6 col-6">
-          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
-            DANH MỤC ÁO NAM
-            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
-          </h6>
-          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
-            <li><a href="{{ route('client.categories.show', 'ao-polo-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Polo Nam</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-so-mi-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Sơ Mi Công Sở</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Phông (T-Shirt)</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Khoác &amp; Blazer</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-thun-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thun Nam Basic</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thu Đông Cao Cấp</a></li>
+          <h6 class="text-white fw-bold mb-3">DANH MỤC ÁO NAM</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2 small">
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}">Áo Polo Nam</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}">Áo Sơ Mi Nam</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-phong-tshirt-nam']) }}">Áo Phông (T-Shirt)</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}">Áo Khoác &amp; Blazer</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}">Áo Thun Nam</a></li>
+            <li><a href="{{ route('client.products.index', ['category' => 'ao-thu-dong-nam']) }}">Áo Thu Đông</a></li>
           </ul>
         </div>
 
         <!-- Customer Service -->
         <div class="col-lg-3 col-md-6 col-6">
-          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
-            CHĂM SÓC KHÁCH HÀNG
-            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
-          </h6>
-          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
-            <li><a href="{{ route('client.order-tracking') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-truck-ramp-box me-1.5 text-warning small"></i> Tra cứu hành trình đơn</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-rotate-left me-1.5 text-warning small"></i> Chính sách đổi trả 30 ngày</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-ruler-combined me-1.5 text-warning small"></i> Bảng quy đổi Size chuẩn</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-crown me-1.5 text-warning small"></i> Chính sách Hội Viên VIP</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-store me-1.5 text-warning small"></i> Hệ thống 15+ Showroom</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-user-shield me-1.5 text-warning small"></i> Bảo mật thông tin</a></li>
+          <h6 class="text-white fw-bold mb-3">CHĂM SÓC KHÁCH HÀNG</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2 small">
+            <li><a href="{{ route('client.order-tracking') }}">Tra cứu hành trình đơn hàng</a></li>
+            <li><a href="#">Chính sách đổi trả trong 30 ngày</a></li>
+            <li><a href="#">Bảng quy đổi Size nam chuẩn</a></li>
+            <li><a href="#">Chính sách chăm sóc khách hàng</a></li>
+            <li><a href="#">Hệ thống cửa hàng toàn quốc</a></li>
+            <li><a href="#">Bảo mật thông tin khách hàng</a></li>
           </ul>
         </div>
 
         <!-- Contact & Newsletter -->
         <div class="col-lg-3 col-md-6">
-          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
-            NHẬN VOUCHER 50.000₫
-            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
-          </h6>
-          <p class="text-secondary small mb-3">Đăng ký email để nhận ngay mã ưu đãi <strong>50.000₫</strong> cho đơn hàng đầu tiên.</p>
-          <form id="footerNewsletterForm" onsubmit="event.preventDefault(); Swal.fire({ icon: 'success', title: 'Đăng Ký Thành Công!', text: 'Mã Voucher 50.000₫ đã được gửi vào hòm thư của bạn!', timer: 3000, showConfirmButton: false }); this.reset();">
-            <div class="input-group mb-3">
-              <input type="email" class="form-control form-control-sm bg-dark text-white border-secondary border-opacity-50" placeholder="Nhập email của bạn..." required>
-              <button class="btn btn-warning btn-sm px-3 fw-bold text-dark" type="submit">NHẬN MÃ</button>
-            </div>
-          </form>
-
+          <h6 class="text-white fw-bold mb-3">NHẬN BẢN TIN ƯU ĐÃI</h6>
+          <p class="text-secondary small mb-3">Đăng ký email để nhận mã giảm giá <strong>50.000₫</strong> cho đơn hàng đầu tiên.</p>
+          <div class="input-group mb-3">
+            <input type="email" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Nhập email của bạn...">
+            <button class="btn btn-bee-accent btn-sm px-3" type="button">ĐĂNG KÝ</button>
+          </div>
           <div class="mt-3">
             <p class="small text-secondary mb-2 fw-semibold">Phương thức thanh toán bảo mật:</p>
             <div class="d-flex gap-2 flex-wrap text-white-50 fs-4 align-items-center">
@@ -719,16 +550,14 @@
         </div>
       </div>
 
-      <!-- 3. FOOTER BOTTOM (BẢN QUYỀN & THÔNG TIN DOANH NGHIỆP) -->
-      <div class="pt-4 d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary" style="font-size: 0.8rem;">
-        <div>
-          &copy; {{ date('Y') }} <strong class="text-white">BEESTYLE MENSWEAR VIETNAM</strong>. Bản quyền thuộc về Công ty Cổ phần Thời trang BeeStyle.
-          <div class="text-muted fs-11 mt-1">Giấy chứng nhận ĐKKD số: 0108998899 do Sở Kế hoạch và Đầu tư TP. Hà Nội cấp.</div>
+      <div class="bee-footer-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="text-secondary">
+          &copy; {{ date('Y') }} <strong>BEESTYLE MENSWEAR</strong> - Always Be Casual. All Rights Reserved.
         </div>
         <div class="d-flex gap-3 text-secondary small flex-wrap">
           <a href="#" class="text-secondary text-decoration-none hover-warning">Điều khoản sử dụng</a>
           <span>•</span>
-          <a href="#" class="text-secondary text-decoration-none hover-warning">Chính sách bảo mật</a>
+          <a href="#">Chính sách giao hàng</a>
           <span>•</span>
           <a href="#" class="text-secondary text-decoration-none hover-warning">Hệ thống phân phối</a>
           <span>•</span>
@@ -1447,216 +1276,131 @@
 
 
   <!-- ========================================== -->
-  <!-- MODAL 1: PRO E-COMMERCE QUICK VIEW & PURCHASE MODAL (2 CỘT ĐỒNG BỘ CHI TIẾT SẢN PHẨM) -->
+  <!-- MODAL 1: CHỌN MÀU SẮC & THÔNG SỐ SIZE NHANH -->
   <!-- ========================================== -->
   <div class="modal fade" id="quickVariantModal" tabindex="-1" aria-hidden="true" style="z-index: 1080;">
-    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1020px;">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden; background: #ffffff;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 22px; overflow: hidden;">
         
         <!-- Header -->
-        <div class="modal-header border-bottom py-3 px-4 d-flex justify-content-between align-items-center bg-light bg-opacity-50">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
-              <i class="fa-solid fa-bolt me-1"></i> MUA NHANH SẢN PHẨM
-            </span>
-            <span class="text-muted small" id="qvmBrandText">BeeStyle Signature</span>
-            <span class="text-muted small">•</span>
-            <span class="badge bg-light text-dark border px-2 py-0.5 small" id="qvmCategoryName">Thời trang nam</span>
-            <span class="badge bg-secondary-subtle text-secondary px-2 py-0.5 small" id="qvmSkuText">SKU: BS-0001</span>
+        <div class="modal-header border-0 pb-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">CHỌN PHÂN LOẠI</span>
+            <span class="text-muted small" id="qvmCategoryName">Thời trang nam</span>
           </div>
-          <button type="button" class="btn-close rounded-circle p-2 bg-light" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
-        <!-- Body 2 Cột chuẩn Chi Tiết Sản Phẩm -->
-        <div class="modal-body p-4 p-lg-4">
-          <div class="row g-4 align-items-start">
+        <!-- Body -->
+        <div class="modal-body p-4">
+          <!-- THÔNG TIN SẢN PHẨM NHANH -->
+          <div class="d-flex gap-3 mb-3 p-3 bg-light rounded-3 border">
+            <div class="position-relative flex-shrink-0 bg-white rounded-3 p-2 border shadow-xs" style="width: 105px; height: 105px; display: flex; align-items: center; justify-content: center;">
+              <img src="" id="qvmProductImage" alt="Sản phẩm" class="img-fluid rounded" style="max-height: 90px; object-fit: contain;">
+              <span class="position-absolute top-0 start-0 badge bg-danger rounded-pill m-1 shadow-xs" id="qvmDiscountBadge" style="font-size: 0.68rem; display: none;">-15%</span>
+            </div>
+            <div class="flex-grow-1">
+              <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-0.5 small mb-1" id="qvmCategoryName">Thời trang nam</span>
+              <h6 class="fw-bold text-dark mb-1" id="qvmProductName" style="font-size: 0.98rem; line-height: 1.35;">Tên sản phẩm</h6>
+              <div class="d-flex align-items-baseline gap-2 mb-1.5">
+                <span class="text-danger fw-bold fs-5" id="qvmProductPrice">0₫</span>
+                <small class="text-muted text-decoration-line-through" id="qvmProductOriginalPrice" style="display: none;">0₫</small>
+              </div>
+              <div class="d-flex align-items-center gap-2 small">
+                <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold" id="qvmStockBadge">
+                  <i class="fa-solid fa-circle-check me-1"></i> Còn <strong id="qvmStockNumber">...</strong> trong kho
+                </span>
+                <span class="text-muted small">• Miễn phí đổi size 7 ngày</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1. CHỌN MÀU SẮC (LUXURY COLOR SWATCHES) -->
+          <div class="mb-3.5">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label small fw-bold text-dark mb-0">
+                <i class="fa-solid fa-palette text-warning me-1"></i> 1. Chọn Màu Sắc:
+                <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedColorText">Chưa chọn</span>
+              </label>
+              <span class="text-danger small" style="font-size: 0.72rem;">* Bắt buộc</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2" id="qvmColorsContainer">
+              <!-- Render động các nút màu sắc cao cấp -->
+            </div>
+          </div>
+
+          <!-- 2. CHỌN THÔNG SỐ KÍCH THƯỚC (SIZE MATRIX VỚI GỢI Ý CÂN NẶNG) -->
+          <div class="mb-3.5">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label small fw-bold text-dark mb-0">
+                <i class="fa-solid fa-ruler-combined text-warning me-1"></i> 2. Chọn Kích Thước (Size):
+                <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedSizeText">Chưa chọn</span>
+              </label>
+              <span class="text-muted small" style="font-size: 0.72rem;">
+                <i class="fa-solid fa-arrows-alt-v me-0.5 text-warning"></i> Chuẩn Form Quý Ông
+              </span>
+            </div>
+            <div class="d-flex flex-wrap gap-2" id="qvmSizesContainer">
+              <!-- Render động các nút size cao cấp -->
+            </div>
+          </div>
+
+          <!-- 3. CHỌN SỐ LƯỢNG MUA (1 - 10 SẢN PHẨM) -->
+          <div class="mb-3 p-3 rounded-3 border" style="background: #f8fafc;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
+                <i class="fa-solid fa-calculator text-warning"></i>
+                <span>3. Số Lượng Mua:</span>
+              </label>
+              <span class="badge bg-dark text-warning border border-warning px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
+                <i class="fa-solid fa-cart-shopping"></i> Đã chọn: <span id="qvmQtyLiveBadge" class="text-white fs-6 fw-bolder">1</span> cái
+              </span>
+            </div>
             
-            <!-- CỘT TRÁI (5/12): GALLERY ẢNH & CAM KẾT DỊCH VỤ -->
-            <div class="col-lg-5 col-md-5">
-              <!-- Khung ảnh chính -->
-              <div class="position-relative bg-light rounded-4 p-3 text-center border overflow-hidden d-flex align-items-center justify-content-center mb-3" style="height: 340px; background: #f8fafc;">
-                <img src="" id="qvmProductImage" alt="Sản phẩm" class="img-fluid rounded-3 transition-all" style="max-height: 310px; max-width: 100%; object-fit: contain;">
-                
-                <span class="position-absolute top-0 start-0 badge bg-danger rounded-pill m-3 px-2.5 py-1 shadow-xs fw-bold" id="qvmDiscountBadge" style="font-size: 0.75rem; display: none;">
-                  -15%
-                </span>
-                <span class="position-absolute top-0 end-0 badge bg-warning text-dark rounded-pill m-3 px-2.5 py-1 shadow-xs fw-bold" id="qvmHotBadge" style="font-size: 0.72rem;">
-                  <i class="fa-solid fa-fire me-1"></i> BÁN CHẠY
-                </span>
-              </div>
-
-              <!-- Dải thumbnail các góc chụp -->
-              <div class="d-flex gap-2 overflow-x-auto pb-2 mb-3" id="qvmThumbnailsContainer" style="scrollbar-width: thin;">
-                <!-- Render động thumbnails -->
-              </div>
-
-              <!-- Hộp 4 Cam Kết Mua Sắm Chuẩn BeeStyle -->
-              <div class="p-3 rounded-3 border bg-light bg-opacity-70" style="font-size: 0.78rem;">
-                <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-1.5">
-                  <i class="fa-solid fa-shield-halved text-warning"></i>
-                  <span>CAM KẾT CHÍNH HÃNG BEESTYLE</span>
-                </div>
-                <div class="row g-2 text-muted">
-                  <div class="col-6">
-                    <i class="fa-solid fa-truck-fast text-success me-1"></i> Giao hỏa tốc 2H
-                  </div>
-                  <div class="col-6">
-                    <i class="fa-solid fa-rotate-left text-primary me-1"></i> Đổi size 30 ngày
-                  </div>
-                  <div class="col-6">
-                    <i class="fa-solid fa-certificate text-warning me-1"></i> Bảo hành 6 tháng
-                  </div>
-                  <div class="col-6">
-                    <i class="fa-solid fa-box-open text-info me-1"></i> Freeship đơn 300k
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- CỘT PHẢI (7/12): THÔNG TIN SẢN PHẨM, BIẾN THỂ & ĐẶT HÀNG -->
-            <div class="col-lg-7 col-md-7">
-              <!-- Tên sản phẩm -->
-              <h5 class="fw-bold text-dark mb-2" id="qvmProductName" style="font-size: 1.22rem; line-height: 1.4;">
-                Đang tải tên sản phẩm...
-              </h5>
-
-              <!-- Đánh giá, Lượt bán, Lượt xem -->
-              <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap mb-3 small">
-                <div class="text-warning fw-bold d-flex align-items-center gap-1">
-                  <i class="fa-solid fa-star"></i>
-                  <span id="qvmRatingText">4.9</span>
-                  <span class="text-muted fw-normal" id="qvmReviewsCountText">(86 đánh giá)</span>
-                </div>
-                <span class="text-muted">•</span>
-                <span class="text-muted">Đã bán <strong class="text-dark" id="qvmSoldCountText">1.240</strong></span>
-                <span class="text-muted">•</span>
-                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
-                  <i class="fa-solid fa-eye me-1"></i> <span id="qvmLiveViewers">12</span> người đang xem
-                </span>
-              </div>
-
-              <!-- Khối Hiển Thị Giá Bán & Tiết Kiệm -->
-              <div class="p-3 rounded-3 mb-3 border d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
-                <div>
-                  <div class="d-flex align-items-baseline gap-2">
-                    <strong class="text-danger fs-4 fw-bolder" id="qvmProductPrice">0₫</strong>
-                    <small class="text-muted text-decoration-line-through fs-6" id="qvmProductOriginalPrice" style="display: none;">0₫</small>
-                  </div>
-                  <small class="text-success fw-semibold" id="qvmSaveAmountBadge" style="font-size: 0.8rem; display: none;">
-                    <i class="fa-solid fa-piggy-bank me-1"></i> Tiết kiệm: <span id="qvmSaveAmountText">0₫</span>
-                  </small>
-                </div>
-                <span class="badge bg-dark text-warning border border-warning px-2.5 py-1 rounded-pill small fw-bold">
-                  <i class="fa-solid fa-crown me-1"></i> GIÁ TỐT NHẤT
-                </span>
-              </div>
-
-              <!-- Khối Bảng Thông Số Kỹ Thuật (Thu Gọn) -->
-              <div class="mb-3 p-2.5 rounded-3 border bg-light small" id="qvmSpecsBox" style="font-size: 0.78rem;">
-                <div class="fw-bold text-dark mb-1.5 d-flex align-items-center gap-1">
-                  <i class="fa-solid fa-circle-info text-warning"></i>
-                  <span>ĐẶC ĐIỂM NỔI BẬT:</span>
-                </div>
-                <div class="d-flex flex-wrap gap-x-3 gap-y-1 text-muted" id="qvmSpecsContainer">
-                  <!-- Render động thông số kỹ thuật -->
-                </div>
-              </div>
-
-              <!-- 1. CHỌN MÀU SẮC (COLOR SWATCHES) -->
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1.5">
-                  <label class="form-label small fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-palette text-warning me-1"></i> Màu Sắc:
-                    <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedColorText">Chưa chọn</span>
-                  </label>
-                  <span class="text-danger small" style="font-size: 0.72rem;">* Bắt buộc</span>
-                </div>
-                <div class="d-flex flex-wrap gap-2" id="qvmColorsContainer">
-                  <!-- Render động các nút màu sắc cao cấp -->
-                </div>
-              </div>
-
-              <!-- 2. CHỌN KÍCH THƯỚC (SIZE MATRIX) -->
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1.5">
-                  <label class="form-label small fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-ruler-combined text-warning me-1"></i> Kích Thước (Size):
-                    <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedSizeText">Chưa chọn</span>
-                  </label>
-                  <span class="text-muted small" style="font-size: 0.72rem;">
-                    <i class="fa-solid fa-arrows-alt-v me-0.5 text-warning"></i> Chuẩn Form Quý Ông
-                  </span>
-                </div>
-                <div class="d-flex flex-wrap gap-2" id="qvmSizesContainer">
-                  <!-- Render động các nút size cao cấp -->
-                </div>
-              </div>
-
-              <!-- 3. CHỌN SỐ LƯỢNG & TỒN KHO REALTIME -->
-              <div class="mb-3.5 p-3 rounded-3 border bg-light bg-opacity-70">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-calculator text-warning"></i>
-                    <span>Số Lượng Mua:</span>
-                  </label>
-                  <span class="badge bg-dark text-warning border border-warning px-2.5 py-0.5 fw-bold" style="font-size: 0.78rem;">
-                    Đã chọn: <span id="qvmQtyLiveBadge" class="text-white fw-bold">1</span> cái
-                  </span>
-                </div>
-
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                  <div class="bee-qty-stepper">
-                    <button type="button" class="btn-step-minus" id="qvmBtnMinus" onclick="changeQvmQuantity(-1)" title="Giảm 1 sản phẩm">
-                      <i class="fa-solid fa-minus"></i>
-                    </button>
-                    <input type="number" id="qvmQuantityInput" value="1" min="1" max="10" class="qty-display-input" readonly>
-                    <button type="button" class="btn-step-plus" id="qvmBtnPlus" onclick="changeQvmQuantity(1)" title="Tăng 1 sản phẩm">
-                      <i class="fa-solid fa-plus"></i>
-                    </button>
-                  </div>
-
-                  <div class="text-end">
-                    <div class="d-flex align-items-baseline gap-1.5 justify-content-end">
-                      <span class="text-muted small">Tạm tính:</span>
-                      <strong class="text-danger fs-5 fw-bold" id="qvmSubtotalLive">0₫</strong>
-                    </div>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold" id="qvmStockBadge" style="font-size: 0.72rem;">
-                      <i class="fa-solid fa-circle-check me-1"></i> Còn <strong id="qvmStockNumber">...</strong> sản phẩm trong kho
-                    </span>
-                  </div>
-                </div>
-
-                <div id="qvmMaxLimitMsg" class="alert alert-warning border-0 py-2 px-3 small rounded-3 mt-2 mb-0 d-none fw-semibold" style="font-size: 0.78rem;">
-                  <i class="fa-solid fa-circle-exclamation text-danger me-1"></i> Số lượng mua tối đa cho phép là 10 sản phẩm mỗi lần.
-                </div>
-              </div>
-
-              <!-- Cảnh Báo Chọn Biến Thể -->
-              <div class="alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small shadow-xs" id="qvmValidationAlert" style="display: none; font-size: 0.82rem;">
-                <i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Vui lòng chọn đầy đủ <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!
-              </div>
-
-              <!-- 4. 2 NÚT HÀNH ĐỘNG LỚN -->
-              <div class="d-flex gap-2 mb-2">
-                <button type="button" class="btn btn-outline-dark flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmAddToCartBtn" onclick="submitQvmAction(false)" style="font-size: 0.95rem;">
-                  <i class="fa-solid fa-cart-plus me-1.5 text-warning"></i> Thêm Vào Giỏ Hàng
+            <!-- Ô nhập số lượng + nút tăng giảm cộng trừ (Tối đa 10) -->
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <div class="bee-qty-stepper">
+                <button type="button" class="btn-step-minus" id="qvmBtnMinus" onclick="changeQvmQuantity(-1)" title="Giảm 1 sản phẩm">
+                  <i class="fa-solid fa-minus"></i>
                 </button>
-                <button type="button" class="btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmBuyNowBtn" onclick="submitQvmAction(true)" style="font-size: 0.95rem;">
-                  <i class="fa-solid fa-bolt me-1.5 text-dark"></i> Mua Ngay
+                <input type="number" id="qvmQuantityInput" value="1" min="1" max="10" class="qty-display-input" readonly>
+                <button type="button" class="btn-step-plus" id="qvmBtnPlus" onclick="changeQvmQuantity(1)" title="Tăng 1 sản phẩm">
+                  <i class="fa-solid fa-plus"></i>
                 </button>
               </div>
 
-              <!-- Link Xem Chi Tiết Đầy Đủ -->
-              <div class="text-center pt-1">
-                <a href="#" id="qvmDetailLink" class="text-muted small text-decoration-none hover-warning fw-semibold">
-                  <i class="fa-solid fa-arrow-up-right-from-square me-1 text-warning"></i> Xem trang chi tiết đầy đủ sản phẩm (Bảng size, Đánh giá, Vouchers) &rarr;
-                </a>
+              <div>
+                <div class="d-flex align-items-baseline gap-1.5">
+                  <span class="text-muted small">Tạm tính:</span>
+                  <strong class="text-danger fs-6 fw-bold" id="qvmSubtotalLive">0₫</strong>
+                </div>
+                <small class="text-muted fs-11 d-block">
+                  Kho: <strong class="text-dark" id="qvmStockNumber">999</strong> có sẵn • Tối đa 10 cái
+                </small>
               </div>
-
             </div>
 
+            <div id="qvmMaxLimitMsg" class="alert alert-warning border-0 py-2 px-3 small rounded-3 mt-2 mb-0 d-none fw-semibold" style="font-size: 0.78rem;">
+              <i class="fa-solid fa-circle-exclamation text-danger me-1"></i> Số lượng mua tối đa cho phép là 10 sản phẩm.
+            </div>
+          </div>
+
+          <!-- Cảnh Báo Chọn Biến Thể -->
+          <div class="alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-0 small shadow-xs" id="qvmValidationAlert" style="display: none; font-size: 0.82rem;">
+            <i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Vui lòng chọn đầy đủ <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!
           </div>
         </div>
+
+        <!-- Footer Nút Bấm Cao Cấp -->
+        <div class="modal-footer border-top bg-light p-3 d-flex gap-2">
+          <button type="button" class="btn btn-outline-warning text-dark flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmAddToCartBtn" onclick="submitQvmAction(false)" style="font-size: 0.92rem;">
+            <i class="fa-solid fa-cart-plus me-1.5 text-warning"></i> Thêm Vào Giỏ Hàng
+          </button>
+          <button type="button" class="btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmBuyNowBtn" onclick="submitQvmAction(true)" style="font-size: 0.92rem;">
+            <i class="fa-solid fa-bolt me-1.5"></i> Mua Ngay
+          </button>
+        </div>
+
 
       </div>
     </div>
@@ -1763,8 +1507,13 @@
     let isBuyNowMode = false;
 
 
-    // Mở Modal Chọn Biến Thể Khi Bấm [Thêm Vào Giỏ Hàng] hoặc [Mua Ngay]
+    // Mở Modal Chọn Biến Thể Khi Bấm [Thêm Giỏ] hoặc [Mua Ngay]
     function openQuickVariantModal(productId, isBuyNow = false, btnEl = null) {
+      if (!IS_AUTHENTICATED) {
+        requireAuthPrompt(isBuyNow ? 'mua hàng ngay' : 'thêm sản phẩm vào giỏ hàng');
+        return;
+      }
+
       isBuyNowMode = isBuyNow;
       
       const modalEl = document.getElementById('quickVariantModal');
@@ -1906,38 +1655,12 @@
       document.getElementById('qvmProductPrice').textContent = data.price_formatted || '0₫';
       if (data.image) document.getElementById('qvmProductImage').src = data.image;
 
-      // Cập nhật link chi tiết sản phẩm
-      const detailLink = document.getElementById('qvmDetailLink');
-      if (detailLink) {
-        detailLink.href = data.detail_url || (`/san-pham/${data.id}`);
-      }
-
-      // Đánh giá sao, lượt bán, người xem trực tiếp
-      const ratingEl = document.getElementById('qvmRatingText');
-      if (ratingEl) ratingEl.textContent = Number(data.rating || 4.9).toFixed(1);
-      const reviewsEl = document.getElementById('qvmReviewsCountText');
-      if (reviewsEl) reviewsEl.textContent = `(${data.reviews_count || 86} đánh giá)`;
-      const soldEl = document.getElementById('qvmSoldCountText');
-      if (soldEl) soldEl.textContent = Number(data.sold_count || 1240).toLocaleString('vi-VN');
-      const viewersEl = document.getElementById('qvmLiveViewers');
-      if (viewersEl) viewersEl.textContent = Math.floor(Math.random() * 18) + 8;
-
-      // Giá gốc & Tiết kiệm
-      if (data.original_price_formatted && data.original_price > data.price) {
+      if (data.original_price_formatted) {
         const origEl = document.getElementById('qvmProductOriginalPrice');
         origEl.textContent = data.original_price_formatted;
         origEl.style.display = 'inline';
-
-        const saveEl = document.getElementById('qvmSaveAmountBadge');
-        const saveText = document.getElementById('qvmSaveAmountText');
-        if (saveEl && saveText && data.save_amount_formatted) {
-          saveText.textContent = data.save_amount_formatted;
-          saveEl.style.display = 'inline-block';
-        }
       } else {
         document.getElementById('qvmProductOriginalPrice').style.display = 'none';
-        const saveEl = document.getElementById('qvmSaveAmountBadge');
-        if (saveEl) saveEl.style.display = 'none';
       }
 
       if (data.discount_percent > 0) {
@@ -1946,35 +1669,6 @@
         discEl.style.display = 'block';
       } else {
         document.getElementById('qvmDiscountBadge').style.display = 'none';
-      }
-
-      // Render Dải Thumbnail Gallery Ảnh
-      const thumbsCont = document.getElementById('qvmThumbnailsContainer');
-      if (thumbsCont) {
-        const gallery = (data.gallery_images && data.gallery_images.length > 0) ? data.gallery_images : [data.image];
-        thumbsCont.innerHTML = gallery.map((imgSrc, idx) => `
-          <button type="button" class="btn p-0 rounded-2 overflow-hidden border qvm-thumb-btn ${idx === 0 ? 'border-warning shadow-xs' : 'border-secondary-subtle'} flex-shrink-0" 
-            onclick="setQvmMainImage('${imgSrc}', this)" 
-            style="width: 58px; height: 58px; background: #ffffff;">
-            <img src="${imgSrc}" class="w-100 h-100" style="object-fit: cover;" alt="Thumbnail">
-          </button>
-        `).join('');
-      }
-
-      // Render Bảng Thông Số Kỹ Thuật
-      const specsCont = document.getElementById('qvmSpecsContainer');
-      if (specsCont) {
-        const specs = data.specifications || {
-          'Chất liệu': 'Cotton Compact dệt tổ ong kháng khuẩn',
-          'Phom dáng': 'Regular Fit chuẩn quý ông',
-          'Xuất xứ': 'Việt Nam xuất khẩu',
-          'Bảo hành': 'Đổi size miễn phí trong 30 ngày'
-        };
-        specsCont.innerHTML = Object.entries(specs).slice(0, 4).map(([k, v]) => `
-          <div class="col-6 mb-1">
-            <strong class="text-dark">• ${k}:</strong> <span class="text-secondary">${v}</span>
-          </div>
-        `).join('');
       }
 
       // Cập nhật thông tin tồn kho
@@ -2011,29 +1705,9 @@
       }).join('');
       document.getElementById('qvmSizesContainer').innerHTML = sizesHtml;
 
-      // Không tự động chọn sẵn màu và size - Bắt buộc khách hàng tự tay lựa chọn
-      selectedColor = null;
-      selectedSize = null;
-      selectedVariantId = null;
-
       // Cập nhật hiển thị số lượng & tổng tiền ban đầu
       updateQvmQtyDisplay(1);
     }
-
-    function setQvmMainImage(src, btn) {
-      const mainImg = document.getElementById('qvmProductImage');
-      if (mainImg) mainImg.src = src;
-      document.querySelectorAll('.qvm-thumb-btn').forEach(b => {
-        b.classList.remove('border-warning', 'shadow-xs');
-        b.classList.add('border-secondary-subtle');
-      });
-      if (btn) {
-        btn.classList.remove('border-secondary-subtle');
-        btn.classList.add('border-warning', 'shadow-xs');
-      }
-    }
-
-    let selectedVariantId = null;
 
     // Xử lý chọn màu
     function selectQvmColor(color, btn) {
@@ -2054,8 +1728,6 @@
       btn.style.background = '#fffbeb';
       btn.style.color = '#92400e';
       btn.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.2)';
-
-      updateQvmMatchedVariant();
     }
 
     // Xử lý chọn size
@@ -2081,35 +1753,6 @@
       btn.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.25)';
       const activeHint = btn.querySelector('span:nth-child(2)');
       if (activeHint) activeHint.className = 'text-warning-emphasis lh-1 mt-1';
-
-      updateQvmMatchedVariant();
-    }
-
-    function updateQvmMatchedVariant() {
-      if (currentQvmProduct && currentQvmProduct.variants && selectedColor && selectedSize) {
-        const matched = currentQvmProduct.variants.find(v => v.color === selectedColor && v.size === selectedSize);
-        if (matched) {
-          selectedVariantId = matched.id;
-          if (matched.price) {
-            currentQvmProduct.price = matched.price;
-            currentQvmProduct.price_formatted = matched.price_formatted || (matched.price.toLocaleString('vi-VN') + '₫');
-            const priceEl = document.getElementById('qvmProductPrice');
-            if (priceEl) priceEl.textContent = currentQvmProduct.price_formatted;
-          }
-          if (matched.stock !== undefined) {
-            const stockEl = document.getElementById('qvmStockNumber');
-            if (stockEl) stockEl.textContent = matched.stock;
-          }
-          if (matched.image) {
-            const imgEl = document.getElementById('qvmProductImage');
-            if (imgEl) imgEl.src = matched.image;
-          }
-        } else {
-          selectedVariantId = null;
-        }
-      }
-      const curQty = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
-      updateQvmQtyDisplay(curQty);
     }
 
     function updateQvmQtyDisplay(val) {
@@ -2174,60 +1817,6 @@
     function submitQvmAction(isBuyNow) {
       if (!currentQvmProduct) return;
 
-      // Bắt buộc khách hàng phải tự tay chọn cả Màu sắc và Kích thước (Size)
-      const alertEl = document.getElementById('qvmValidationAlert');
-      if (!selectedColor && !selectedSize) {
-        alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Quý khách vui lòng chọn <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!';
-        alertEl.style.display = 'block';
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Chưa Chọn Biến Thể',
-            text: 'Vui lòng chọn Màu sắc và Kích thước (Size) sản phẩm!',
-            toast: true,
-            position: 'top-end',
-            timer: 2500,
-            showConfirmButton: false
-          });
-        }
-        return;
-      }
-      if (!selectedColor) {
-        alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Quý khách vui lòng chọn <strong>Màu sắc</strong> sản phẩm!';
-        alertEl.style.display = 'block';
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Chưa Chọn Màu Sắc',
-            text: 'Vui lòng chọn 1 Màu sắc sản phẩm!',
-            toast: true,
-            position: 'top-end',
-            timer: 2500,
-            showConfirmButton: false
-          });
-        }
-        return;
-      }
-      if (!selectedSize) {
-        alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Quý khách vui lòng chọn <strong>Kích thước (Size)</strong> sản phẩm!';
-        alertEl.style.display = 'block';
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Chưa Chọn Kích Thước',
-            text: 'Vui lòng chọn 1 Kích thước (Size) sản phẩm!',
-            toast: true,
-            position: 'top-end',
-            timer: 2500,
-            showConfirmButton: false
-          });
-        }
-        return;
-      }
-
-      const quantity = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
-      const payload = {
-        product_id: currentQvmProduct.id,
         variant_id: selectedVariantId,
         color: selectedColor,
         size: selectedSize,

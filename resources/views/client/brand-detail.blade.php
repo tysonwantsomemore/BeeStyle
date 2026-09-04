@@ -14,21 +14,21 @@
   </nav>
 
   <!-- BRAND HERO BANNER -->
-  <div class="card border-0 text-white overflow-hidden mb-4 shadow-sm" style="border-radius: 18px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+  <div class="card border-0 text-white overflow-hidden mb-4 shadow-sm" style="border-radius: 18px; background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), url('{{ $brand->banner_url }}') center/cover no-repeat;">
     <div class="card-body p-4 p-md-5">
       <div class="d-flex align-items-center gap-4 flex-wrap">
-        <div class="bg-white rounded-circle p-3 shadow-sm d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-          @if(!empty($brand->logo))
-            <img src="{{ asset($brand->logo) }}" alt="{{ $brand->name }}" style="max-width: 50px; max-height: 50px; object-fit: contain;" onerror="this.onerror=null; this.src=''; this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');">
-            <i class="fa-solid fa-crown text-warning fs-2 d-none"></i>
-          @else
-            <i class="fa-solid fa-crown text-warning fs-2"></i>
-          @endif
+        <div class="bg-white rounded-circle p-2 shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style="width: 85px; height: 85px; overflow: hidden;">
+          <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         </div>
         <div>
           <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-2">THƯƠNG HIỆU ĐỘC QUYỀN</span>
           <h2 class="fw-bold text-white mb-1">{{ $brand->name }}</h2>
-          <p class="text-light-subtle small mb-0" style="max-width: 650px;">{{ $brand->description }}</p>
+          <p class="text-light-subtle small mb-1" style="max-width: 650px;">{{ $brand->description }}</p>
+          @if($brand->website)
+            <a href="{{ $brand->website }}" target="_blank" class="badge bg-light text-dark text-decoration-none px-2.5 py-1 mt-1">
+              <i class="fa-solid fa-globe me-1 text-primary"></i> Website chính thức <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 0.7rem;"></i>
+            </a>
+          @endif
         </div>
       </div>
     </div>
@@ -138,8 +138,8 @@
                       data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
                       data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.76rem;">
-                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
+                      title="Thêm vào giỏ hàng (Chọn màu & size)" style="font-size: 0.78rem;">
+                      <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Giỏ
                     </button>
                     <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap" 
                       data-id="{{ $product->id }}"

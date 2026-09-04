@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Client;
-  
+
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use App\Models\Order;
@@ -97,6 +97,13 @@ class CheckoutController extends Controller
             $verifiedShipping = (int)$cartData['shipping'];
             $verifiedTotal = max(0, $verifiedSubtotal - $verifiedDiscount + $verifiedShipping);
 
+            // Xác định payment_status: MoMo cần đợi webhook/callback, COD & VietQR là chưa trả, còn lại tùy cấu hình
+            $paymentStatus = match ($validated['payment_method']) {
+                'momo' => 'PENDING_PAYMENT',
+                'cod', 'vietqr', 'online', 'zalopay' => 'unpaid',
+                default => 'unpaid',
+            };
+
             $order = Order::create([
                 'order_code' => $orderCode,
                 'user_id' => $user ? $user->id : null,
@@ -108,7 +115,7 @@ class CheckoutController extends Controller
                 'district' => $validated['district'] ?? '',
                 'notes' => $validated['notes'] ?? null,
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => $validated['payment_method'] === 'momo' ? 'PENDING_PAYMENT' : 'unpaid',
+                'payment_status' => $paymentStatus,
                 'shipping_status' => 'pending',
                 'status_step' => 1,
                 'subtotal' => $verifiedSubtotal,
@@ -161,8 +168,6 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Điểm thưởng & Tổng chi tiêu sẽ được tự động cộng khi đơn hàng chuyển sang trạng thái "Hoàn tất" (Completed)
-
             DB::commit();
 
             // Xóa sạch giỏ hàng trong session sau khi hoàn tất đặt hàng
@@ -191,12 +196,10 @@ class CheckoutController extends Controller
                     $userAgent = $request->userAgent() ?? '';
                     $isMobile = preg_match('/(android|iphone|ipad|ipod|mobile)/i', $userAgent);
 
-                    // Trên điện thoại có cài MoMo: mở trực tiếp qua deeplink (nếu có)
                     if ($isMobile && !empty($momoResult['deeplink'])) {
                         return redirect()->away($momoResult['deeplink']);
                     }
 
-                    // Trên máy tính hoặc thiết bị khác: mở cổng thanh toán chính thức của MoMo
                     return redirect()->away($momoResult['payUrl']);
                 }
 
@@ -209,7 +212,7 @@ class CheckoutController extends Controller
                 return redirect()->route('client.checkout.zalopay', ['code' => $orderCode]);
             }
 
-            // Với đơn COD: gửi email hóa đơn ngay và chuyển sang trang tra cứu
+            // Với đơn COD & VietQR: gửi email hóa đơn ngay và chuyển sang trang tra cứu
             $this->sendOrderInvoiceEmail($order);
 
             return redirect()->route('client.order-tracking', ['code' => $orderCode])
@@ -458,7 +461,7 @@ class CheckoutController extends Controller
     {
         $order = Order::with('items')->where('order_code', $code)->firstOrFail();
 
-        if ($order->payment_status === 'unpaid' && $order->shipping_status === 'pending') {
+        if ($order->payment_status !== 'paid' && $order->shipping_status === 'pending') {
             DB::transaction(function () use ($order) {
                 $order->update(['shipping_status' => 'cancelled']);
 
@@ -526,7 +529,6 @@ class CheckoutController extends Controller
         ]);
     }
 
-
     /**
      * Tự động nhận diện & khớp lệnh chuyển khoản (Webhook / Realtime Banking Auto-Match)
      */
@@ -555,8 +557,6 @@ class CheckoutController extends Controller
         ]);
     }
 
-
-
     /**
      * Gửi Hóa đơn Điện tử HTML qua Email
      */
@@ -573,7 +573,7 @@ class CheckoutController extends Controller
                     ->subject("【BeeStyle】Xác nhận Hóa Đơn Điện Tử Đơn Hàng #{$order->order_code}");
             });
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Lỗi gửi email hóa đơn đơn #{$order->order_code}: " . $e->getMessage());
+            Log::warning("Lỗi gửi email hóa đơn đơn #{$order->order_code}: " . $e->getMessage());
         }
     }
 }

@@ -38,8 +38,33 @@
           <i class="fa-solid fa-plus me-1.5"></i> Thêm Ưu Đãi Mới
         </button>
       </div>
-    </div>
   </div>
+
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if($errors->any())
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-xmark me-2"></i> <strong>Đã xảy ra lỗi nhập liệu:</strong>
+    <ul class="mb-0 mt-1 small ps-3">
+      @foreach($errors->all() as $err)
+        <li>{{ $err }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
 
   <!-- 4 THẺ THỐNG KÊ TỔNG QUAN (CLICKABLE KPI CARDS) -->
   <div class="row g-3 mb-4">

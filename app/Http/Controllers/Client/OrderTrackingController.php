@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;   
+use App\Models\Order; 
 use Illuminate\Http\Request;
 
 class OrderTrackingController extends Controller
@@ -27,7 +27,7 @@ class OrderTrackingController extends Controller
     }
 
     /**
-     * Khách hàng xác nhận đã chuyển khoản VietQR / Ngân hàng thành công
+     * Khách hàng xác nhận đã chuyển khoản VietQR thành công
      */
     public function confirmTransfer($code)
     {
@@ -35,16 +35,10 @@ class OrderTrackingController extends Controller
         
         $order->update([
             'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 2,
         ]);
 
-        return redirect()->route('client.home')
-            ->with('payment_success_order', $code)
-            ->with('payment_success_amount', $order->total_amount)
-            ->with('payment_success_method', $order->payment_method_name)
-            ->with('success', "Thành công! BeeStyle đã nhận được thanh toán cho đơn hàng #{$code}. Kho hàng đang tiến hành đóng gói để gửi hàng đến bạn!");
+        return redirect()->route('client.order-tracking', ['code' => $code])
+            ->with('success', "Thành công! BeeStyle đã nhận được xác nhận thanh toán VietQR cho đơn hàng #{$code}. Chúng tôi đang chuẩn bị gửi hàng cho bạn!");
     }
 }
-
 

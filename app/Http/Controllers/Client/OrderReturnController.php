@@ -113,22 +113,36 @@ class OrderReturnController extends Controller
             'bank_account_number' => 'nullable|string|max:50',
             'bank_account_name' => 'nullable|string|max:150',
             'bank_branch' => 'nullable|string|max:150',
-            'image_proofs' => 'nullable|array|max:4',
-            'image_proofs.*' => 'image|mimes:jpeg,png,jpg,webp|max:4096',
+            'image_proofs' => 'required|array|min:1|max:5',
+            'image_proofs.*' => 'image|mimes:jpeg,png,jpg,webp|max:8192',
+            'video_unbox' => 'nullable|file|mimes:mp4,mov,avi,webm,mkv|max:51200',
+            'video_proof' => 'nullable|file|mimes:mp4,mov,avi,webm,mkv|max:51200',
         ], [
             'type.required' => 'Vui lòng chọn hình thức yêu cầu (Trả hàng hoàn tiền / Đổi size / Hoàn tiền).',
             'reason.required' => 'Vui lòng chọn lý do đổi trả hàng.',
-            'image_proofs.*.image' => 'Ảnh bằng chứng phải đúng định dạng hình ảnh.',
-            'image_proofs.*.max' => 'Dung lượng mỗi ảnh không quá 4MB.',
+            'image_proofs.required' => 'Vui lòng tải lên ít nhất 1 hình ảnh chụp chi tiết sản phẩm / tem mác để làm chứng cứ!',
+            'image_proofs.min' => 'Vui lòng tải lên ít nhất 1 hình ảnh sản phẩm cần đổi trả.',
+            'image_proofs.*.image' => 'Ảnh bằng chứng phải đúng định dạng hình ảnh (JPEG, PNG, WEBP).',
+            'image_proofs.*.max' => 'Dung lượng mỗi ảnh không quá 8MB.',
+            'video_unbox.mimes' => 'Video clip unbox phải có định dạng MP4, MOV, AVI hoặc WEBM.',
+            'video_unbox.max' => 'Dung lượng video unbox không quá 50MB.',
         ]);
 
-        // Upload ảnh minh chứng nếu có
+        // Upload ảnh minh chứng
         $imageUrls = [];
         if ($request->hasFile('image_proofs')) {
             foreach ($request->file('image_proofs') as $image) {
-                $path = $image->store('returns', 'public');
+                $path = $image->store('returns/images', 'public');
                 $imageUrls[] = '/storage/' . $path;
             }
+        }
+
+        // Upload video unbox mở hộp nếu có
+        $videoUrl = null;
+        $videoFile = $request->file('video_unbox') ?: $request->file('video_proof');
+        if ($videoFile && $videoFile->isValid()) {
+            $videoPath = $videoFile->store('returns/videos', 'public');
+            $videoUrl = '/storage/' . $videoPath;
         }
 
         // Tính số tiền hoàn dự kiến
@@ -166,6 +180,7 @@ class OrderReturnController extends Controller
             'reason' => $validated['reason'],
             'customer_notes' => $validated['customer_notes'] ?? null,
             'image_proofs' => $imageUrls,
+            'video_proof' => $videoUrl,
             'exchange_size' => $validated['exchange_size'] ?? null,
             'exchange_color' => $validated['exchange_color'] ?? null,
             'refund_amount' => $refundAmount,

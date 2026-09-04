@@ -9,14 +9,43 @@ use Illuminate\Support\Str;
 
 class BrandController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $brands = Brand::withCount('products')
-            ->orderBy('sort_order', 'asc')
-            ->orderBy('id', 'desc')
-            ->get();
+        $search = $request->query('q');
+        $statusFilter = $request->query('status', 'all');
 
-        return view('admin.brands.index', compact('brands'));
+        $query = Brand::withCount('products');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('description', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($statusFilter === 'active') {
+            $query->where('is_active', true);
+        } elseif ($statusFilter === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        $brands = $query->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        $totalBrands = Brand::count();
+        $activeBrandsCount = Brand::where('is_active', true)->count();
+        $totalLinkedProducts = \App\Models\Product::whereNotNull('brand_id')->count();
+
+        return view('admin.brands.index', compact(
+            'brands',
+            'search',
+            'statusFilter',
+            'totalBrands',
+            'activeBrandsCount',
+            'totalLinkedProducts'
+        ));
     }
 
     public function store(Request $request)
@@ -29,6 +58,7 @@ class BrandController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
             'banner' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
             'logo_url' => 'nullable|string',
+            'banner_url' => 'nullable|string',
         ], [
             'name.required' => 'Vui lòng nhập tên thương hiệu.',
             'name.unique' => 'Tên thương hiệu này đã tồn tại.',
@@ -40,13 +70,15 @@ class BrandController extends Controller
             $path = $request->file('logo')->store('brands', 'public');
             $logoPath = '/storage/' . $path;
         } elseif ($request->filled('logo_url')) {
-            $logoPath = $request->logo_url;
+            $logoPath = trim($request->logo_url, " \t\n\r\0\x0B'\"");
         }
 
         $bannerPath = null;
         if ($request->hasFile('banner')) {
             $path = $request->file('banner')->store('brands/banners', 'public');
             $bannerPath = '/storage/' . $path;
+        } elseif ($request->filled('banner_url')) {
+            $bannerPath = trim($request->banner_url, " \t\n\r\0\x0B'\"");
         }
 
         Brand::create([
@@ -76,6 +108,7 @@ class BrandController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
             'banner' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
             'logo_url' => 'nullable|string',
+            'banner_url' => 'nullable|string',
         ], [
             'name.required' => 'Vui lòng nhập tên thương hiệu.',
             'name.unique' => 'Tên thương hiệu này đã tồn tại.',
@@ -87,13 +120,15 @@ class BrandController extends Controller
             $path = $request->file('logo')->store('brands', 'public');
             $logoPath = '/storage/' . $path;
         } elseif ($request->filled('logo_url')) {
-            $logoPath = $request->logo_url;
+            $logoPath = trim($request->logo_url, " \t\n\r\0\x0B'\"");
         }
 
         $bannerPath = $brand->banner;
         if ($request->hasFile('banner')) {
             $path = $request->file('banner')->store('brands/banners', 'public');
             $bannerPath = '/storage/' . $path;
+        } elseif ($request->filled('banner_url')) {
+            $bannerPath = trim($request->banner_url, " \t\n\r\0\x0B'\"");
         }
 
         $brand->update([

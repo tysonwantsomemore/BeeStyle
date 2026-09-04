@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chi tiết sản phẩm thời trang thiết kế cao cấp Beestyle Atelier. Chất liệu lụa tự nhiên, may đo chuẩn Ý và đồ da thủ công.">
+  <title id="page-title">Chi Tiết Sản Phẩm — BEESTYLE Studio</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./v1.24.0/assets/img/favicons/favicon-32x32.png">
+
+  <!-- Google Fonts: Libre Franklin, Cormorant Garamond, Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Libre Franklin"', 'sans-serif'],
+            serif: ['"Cormorant Garamond"', 'serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#faf8f5',
+              100: '#f5f0e8',
+              200: '#e8dcce',
+              300: '#d7c2ad',
+              400: '#c3a388',
+              500: '#b48c6f',
+              600: '#a3775f',
+              700: '#875f4d',
+              800: '#6f4e41',
+              900: '#1c1917',
+              950: '#0c0a09'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-serif-luxury {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+    nav a {
+      position: relative;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: currentColor;
+      transition: width 0.3s ease;
+    }
+    nav a:hover::after, nav a.active::after {
+      width: 100%;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c5b8a5;
+      border-radius: 3px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.35s ease-out forwards;
+    }
+    .thumbnail-active {
+      border-color: #171717 !important;
+      ring: 2px solid #171717;
+    }
+  </style>
+</head>
+
+<body class="bg-brand-50 text-neutral-900 selection:bg-neutral-900 selection:text-white flex flex-col min-h-screen">
+
+  <!-- Top Announcement Bar -->
+  <div class="bg-neutral-950 text-neutral-200 py-2 px-4 text-xs tracking-widest uppercase border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex justify-between items-center text-[11px]">
+      <div class="flex items-center gap-4">
+        <span><span class="text-amber-400 font-semibold">ƯU ĐÃI THÀNH VIÊN:</span> MÃ <strong class="text-white bg-neutral-800 px-1.5 py-0.5 rounded cursor-pointer" onclick="BeeCore.copyCode('BEESTYLE15')">BEESTYLE15</strong> GIẢM 15%</span>
+        <span class="hidden lg:inline text-neutral-500">|</span>
+        <span class="hidden lg:inline text-neutral-400">FREESHIP TOÀN QUỐC ĐƠN TỪ 500.000₫</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <button onclick="BeeCore.openOrderLookup()" class="hover:text-white flex items-center gap-1 transition-colors">
+          <i data-lucide="package" class="w-3.5 h-3.5"></i>
+          <span>Tra Cứu Đơn Hàng</span>
+        </button>
+        <button onclick="BeeCore.openRefundModal()" class="hover:text-white flex items-center gap-1 transition-colors">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Đổi Trả & Bảo Hành</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="sticky top-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      
+      <!-- Mobile Menu Button -->
+      <div class="flex items-center gap-3 md:hidden">
+        <a href="1.html" class="p-1.5 text-neutral-800 hover:text-black">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+      </div>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-8 text-xs tracking-[0.2em] uppercase font-medium text-neutral-700">
+        <a href="1.html#home" class="hover:text-black transition-colors">Trang Chủ</a>
+        <a href="1.html#collections" class="hover:text-black transition-colors">Bộ Sưu Tập</a>
+        
+        <!-- ZARA MEGA MENU TRIGGER (SẢN PHẨM) -->
+        <div class="relative group/mega py-3">
+          <a href="shop.html" class="hover:text-black transition-colors flex items-center gap-1 font-bold text-neutral-950">
+            <span>Sản Phẩm</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 group-hover/mega:rotate-180 transition-transform duration-300 text-neutral-400"></i>
+          </a>
+
+          <!-- Dark backdrop overlay to isolate and focus on menu -->
+          <div class="fixed inset-0 top-[65px] bg-neutral-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none z-40"></div>
+
+          <!-- ZARA MEGA MENU DROPDOWN (100% Solid White, High Contrast) -->
+          <div class="fixed top-[65px] left-0 w-full bg-white border-b-2 border-neutral-950 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-200 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none group-hover/mega:pointer-events-auto z-50">
+            <div class="max-w-7xl mx-auto px-8 py-10 grid grid-cols-12 gap-8 text-neutral-950 bg-white">
+              
+              <!-- Col 1: Big Typography Departments (Zara Style) -->
+              <div class="col-span-3 space-y-2 pr-6 border-r border-neutral-200">
+                <a href="shop.html?cat=2" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  NỮ
+                </a>
+                <a href="shop.html?cat=1" class="block font-serif text-3xl xl:text-4xl text-neutral-950 font-bold hover:text-amber-800 transition-colors uppercase tracking-tight py-0.5 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-neutral-950 inline-block"></span>
+                  NAM
+                </a>
+                <a href="shop.html?cat=3" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  PHỤ KIỆN
+                </a>
+                <a href="shop.html?cat=4" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  GIÀY DÉP
+                </a>
+                <a href="1.html#lookbook" class="block font-serif text-2xl xl:text-3xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  LOOKBOOK 2026
+                </a>
+                <div class="pt-6 border-t border-neutral-100 mt-4">
+                  <span class="font-serif-luxury text-sm tracking-[0.3em] text-neutral-950 font-bold uppercase block">BEESTYLE</span>
+                  <span class="text-[9px] tracking-[0.4em] text-neutral-500 uppercase font-sans font-semibold">ATELIER VIETNAM</span>
+                </div>
+              </div>
+
+              <!-- Col 2: Numbered Categories & Lists (Zara Style) -->
+              <div class="col-span-4 space-y-5 text-xs tracking-wider uppercase font-medium pl-4">
+                <!-- [01] MỚI -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[01] MỚI</span>
+                  <a href="shop.html" class="block text-neutral-950 hover:text-amber-800 font-bold text-sm transition-colors">THE NEW 2026</a>
+                  <a href="shop.html?cat=1" class="block text-neutral-600 hover:text-black transition-colors">AARON LEVINE x BEESTYLE</a>
+                </div>
+
+                <!-- [02] DÒNG THIẾT KẾ -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[02]</span>
+                  <a href="shop.html" class="block text-neutral-800 hover:text-black font-semibold transition-colors">BEESTYLE ORIGINS</a>
+                </div>
+
+                <!-- [03] SPOTLIGHT -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[03]</span>
+                  <a href="shop.html?cat=1" class="block text-neutral-950 font-bold hover:text-amber-800 transition-colors">ATHLETICZ / 26 1 18 1</a>
+                </div>
+
+                <!-- [04] BỘ SƯU TẬP & DANH MỤC -->
+                <div class="space-y-2 pt-4 border-t border-neutral-200">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[04] BỘ SƯU TẬP & DANH MỤC</span>
+                  <div class="grid grid-cols-2 gap-y-2.5 gap-x-4 text-xs leading-relaxed">
+                    <a href="shop.html" class="text-neutral-950 font-bold hover:underline">XEM TẤT CẢ</a>
+                    <a href="shop.html?cat=sale" class="text-rose-700 font-bold hover:underline">BEST SELLERS</a>
+                    <a href="shop.html?cat=1" class="text-neutral-700 hover:text-black font-medium">LINEN STYLES</a>
+                    <a href="product-detail.html?id=1" class="text-neutral-700 hover:text-black font-medium">ÁO SƠ MI LỤA</a>
+                    <a href="product-detail.html?id=2" class="text-neutral-700 hover:text-black font-medium">BLAZER MAY ĐO</a>
+                    <a href="product-detail.html?id=9" class="text-neutral-700 hover:text-black font-medium">MĂNG TÔ DẠ</a>
+                    <a href="product-detail.html?id=7" class="text-neutral-700 hover:text-black font-medium">QUẦN ÂU PHÁP</a>
+                    <a href="product-detail.html?id=3" class="text-neutral-700 hover:text-black font-medium">ĐẦM MAXI LỤA</a>
+                    <a href="shop.html?cat=3" class="text-neutral-700 hover:text-black font-medium">TÚI DA MILL Ý</a>
+                    <a href="shop.html?cat=4" class="text-neutral-700 hover:text-black font-medium">GIÀY LOAFER</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Col 3: Visual Curated Image Thumbnails (4 tall photos like Zara) -->
+              <div class="col-span-5 grid grid-cols-4 gap-3.5 pl-6 border-l border-neutral-200">
+                
+                <!-- Card 1 -->
+                <a href="product-detail.html?id=9" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1539533018447-63fcce2678e3?q=80&w=400&auto=format&fit=crop" alt="Aaron Levine" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">AARON LEVINE</span>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="product-detail.html?id=2" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=400&auto=format&fit=crop" alt="The New" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">THE NEW</span>
+                </a>
+
+                <!-- Card 3 -->
+                <a href="product-detail.html?id=7" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1506629082955-511b1aa562c8?q=80&w=400&auto=format&fit=crop" alt="Quần Bò & Âu" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">QUẦN ÂU</span>
+                </a>
+
+                <!-- Card 4 -->
+                <a href="product-detail.html?id=1" class="group/card flex flex-col">
+                  <div class="aspect-[3/5] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop" alt="Áo Sơ Mi Lụa" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">ÁO SƠ MI</span>
+                </a>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <a href="1.html#lookbook" class="hover:text-black transition-colors">Lookbook 2026</a>
+        <a href="1.html#about" class="hover:text-black transition-colors">Beestyle</a>
+      </nav>
+
+      <!-- Brand Logo -->
+      <div class="text-center">
+        <a href="1.html" class="inline-block group">
+          <span class="font-serif-luxury text-2xl md:text-3xl font-bold tracking-[0.25em] text-neutral-900 uppercase group-hover:opacity-80 transition-opacity">
+            BEESTYLE
+          </span>
+          <span class="block text-[9px] tracking-[0.4em] text-neutral-500 uppercase -mt-1 font-sans">
+            STUDIO • 2026
+          </span>
+        </a>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-5 text-neutral-800">
+        <button onclick="BeeCore.openSearchModal()" class="hidden md:flex items-center gap-1.5 text-xs uppercase tracking-wider hover:text-black transition-colors p-1" title="Tìm kiếm">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span class="hidden lg:inline text-[11px]">Tìm kiếm</span>
+        </button>
+
+        <button onclick="BeeCore.openWishlistModal()" class="relative hover:text-black transition-colors p-1" title="Yêu thích">
+          <i data-lucide="heart" class="w-5 h-5"></i>
+          <span class="wishlist-count-badge absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="display: none;">0</span>
+        </button>
+
+        <button onclick="BeeCore.toggleCart(true)" class="relative hover:text-black transition-colors flex items-center gap-2 p-1" title="Túi mua hàng">
+          <div class="relative">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span class="cart-count-badge absolute -top-1.5 -right-1.5 bg-neutral-900 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" style="display: none;">0</span>
+          </div>
+          <span class="cart-header-total hidden lg:inline text-xs font-semibold tracking-wider text-neutral-900">0₫</span>
+        </button>
+
+        <div class="header-auth-area relative">
+          <!-- Rendered by BeeCore -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN PRODUCT DETAIL CONTENT -->
+  <!-- ========================================================================= -->
+  <main class="w-full flex-grow py-8 md:py-12">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <!-- Breadcrumb Navigation -->
+      <nav class="flex items-center gap-2 text-xs text-neutral-500 mb-8 overflow-x-auto whitespace-nowrap pb-2" id="breadcrumb-container">
+        <a href="1.html" class="hover:text-black">Trang Chủ</a>
+        <i data-lucide="chevron-right" class="w-3 h-3 text-neutral-400"></i>
+        <a href="shop.html" class="hover:text-black">Sản Phẩm</a>
+        <i data-lucide="chevron-right" class="w-3 h-3 text-neutral-400"></i>
+        <span id="breadcrumb-cat" class="hover:text-black">Danh Mục</span>
+        <i data-lucide="chevron-right" class="w-3 h-3 text-neutral-400"></i>
+        <span id="breadcrumb-product" class="text-neutral-900 font-semibold">Tên Sản Phẩm</span>
+      </nav>
+
+      <!-- Main Product View (Gallery & Purchase Box) -->
+      <div id="product-main-view" class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        
+        <!-- Left: Image Gallery (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col md:flex-row-reverse gap-4">
+          
+          <!-- Main Hero Image -->
+          <div class="relative w-full aspect-[3/4] bg-neutral-100 rounded-xl overflow-hidden border border-neutral-200 shadow-md group">
+            <img id="main-product-img" src="" alt="Product Detail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+            
+            <div id="badge-container" class="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
+              <!-- Rendered by JS -->
+            </div>
+
+            <button onclick="ProductPage.toggleFav()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-neutral-700 hover:text-rose-600 shadow transition-transform hover:scale-110">
+              <i id="fav-icon" data-lucide="heart" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Thumbnails Strip -->
+          <div id="gallery-thumbnails" class="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto max-h-[600px] shrink-0 pb-2 md:pb-0">
+            <!-- Rendered by JS -->
+          </div>
+
+        </div>
+
+        <!-- Right: Product Information & Checkout Options (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col">
+          
+          <!-- Brand & Category -->
+          <div class="flex items-center justify-between mb-2">
+            <span id="product-brand" class="text-xs tracking-[0.3em] uppercase text-amber-900 font-semibold">BRAND</span>
+            <span id="product-sku" class="text-xs text-neutral-400 font-mono">SKU: BST-00</span>
+          </div>
+
+          <!-- Product Title -->
+          <h1 id="product-name" class="font-serif-luxury text-3xl md:text-4xl text-neutral-900 font-medium mb-3 leading-tight">
+            Tên Sản Phẩm
+          </h1>
+
+          <!-- Ratings & Views -->
+          <div class="flex items-center gap-4 text-xs text-neutral-500 mb-6 pb-4 border-b border-neutral-200">
+            <div class="flex items-center gap-1 text-amber-500">
+              <div class="flex">
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+              </div>
+              <span class="font-bold text-neutral-800 ml-1">4.9</span>
+              <a href="#reviews-section" class="text-neutral-500 hover:underline">
+                (<span id="reviews-count-text">0</span> đánh giá)
+              </a>
+            </div>
+            <span class="text-neutral-300">|</span>
+            <span class="flex items-center gap-1">
+              <i data-lucide="eye" class="w-3.5 h-3.5 text-neutral-400"></i>
+              <span id="product-views">0</span> lượt xem
+            </span>
+          </div>
+
+          <!-- Price & Stock Box -->
+          <div class="bg-brand-100/70 p-4 rounded-xl border border-brand-200 mb-6">
+            <div class="flex items-baseline gap-3">
+              <span id="price-display" class="font-serif-luxury text-3xl font-bold text-neutral-950">0₫</span>
+              <span id="old-price-display" class="text-sm text-neutral-400 line-through">0₫</span>
+              <span id="discount-badge" class="ml-auto text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded">
+                GIẢM 20%
+              </span>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-xs">
+              <span id="stock-display" class="text-emerald-700 font-semibold flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Còn hàng trong kho
+              </span>
+              <span class="text-neutral-500">Đổi size miễn phí 30 ngày</span>
+            </div>
+          </div>
+
+          <!-- Short Description -->
+          <p id="product-short-desc" class="text-xs text-neutral-600 leading-relaxed font-light mb-6">
+            Mô tả ngắn...
+          </p>
+
+          <!-- Variant Selector (Colors & Sizes) -->
+          <div id="variants-section" class="mb-6 space-y-4">
+            
+            <!-- Color Selector -->
+            <div>
+              <div class="flex justify-between text-xs mb-2">
+                <span class="font-semibold uppercase tracking-wider text-neutral-800">Màu Sắc:</span>
+                <span id="selected-color-name" class="text-neutral-600 font-medium">Trắng Ngà</span>
+              </div>
+              <div id="color-options" class="flex flex-wrap gap-2">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Size Selector -->
+            <div>
+              <div class="flex justify-between items-center text-xs mb-2">
+                <span class="font-semibold uppercase tracking-wider text-neutral-800">Kích Cỡ:</span>
+                <button onclick="BeeCore.openSizeGuideModal()" class="text-amber-800 hover:underline flex items-center gap-1 text-[11px] font-medium">
+                  <i data-lucide="ruler" class="w-3.5 h-3.5"></i>
+                  Bảng hướng dẫn chọn size
+                </button>
+              </div>
+              <div id="size-options" class="flex flex-wrap gap-2">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quantity & Purchase Buttons -->
+          <div class="space-y-3 pt-2">
+            <div class="flex items-center gap-3">
+              <!-- Quantity selector -->
+              <div class="flex items-center border border-neutral-300 rounded-lg bg-white overflow-hidden text-xs">
+                <button onclick="ProductPage.changeQty(-1)" class="px-3.5 py-3 text-neutral-700 hover:bg-neutral-100 transition-colors">-</button>
+                <input type="number" id="purchase-qty" value="1" min="1" max="99" class="w-12 text-center font-bold text-neutral-900 focus:outline-none" readonly>
+                <button onclick="ProductPage.changeQty(1)" class="px-3.5 py-3 text-neutral-700 hover:bg-neutral-100 transition-colors">+</button>
+              </div>
+
+              <!-- Add to Bag -->
+              <button onclick="ProductPage.addToBag()" class="flex-grow py-3.5 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-[0.2em] uppercase rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                <span>Thêm Vào Giỏ Hàng</span>
+              </button>
+            </div>
+
+            <!-- Buy Now Button -->
+            <button onclick="ProductPage.buyNow()" class="w-full py-3.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 text-xs font-bold tracking-[0.2em] uppercase rounded-lg shadow transition-all flex items-center justify-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span>Mua Ngay — Thanh Toán Tức Thì</span>
+            </button>
+          </div>
+
+          <!-- Store Guarantees / USPs -->
+          <div class="grid grid-cols-2 gap-3 mt-8 pt-6 border-t border-neutral-200 text-[11px] text-neutral-600">
+            <div class="flex items-center gap-2">
+              <i data-lucide="truck" class="w-4 h-4 text-neutral-800 shrink-0"></i>
+              <span>Freeship toàn quốc từ 500.000₫</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-neutral-800 shrink-0"></i>
+              <span>Cam kết 100% may đo chính hãng</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="rotate-ccw" class="w-4 h-4 text-neutral-800 shrink-0"></i>
+              <span>Đổi trả miễn phí trong 30 ngày</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="package-check" class="w-4 h-4 text-neutral-800 shrink-0"></i>
+              <span>Kiểm tra hàng trước khi thanh toán</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- DETAILED TABS: Description, Specs, Care, Shipping -->
+      <!-- ========================================================================= -->
+      <section class="mt-20 pt-10 border-t border-neutral-200">
+        
+        <!-- Tab Headers -->
+        <div class="flex flex-wrap gap-6 md:gap-10 border-b border-neutral-200 text-xs font-semibold uppercase tracking-wider mb-8">
+          <button onclick="ProductPage.switchTab('desc')" id="tab-btn-desc" class="pb-3 border-b-2 border-neutral-950 text-neutral-950">
+            Mô Tả & Triết Lý Thiết Kế
+          </button>
+          <button onclick="ProductPage.switchTab('specs')" id="tab-btn-specs" class="pb-3 border-b-2 border-transparent text-neutral-500 hover:text-neutral-900">
+            Thông Số Kỹ Thuật
+          </button>
+          <button onclick="ProductPage.switchTab('care')" id="tab-btn-care" class="pb-3 border-b-2 border-transparent text-neutral-500 hover:text-neutral-900">
+            Bảo Quản & Giặt Ủi
+          </button>
+          <button onclick="ProductPage.switchTab('policy')" id="tab-btn-policy" class="pb-3 border-b-2 border-transparent text-neutral-500 hover:text-neutral-900">
+            Giao Hàng & Đổi Trả
+          </button>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="tab-contents" class="text-xs text-neutral-700 leading-relaxed font-light">
+          
+          <!-- Desc Tab -->
+          <div id="tab-content-desc" class="max-w-3xl space-y-4 animate-fade-in">
+            <p id="product-long-desc">
+              <!-- Rendered by JS -->
+            </p>
+          </div>
+
+          <!-- Specs Tab -->
+          <div id="tab-content-specs" class="max-w-2xl hidden animate-fade-in">
+            <table class="w-full text-xs">
+              <tbody id="specs-table-body" class="divide-y divide-neutral-200 border border-neutral-200 rounded-lg">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Care Tab -->
+          <div id="tab-content-care" class="max-w-2xl hidden animate-fade-in space-y-3">
+            <div class="p-4 bg-brand-100/60 rounded-lg border border-brand-200">
+              <h4 class="font-bold text-neutral-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-700"></i> Hướng Dẫn Giữ Độ Bền Tác Phẩm
+              </h4>
+              <p id="product-care-text">
+                <!-- Rendered by JS -->
+              </p>
+            </div>
+          </div>
+
+          <!-- Policy Tab -->
+          <div id="tab-content-policy" class="max-w-3xl hidden animate-fade-in space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                <h4 class="font-bold text-neutral-900 uppercase tracking-wider mb-1">Chính Sách Vận Chuyển</h4>
+                <p>Nội thành TP.HCM & Hà Nội: Giao hỏa tốc trong 2-4 giờ hoặc giao tiêu chuẩn 24 giờ. Các tỉnh thành khác: 2-3 ngày làm việc qua GHN / ViettelPost.</p>
+              </div>
+              <div class="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                <h4 class="font-bold text-neutral-900 uppercase tracking-wider mb-1">Chính Sách Đổi Trả 30 Ngày</h4>
+                <p>Miễn phí đổi kích cỡ (size) hoặc đổi mẫu tận nhà. Sản phẩm đổi trả cần giữ nguyên tem mác Atelier và hóa đơn mua hàng.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- CUSTOMER REVIEWS & RATINGS SECTION -->
+      <!-- ========================================================================= -->
+      <section id="reviews-section" class="mt-20 pt-10 border-t border-neutral-200">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs tracking-[0.3em] uppercase text-neutral-500 font-semibold">TRẢI NGHIỆM KHÁCH HÀNG</span>
+              <span class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded-full text-[10px] font-bold">100% Đánh giá thật</span>
+            </div>
+            <h2 class="font-serif-luxury text-2xl md:text-3xl text-neutral-900 font-medium">Đánh Giá & Nhận Xét (<span id="reviews-count-text">0</span>)</h2>
+          </div>
+        </div>
+
+        <!-- Banner hướng dẫn gửi đánh giá từ Đơn Hàng Của Tôi -->
+        <div class="mb-8 p-4 bg-gradient-to-r from-neutral-50 to-amber-50/50 rounded-2xl border border-neutral-200 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+              <i data-lucide="star" class="w-4 h-4 text-amber-600 fill-amber-400"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-neutral-800 mb-0.5">Bạn đã mua sản phẩm này?</p>
+              <p class="text-[11px] text-neutral-500 leading-relaxed">Để gửi đánh giá, vui lòng vào <strong class="text-neutral-700">Tài khoản → Đơn Hàng Của Tôi</strong> và bấm nút <strong class="text-amber-700">⭐ Đánh Giá</strong> tại sản phẩm đã mua.</p>
+            </div>
+          </div>
+          <button onclick="BeeCore.openProfileModal('orders')" class="shrink-0 px-4 py-2 bg-neutral-900 text-white text-[11px] font-semibold uppercase tracking-wider rounded hover:bg-neutral-800 transition-colors flex items-center gap-2 shadow-sm">
+            <i data-lucide="package" class="w-3.5 h-3.5"></i>
+            Đơn Hàng Của Tôi
+          </button>
+        </div>
+
+        <!-- Reviews List -->
+        <div id="reviews-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Rendered by JS -->
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- RELATED PRODUCTS / COMPLETE THE LOOK -->
+      <!-- ========================================================================= -->
+      <section class="mt-24 pt-12 border-t border-neutral-200">
+        <div class="flex justify-between items-end mb-8">
+          <div>
+            <span class="text-xs tracking-[0.3em] uppercase text-neutral-500 font-semibold block mb-1">GỢI Ý PHỐI ĐỒ</span>
+            <h2 class="font-serif-luxury text-2xl md:text-3xl text-neutral-900 font-medium">Sản Phẩm Tương Tự & Phối Hợp</h2>
+          </div>
+          <a href="shop.html" class="text-xs tracking-wider uppercase text-neutral-900 font-semibold hover:underline flex items-center gap-1">
+            Xem Tất Cả <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <div id="related-products-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER -->
+  <!-- ========================================================================= -->
+  <footer class="w-full bg-neutral-950 text-neutral-400 pt-16 pb-12 border-t border-neutral-800 mt-20">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      
+      <div>
+        <span class="font-serif-luxury text-2xl font-bold tracking-[0.25em] text-white uppercase block mb-3">BEESTYLE</span>
+        <p class="text-xs leading-relaxed text-neutral-400 font-light mb-4">
+          Nhà may đương đại & thời trang thiết kế tối giản. Tôn vinh vẻ đẹp tự nhiên và sự chuẩn mực trong từng đường kim mũi chỉ.
+        </p>
+        <span class="text-xs text-neutral-300">Hotline: 1900 8899 (8:00 - 22:00)</span>
+      </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Danh Mục</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="shop.html?cat=1" class="hover:text-white transition-colors">Thời Trang Nam</a></li>
+          <li><a href="shop.html?cat=2" class="hover:text-white transition-colors">Thời Trang Nữ</a></li>
+          <li><a href="shop.html?cat=3" class="hover:text-white transition-colors">Phụ Kiện Da</a></li>
+          <li><a href="shop.html?cat=4" class="hover:text-white transition-colors">Giày Thủ Công</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Dịch Vụ Khách Hàng</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="javascript:void(0)" onclick="BeeCore.openOrderLookup()" class="hover:text-white transition-colors">Tra Cứu Đơn Hàng</a></li>
+          <li><a href="javascript:void(0)" onclick="BeeCore.openRefundModal()" class="hover:text-white transition-colors">Đổi Trả & Bảo Hành 30 Ngày</a></li>
+          <li><a href="javascript:void(0)" onclick="BeeCore.openSizeGuideModal()" class="hover:text-white transition-colors">Bảng Chọn Size Chuẩn</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Atelier Vietnam</h4>
+        <p class="text-xs leading-relaxed text-neutral-400 mb-2">
+          Flagship Store: 88 Lê Lợi, Bến Nghé, Quận 1, TP. Hồ Chí Minh
+        </p>
+        <p class="text-[11px] text-neutral-500">© 2026 Beestyle Atelier. All rights reserved.</p>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- App Core JS -->
+  <script src="./assets/js/app-core.js"></script>
+
+  <!-- Product Detail Page Controller Script -->
+  <script>
+    const ProductPage = {
+      product: null,
+      selectedVariant: null,
+      qty: 1,
+
+      init: function() {
+        // Parse product ID from URL query ?id=1
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = parseInt(urlParams.get('id') || '1', 10);
+
+        this.product = BeeDB.products.find(p => p.id === productId) || BeeDB.products[0];
+        this.selectedVariant = (this.product.variants && this.product.variants.length > 0) ? this.product.variants[0] : null;
+
+        this.renderProductDetails();
+        this.renderRelatedProducts();
+        this.updateFavIcon();
+        lucide.createIcons();
+      },
+
+      renderProductDetails: function() {
+        const p = this.product;
+        const brand = BeeDB.brands.find(b => b.id === p.brand_id)?.name || 'Beestyle';
+        const cat = BeeDB.categories.find(c => c.id === p.category_id)?.name || 'Thời Trang';
+
+        // Page title & Breadcrumb
+        document.title = `${p.name} — BEESTYLE Atelier`;
+        document.getElementById('breadcrumb-cat').innerText = cat;
+        document.getElementById('breadcrumb-product').innerText = p.name;
+
+        // Info
+        document.getElementById('product-brand').innerText = brand;
+        document.getElementById('product-sku').innerText = `SKU: ${this.selectedVariant?.sku || p.sku}`;
+        document.getElementById('product-name').innerText = p.name;
+        document.getElementById('product-views').innerText = p.views;
+        document.getElementById('product-short-desc').innerText = p.short_description;
+        document.getElementById('product-long-desc').innerText = p.description;
+        document.getElementById('product-care-text').innerText = p.care_guide || "Giặt tay nhẹ nhàng bằng nước lạnh hoặc giặt khô. Không vắt xoắn mạnh. Là ủi ở nhiệt độ thấp với mặt trái của vải.";
+
+        // Prices & Stock
+        this.updatePriceAndStock();
+
+        // Badges
+        const badgeContainer = document.getElementById('badge-container');
+        badgeContainer.innerHTML = '';
+        if (p.is_sale) {
+          const discountPct = Math.round((1 - p.sale_price / p.price) * 100);
+          badgeContainer.innerHTML += `
+            <span class="bg-rose-600 text-white text-[10px] tracking-widest uppercase font-bold px-2.5 py-1 rounded shadow">
+              SALE -${discountPct}%
+            </span>
+          `;
+        }
+
+        // Main Image & Thumbnails
+        const mainImg = document.getElementById('main-product-img');
+        mainImg.src = this.selectedVariant?.thumbnail || p.thumbnail;
+
+        const allImages = Array.from(new Set([
+          p.thumbnail,
+          ...(p.galleries || []),
+          ...(p.variants ? p.variants.map(v => v.thumbnail).filter(Boolean) : [])
+        ]));
+
+        const thumbContainer = document.getElementById('gallery-thumbnails');
+        thumbContainer.innerHTML = allImages.map((img, idx) => `
+          <img src="${img}" alt="Thumbnail ${idx + 1}" onclick="ProductPage.changeMainImage('${img}', this)" class="w-16 h-20 object-cover rounded-lg border-2 ${idx === 0 ? 'thumbnail-active' : 'border-neutral-200'} cursor-pointer hover:border-neutral-900 transition-all shrink-0">
+        `).join('');
+
+        // Variants (Colors & Sizes)
+        this.renderVariantSelectors();
+
+        // Specs table
+        const specsBody = document.getElementById('specs-table-body');
+        specsBody.innerHTML = Object.entries(p.specs || {}).map(([k, val]) => `
+          <tr class="hover:bg-neutral-50 transition-colors">
+            <td class="py-2.5 px-4 font-semibold text-neutral-600 w-1/3 bg-neutral-50/50">${k}</td>
+            <td class="py-2.5 px-4 text-neutral-900 font-medium">${val}</td>
+          </tr>
+        `).join('');
+
+        // Reviews
+        this.renderReviews();
+      },
+
+      changeMainImage: function(imgUrl, el) {
+        document.getElementById('main-product-img').src = imgUrl;
+        document.querySelectorAll('#gallery-thumbnails img').forEach(img => img.classList.remove('thumbnail-active'));
+        if (el) el.classList.add('thumbnail-active');
+      },
+
+      updatePriceAndStock: function() {
+        const p = this.product;
+        const activePrice = this.selectedVariant ? this.selectedVariant.price : (p.is_sale ? p.sale_price : p.price);
+        
+        document.getElementById('price-display').innerText = BeeCore.formatMoney(activePrice);
+        
+        const oldPriceEl = document.getElementById('old-price-display');
+        const discountBadge = document.getElementById('discount-badge');
+        
+        if (p.is_sale) {
+          oldPriceEl.innerText = BeeCore.formatMoney(p.price);
+          oldPriceEl.classList.remove('hidden');
+          const pct = Math.round((1 - p.sale_price / p.price) * 100);
+          discountBadge.innerText = `GIẢM ${pct}%`;
+          discountBadge.classList.remove('hidden');
+        } else {
+          oldPriceEl.classList.add('hidden');
+          discountBadge.classList.add('hidden');
+        }
+
+        const stockEl = document.getElementById('stock-display');
+        const stockCount = this.selectedVariant ? this.selectedVariant.stock : 10;
+        if (stockCount > 0) {
+          stockEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Còn ${stockCount} sản phẩm sẵn sàng giao`;
+          stockEl.className = 'text-emerald-700 font-semibold flex items-center gap-1.5';
+        } else {
+          stockEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> Tạm hết biến thể này`;
+          stockEl.className = 'text-rose-600 font-semibold flex items-center gap-1.5';
+        }
+      },
+
+      renderVariantSelectors: function() {
+        const p = this.product;
+        const variants = p.variants || [];
+        if (variants.length === 0) {
+          document.getElementById('variants-section').classList.add('hidden');
+          return;
+        }
+
+        // Unique colors
+        const colors = Array.from(new Set(variants.map(v => v.color)));
+        const colorContainer = document.getElementById('color-options');
+        document.getElementById('selected-color-name').innerText = this.selectedVariant?.color || colors[0];
+
+        colorContainer.innerHTML = colors.map(col => {
+          const isSelected = this.selectedVariant?.color === col;
+          return `
+            <button onclick="ProductPage.selectColor('${col}')" class="px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all ${isSelected ? 'bg-neutral-950 text-white border-neutral-950 shadow' : 'bg-white text-neutral-700 border-neutral-300 hover:border-neutral-900'}">
+              ${col}
+            </button>
+          `;
+        }).join('');
+
+        // Sizes for active color
+        const activeColor = this.selectedVariant?.color || colors[0];
+        const sizesForColor = variants.filter(v => v.color === activeColor);
+        const sizeContainer = document.getElementById('size-options');
+
+        sizeContainer.innerHTML = sizesForColor.map(v => {
+          const isSelected = this.selectedVariant?.id === v.id;
+          return `
+            <button onclick="ProductPage.selectVariant(${v.id})" class="min-w-[44px] px-3 py-2 rounded-lg text-xs font-bold border transition-all ${isSelected ? 'bg-neutral-950 text-white border-neutral-950 shadow-md' : 'bg-white text-neutral-800 border-neutral-300 hover:border-neutral-900'}">
+              ${v.size}
+            </button>
+          `;
+        }).join('');
+      },
+
+      selectColor: function(colName) {
+        const v = this.product.variants.find(item => item.color === colName);
+        if (v) {
+          this.selectedVariant = v;
+          if (v.thumbnail) {
+            document.getElementById('main-product-img').src = v.thumbnail;
+          }
+          this.renderVariantSelectors();
+          this.updatePriceAndStock();
+          document.getElementById('product-sku').innerText = `SKU: ${v.sku}`;
+        }
+      },
+
+      selectVariant: function(variantId) {
+        const v = this.product.variants.find(item => item.id === variantId);
+        if (v) {
+          this.selectedVariant = v;
+          if (v.thumbnail) {
+            document.getElementById('main-product-img').src = v.thumbnail;
+          }
+          this.renderVariantSelectors();
+          this.updatePriceAndStock();
+          document.getElementById('product-sku').innerText = `SKU: ${v.sku}`;
+        }
+      },
+
+      changeQty: function(delta) {
+        const inp = document.getElementById('purchase-qty');
+        let val = parseInt(inp.value, 10) + delta;
+        if (val < 1) val = 1;
+        const maxStock = this.selectedVariant?.stock || 20;
+        if (val > maxStock) val = maxStock;
+        inp.value = val;
+        this.qty = val;
+      },
+
+      addToBag: function() {
+        BeeCore.addToCart(this.product.id, this.selectedVariant?.id, this.qty);
+      },
+
+      buyNow: function() {
+        if (!BeeCore.currentUser) {
+          BeeCore.showToast('Vui lòng đăng nhập tài khoản để mua hàng!', 'error');
+          BeeCore.openAuthModal('login');
+          return;
+        }
+        BeeCore.addToCart(this.product.id, this.selectedVariant?.id, this.qty);
+        BeeCore.openCheckout();
+      },
+
+      toggleFav: function() {
+        BeeCore.toggleWishlist(this.product.id);
+        this.updateFavIcon();
+      },
+
+      updateFavIcon: function() {
+        const isFav = Boolean(BeeCore.currentUser && BeeCore.wishlist.includes(this.product.id));
+        const icon = document.getElementById('fav-icon');
+        if (icon) {
+          if (isFav) {
+            icon.classList.add('fill-rose-600', 'text-rose-600');
+          } else {
+            icon.classList.remove('fill-rose-600', 'text-rose-600');
+          }
+        }
+      },
+
+      switchTab: function(tabId) {
+        const tabs = ['desc', 'specs', 'care', 'policy'];
+        tabs.forEach(t => {
+          const btn = document.getElementById(`tab-btn-${t}`);
+          const content = document.getElementById(`tab-content-${t}`);
+          if (t === tabId) {
+            btn.className = 'pb-3 border-b-2 border-neutral-950 text-neutral-950 font-bold';
+            content.classList.remove('hidden');
+          } else {
+            btn.className = 'pb-3 border-b-2 border-transparent text-neutral-500 hover:text-neutral-900';
+            content.classList.add('hidden');
+          }
+        });
+      },
+
+      renderReviews: function() {
+        const allReviews = (window.BeeCore && typeof window.BeeCore.getReviews === 'function') ? window.BeeCore.getReviews() : (BeeDB.reviews || []);
+        const reviews = allReviews.filter(r => r.product_id === this.product.id);
+        const countEl = document.getElementById('reviews-count-text');
+        if (countEl) countEl.innerText = reviews.length;
+
+        // Render reviews list chỉ hiển thị - không có form viết review
+        const container = document.getElementById('reviews-list-container');
+        if (!container) return;
+
+        if (reviews.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12 text-neutral-400 col-span-2 bg-white rounded-2xl border border-neutral-200">
+              <i data-lucide="message-square-dashed" class="w-12 h-12 stroke-1 mx-auto mb-3 opacity-40"></i>
+              <p class="text-sm font-medium text-neutral-500">Chưa có đánh giá nào cho tác phẩm này.</p>
+              <p class="text-[11px] text-neutral-400 mt-1">Khách hàng đã nhận hàng — hãy là người đầu tiên đánh giá!</p>
+              <button onclick="BeeCore.openProfileModal('orders')" class="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold transition-colors inline-flex items-center gap-2">
+                <i data-lucide="package" class="w-3.5 h-3.5"></i> Xem Đơn Hàng Của Tôi
+              </button>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        container.innerHTML = reviews.map(r => {
+          const stars = '★'.repeat(r.rating || 5) + '☆'.repeat(5 - (r.rating || 5));
+          return `
+            <div class="p-5 bg-white rounded-2xl border border-neutral-200/90 shadow-sm flex flex-col justify-between hover:border-neutral-400 transition-all">
+              <div>
+                <div class="flex justify-between items-start mb-2.5">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <strong class="text-xs font-bold text-neutral-900">${r.user_fullname}</strong>
+                      <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <i data-lucide="badge-check" class="w-3 h-3 text-emerald-600"></i> Đã mua hàng
+                      </span>
+                    </div>
+                    <span class="text-[10px] text-neutral-400 font-mono mt-0.5 block">Đã mua tại Atelier Beestyle</span>
+                  </div>
+                  <span class="text-amber-500 text-xs tracking-wider">${stars}</span>
+                </div>
+                
+                <p class="text-xs text-neutral-700 font-light leading-relaxed mb-3">${r.review_text}</p>
+                
+                ${(r.photos && r.photos.length > 0) ? `
+                  <div class="flex gap-2 mb-3 flex-wrap">
+                    ${r.photos.map(p => `
+                      <img src="${p}" class="w-14 h-16 object-cover rounded-lg border border-neutral-200 cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${p}', '_blank')">
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-neutral-100 text-[10px] text-neutral-400">
+                <span class="font-mono">${r.created_at}</span>
+                <span class="text-neutral-500 font-medium">Hài lòng: 100%</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+        lucide.createIcons();
+      },
+
+      renderRelatedProducts: function() {
+        const related = BeeDB.products
+          .filter(p => p.id !== this.product.id && p.category_id === this.product.category_id)
+          .slice(0, 4);
+
+        const grid = document.getElementById('related-products-grid');
+        grid.innerHTML = (related.length > 0 ? related : BeeDB.products.filter(p => p.id !== this.product.id).slice(0, 4)).map(p => `
+          <a href="product-detail.html?id=${p.id}" class="group flex flex-col bg-white p-3 rounded-lg border border-neutral-200/70 hover:border-neutral-900 transition-all hover:shadow-lg">
+            <div class="aspect-[3/4] bg-neutral-100 rounded overflow-hidden mb-3">
+              <img src="${p.thumbnail}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            </div>
+            <span class="text-[9px] tracking-widest uppercase text-neutral-500 font-semibold mb-1">BEESTYLE</span>
+            <h4 class="font-serif-luxury text-sm font-medium text-neutral-900 group-hover:underline truncate mb-1">${p.name}</h4>
+            <span class="font-serif-luxury text-xs font-bold text-neutral-900">${BeeCore.formatMoney(p.is_sale ? p.sale_price : p.price)}</span>
+          </a>
+        `).join('');
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ProductPage.init();
+    });
+  </script>
+
+</body>
+</html>

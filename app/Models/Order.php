@@ -46,7 +46,6 @@ class Order extends Model
         'cancelled_at' => 'datetime',
     ];
 
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -55,6 +54,11 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
     }
 
     public function returns()
