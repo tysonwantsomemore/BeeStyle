@@ -25,6 +25,7 @@ use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\ReviewController;
 use App\Http\Controllers\Client\WishlistController;
 use App\Http\Controllers\Client\OrderReturnController;
+use App\Http\Controllers\Client\MomoPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -103,157 +104,93 @@ Route::name('auth.')->group(function () {
 */
 
 Route::name('client.')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | HOME & SẢN PHẨM KHÁCH HÀNG (PUBLIC)
+    |--------------------------------------------------------------------------
+    */
     Route::get('/', [HomeController::class, 'index'])->name('home');
+
+    // Ưu đãi trong ngày (Daily Deals / Flash Sale)
+    Route::get('/uu-dai-trong-ngay', [ClientProductController::class, 'dailyDeals'])->name('daily-deals.index');
+    Route::get('/deal-ngay', [ClientProductController::class, 'dailyDeals']);
+
+    // Sản phẩm
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
+    Route::get('/san-pham/api-quick-view/{id}', [ClientProductController::class, 'getQuickViewData'])->name('products.quickView');
+    Route::get('/san-pham/api-reviewer-profile/{id}', [ClientProductController::class, 'getReviewerProfile'])->name('products.reviewerProfile');
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
-    
-    // Categories (Xem danh mục sản phẩm)
+    Route::get('/san-pham/{id}/danh-gia-chi-tiet', [ReviewController::class, 'getProductReviewsData'])->name('products.reviews.data');
+
+    // Danh mục sản phẩm (Categories)
     Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
     Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
 
-    // Brands
+    // Thương hiệu (Brands)
     Route::get('/thuong-hieu', [ClientBrandController::class, 'index'])->name('brands.index');
     Route::get('/thuong-hieu/{slug}', [ClientBrandController::class, 'show'])->name('brands.show');
 
-    // Product Review (BẮT BUỘC ĐÃ MUA HÀNG VÀ ĐĂNG NHẬP)
-    Route::get('/san-pham/{id}/danh-gia-chi-tiet', [ReviewController::class, 'getProductReviewsData'])->name('products.reviews.data');
-    Route::post('/san-pham/{id}/danh-gia', [ReviewController::class, 'store'])->middleware('auth')->name('products.review');
-    Route::post('/danh-dau-thong-bao-danh-gia', [ReviewController::class, 'dismissNotification'])->middleware('auth')->name('reviews.dismissNotification');
+    /*
+    |--------------------------------------------------------------------------
+    | SẢN PHẨM YÊU THÍCH (WISHLIST - SESSION BASED)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/san-pham-yeu-thich', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/san-pham-yeu-thich/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::delete('/san-pham-yeu-thich/xoa/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+    Route::post('/san-pham-yeu-thich/xoa-tat-ca', [WishlistController::class, 'clear'])->name('wishlist.clear');
 
-
-    // Cart Routes (Khách vãng lai và Thành viên đều tự do thêm/sửa/xóa sản phẩm vào giỏ hàng)
+    /*
+    |--------------------------------------------------------------------------
+    | GIỎ HÀNG (CART - HỖ TRỢ CẢ KHÁCH VÃNG LAI VÀ THÀNH VIÊN)
+    |--------------------------------------------------------------------------
+    */
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
     Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
     Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-    Route::delete('/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::match(['delete', 'post'], '/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
     Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
     Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-    Route::delete('/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
-    
-    // Checkout Routes (BẮT BUỘC ĐĂNG NHẬP: Khách hàng phải đăng nhập mới được tiến hành thanh toán & lưu đơn hàng)
+    Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
 
     /*
     |--------------------------------------------------------------------------
-    | HOME
+    | TRA CỨU ĐƠN HÀNG (ORDER TRACKING - TRA CỨU BẰNG MÃ ĐƠN HÀNG)
     |--------------------------------------------------------------------------
     */
-    Route::get(
-        '/',
-        [HomeController::class, 'index']
-    )->name('home');
-
+    Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
+    Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
 
     /*
     |--------------------------------------------------------------------------
-    | PRODUCTS
+    | MOMO ONLINE PAYMENT GATEWAY (DEEP LINK / APP-TO-APP / SANDBOX)
     |--------------------------------------------------------------------------
     */
-    Route::get(
-        '/uu-dai-trong-ngay',
-        [ClientProductController::class, 'dailyDeals']
-    )->name('daily-deals.index');
+    // API tạo giao dịch MoMo: POST /api/payments/momo/create
+    Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
 
-    Route::get(
-        '/deal-ngay',
-        [ClientProductController::class, 'dailyDeals']
-    );
+    // API IPN Webhook: POST /api/payments/momo/ipn
+    Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
 
+    // Trang kết quả giao dịch: GET /payment/momo/result
+    Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
 
-    Route::get(
-        '/san-pham',
-        [ClientProductController::class, 'index']
-    )->name('products.index');
-
-
-    Route::get(
-        '/san-pham/api-quick-view/{id}',
-        [ClientProductController::class, 'getQuickViewData']
-    )->name('products.quickView');
-
-
-    Route::get(
-        '/san-pham/{id}',
-        [ClientProductController::class, 'show']
-    )->name('products.show');
-
-    Route::get(
-        '/san-pham/api-reviewer-profile/{id}',
-        [ClientProductController::class, 'getReviewerProfile']
-    )->name('products.reviewerProfile');
-
+    // Legacy/Fallback routes cho tương thích
+    Route::get('/thanh-toan/momo/callback', [MomoPaymentController::class, 'result'])->name('checkout.momo.callback');
+    Route::post('/thanh-toan/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('checkout.momo.ipn');
 
     /*
     |--------------------------------------------------------------------------
-    | BRANDS
-    |--------------------------------------------------------------------------
-    */
-    Route::get(
-        '/thuong-hieu',
-        [ClientBrandController::class, 'index']
-    )->name('brands.index');
-
-
-    Route::get(
-        '/thuong-hieu/{slug}',
-        [ClientBrandController::class, 'show']
-    )->name('brands.show');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRODUCT REVIEWS
-    |--------------------------------------------------------------------------
-    */
-    Route::get(
-        '/san-pham/{id}/danh-gia-chi-tiet',
-        [ReviewController::class, 'getProductReviewsData']
-    )->name('products.reviews.data');
-
-
-    Route::post(
-        '/san-pham/{id}/danh-gia',
-        [ReviewController::class, 'store']
-    )->middleware('auth')
-        ->name('products.review');
-
-
-    Route::post(
-        '/danh-dau-thong-bao-danh-gia',
-        [ReviewController::class, 'dismissNotification']
-    )->middleware('auth')
-        ->name('reviews.dismissNotification');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CLIENT AUTHENTICATED ROUTES
+    | CLIENT AUTHENTICATED ROUTES (BẮT BUỘC ĐĂNG NHẬP)
     |--------------------------------------------------------------------------
     */
     Route::middleware('auth')->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | WISHLIST
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/san-pham-yeu-thich', [WishlistController::class, 'index'])->name('wishlist.index');
-        Route::post('/san-pham-yeu-thich/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
-        Route::delete('/san-pham-yeu-thich/xoa/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
-        Route::post('/san-pham-yeu-thich/xoa-tat-ca', [WishlistController::class, 'clear'])->name('wishlist.clear');
-
-        /*
-        |--------------------------------------------------------------------------
-        | CART
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
-        Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
-        Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-        Route::match(['delete', 'post'], '/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
-        Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
-        Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
-        Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-        Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
+        // Đánh giá sản phẩm đã mua
+        Route::post('/san-pham/{id}/danh-gia', [ReviewController::class, 'store'])->name('products.review');
+        Route::post('/danh-dau-thong-bao-danh-gia', [ReviewController::class, 'dismissNotification'])->name('reviews.dismissNotification');
 
         /*
         |--------------------------------------------------------------------------
@@ -266,6 +203,7 @@ Route::name('client.')->group(function () {
         // Cổng Thanh Toán MoMo Gateway
         Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
         Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
+        Route::post('/thanh-toan/momo/{code}/sandbox-redirect', [CheckoutController::class, 'momoRedirectSandbox'])->name('checkout.momo.redirect');
 
         // Cổng Thanh Toán ZaloPay Gateway
         Route::get('/thanh-toan/zalopay/{code}', [CheckoutController::class, 'zalopayGateway'])->name('checkout.zalopay');
@@ -282,15 +220,7 @@ Route::name('client.')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | ORDER TRACKING
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
-        Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
-
-        /*
-        |--------------------------------------------------------------------------
-        | USER PROFILE
+        | USER PROFILE & SỔ ĐỊA CHỈ
         |--------------------------------------------------------------------------
         */
         Route::get('/tai-khoan', [ProfileController::class, 'index'])->name('profile');

@@ -179,24 +179,86 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:100',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'short_description' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
-            'image' => 'nullable|string',
+            'colors' => 'nullable|array',
+            'sizes' => 'nullable|array',
+            'is_featured' => 'nullable|boolean',
+            'is_best_seller' => 'nullable|boolean',
+            'is_new' => 'nullable|boolean',
             'status' => 'nullable|string|in:active,inactive',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'image_url' => 'nullable|string',
         ]);
 
-        $validated['slug'] = Str::slug($validated['name']) . '-' . time();
-        $validated['sku'] = 'BEE-' . strtoupper(Str::random(6));
-        $validated['status'] = $validated['status'] ?? 'active';
-        $validated['is_active'] = ($validated['status'] === 'active');
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $imagePath = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $imagePath = $request->input('image_url');
+        } else {
+            $imagePath = '/assets/img/products/1.png';
+        }
 
-        Product::create($validated);
+        $slug = Str::slug($validated['name']) . '-' . time();
+        $sku = !empty($validated['sku']) ? strtoupper(trim($validated['sku'])) : ('BS-' . strtoupper(Str::random(6)));
+        $colors = $request->input('colors', ['Đen', 'Trắng']);
+        $sizes = $request->input('sizes', ['S', 'M', 'L', 'XL']);
+        $stock = (int)$validated['stock'];
+        $price = (int)$validated['price'];
 
-        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm thành công!');
+        $product = Product::create([
+            'name' => $validated['name'],
+            'sku' => $sku,
+            'slug' => $slug,
+            'category_id' => $validated['category_id'],
+            'brand_id' => $validated['brand_id'] ?? null,
+            'price' => $price,
+            'original_price' => $validated['original_price'] ?? null,
+            'stock' => $stock,
+            'sold_count' => 0,
+            'views' => 0,
+            'rating' => 5.0,
+            'reviews_count' => 0,
+            'short_description' => $validated['short_description'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'colors' => $colors,
+            'sizes' => $sizes,
+            'is_featured' => $request->boolean('is_featured'),
+            'is_best_seller' => $request->boolean('is_best_seller'),
+            'is_new' => $request->boolean('is_new', true),
+            'status' => $validated['status'] ?? 'active',
+            'image' => $imagePath,
+        ]);
+
+        // Tự động tạo các biến thể tương ứng cho màu và size đã chọn
+        $totalVariants = max(1, count($colors) * count($sizes));
+        $variantStock = max(1, (int)floor($stock / $totalVariants));
+
+        foreach ($colors as $color) {
+            foreach ($sizes as $size) {
+                ProductVariant::create([
+                    'product_id' => $product->id,
+                    'sku' => $product->sku . '-' . Str::slug($color) . '-' . $size,
+                    'color' => $color,
+                    'size' => $size,
+                    'price' => $product->price,
+                    'original_price' => $product->original_price,
+                    'stock' => $variantStock,
+                    'image' => $imagePath,
+                    'status' => 'active',
+                ]);
+            }
+        }
+
+        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm và sinh các biến thể thành công!');
     }
 
     public function edit($id)
@@ -213,22 +275,79 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:100',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'short_description' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
-            'image' => 'nullable|string',
+            'colors' => 'nullable|array',
+            'sizes' => 'nullable|array',
+            'is_featured' => 'nullable|boolean',
+            'is_best_seller' => 'nullable|boolean',
+            'is_new' => 'nullable|boolean',
             'status' => 'nullable|string|in:active,inactive',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'image_url' => 'nullable|string',
         ]);
 
-        $validated['status'] = $validated['status'] ?? $product->status;
-        $validated['is_active'] = ($validated['status'] === 'active');
+        $imagePath = $product->image;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $imagePath = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $imagePath = $request->input('image_url');
+        }
 
-        $product->update($validated);
+        $colors = $request->input('colors', $product->colors ?: ['Đen', 'Trắng']);
+        $sizes = $request->input('sizes', $product->sizes ?: ['S', 'M', 'L', 'XL']);
 
-        return redirect()->route('admin.products.index')->with('success', 'Cập nhật sản phẩm thành công!');
+        $product->update([
+            'name' => $validated['name'],
+            'sku' => !empty($validated['sku']) ? strtoupper(trim($validated['sku'])) : $product->sku,
+            'category_id' => $validated['category_id'],
+            'brand_id' => $validated['brand_id'] ?? null,
+            'price' => (int)$validated['price'],
+            'original_price' => $validated['original_price'] ?? null,
+            'stock' => (int)$validated['stock'],
+            'short_description' => $validated['short_description'] ?? $product->short_description,
+            'description' => $validated['description'] ?? $product->description,
+            'colors' => $colors,
+            'sizes' => $sizes,
+            'is_featured' => $request->boolean('is_featured'),
+            'is_best_seller' => $request->boolean('is_best_seller'),
+            'is_new' => $request->boolean('is_new'),
+            'status' => $validated['status'] ?? $product->status,
+            'image' => $imagePath,
+        ]);
+
+        // Đảm bảo các biến thể mới của size/màu được tự động bổ sung
+        if (!empty($colors) && !empty($sizes)) {
+            $variantStock = max(1, (int)floor($product->stock / (count($colors) * count($sizes))));
+            foreach ($colors as $color) {
+                foreach ($sizes as $size) {
+                    ProductVariant::firstOrCreate(
+                        [
+                            'product_id' => $product->id,
+                            'color' => $color,
+                            'size' => $size,
+                        ],
+                        [
+                            'sku' => $product->sku . '-' . Str::slug($color) . '-' . $size,
+                            'price' => $product->price,
+                            'original_price' => $product->original_price,
+                            'stock' => $variantStock,
+                            'image' => $imagePath,
+                            'status' => 'active',
+                        ]
+                    );
+                }
+            }
+        }
+
+        return redirect()->route('admin.products.index')->with('success', 'Cập nhật thông tin sản phẩm và biến thể thành công!');
     }
 
     public function destroy($id)

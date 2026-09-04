@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             guests: '/dang-nhap',
             users: '/'
         );
+        $middleware->validateCsrfTokens(except: [
+            'api/payments/momo/ipn',
+            'thanh-toan/momo/ipn',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

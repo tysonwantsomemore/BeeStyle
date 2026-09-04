@@ -168,17 +168,17 @@
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 3: VÍ MOMO -->
+            <!-- PHƯƠNG THỨC 3: THANH TOÁN TRỰC TUYẾN QUA MOMO -->
             <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_momo" id="card_pay_momo">
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
                   <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_momo" value="momo" onchange="updatePayOptionCards()">
                   <div>
                     <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">Ví Điện Tử MoMo (Khuyên dùng)</strong>
-                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">1-Chạm Siêu Tốc</span>
+                      <strong class="text-dark">Thanh toán trực tuyến qua MoMo</strong>
+                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Deep Link / Cổng MoMo</span>
                     </div>
-                    <small class="text-muted d-block mt-0.5">Thanh toán nhanh chóng, tiện lợi và an toàn qua ứng dụng ví điện tử MoMo</small>
+                    <small class="text-muted d-block mt-0.5">Mở trực tiếp ứng dụng MoMo trên điện thoại hoặc chuyển tới cổng MoMo chính thức</small>
                   </div>
                 </div>
                 <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2" style="background-color: #d82d8b; font-size: 0.85rem;">
@@ -186,7 +186,7 @@
                 </span>
               </div>
               <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_momo">
-                <i class="fa-solid fa-circle-info text-danger me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ chuyển bạn sang <strong>Cổng Thanh Toán MoMo Gateway</strong> để quét mã QR và hoàn tất giao dịch.
+                <i class="fa-solid fa-circle-info text-danger me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ tự động mở ứng dụng <strong>MoMo</strong> (trên điện thoại) hoặc chuyển tiếp đến cổng thanh toán chính thức của MoMo (trên máy tính). Không hiển thị mã QR trên website.
               </div>
             </label>
 

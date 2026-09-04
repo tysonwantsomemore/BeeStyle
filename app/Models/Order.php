@@ -21,6 +21,7 @@ class Order extends Model
         'notes',
         'payment_method',
         'payment_status',
+        'momo_trans_id',
         'shipping_status',
         'status_step',
         'subtotal',
@@ -104,9 +105,13 @@ class Order extends Model
 
     public function getPaymentStatusLabelAttribute(): string
     {
-        return match ($this->payment_status) {
-            'paid' => 'Đã thanh toán',
-            'refunded' => 'Đã hoàn tiền',
+        return match (strtoupper((string)$this->payment_status)) {
+            'PAID' => 'Đã thanh toán',
+            'REFUNDED' => 'Đã hoàn tiền',
+            'PENDING_PAYMENT', 'UNPAID' => 'Chờ thanh toán',
+            'PAYMENT_FAILED' => 'Thanh toán thất bại',
+            'CANCELLED' => 'Đã hủy',
+            'EXPIRED' => 'Hết hạn',
             default => 'Chưa thanh toán',
         };
     }
@@ -115,7 +120,7 @@ class Order extends Model
     {
         return match ($this->payment_method) {
             'online' => 'Thanh toán Online (ATM/Banking/Visa)',
-            'momo' => 'Ví Điện Tử MoMo',
+            'momo' => 'Thanh toán trực tuyến qua MoMo',
             'zalopay' => 'Ví Điện Tử ZaloPay',
             'vietqr' => 'Chuyển khoản VietQR',
             'vnpay' => 'Cổng VNPAY',
@@ -128,7 +133,7 @@ class Order extends Model
     {
         return match ($this->payment_method) {
             'online' => '<span class="badge bg-info-subtle text-info fw-bold"><i class="fa-solid fa-credit-card me-1"></i> Online Banking</span>',
-            'momo' => '<span class="badge text-white fw-bold" style="background-color: #d82d8b;"><i class="fa-solid fa-wallet me-1"></i> Ví MoMo</span>',
+            'momo' => '<span class="badge text-white fw-bold" style="background-color: #d82d8b;"><i class="fa-solid fa-wallet me-1"></i> MoMo</span>',
             'zalopay' => '<span class="badge text-white fw-bold" style="background-color: #008fe5;"><i class="fa-solid fa-wallet me-1"></i> Ví ZaloPay</span>',
             'vietqr', 'vnpay' => '<span class="badge bg-primary-subtle text-primary fw-bold"><i class="fa-solid fa-qrcode me-1"></i> Online</span>',
             'exchange' => '<span class="badge bg-warning text-dark fw-bold"><i class="fa-solid fa-arrow-right-arrow-left me-1"></i> Đổi Hàng RMA</span>',
