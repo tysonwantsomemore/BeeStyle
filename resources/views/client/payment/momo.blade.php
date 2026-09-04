@@ -41,14 +41,34 @@
     <!-- MAIN BODY -->
     <div class="card-body p-4 p-lg-5">
       
+      @if(session('error'))
+        <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4 d-flex align-items-center gap-3 p-3">
+          <i class="fa-solid fa-circle-exclamation fs-4 text-danger flex-shrink-0"></i>
+          <div>
+            <strong class="d-block text-danger">Thông báo từ Cổng MoMo:</strong>
+            <span class="small">{{ session('error') }}</span>
+          </div>
+        </div>
+      @endif
+
+      @if(session('warning'))
+        <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4 d-flex align-items-center gap-3 p-3">
+          <i class="fa-solid fa-triangle-exclamation fs-4 text-warning flex-shrink-0"></i>
+          <div>
+            <strong class="d-block text-warning">Lưu ý:</strong>
+            <span class="small">{{ session('warning') }}</span>
+          </div>
+        </div>
+      @endif
+
       <!-- LIVE RADAR STATUS BOX (CHỜ THANH TOÁN THẬT) -->
       <div class="p-3 rounded-4 mb-4 border text-center shadow-xs" style="background: #fdf2f8; border-color: #fbcfe8 !important;">
         <div class="d-flex align-items-center justify-content-center gap-2 font-bold" style="color: #a50064;">
           <div class="spinner-grow spinner-grow-sm text-danger" role="status"></div>
-          <span class="fw-bold">HỆ THỐNG ĐANG LẮNG NGHE CHUYỂN TIỀN TỪ VÍ MOMO...</span>
+          <span class="fw-bold">HỆ THỐNG ĐANG ĐỢI PHẢN HỒI KẾT QUẢ TỪ VÍ MOMO...</span>
         </div>
         <small class="text-muted d-block mt-1" style="font-size: 0.78rem;">
-          <i class="fa-solid fa-circle-check text-success me-1"></i> Quét mã QR bằng App MoMo hoặc App Ngân Hàng. <strong>Khi chuyển khoản thành công</strong>, hệ thống sẽ tự động xác nhận &amp; đưa bạn về Trang Chủ!
+          <i class="fa-solid fa-circle-check text-success me-1"></i> Bấm "Mở Cổng Thanh Toán MoMo" bên dưới để hoàn tất giao dịch trên App MoMo hoặc cổng MoMo chính thức.
         </small>
       </div>
 
@@ -108,62 +128,61 @@
           </div>
         </div>
 
-        <!-- CỘT 2: MÃ QR MOMO & HƯỚNG DẪN THANH TOÁN -->
+        <!-- CỘT 2: CỔNG THANH TOÁN TRỰC TUYẾN MOMO (KHÔNG HIỂN THỊ QR) -->
         <div class="col-lg-6 text-center">
           
-          <div class="p-4 bg-white rounded-4 border shadow-sm d-inline-block w-100" style="max-width: 360px;">
+          <div class="p-4 bg-white rounded-4 border shadow-sm d-inline-block w-100" style="max-width: 380px;">
             
-            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-              <span class="badge text-white fw-bold px-2 py-0.5" style="background-color: #d82d8b; font-size: 0.7rem;">
-                MOMO QR 24/7
+            <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+              <span class="badge text-white fw-bold px-2.5 py-1" style="background-color: #d82d8b; font-size: 0.75rem;">
+                <i class="fa-solid fa-wallet me-1"></i> MOMO GATEWAY
               </span>
               <span class="text-muted small" style="font-size: 0.72rem;">
-                <i class="fa-solid fa-satellite-dish text-success me-0.5 fa-fade"></i> Tự động khớp lệnh
+                <i class="fa-solid fa-shield-check text-success me-0.5"></i> Cổng MoMo chính thức
               </span>
             </div>
 
-            <!-- DYNAMIC QR CODE TECHCOMBANK -->
-            @php
-              $momoQrUrl = "https://img.vietqr.io/image/TCB-77427842310105-compact2.png?amount=" . $order->total_amount . "&addInfo=" . urlencode($order->order_code) . "&accountName=" . urlencode("NGUYEN XUAN BAC");
-            @endphp
-            <div class="p-2.5 rounded-3 border position-relative my-2 shadow-xs" style="background: #faf5ff;">
-              <img src="{{ $momoQrUrl }}" alt="MoMo QR Code" style="max-width: 240px; width: 100%; height: auto;" class="rounded mx-auto d-block">
-              <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
-                Quét mã bằng ứng dụng <strong>MoMo</strong> hoặc App Ngân Hàng
+            <!-- BIỂU TƯỢNG VÍ MOMO NỔI BẬT -->
+            <div class="p-4 rounded-4 mb-3" style="background: linear-gradient(135deg, #fdf2f8, #fce7f3); border: 1.5px solid #fbcfe8;">
+              <div class="rounded-circle bg-white shadow-sm mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px;">
+                <i class="fa-solid fa-mobile-screen-button fs-1" style="color: #a50064;"></i>
               </div>
+              <h5 class="fw-black text-dark mb-1">Thanh Toán Trực Tuyến MoMo</h5>
+              <p class="text-muted small mb-0" style="font-size: 0.8rem;">
+                Mở trực tiếp ứng dụng MoMo trên điện thoại hoặc chuyển tới cổng thanh toán MoMo Sandbox.
+              </p>
             </div>
 
-            <div class="text-start bg-light p-2.5 rounded-3 small text-muted my-2.5" style="font-size: 0.76rem;">
-              <div><strong class="text-dark">Chủ TK:</strong> <span class="text-dark fw-bold">NGUYEN XUAN BAC</span></div>
-              <div><strong class="text-dark">Ngân Hàng:</strong> Techcombank - STK: <strong class="text-danger font-monospace">77427842310105</strong></div>
-              <div><strong class="text-dark">Nội Dung:</strong> <span class="text-primary fw-bold font-monospace">{{ $order->order_code }}</span></div>
-            </div>
-
-            <!-- 3 BƯỚC THANH TOÁN -->
-            <div class="text-start bg-light p-2.5 rounded-3 small text-muted my-2" style="font-size: 0.76rem;">
-              <div class="mb-1"><strong class="text-dark">Bước 1:</strong> Mở ứng dụng <strong>MoMo</strong> hoặc App Bank.</div>
-              <div class="mb-1"><strong class="text-dark">Bước 2:</strong> Quét mã QR và kiểm tra số tiền.</div>
-              <div><strong class="text-dark">Bước 3:</strong> Chuyển tiền $\rightarrow$ Hệ thống tự động xác nhận ngay!</div>
-            </div>
-
-            <!-- NÚT THAO TÁC & HỦY ĐƠN -->
-            <form action="{{ route('client.checkout.momo.success', $order->order_code) }}" method="POST" id="momoSuccessForm" class="mb-2">
+            <!-- NÚT CHUYỂN TIẾP TRỰC TIẾP SANG MOMO -->
+            <form action="{{ route('client.checkout.momo.redirect', $order->order_code) }}" method="POST" class="mb-3">
               @csrf
-              <button type="submit" class="btn text-white w-100 py-2.5 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                      style="background: linear-gradient(135deg, #d82d8b, #a50064);">
-                <i class="fa-solid fa-circle-check"></i> Tôi Đã Chuyển Khoản Xong (Xác Nhận Ngay)
+              <button type="submit" class="btn text-white w-100 py-3 fw-black rounded-3 shadow d-flex align-items-center justify-content-center gap-2"
+                      style="background: linear-gradient(135deg, #a50064, #d82d8b); font-size: 0.95rem;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Cổng Thanh Toán MoMo
               </button>
             </form>
 
-            <div class="d-flex justify-content-between align-items-center px-1 mt-2">
-              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="simulatePaymentDemo()" style="font-size: 0.75rem;">
-                <i class="fa-solid fa-bolt text-danger me-1"></i> Giả lập MoMo Báo Có (Demo)
-              </button>
+            <!-- HỘP THÔNG TIN TÀI KHOẢN TEST DEVELOPER -->
+            <div class="text-start p-3 rounded-3 small mb-3 text-secondary" style="background: #fdf2f8; border: 1px dashed #f472b6; font-size: 0.76rem;">
+              <div class="fw-bold text-dark mb-1.5 d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-flask text-danger me-1"></i> Tài Khoản Test MoMo Sandbox:</span>
+                <span class="badge bg-danger-subtle text-danger px-1.5 py-0.5" style="font-size: 0.65rem;">Môi trường Test</span>
+              </div>
+              <div class="mb-1"><span class="text-muted">• Số ĐT Test MoMo:</span> <strong class="text-danger font-monospace">0968238772</strong></div>
+              <div class="mb-1"><span class="text-muted">• Mã OTP Test:</span> <strong class="text-primary font-monospace">000000</strong></div>
+              <div><span class="text-muted">• Thẻ ATM Test:</span> <strong class="text-dark font-monospace">9704000000000018</strong></div>
+            </div>
 
+            <div class="text-start bg-light p-2.5 rounded-3 small text-muted my-2.5" style="font-size: 0.76rem;">
+              <i class="fa-solid fa-circle-info text-primary me-1"></i> Giao dịch sẽ được xác nhận tự động thông qua Webhook IPN từ máy chủ MoMo.
+            </div>
+
+            <!-- HỦY ĐƠN HÀNG -->
+            <div class="text-center mt-3 pt-2 border-top">
               <form action="{{ route('client.checkout.expire', $order->order_code) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này để hoàn trả kho?')">
                 @csrf
-                <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none" style="font-size: 0.75rem;">
-                  <i class="fa-solid fa-xmark me-1"></i> Hủy &amp; Hoàn kho
+                <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none" style="font-size: 0.78rem;">
+                  <i class="fa-solid fa-xmark me-1"></i> Hủy giao dịch &amp; Quay lại giỏ hàng
                 </button>
               </form>
             </div>
@@ -258,26 +277,11 @@
           modal.show();
 
           setTimeout(() => {
-            window.location.href = "{{ route('client.home') }}";
+            window.location.href = "{{ route('payment.momo.result', ['orderId' => $order->order_code]) }}";
           }, 1500);
         }
       }).catch(err => console.log(err));
   }, 2500);
-
-  // Nút hỗ trợ Demo nhanh khi cần test luồng Webhook
-  function simulatePaymentDemo() {
-    if (isCompleted) return;
-    fetch("{{ route('client.checkout.auto-confirm', $order->order_code) }}", {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Content-Type': 'application/json'
-      }
-    }).then(res => res.json())
-      .then(data => {
-        // Status polling ở trên sẽ bắt được 'paid' và tự nhảy trang
-      });
-  }
 </script>
 @endpush
 @endsection

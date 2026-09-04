@@ -192,6 +192,7 @@ class ReturnController extends Controller
 
                             // Trừ kho món mới
                             ProductVariant::where('product_id', $item->product_id)
+                                ->where('color', $newColor)
                                 ->where('size', $newSize)
                                 ->decrement('stock', $item->quantity);
                         }

@@ -127,6 +127,20 @@ class OrderController extends Controller
                 }
             }
 
+            // Nếu đơn hàng từng hoàn tất và bị hủy, trừ lại điểm thưởng và tổng chi tiêu đã tích lũy
+            if (in_array($order->shipping_status, ['completed', 'delivered']) && $order->user_id) {
+                $user = \App\Models\User::find($order->user_id);
+                if ($user) {
+                    $earnedPoints = (int)floor($order->total_amount / 10000);
+                    if ($user->points >= $earnedPoints) {
+                        $user->decrement('points', $earnedPoints);
+                    }
+                    if ($user->total_spent >= $order->total_amount) {
+                        $user->decrement('total_spent', $order->total_amount);
+                    }
+                }
+            }
+
             $cancelledBy = 'admin';
             $cancelledAt = now();
             $cancelReason = $request->input('cancel_reason', 'Hủy bởi Quản trị viên BeeStyle');
