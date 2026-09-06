@@ -9,8 +9,8 @@
       
       <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
         <div class="text-center mb-4">
-          <a href="{{ route('client.home') }}" class="beestyle-brand-link justify-content-center mb-3 text-decoration-none d-inline-flex" title="BeeStyle">
-            <span class="beestyle-logo-text" style="font-size: 2.2rem;">Bee<span class="text-warning">Style</span></span>
+          <a href="{{ route('client.home') }}" class="beestyle-brand-link justify-content-center mb-3 text-decoration-none d-inline-flex" title="BEESTYLE">
+            <span class="beestyle-logo-text" style="font-size: 2.2rem;">BEE<span class="text-warning">STYLE</span></span>
           </a>
           <h4 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">ĐĂNG NHẬP HỆ THỐNG</h4>
           <p class="text-muted small">Khám phá thế giới thời trang nam cao cấp &amp; ưu đãi thành viên</p>

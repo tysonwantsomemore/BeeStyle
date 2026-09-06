@@ -71,8 +71,8 @@
       <div class="d-flex align-items-center justify-content-between gap-3">
         
         <!-- LOGO (CHỈ CẦN CHỮ BEESTYLE) -->
-        <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BeeStyle">
-          <span class="beestyle-logo-text">Bee<span class="text-warning">Style</span></span>
+        <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BEESTYLE">
+          <span class="beestyle-logo-text">BEE<span class="text-warning">STYLE</span></span>
         </a>
 
         <!-- SEARCH BAR -->
@@ -473,8 +473,8 @@
         <!-- Brand Info -->
         <div class="col-lg-4 col-md-6">
           <div class="d-flex align-items-center gap-2 mb-3">
-            <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BeeStyle">
-              <span class="beestyle-logo-text light">Bee<span class="text-warning">Style</span></span>
+            <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BEESTYLE">
+              <span class="beestyle-logo-text light">BEE<span class="text-warning">STYLE</span></span>
             </a>
           </div>
           <p class="text-secondary small mb-3">
