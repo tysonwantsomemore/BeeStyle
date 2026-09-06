@@ -31,7 +31,8 @@
         }
         $allGalleryImages = $allGalleryImages->unique()->values();
       @endphp
-      <div class="col-lg-6">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="sticky-lg-top" style="top: 90px; z-index: 10;">
         <div class="position-relative bg-light rounded-4 p-4 text-center mb-3" style="min-height: 420px; display: flex; align-items: center; justify-content: center;">
           @if($product->original_price && $product->original_price > $product->price)
             <span class="position-absolute top-0 start-0 m-3 badge bg-danger fs-6 px-3 py-2 rounded-pill shadow-sm">
@@ -55,6 +56,7 @@
               @endif
             @endforeach
           @endif
+        </div>
 
         <!-- GUARANTEE TRUST BADGES UNDER GALLERY -->
         <div class="row g-2 mt-3 text-center small">
@@ -75,6 +77,7 @@
           </div>
         </div>
       </div>
+    </div>
 
       <!-- PRODUCT INFO & ACTIONS -->
       <div class="col-lg-6">
@@ -187,8 +190,35 @@
 
             <!-- SIZE SELECTION -->
             @php
-              $prodSizes = is_array($product->sizes) ? $product->sizes : ['M', 'L', 'XL', 'XXL'];
+              $rawSizes = is_array($product->sizes) ? $product->sizes : (is_string($product->sizes) ? (json_decode($product->sizes, true) ?: array_map('trim', explode(',', $product->sizes))) : ['S', 'M', 'L', 'XL', 'XXL']);
+              $prodSizes = !empty($rawSizes) ? array_filter(array_map('trim', (array)$rawSizes)) : ['S', 'M', 'L', 'XL', 'XXL'];
+              if (empty($prodSizes)) {
+                $prodSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+              }
             @endphp
+            <div class="mb-3.5 p-3 rounded-3 border" id="sizeGroupSection" style="transition: all 0.3s ease; background: #ffffff;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label small fw-bold text-dark mb-0">
+                  <i class="fa-solid fa-ruler-combined text-warning me-1"></i> 2. Chọn Kích Thước (Size Nam):
+                  <span class="badge bg-light text-muted border px-2 py-0.5 ms-1 fw-bold" id="selectedSizeText">Chưa chọn</span>
+                </label>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-danger-subtle text-danger fw-bold fs-11">* Bắt buộc chọn</span>
+                  <a href="#sizeModal" data-bs-toggle="modal" class="text-decoration-none small text-danger fw-semibold" style="font-size: 0.78rem;">
+                    <i class="fa-solid fa-circle-question me-1"></i> Bảng gợi ý size
+                  </a>
+                </div>
+              </div>
+              <div class="d-flex flex-wrap gap-2" id="sizeOptionList">
+                @foreach($prodSizes as $sz)
+                  <input type="radio" class="btn-check product-size-radio" name="size" id="size_{{ $loop->index }}" value="{{ $sz }}" onchange="selectProductSize('{{ $sz }}', '{{ getShowSizeHint($sz) }}')">
+                  <label class="btn btn-outline-dark btn-sm rounded-3 px-3 py-2 fw-bold shadow-xs d-flex flex-column align-items-center justify-content-center" for="size_{{ $loop->index }}" style="min-width: 68px; font-size: 0.88rem; transition: all 0.2s ease;">
+                    <span>{{ $sz }}</span>
+                    <span class="text-muted fw-normal" style="font-size: 0.68rem;">{{ getShowSizeHint($sz) }}</span>
+                  </label>
+                @endforeach
+              </div>
+            </div>
             <!-- QUANTITY STEPPER (GIỚI HẠN TỐI ĐA 10 SẢN PHẨM) -->
             <div class="mb-4 p-3.5 rounded-3 border" style="background: #f8fafc;">
               <div class="d-flex justify-content-between align-items-center mb-2.5">
@@ -625,6 +655,10 @@
 
 @push('scripts')
 <script>
+  let selectedProductColor = '';
+  let selectedProductSize = '';
+  let currentProductUnitPrice = {{ (int)$product->price }};
+
   function changeMainImg(src, el) {
     document.getElementById('mainProductImg').src = src;
     document.querySelectorAll('.thumb-item').forEach(item => {
@@ -636,6 +670,7 @@
   }
 
   function selectProductColor(color) {
+    selectedProductColor = color;
     const el = document.getElementById('selectedColorText');
     if (el) {
       el.className = 'badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold';
@@ -647,9 +682,13 @@
       colorSec.style.backgroundColor = '#ffffff';
     }
     hideFormAlert();
+    if (typeof updateStickyBarVariantInfo === 'function') {
+      updateStickyBarVariantInfo();
+    }
   }
 
   function selectProductSize(size, hint) {
+    selectedProductSize = size;
     const el = document.getElementById('selectedSizeText');
     if (el) {
       el.className = 'badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold';
@@ -661,6 +700,9 @@
       sizeSec.style.backgroundColor = '#ffffff';
     }
     hideFormAlert();
+    if (typeof updateStickyBarVariantInfo === 'function') {
+      updateStickyBarVariantInfo();
+    }
   }
 
   const PRODUCT_UNIT_PRICE = {{ $product->price }};
@@ -734,9 +776,13 @@
   }
 
   function handleProductFormSubmit(e) {
-    if (!IS_AUTHENTICATED) {
+    if (typeof IS_AUTHENTICATED !== 'undefined' && !IS_AUTHENTICATED) {
       e.preventDefault();
-      requireAuthPrompt('thêm sản phẩm vào giỏ hàng hoặc mua ngay');
+      if (typeof requireAuthPrompt === 'function') {
+        requireAuthPrompt('thêm sản phẩm vào giỏ hàng hoặc mua ngay');
+      } else {
+        window.location.href = "{{ route('auth.login') }}";
+      }
       return false;
     }
 
@@ -1347,9 +1393,14 @@
 
   // Xử lý bấm nút trên thanh Sticky Bottom Bar
   function triggerStickySubmit(isBuyNow) {
-    if (!selectedProductColor || !selectedProductSize) {
+    const hasColors = document.querySelectorAll('input[name="color"]').length > 0;
+    const hasSizes = document.querySelectorAll('input[name="size"]').length > 0;
+    const missingColor = hasColors && !selectedProductColor;
+    const missingSize = hasSizes && !selectedProductSize;
+
+    if (missingColor || missingSize) {
       // Cuộn mượt mà lên vùng chọn biến thể
-      const targetSec = (!selectedProductColor) ? document.getElementById('colorGroupSection') : document.getElementById('sizeGroupSection');
+      const targetSec = missingColor ? document.getElementById('colorGroupSection') : document.getElementById('sizeGroupSection');
       if (targetSec) {
         targetSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
         targetSec.style.border = '2px solid #ef4444';
@@ -1360,17 +1411,21 @@
         }, 2500);
       }
 
+      const alertMsg = (missingColor && missingSize)
+        ? 'Quý khách vui lòng chọn Màu sắc và Kích thước (Size) trước khi tiếp tục!'
+        : (missingColor ? 'Quý khách vui lòng chọn Màu sắc trước khi tiếp tục!' : 'Quý khách vui lòng chọn Kích thước (Size) trước khi tiếp tục!');
+
       const alertEl = document.getElementById('productFormAlert');
       if (alertEl) {
         alertEl.classList.remove('d-none');
-        document.getElementById('productFormAlertText').textContent = 'Quý khách vui lòng chọn Màu sắc và Kích thước (Size) trước khi tiếp tục!';
+        document.getElementById('productFormAlertText').textContent = alertMsg;
       }
 
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'warning',
-          title: 'Chưa Chọn Biến Thể',
-          text: 'Quý khách vui lòng chọn Màu sắc và Kích thước (Size) trước khi đặt hàng!',
+          title: 'Chưa Chọn Đủ Biến Thể',
+          text: alertMsg,
           toast: true,
           position: 'top-end',
           timer: 3000,
