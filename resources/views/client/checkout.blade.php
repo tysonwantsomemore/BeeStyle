@@ -209,19 +209,19 @@
                 <div class="d-flex align-items-center gap-3">
                   <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_momo" value="momo" onchange="updatePayOptionCards()">
                   <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">Thanh toán trực tuyến qua MoMo</strong>
-                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Deep Link / Cổng MoMo</span>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <strong class="text-dark">Thanh toán trực tuyến qua ví MoMo bằng chuyển hướng ứng dụng (Redirect/Deep Link)</strong>
+                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Redirect / Deep Link</span>
                     </div>
-                    <small class="text-muted d-block mt-0.5">Mở trực tiếp ứng dụng MoMo trên điện thoại hoặc chuyển tới cổng MoMo chính thức</small>
+                    <small class="text-muted d-block mt-1">BeeStyle tích hợp thanh toán trực tuyến qua ví điện tử MoMo. Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), cho phép khách hàng mở ứng dụng MoMo và xác nhận thanh toán mà không cần quét mã QR.</small>
                   </div>
                 </div>
-                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2" style="background-color: #d82d8b; font-size: 0.85rem;">
+                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2 flex-shrink-0" style="background-color: #d82d8b; font-size: 0.85rem;">
                   <i class="fa-solid fa-wallet me-1"></i> MoMo
                 </span>
               </div>
               <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_momo">
-                <i class="fa-solid fa-circle-info text-danger me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ tự động mở ứng dụng <strong>MoMo</strong> (trên điện thoại) hoặc chuyển tiếp đến cổng thanh toán chính thức của MoMo (trên máy tính). Không hiển thị mã QR trên website.
+                <i class="fa-solid fa-circle-info text-danger me-1"></i> BeeStyle tích hợp thanh toán trực tuyến qua ví điện tử MoMo. Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), cho phép khách hàng mở ứng dụng MoMo và xác nhận thanh toán mà không cần quét mã QR.
               </div>
             </label>
 

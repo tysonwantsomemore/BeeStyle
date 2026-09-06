@@ -251,7 +251,10 @@ class CheckoutController extends Controller
         $order->update([
             'payment_status' => 'paid',
             'shipping_status' => 'processing',
-            'status_step' => 2,
+            'status_step' => 3,
+            'paid_at' => now(),
+            'confirmed_at' => $order->confirmed_at ?: now(),
+            'processing_at' => now(),
         ]);
         $this->sendOrderInvoiceEmail($order);
 
@@ -290,7 +293,10 @@ class CheckoutController extends Controller
         $order->update([
             'payment_status' => 'paid',
             'shipping_status' => 'processing',
-            'status_step' => 2,
+            'status_step' => 3,
+            'paid_at' => now(),
+            'confirmed_at' => $order->confirmed_at ?: now(),
+            'processing_at' => now(),
         ]);
         $this->sendOrderInvoiceEmail($order);
 
@@ -303,19 +309,67 @@ class CheckoutController extends Controller
 
     /**
      * Khởi tạo và chuyển hướng người dùng sang Cổng Thanh Toán MoMo Sandbox
+     * Hỗ trợ thanh toán lại (Retry) kể cả khi đơn đã bị hủy trước đó
      */
     public function momoRedirectSandbox($code)
     {
-        $order = Order::where('order_code', $code)->firstOrFail();
+        $order = Order::with('items')->where('order_code', $code)->firstOrFail();
 
-        if ($order->payment_status === 'paid') {
+        if (strtoupper((string)$order->payment_status) === 'PAID') {
             return redirect()->route('client.order-tracking', ['code' => $code])
                 ->with('success', "Đơn hàng #{$code} đã được thanh toán thành công!");
         }
 
-        if ($order->shipping_status === 'cancelled') {
-            return redirect()->route('client.cart')
-                ->with('warning', "Đơn hàng #{$code} đã bị hủy do hết hạn thanh toán.");
+        // Nếu đơn hàng đã bị hủy, kiểm tra lại tồn kho trước khi cho phép thanh toán lại
+        if ($order->shipping_status === 'cancelled' || strtoupper((string)$order->payment_status) === 'CANCELLED') {
+            // Kiểm tra tồn kho từng sản phẩm
+            foreach ($order->items as $item) {
+                $prod = Product::find($item->product_id);
+                if (!$prod || $prod->stock < $item->quantity) {
+                    return redirect()->route('client.cart')
+                        ->with('error', "Rất tiếc, sản phẩm '{$item->product_name}' hiện không đủ số lượng trong kho để thanh toán lại.");
+                }
+
+                if (!empty($item->color) && !empty($item->size)) {
+                    $variant = \App\Models\ProductVariant::where('product_id', $item->product_id)
+                        ->where('color', $item->color)
+                        ->where('size', $item->size)
+                        ->first();
+                    if ($variant && $variant->stock < $item->quantity) {
+                        return redirect()->route('client.cart')
+                            ->with('error', "Rất tiếc, phân loại '{$item->color} - {$item->size}' của sản phẩm '{$item->product_name}' đã hết hàng.");
+                    }
+                }
+            }
+
+            // Tái đặt chỗ kho hàng
+            DB::beginTransaction();
+            try {
+                foreach ($order->items as $item) {
+                    Product::where('id', $item->product_id)->decrement('stock', $item->quantity);
+                    Product::where('id', $item->product_id)->increment('sold_count', $item->quantity);
+
+                    if (!empty($item->color) && !empty($item->size)) {
+                        \App\Models\ProductVariant::where('product_id', $item->product_id)
+                            ->where('color', $item->color)
+                            ->where('size', $item->size)
+                            ->decrement('stock', $item->quantity);
+                    }
+                }
+
+                $order->update([
+                    'payment_status' => 'PENDING_PAYMENT',
+                    'shipping_status' => 'pending',
+                    'cancelled_at' => null,
+                    'cancel_reason' => null,
+                    'cancelled_by' => null,
+                ]);
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return back()->with('error', 'Không thể khôi phục đơn hàng: ' . $e->getMessage());
+            }
         }
 
         $momoService = app(MomoService::class);
@@ -359,7 +413,10 @@ class CheckoutController extends Controller
                 $order->update([
                     'payment_status' => 'paid',
                     'shipping_status' => 'processing',
-                    'status_step' => 2,
+                    'status_step' => 3,
+                    'paid_at' => now(),
+                    'confirmed_at' => $order->confirmed_at ?: now(),
+                    'processing_at' => now(),
                 ]);
                 $this->sendOrderInvoiceEmail($order);
             }
@@ -405,7 +462,10 @@ class CheckoutController extends Controller
                 $order->update([
                     'payment_status' => 'paid',
                     'shipping_status' => 'processing',
-                    'status_step' => 2,
+                    'status_step' => 3,
+                    'paid_at' => now(),
+                    'confirmed_at' => $order->confirmed_at ?: now(),
+                    'processing_at' => now(),
                 ]);
                 $this->sendOrderInvoiceEmail($order);
             }
@@ -443,7 +503,10 @@ class CheckoutController extends Controller
         $order->update([
             'payment_status' => 'paid',
             'shipping_status' => 'processing',
-            'status_step' => 2,
+            'status_step' => 3,
+            'paid_at' => now(),
+            'confirmed_at' => $order->confirmed_at ?: now(),
+            'processing_at' => now(),
         ]);
         $this->sendOrderInvoiceEmail($order);
 
@@ -463,30 +526,32 @@ class CheckoutController extends Controller
 
         if ($order->payment_status !== 'paid' && $order->shipping_status === 'pending') {
             DB::transaction(function () use ($order) {
-                $order->update(['shipping_status' => 'cancelled']);
+                $order->update([
+                    'shipping_status' => 'cancelled',
+                    'status_step' => 0,
+                    'cancelled_at' => now(),
+                    'cancelled_by' => 'system',
+                    'cancel_reason' => 'Đơn hàng tự động hủy do hết hạn thời gian chờ thanh toán (10 phút)',
+                ]);
 
                 // Hoàn trả số lượng tồn kho sản phẩm & biến thể
                 foreach ($order->items as $item) {
                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
                     Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
 
-                    \App\Models\ProductVariant::where('product_id', $item->product_id)
-                        ->where('color', $item->color)
-                        ->where('size', $item->size)
-                        ->increment('stock', $item->quantity);
+                    if (!empty($item->color) && !empty($item->size)) {
+                        \App\Models\ProductVariant::where('product_id', $item->product_id)
+                            ->where('color', $item->color)
+                            ->where('size', $item->size)
+                            ->increment('stock', $item->quantity);
+                    }
                 }
 
-                // Trừ lại điểm thưởng & chi tiêu nếu đã tích lũy
-                if ($order->user_id) {
-                    $user = User::find($order->user_id);
-                    if ($user) {
-                        $earnedPoints = (int)floor($order->total_amount / 10000);
-                        if ($user->points >= $earnedPoints) {
-                            $user->decrement('points', $earnedPoints);
-                        }
-                        if ($user->total_spent >= $order->total_amount) {
-                            $user->decrement('total_spent', $order->total_amount);
-                        }
+                // Hoàn lại lượt dùng coupon nếu có
+                if ($order->coupon_code) {
+                    $coupon = Coupon::where('code', $order->coupon_code)->first();
+                    if ($coupon && $coupon->used_count > 0) {
+                        $coupon->decrement('used_count');
                     }
                 }
             });
@@ -540,7 +605,10 @@ class CheckoutController extends Controller
             $order->update([
                 'payment_status' => 'paid',
                 'shipping_status' => 'processing',
-                'status_step' => 2,
+                'status_step' => 3,
+                'paid_at' => now(),
+                'confirmed_at' => $order->confirmed_at ?: now(),
+                'processing_at' => now(),
             ]);
             $this->sendOrderInvoiceEmail($order);
 

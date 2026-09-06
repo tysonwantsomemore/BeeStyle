@@ -78,6 +78,11 @@ Route::name('auth.')->group(function () {
 });
 
 
+// Route aliases cho Cổng MoMo (Hỗ trợ gọi cả route('payment.momo.result') và route('client.payment.momo.result'))
+Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
+Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
+Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
+
 /*
 |--------------------------------------------------------------------------
 | CLIENT / FRONTEND E-COMMERCE ROUTES
@@ -143,6 +148,9 @@ Route::name('client.')->group(function () {
     */
     Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
     Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
+
+    // Cổng Tra Cứu Vận Đơn Bưu Tá Trực Tuyến (GHTK, GHN, Viettel Post...)
+    Route::get('/tra-cuu-van-don/{code?}', [OrderTrackingController::class, 'carrierTracking'])->name('carrier-tracking');
 
     /*
     |--------------------------------------------------------------------------
@@ -301,6 +309,15 @@ Route::prefix('admin')
         |--------------------------------------------------------------------------
         */
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+
+        // Thao tác hàng loạt & tự động xác nhận tất cả đơn hàng
+        Route::post('/orders/bulk-action', [AdminOrderController::class, 'bulkAction'])->name('orders.bulkAction');
+        Route::post('/orders/confirm-all-pending', [AdminOrderController::class, 'confirmAllPending'])->name('orders.confirmAllPending');
+
+        // Xuất Excel / CSV & In phiếu đóng gói hàng loạt (Chuẩn TMĐT)
+        Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
+        Route::post('/orders/bulk-print', [AdminOrderController::class, 'bulkPrint'])->name('orders.bulkPrint');
+
         Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
 

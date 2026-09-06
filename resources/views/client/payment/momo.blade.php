@@ -28,8 +28,8 @@
           <span class="fw-black" style="color: #a50064; font-size: 1.1rem; letter-spacing: -0.5px;">MoMo</span>
         </div>
         <div>
-          <h4 class="fw-bold mb-0 text-white">Thanh Toán Qua Ví MoMo Tự Động Khớp Lệnh</h4>
-          <small class="text-white text-opacity-90">Cổng thanh toán điện tử an toàn bảo mật tiêu chuẩn Quốc tế</small>
+          <h4 class="fw-bold mb-0 text-white">Thanh Toán Trực Tuyến Qua Ví MoMo (Redirect/Deep Link)</h4>
+          <small class="text-white text-opacity-90">Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), mở ứng dụng MoMo và xác nhận thanh toán không cần quét mã QR</small>
         </div>
       </div>
       <div class="d-flex align-items-center gap-2 text-white small">
@@ -149,7 +149,7 @@
               </div>
               <h5 class="fw-black text-dark mb-1">Thanh Toán Trực Tuyến MoMo</h5>
               <p class="text-muted small mb-0" style="font-size: 0.8rem;">
-                Mở trực tiếp ứng dụng MoMo trên điện thoại hoặc chuyển tới cổng thanh toán MoMo Sandbox.
+                Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), cho phép khách hàng mở ứng dụng MoMo và xác nhận thanh toán mà không cần quét mã QR.
               </p>
             </div>
 
@@ -277,7 +277,7 @@
           modal.show();
 
           setTimeout(() => {
-            window.location.href = "{{ route('payment.momo.result', ['orderId' => $order->order_code]) }}";
+            window.location.href = "{{ route('client.payment.momo.result', ['orderId' => $order->order_code]) }}";
           }, 1500);
         }
       }).catch(err => console.log(err));

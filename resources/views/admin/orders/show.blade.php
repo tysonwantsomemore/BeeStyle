@@ -22,6 +22,16 @@
       <p class="text-muted small mb-0">
         <i class="fa-regular fa-clock me-1"></i> Thời gian đặt hàng: <strong>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i:s') : 'N/A' }}</strong> 
         • Kênh thanh toán: <strong class="text-dark">{{ $order->payment_method_name }}</strong>
+        @if($order->tracking_code)
+          • <span class="badge bg-info-subtle text-info border border-info-subtle fw-semibold font-monospace">
+            <i class="fa-solid fa-truck-fast me-1"></i> {{ $order->shipping_carrier }}: 
+            @if($order->tracking_url)
+              <a href="{{ $order->tracking_url }}" target="_blank" class="text-decoration-none fw-bold text-primary">{{ $order->tracking_code }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.68rem;"></i></a>
+            @else
+              <strong>{{ $order->tracking_code }}</strong>
+            @endif
+          </span>
+        @endif
       </p>
     </div>
 
@@ -93,12 +103,12 @@
 
   @php
     $steps = [
-      1 => ['code' => 'pending', 'label' => '1. Chờ Xác Nhận', 'icon' => 'fa-clipboard-list', 'desc' => 'Đơn hàng mới tạo'],
-      2 => ['code' => 'confirmed', 'label' => '2. Đã Xác Nhận', 'icon' => 'fa-clipboard-check', 'desc' => 'Đã duyệt thông tin'],
-      3 => ['code' => 'processing', 'label' => '3. Đang Đóng Gói', 'icon' => 'fa-box-open', 'desc' => 'Kho nhặt hàng & gói'],
-      4 => ['code' => 'shipping', 'label' => '4. Đang Giao Hàng', 'icon' => 'fa-truck-fast', 'desc' => 'Bưu tá vận chuyển'],
-      5 => ['code' => 'delivered', 'label' => '5. Đã Giao Hàng', 'icon' => 'fa-handshake', 'desc' => 'Khách nhận & kiểm tra'],
-      6 => ['code' => 'completed', 'label' => '6. Hoàn Tất', 'icon' => 'fa-circle-check', 'desc' => 'Thành công'],
+      1 => ['code' => 'pending', 'label' => '1. Chờ Xác Nhận', 'icon' => 'fa-clipboard-list', 'desc' => 'Đơn hàng mới tạo', 'time' => $order->created_at],
+      2 => ['code' => 'confirmed', 'label' => '2. Đã Xác Nhận', 'icon' => 'fa-clipboard-check', 'desc' => 'Đã duyệt thông tin', 'time' => $order->confirmed_at],
+      3 => ['code' => 'processing', 'label' => '3. Đang Đóng Gói', 'icon' => 'fa-box-open', 'desc' => 'Kho nhặt hàng & gói', 'time' => $order->processing_at],
+      4 => ['code' => 'shipping', 'label' => '4. Đang Giao Hàng', 'icon' => 'fa-truck-fast', 'desc' => 'Bưu tá vận chuyển', 'time' => $order->shipping_at],
+      5 => ['code' => 'delivered', 'label' => '5. Đã Giao Hàng', 'icon' => 'fa-handshake', 'desc' => 'Khách nhận & kiểm tra', 'time' => $order->delivered_at],
+      6 => ['code' => 'completed', 'label' => '6. Hoàn Tất', 'icon' => 'fa-circle-check', 'desc' => 'Thành công', 'time' => $order->completed_at],
     ];
     $currentStep = $order->shipping_status === 'cancelled' ? 0 : ($order->status_step ?? 1);
   @endphp
@@ -126,10 +136,25 @@
                         color: {{ $isDone || $isCurrent ? '#ffffff' : '#94a3b8' }};">
               <i class="fa-solid {{ $sData['icon'] }}"></i>
             </div>
-            <span class="fw-bold text-truncate d-block" style="font-size: 0.76rem; color: {{ $isCurrent ? '#d97706' : ($isDone ? '#059669' : '#64748b') }};">
+            <span class="fw-bold text-truncate d-block" style="font-size: 0.78rem; color: {{ $isCurrent ? '#d97706' : ($isDone ? '#059669' : '#64748b') }};">
               {{ $sData['label'] }}
             </span>
             <small class="text-muted d-none d-md-block" style="font-size: 0.68rem;">{{ $sData['desc'] }}</small>
+            
+            <!-- MỐC THỜI GIAN NGÀY & GIỜ CỤ THỂ -->
+            @if(!empty($sData['time']))
+              <span class="badge {{ $isCurrent ? 'bg-warning-subtle text-dark border border-warning' : 'bg-success-subtle text-success border border-success-subtle' }} font-monospace px-1.5 py-0.5 mt-1.5 shadow-2xs text-nowrap" style="font-size: 0.68rem;" title="Mốc thời gian xác nhận">
+                <i class="fa-regular fa-clock me-0.5"></i> {{ $sData['time']->format('d/m/Y H:i') }}
+              </span>
+            @elseif($isDone)
+              <span class="badge bg-light text-muted border font-monospace px-1.5 py-0.5 mt-1.5 text-nowrap" style="font-size: 0.68rem;">
+                <i class="fa-solid fa-check text-success me-0.5"></i> Đã duyệt
+              </span>
+            @else
+              <span class="badge bg-light text-muted px-1.5 py-0.5 mt-1.5 text-nowrap" style="font-size: 0.68rem;">
+                Chờ thực hiện
+              </span>
+            @endif
           </div>
         </div>
       @endforeach
@@ -329,15 +354,229 @@
           </div>
         </div>
 
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Đối tác vận chuyển:</label>
+            <select name="shipping_carrier" class="form-select">
+              <option value="">-- Chưa gán đơn vị vận chuyển --</option>
+              <option value="Giao Hàng Tiết Kiệm (GHTK)" {{ str_contains((string)$order->shipping_carrier, 'GHTK') ? 'selected' : '' }}>Giao Hàng Tiết Kiệm (GHTK)</option>
+              <option value="Giao Hàng Nhanh (GHN)" {{ str_contains((string)$order->shipping_carrier, 'GHN') ? 'selected' : '' }}>Giao Hàng Nhanh (GHN)</option>
+              <option value="Viettel Post" {{ str_contains((string)$order->shipping_carrier, 'Viettel') ? 'selected' : '' }}>Viettel Post</option>
+              <option value="J&T Express" {{ str_contains((string)$order->shipping_carrier, 'J&T') ? 'selected' : '' }}>J&T Express</option>
+              <option value="Ninja Van" {{ str_contains((string)$order->shipping_carrier, 'Ninja') ? 'selected' : '' }}>Ninja Van</option>
+              <option value="Shipper Nội Bộ BeeStyle" {{ str_contains((string)$order->shipping_carrier, 'Nội Bộ') ? 'selected' : '' }}>Shipper Nội Bộ BeeStyle</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Mã vận đơn bưu tá (Tracking Code):</label>
+            <div class="input-group">
+              <input type="text" name="tracking_code" value="{{ $order->tracking_code }}" class="form-control font-monospace fw-bold text-primary" placeholder="VD: GHTK-8829182">
+              @if($order->tracking_url)
+                <a href="{{ $order->tracking_url }}" target="_blank" class="btn btn-outline-primary" title="Mở trang tra cứu bưu phẩm của hãng vận chuyển">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Tra cứu
+                </a>
+              @endif
+            </div>
+          </div>
+        </div>
+
         <div class="mb-3">
-          <label class="form-label small fw-semibold">Ghi chú nội bộ admin &amp; Mã vận đơn:</label>
-          <input type="text" name="admin_notes" class="form-control" value="{{ $order->admin_notes }}" placeholder="VD: Mã vận đơn GHTK: S21894982 - Bưu tá đã lấy hàng lúc 14h30...">
+          <label class="form-label small fw-semibold">Ghi chú nội bộ admin:</label>
+          <input type="text" name="admin_notes" class="form-control" value="{{ $order->admin_notes }}" placeholder="VD: Bưu tá đã lấy hàng lúc 14h30, hàng dễ vỡ...">
         </div>
 
         <button type="submit" class="btn btn-warning text-dark fw-bold btn-sm px-4 shadow-xs">
           <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Cập Nhật Đơn Hàng
         </button>
       </form>
+    </div>
+
+    <!-- LỊCH SỬ MỐC THỜI GIAN XÁC NHẬN CÁC BƯỚC (TIMELINE AUDIT TRAIL) -->
+    <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 18px; background: #ffffff;">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="fa-solid fa-timeline me-2 text-warning"></i> Lịch Sử Mốc Thời Gian Xác Nhận Các Bước
+        </h5>
+        <span class="badge bg-primary-subtle text-primary font-monospace small fw-bold">
+          <i class="fa-solid fa-calendar-check me-1"></i> Ngày &amp; Giờ Chuẩn Hệ Thống
+        </span>
+      </div>
+
+      <div class="timeline-items d-flex flex-column gap-2.5">
+        
+        <!-- Bước 1 -->
+        <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-light border">
+          <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 38px; height: 38px; font-size: 0.95rem;">
+            <i class="fa-solid fa-clipboard-list"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+              <strong class="text-dark">Bước 1: Tạo Đơn Hàng Thành Công</strong>
+              <span class="badge bg-white text-success border font-monospace fw-bold px-2 py-1">
+                <i class="fa-regular fa-clock me-1"></i> {{ $order->created_at ? $order->created_at->format('d/m/Y H:i:s') : 'N/A' }}
+              </span>
+            </div>
+            <small class="text-muted d-block mt-0.5">Khách hàng <strong>{{ $order->customer_name }}</strong> đặt hàng thành công qua phương thức <strong>{{ $order->payment_method_name }}</strong>.</small>
+          </div>
+        </div>
+
+        <!-- Bước 2 -->
+        <div class="d-flex align-items-start gap-3 p-3 rounded-3 {{ $order->status_step >= 2 ? 'bg-light border' : 'bg-white border border-dashed opacity-60' }}">
+          <div class="rounded-circle {{ $order->status_step >= 2 ? 'bg-primary text-white shadow-xs' : 'bg-secondary-subtle text-muted' }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.95rem;">
+            <i class="fa-solid fa-clipboard-check"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+              <strong class="text-dark">Bước 2: Quản Trị Viên Xác Nhận Đơn Hàng</strong>
+              @if($order->confirmed_at)
+                <span class="badge bg-white text-primary border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->confirmed_at->format('d/m/Y H:i:s') }}
+                </span>
+              @elseif($order->status_step >= 2)
+                <span class="badge bg-white text-primary border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->updated_at ? $order->updated_at->format('d/m/Y H:i:s') : 'Đã xác nhận' }}
+                </span>
+              @else
+                <span class="badge bg-light text-muted border font-monospace">Chưa xác nhận</span>
+              @endif
+            </div>
+            <small class="text-muted d-block mt-0.5">Quản trị viên duyệt thông tin người nhận, số điện thoại và địa chỉ giao hàng.</small>
+          </div>
+        </div>
+
+        <!-- Bước 3 -->
+        <div class="d-flex align-items-start gap-3 p-3 rounded-3 {{ $order->status_step >= 3 ? 'bg-light border' : 'bg-white border border-dashed opacity-60' }}">
+          <div class="rounded-circle {{ $order->status_step >= 3 ? 'bg-warning text-dark shadow-xs' : 'bg-secondary-subtle text-muted' }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.95rem;">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+              <strong class="text-dark">Bước 3: Chuyển Cho Kho Đóng Gói Bưu Phẩm</strong>
+              @if($order->processing_at)
+                <span class="badge bg-white text-warning text-dark border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->processing_at->format('d/m/Y H:i:s') }}
+                </span>
+              @elseif($order->status_step >= 3)
+                <span class="badge bg-white text-warning text-dark border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->updated_at ? $order->updated_at->format('d/m/Y H:i:s') : 'Đang đóng gói' }}
+                </span>
+              @else
+                <span class="badge bg-light text-muted border font-monospace">Chờ chuyển kho</span>
+              @endif
+            </div>
+            <small class="text-muted d-block mt-0.5">Nhân viên kho in phiếu đóng gói, kiểm tra chất lượng sản phẩm và niêm phong kiện hàng.</small>
+          </div>
+        </div>
+
+        <!-- Bước 4 -->
+        <div class="d-flex align-items-start gap-3 p-3 rounded-3 {{ $order->status_step >= 4 ? 'bg-light border' : 'bg-white border border-dashed opacity-60' }}">
+          <div class="rounded-circle {{ $order->status_step >= 4 ? 'bg-info text-white shadow-xs' : 'bg-secondary-subtle text-muted' }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.95rem;">
+            <i class="fa-solid fa-truck-fast"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+              <strong class="text-dark">Bước 4: Bàn Giao Cho Bưu Tá / Đang Giao Hàng</strong>
+              @if($order->shipping_at)
+                <span class="badge bg-white text-info border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->shipping_at->format('d/m/Y H:i:s') }}
+                </span>
+              @elseif($order->status_step >= 4)
+                <span class="badge bg-white text-info border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->updated_at ? $order->updated_at->format('d/m/Y H:i:s') : 'Đang giao' }}
+                </span>
+              @else
+                <span class="badge bg-light text-muted border font-monospace">Chờ bàn giao bưu tá</span>
+              @endif
+            </div>
+            <small class="text-muted d-block mt-0.5">Kiện hàng đã xuất kho và được bàn giao cho đối tác vận chuyển tiến hành giao tới khách.</small>
+          </div>
+        </div>
+
+        <!-- Bước 5 -->
+        <div class="d-flex align-items-start gap-3 p-3 rounded-3 {{ $order->status_step >= 5 ? 'bg-light border' : 'bg-white border border-dashed opacity-60' }}">
+          <div class="rounded-circle {{ $order->status_step >= 5 ? 'bg-success text-white shadow-xs' : 'bg-secondary-subtle text-muted' }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.95rem;">
+            <i class="fa-solid fa-handshake"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+              <strong class="text-dark">Bước 5: Giao Hàng Thành Công Đến Khách</strong>
+              @if($order->delivered_at)
+                <span class="badge bg-white text-success border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->delivered_at->format('d/m/Y H:i:s') }}
+                </span>
+              @elseif($order->status_step >= 5)
+                <span class="badge bg-white text-success border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->updated_at ? $order->updated_at->format('d/m/Y H:i:s') : 'Đã giao' }}
+                </span>
+              @else
+                <span class="badge bg-light text-muted border font-monospace">Chờ giao thành công</span>
+              @endif
+            </div>
+            <small class="text-muted d-block mt-0.5">Khách hàng nhận bưu phẩm, kiểm tra sản phẩm và ký nhận với nhân viên giao hàng.</small>
+          </div>
+        </div>
+
+        <!-- Bước 6 -->
+        <div class="d-flex align-items-start gap-3 p-3 rounded-3 {{ $order->status_step >= 6 ? 'bg-light border' : 'bg-white border border-dashed opacity-60' }}">
+          <div class="rounded-circle {{ $order->status_step >= 6 ? 'bg-success text-white shadow-xs' : 'bg-secondary-subtle text-muted' }} d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.95rem;">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+              <strong class="text-dark">Bước 6: Hoàn Tất Đơn Hàng</strong>
+              @if($order->completed_at)
+                <span class="badge bg-white text-success border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->completed_at->format('d/m/Y H:i:s') }}
+                </span>
+              @elseif($order->status_step >= 6)
+                <span class="badge bg-white text-success border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->updated_at ? $order->updated_at->format('d/m/Y H:i:s') : 'Hoàn tất' }}
+                </span>
+              @else
+                <span class="badge bg-light text-muted border font-monospace">Chờ đối soát hoàn tất</span>
+              @endif
+            </div>
+            <small class="text-muted d-block mt-0.5">Giao dịch đã hoàn tất trọn vẹn, hệ thống tự động cộng điểm thưởng cho khách hàng.</small>
+          </div>
+        </div>
+
+        @if($order->paid_at)
+          <!-- Mốc thanh toán -->
+          <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-success-subtle border border-success-subtle">
+            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 38px; height: 38px; font-size: 0.95rem;">
+              <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+                <strong class="text-success">Thanh Toán Đã Thu Đủ Tiền</strong>
+                <span class="badge bg-white text-success border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->paid_at->format('d/m/Y H:i:s') }}
+                </span>
+              </div>
+              <small class="text-success text-opacity-85 d-block mt-0.5">Đã thu {{ number_format($order->total_amount, 0, ',', '.') }}₫ qua {{ $order->payment_method_name }}.</small>
+            </div>
+          </div>
+        @endif
+
+        @if($order->cancelled_at)
+          <!-- Mốc hủy đơn -->
+          <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-danger-subtle border border-danger-subtle">
+            <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 38px; height: 38px; font-size: 0.95rem;">
+              <i class="fa-solid fa-ban"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+                <strong class="text-danger">Đơn Hàng Đã Bị Hủy</strong>
+                <span class="badge bg-white text-danger border font-monospace fw-bold px-2 py-1">
+                  <i class="fa-regular fa-clock me-1"></i> {{ $order->cancelled_at->format('d/m/Y H:i:s') }}
+                </span>
+              </div>
+              <small class="text-danger text-opacity-85 d-block mt-0.5">Lý do hủy: {{ $order->cancel_reason ?: 'Không có' }} (Thực hiện bởi: {{ $order->cancelled_by === 'customer' ? 'Khách hàng' : ($order->cancelled_by === 'admin' ? 'Quản trị viên' : 'Hệ thống') }}).</small>
+            </div>
+          </div>
+        @endif
+
+      </div>
     </div>
 
   </div>

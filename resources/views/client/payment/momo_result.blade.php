@@ -68,7 +68,7 @@
             </div>
             <div class="d-flex justify-content-between">
               <span class="text-muted">Phương thức thanh toán:</span>
-              <span class="text-dark fw-semibold">Thanh toán trực tuyến qua MoMo</span>
+              <span class="text-dark fw-semibold">Thanh toán trực tuyến qua ví MoMo (Redirect/Deep Link)</span>
             </div>
             <div class="d-flex justify-content-between pt-2 border-top">
               <span class="text-muted fw-bold">Tổng tiền thanh toán:</span>
