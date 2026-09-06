@@ -70,10 +70,9 @@
     <div class="container">
       <div class="d-flex align-items-center justify-content-between gap-3">
         
-        <!-- LOGO -->
-        <a href="{{ route('client.home') }}" class="beestyle-brand-link d-inline-flex align-items-center text-decoration-none">
-          <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Menswear" height="42" class="bee-brand-logo d-none d-sm-block">
-          <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Menswear" height="34" class="bee-brand-logo d-block d-sm-none">
+        <!-- LOGO (CHỈ CẦN CHỮ BEESTYLE) -->
+        <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BeeStyle">
+          <span class="beestyle-logo-text">Bee<span class="text-warning">Style</span></span>
         </a>
 
         <!-- SEARCH BAR -->
@@ -474,8 +473,8 @@
         <!-- Brand Info -->
         <div class="col-lg-4 col-md-6">
           <div class="d-flex align-items-center gap-2 mb-3">
-            <a href="{{ route('client.home') }}" class="d-inline-flex align-items-center text-decoration-none">
-              <img src="{{ asset('assets/img/beestyle-logo-white.svg') }}" alt="BeeStyle Menswear" height="40" class="bee-footer-logo">
+            <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BeeStyle">
+              <span class="beestyle-logo-text light">Bee<span class="text-warning">Style</span></span>
             </a>
           </div>
           <p class="text-secondary small mb-3">

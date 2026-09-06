@@ -93,6 +93,32 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
   transition: var(--atino-transition);
 }
 
+/* Unified Pure Text "BeeStyle" Logo */
+.beestyle-logo-text {
+  font-family: 'Montserrat', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 800;
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+  color: #0f172a !important;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  text-decoration: none !important;
+  user-select: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.beestyle-logo-text:hover {
+  transform: scale(1.02);
+  opacity: 0.95;
+}
+.beestyle-logo-text.light {
+  color: #ffffff !important;
+}
+.beestyle-logo-text .text-warning,
+.beestyle-logo-text .style-text {
+  color: #f59e0b !important;
+}
+
 .beestyle-logo .logo-badge {
   display: inline-flex;
   align-items: center;

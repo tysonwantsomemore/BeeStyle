@@ -38,10 +38,10 @@
         <div class="navbar-vertical-content">
           <ul class="navbar-nav flex-column" id="navbarVerticalNav">
             
-            <!-- ADMIN UNIFIED LOGO -->
+            <!-- ADMIN UNIFIED LOGO (CHỈ CẦN CHỮ BEESTYLE) -->
             <li class="nav-item mb-4 px-3 pt-3">
-              <a href="{{ route('admin.dashboard') }}" class="d-inline-flex align-items-center text-decoration-none">
-                <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Admin" height="38" class="bee-admin-logo">
+              <a href="{{ route('admin.dashboard') }}" class="beestyle-brand-link d-inline-flex align-items-center text-decoration-none" title="BeeStyle Admin">
+                <span class="beestyle-logo-text" style="font-size: 1.6rem;">Bee<span class="text-warning">Style</span></span>
               </a>
             </li>
 
@@ -182,8 +182,8 @@
           <button class="btn navbar-toggler navbar-toggler-humburger-icon hover-bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse">
             <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
           </button>
-          <a class="navbar-brand me-1 me-sm-3 d-lg-none" href="{{ route('admin.dashboard') }}">
-            <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Admin" height="30">
+          <a class="navbar-brand me-1 me-sm-3 d-lg-none text-decoration-none" href="{{ route('admin.dashboard') }}">
+            <span class="beestyle-logo-text" style="font-size: 1.35rem;">Bee<span class="text-warning">Style</span></span>
           </a>
 
         </div>
