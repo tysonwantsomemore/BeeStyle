@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 50" width="240" height="50">
+  <defs>
+    <linearGradient id="beeGoldWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="beeDarkWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <filter id="shadowWhite" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- EMBLEM BADGE -->
+  <g transform="translate(4, 3)" filter="url(#shadowWhite)">
+    <!-- Hexagon Outer -->
+    <polygon points="22,2 38,11 38,33 22,42 6,33 6,11" fill="url(#beeDarkWhite)" stroke="rgba(245,158,11,0.4)" stroke-width="1"/>
+    <polygon points="22,4 36,12 36,32 22,40 8,32 8,12" fill="none" stroke="url(#beeGoldWhite)" stroke-width="1.5"/>
+    
+    <!-- Stylized Geometric Bee / Crown Wings -->
+    <!-- Center Body / Crown -->
+    <path d="M22,12 L25,18 L22,26 L19,18 Z" fill="url(#beeGoldWhite)"/>
+    <circle cx="22" cy="10" r="2" fill="url(#beeGoldWhite)"/>
+    
+    <!-- Left Wing -->
+    <path d="M19,16 C14,13 10,17 12,22 C13.5,25.5 18,22 19,20 Z" fill="url(#beeGoldWhite)" opacity="0.95"/>
+    <!-- Right Wing -->
+    <path d="M25,16 C30,13 34,17 32,22 C30.5,25.5 26,22 25,20 Z" fill="url(#beeGoldWhite)" opacity="0.95"/>
+    
+    <!-- Lower Stinger Lines / Honeycomb Grid -->
+    <line x1="16" y1="28" x2="28" y2="28" stroke="url(#beeGoldWhite)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="18" y1="32" x2="26" y2="32" stroke="url(#beeGoldWhite)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="36" x2="24" y2="36" stroke="url(#beeGoldWhite)" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- TYPOGRAPHY -->
+  <g transform="translate(56, 12)">
+    <!-- Brand Title: BEE STYLE -->
+    <text x="0" y="18" font-family="'Montserrat', 'Plus Jakarta Sans', -apple-system, sans-serif" font-weight="900" font-size="22" letter-spacing="1" fill="#FFFFFF">
+      BEE<tspan fill="url(#beeGoldWhite)">STYLE</tspan>
+    </text>
+
+    <!-- Subtitle: MENSWEAR -->
+    <text x="1" y="29" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-weight="700" font-size="7.5" letter-spacing="4" fill="#94A3B8">
+      MENSWEAR • CASUAL
+    </text>
+  </g>
+</svg>

@@ -9,10 +9,9 @@
       
       <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
         <div class="text-center mb-4">
-          <div class="beestyle-logo justify-content-center mb-2">
-            <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-            <span>BEE<span class="brand-highlight">STYLE</span></span>
-          </div>
+          <a href="{{ route('client.home') }}" class="d-inline-flex justify-content-center mb-3 text-decoration-none">
+            <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle" height="42">
+          </a>
           <h4 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">ĐĂNG KÝ THÀNH VIÊN</h4>
           <p class="text-muted small">Trở thành hội viên để nhận ngay ưu đãi giảm giá và chăm sóc độc quyền</p>
         </div>

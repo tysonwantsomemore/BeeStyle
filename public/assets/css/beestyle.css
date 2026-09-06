@@ -1,6 +1,7 @@
 /* ==========================================================================
    BEESTYLE - ATINO INSPIRED MENSWEAR LUXURY DESIGN SYSTEM
    Style: Minimalist, Modern Casual, Pure Obsidian Black (#111111), Crisp White & Accent Crimson Red
+   ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Montserrat:wght@400;500;600;700;800&display=swap');
 
@@ -106,6 +107,36 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 .beestyle-logo .brand-highlight {
   color: var(--atino-red);
+}
+
+.beestyle-brand-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.beestyle-brand-link:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+.bee-brand-logo {
+  height: 42px;
+  width: auto;
+  max-width: 210px;
+  object-fit: contain;
+  display: block;
+}
+.bee-footer-logo {
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.bee-admin-logo {
+  height: 38px;
+  width: auto;
+  max-width: 190px;
+  object-fit: contain;
 }
 
 /* Announcement Topbar */
@@ -825,6 +856,7 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    PREMIUM 5-SLIDE HERO CAROUSEL (MEN'S FASHION LUXURY)
+   ========================================================================== */
 .bee-hero-carousel {
   border-radius: 20px;
   overflow: hidden;
@@ -999,6 +1031,7 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    CATEGORY MOSAIC / TOP CATEGORIES WITH REAL PHOTOS
+   ========================================================================== */
 .bee-cat-card-modern {
   position: relative;
   border-radius: 14px;
@@ -1061,6 +1094,7 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    LOOKBOOK / MIX & MATCH OUTFIT CARDS
+   ========================================================================== */
 .bee-lookbook-card {
   background: #ffffff;
   border-radius: 16px;
@@ -1088,6 +1122,7 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 
 /* ==========================================================================
    TESTIMONIALS & REVIEWS SECTION
+   ========================================================================== */
 .bee-review-box {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1146,6 +1181,7 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 /* ==========================================================================
    BEESTYLE UNIFIED LUXURY ADMIN DESIGN SYSTEM
    Tone: Obsidian Slate (#0f172a) & Amber Gold (#f59e0b) & Crisp White
+   ========================================================================== */
 
 /* Admin Body & Typography */
 body.admin-body, .admin-main-wrapper {
@@ -1388,6 +1424,7 @@ body.admin-body, .admin-main-wrapper {
 
 /* ==========================================================================
    SMART SIZE FINDER & FABRIC TECHNOLOGY SECTION
+   ========================================================================== */
 .bee-size-finder-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1582,6 +1619,7 @@ body.admin-body, .admin-main-wrapper {
 
 /* ==========================================================================
    PRODUCT DETAIL PAGE LUXURY STYLING
+   ========================================================================== */
 .product-color-radio:checked + label {
   background: #fffbeb !important;
   border: 2px solid #f59e0b !important;

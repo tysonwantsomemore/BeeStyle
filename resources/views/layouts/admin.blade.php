@@ -40,9 +40,8 @@
             
             <!-- ADMIN UNIFIED LOGO -->
             <li class="nav-item mb-4 px-3 pt-3">
-              <a href="{{ route('admin.dashboard') }}" class="beestyle-logo logo-light">
-                <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-                <span>BEE<span class="brand-highlight">STYLE</span></span>
+              <a href="{{ route('admin.dashboard') }}" class="d-inline-flex align-items-center text-decoration-none">
+                <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Admin" height="38" class="bee-admin-logo">
               </a>
             </li>
 
@@ -184,10 +183,7 @@
             <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
           </button>
           <a class="navbar-brand me-1 me-sm-3 d-lg-none" href="{{ route('admin.dashboard') }}">
-            <div class="beestyle-logo" style="font-size: 1.25rem;">
-              <span class="logo-badge" style="width: 32px; height: 32px; font-size: 0.95rem;"><i class="fa-solid fa-gem"></i></span>
-              <span>BEE<span class="brand-highlight">STYLE</span></span>
-            </div>
+            <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Admin" height="30">
           </a>
 
         </div>

@@ -71,9 +71,9 @@
       <div class="d-flex align-items-center justify-content-between gap-3">
         
         <!-- LOGO -->
-        <a href="{{ route('client.home') }}" class="beestyle-logo">
-          <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-          <span>BEE<span class="brand-highlight">STYLE</span></span>
+        <a href="{{ route('client.home') }}" class="beestyle-brand-link d-inline-flex align-items-center text-decoration-none">
+          <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Menswear" height="42" class="bee-brand-logo d-none d-sm-block">
+          <img src="{{ asset('assets/img/beestyle-logo.svg') }}" alt="BeeStyle Menswear" height="34" class="bee-brand-logo d-block d-sm-none">
         </a>
 
         <!-- SEARCH BAR -->
@@ -474,10 +474,9 @@
         <!-- Brand Info -->
         <div class="col-lg-4 col-md-6">
           <div class="d-flex align-items-center gap-2 mb-3">
-            <div class="bee-logo-icon">
-              <i class="fa-solid fa-b"></i>
-            </div>
-            <span class="fs-4 fw-black tracking-wide text-white">BEE<span class="text-warning">STYLE</span></span>
+            <a href="{{ route('client.home') }}" class="d-inline-flex align-items-center text-decoration-none">
+              <img src="{{ asset('assets/img/beestyle-logo-white.svg') }}" alt="BeeStyle Menswear" height="40" class="bee-footer-logo">
+            </a>
           </div>
           <p class="text-secondary small mb-3">
             Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất lượng vượt trội.
