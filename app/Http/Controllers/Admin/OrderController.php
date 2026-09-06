@@ -243,7 +243,7 @@ class OrderController extends Controller
      */
     public function bulkPrint(Request $request)
     {
-        $orderIds = $request->input('order_ids');
+        $orderIds = $request->input('order_ids', $request->input('selected_orders'));
         if (is_string($orderIds)) {
             $orderIds = array_filter(explode(',', $orderIds));
         }
@@ -253,7 +253,7 @@ class OrderController extends Controller
         }
 
         $orders = Order::with(['items.product', 'user'])
-            ->whereIn('id', $orderIds)
+            ->whereIn('id', (array)$orderIds)
             ->orderBy('id', 'desc')
             ->get();
 

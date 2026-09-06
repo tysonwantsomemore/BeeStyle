@@ -30,7 +30,7 @@
   </div>
 @endif
 
-@if($errors->any())
+@if(isset($errors) && $errors->any())
   <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
     <i class="fa-solid fa-circle-xmark me-2"></i> <strong>Đã xảy ra lỗi nhập liệu:</strong>
     <ul class="mb-0 mt-1 small ps-3">

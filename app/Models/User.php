@@ -84,6 +84,11 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function getIsAdminAttribute(): bool
+    {
+        return $this->role === 'admin';
+    }
+
     public function addresses()
     {
         return $this->hasMany(UserAddress::class)->orderBy('is_default', 'desc')->orderBy('created_at', 'desc');
