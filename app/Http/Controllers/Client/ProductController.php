@@ -15,8 +15,9 @@ class ProductController extends Controller
     /**
      * Danh sách tất cả sản phẩm đang có ƯU ĐÃI TRONG NGÀY (Flash Sale)
      */
-    public function dailyDeals(Request $request)
+    public function dailyDeals(Request $request = null)
     {
+        $request = $request ?? request();
         $tab = $request->query('tab', 'all'); // all, running, upcoming
         $categorySlug = $request->query('category');
         $sort = $request->query('sort', 'discount_desc');

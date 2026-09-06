@@ -33,8 +33,14 @@ class OrderTrackingController extends Controller
      * Cổng Tra Cứu Vận Đơn Bưu Tá Trực Tuyến (GHTK, GHN, Viettel Post, J&T...)
      * Hiển thị 100% dữ liệu thật của đơn hàng: người gửi, người nhận, bưu tá, sản phẩm, lộ trình bưu kiện
      */
-    public function carrierTracking(Request $request, $code = null)
+    public function carrierTracking($request = null, $code = null)
     {
+        if (is_string($request) && $code === null) {
+            $code = $request;
+            $request = request();
+        } elseif (!$request instanceof Request) {
+            $request = request();
+        }
         $code = $code ? trim($code) : trim($request->query('code', ''));
         $order = null;
 

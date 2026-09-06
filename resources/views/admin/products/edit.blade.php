@@ -15,7 +15,7 @@
   </div>
 </div>
 
-@if ($errors->any())
+@if (isset($errors) && $errors->any())
   <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
     <div class="d-flex align-items-center gap-2 mb-1">
       <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>

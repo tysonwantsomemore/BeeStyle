@@ -9,8 +9,9 @@ use Illuminate\Http\Request;
 
 class DailyDealController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request = null)
     {
+        $request = $request ?? request();
         $statusFilter = $request->query('status', 'all');
         $search = $request->query('q');
         $dateFilter = $request->query('date');
