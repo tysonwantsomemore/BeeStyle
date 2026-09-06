@@ -410,7 +410,10 @@ class OrderController extends Controller
                             foreach ($order->items as $item) {
                                 if ($item->product_id) {
                                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                                    Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                                    $prod = Product::find($item->product_id);
+                                    if ($prod && $prod->sold_count >= $item->quantity) {
+                                        $prod->decrement('sold_count', $item->quantity);
+                                    }
 
                                     if (!empty($item->color) && !empty($item->size)) {
                                         ProductVariant::where('product_id', $item->product_id)
@@ -502,55 +505,23 @@ class OrderController extends Controller
             'cancelled' => 0,
         ];
 
-        // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm
-        if ($validated['shipping_status'] === 'cancelled' && $order->shipping_status !== 'cancelled') {
-            foreach ($order->items as $item) {
-                if ($item->product_id) {
-                    \App\Models\Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                    \App\Models\Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
-                }
-            }
-        }
+        $previousShippingStatus = $order->shipping_status;
+        $newShippingStatus = $validated['shipping_status'];
+        $paymentStatus = $validated['payment_status'] ?? $order->payment_status;
 
-        $order->update([
-            'shipping_status' => $validated['shipping_status'],
-            'payment_status' => $validated['payment_status'] ?? $order->payment_status,
-            'status_step' => $stepMap[$validated['shipping_status']] ?? 1,
-            'admin_notes' => $validated['admin_notes'] ?? $order->admin_notes,
-        ]);
-
-        // Tích lũy điểm thưởng & tổng chi tiêu khi đơn hàng hoàn tất
-        if ($validated['shipping_status'] === 'completed' && $order->shipping_status !== 'completed' && $order->user_id) {
-            $user = User::find($order->user_id);
-            if ($user) {
-                $earnedPoints = (int)floor($order->total_amount / 10000);
-                $user->increment('points', $earnedPoints);
-                $user->increment('total_spent', $order->total_amount);
-            }
-        }
-
-        // Cập nhật thông tin Đơn vị vận chuyển & Mã vận đơn vào các cột chuẩn
-        $shippingCarrier = $validated['shipping_carrier'] ?? $order->shipping_carrier;
-        $trackingCode = $validated['tracking_code'] ?? $order->tracking_code;
-        $adminNotes = $validated['admin_notes'] ?? $order->admin_notes;
-
-        if (!empty($shippingCarrier) && !empty($trackingCode)) {
-            $carrierInfo = "[ĐVVC: {$shippingCarrier} | Vận đơn: {$trackingCode}]";
-            if (!str_contains((string)$adminNotes, $trackingCode)) {
-                $adminNotes = $carrierInfo . ($adminNotes ? " - " . $adminNotes : "");
-            }
-        }
-
-        // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm & phân loại biến thể
         $cancelledBy = $order->cancelled_by;
         $cancelledAt = $order->cancelled_at;
         $cancelReason = $order->cancel_reason;
 
-        if ($validated['shipping_status'] === 'cancelled' && $order->shipping_status !== 'cancelled') {
+        // Nếu đơn hàng bị hủy, hoàn trả lại số lượng tồn kho cho các sản phẩm & phân loại biến thể
+        if ($newShippingStatus === 'cancelled' && $previousShippingStatus !== 'cancelled') {
             foreach ($order->items as $item) {
                 if ($item->product_id) {
                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                    Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                    $prod = Product::find($item->product_id);
+                    if ($prod && $prod->sold_count >= $item->quantity) {
+                        $prod->decrement('sold_count', $item->quantity);
+                    }
 
                     if (!empty($item->color) && !empty($item->size)) {
                         ProductVariant::where('product_id', $item->product_id)
@@ -570,7 +541,7 @@ class OrderController extends Controller
             }
 
             // Nếu đơn hàng từng hoàn tất và bị hủy, trừ lại điểm thưởng và tổng chi tiêu đã tích lũy
-            if (in_array($order->shipping_status, ['completed', 'delivered']) && $order->user_id) {
+            if (in_array($previousShippingStatus, ['completed', 'delivered']) && $order->user_id) {
                 $user = User::find($order->user_id);
                 if ($user) {
                     $earnedPoints = (int)floor($order->total_amount / 10000);
@@ -586,6 +557,46 @@ class OrderController extends Controller
             $cancelledBy = 'admin';
             $cancelledAt = now();
             $cancelReason = $request->input('cancel_reason', 'Hủy bởi Quản trị viên BeeStyle');
+        } elseif ($previousShippingStatus === 'cancelled' && $newShippingStatus !== 'cancelled') {
+            // Nếu kích hoạt lại đơn hàng đã hủy, trừ lại kho
+            foreach ($order->items as $item) {
+                if ($item->product_id) {
+                    Product::where('id', $item->product_id)->decrement('stock', $item->quantity);
+                    Product::where('id', $item->product_id)->increment('sold_count', $item->quantity);
+
+                    if (!empty($item->color) && !empty($item->size)) {
+                        ProductVariant::where('product_id', $item->product_id)
+                            ->where('color', $item->color)
+                            ->where('size', $item->size)
+                            ->decrement('stock', $item->quantity);
+                    }
+                }
+            }
+            $cancelledBy = null;
+            $cancelledAt = null;
+            $cancelReason = null;
+        }
+
+        // Tích lũy điểm thưởng & tổng chi tiêu khi đơn hàng hoàn tất
+        if ($newShippingStatus === 'completed' && $previousShippingStatus !== 'completed' && $order->user_id) {
+            $user = User::find($order->user_id);
+            if ($user) {
+                $earnedPoints = (int)floor($order->total_amount / 10000);
+                $user->increment('points', $earnedPoints);
+                $user->increment('total_spent', $order->total_amount);
+            }
+        }
+
+        // Cập nhật thông tin Đơn vị vận chuyển & Mã vận đơn vào các cột chuẩn
+        $shippingCarrier = $validated['shipping_carrier'] ?? $order->shipping_carrier;
+        $trackingCode = $validated['tracking_code'] ?? $order->tracking_code;
+        $adminNotes = $validated['admin_notes'] ?? $order->admin_notes;
+
+        if (!empty($shippingCarrier) && !empty($trackingCode)) {
+            $carrierInfo = "[ĐVVC: {$shippingCarrier} | Vận đơn: {$trackingCode}]";
+            if (!str_contains((string)$adminNotes, $trackingCode)) {
+                $adminNotes = $carrierInfo . ($adminNotes ? " - " . $adminNotes : "");
+            }
         }
 
         $updateData = [

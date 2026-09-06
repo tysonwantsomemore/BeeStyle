@@ -1758,4 +1758,17 @@ body.admin-body, .admin-main-wrapper {
   animation: beePulse 0.25s ease-in-out;
 }
 
+/* ========================================================
+   HOVER ZOOM CONTAINER FOR DETAIL PAGE & QUICK VIEW MODAL
+   ======================================================== */
+.bee-zoom-container {
+  overflow: hidden !important;
+  position: relative;
+  cursor: crosshair;
+}
 
+.bee-zoom-container img {
+  pointer-events: none;
+  transition: transform 0.12s cubic-bezier(0.2, 0, 0.2, 1);
+  will-change: transform, transform-origin;
+}

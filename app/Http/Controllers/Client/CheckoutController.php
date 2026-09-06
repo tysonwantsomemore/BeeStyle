@@ -72,11 +72,42 @@ class CheckoutController extends Controller
         DB::beginTransaction();
 
         try {
-            // TÍNH TOÁN LẠI CHÍNH XÁC TỪ DATABASE (KHÔNG TIN TƯỞNG CLIENT/FRONTEND)
+            // 1. KIỂM TRA TỒN KHO THỰC TẾ & TÍNH TOÁN LẠI TỪ DATABASE (KHÔNG TIN TƯỞNG CLIENT)
             $verifiedSubtotal = 0;
             foreach ($cartData['items'] as $item) {
                 $productDb = Product::findOrFail($item['product_id']);
+
+                // Tìm đúng biến thể theo variant_id hoặc màu + size
+                $variantDb = null;
+                if (!empty($item['variant_id'])) {
+                    $variantDb = \App\Models\ProductVariant::find($item['variant_id']);
+                } elseif (!empty($item['color']) && !empty($item['size'])) {
+                    $variantDb = \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                        ->where('color', $item['color'])
+                        ->where('size', $item['size'])
+                        ->first();
+                }
+
+                $availableStock = $variantDb ? $variantDb->stock : $productDb->stock;
+                $variantDesc = ($item['color'] ?? '') . ($item['size'] ? ' - Size ' . $item['size'] : '');
+
+                if ($availableStock <= 0) {
+                    DB::rollBack();
+                    return redirect()->route('client.cart')
+                        ->with('error', "Rất tiếc, sản phẩm \"{$item['name']}\" ({$variantDesc}) hiện đã hết hàng trong kho. Vui lòng cập nhật giỏ hàng!");
+                }
+
+                if ($item['quantity'] > $availableStock) {
+                    DB::rollBack();
+                    return redirect()->route('client.cart')
+                        ->with('error', "Sản phẩm \"{$item['name']}\" ({$variantDesc}) trong kho chỉ còn {$availableStock} cái, không đủ cho số lượng đặt ({$item['quantity']} cái). Vui lòng điều chỉnh lại giỏ hàng!");
+                }
+
                 $itemPrice = (int)$productDb->price;
+                if ($variantDb && $variantDb->price > 0) {
+                    $itemPrice = (int)$variantDb->price;
+                }
+
                 if (!empty($item['deal_id'])) {
                     $deal = \App\Models\DailyDeal::where('id', $item['deal_id'])->where('status', 'active')->first();
                     if ($deal) {
@@ -139,16 +170,32 @@ class CheckoutController extends Controller
                     'image' => $item['image'],
                 ]);
 
-                // TRỪ TỒN KHO TỔNG CỦA SẢN PHẨM VÀ TĂNG ĐÃ BÁN
-                Product::where('id', $item['product_id'])->decrement('stock', $item['quantity']);
-                Product::where('id', $item['product_id'])->increment('sold_count', $item['quantity']);
-
                 // TRỪ TỒN KHO CHI TIẾT CỦA BIẾN THỂ (MÀU + SIZE)
-                if (!empty($item['color']) && !empty($item['size'])) {
-                    \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                $variant = null;
+                if (!empty($item['variant_id'])) {
+                    $variant = \App\Models\ProductVariant::find($item['variant_id']);
+                } elseif (!empty($item['color']) && !empty($item['size'])) {
+                    $variant = \App\Models\ProductVariant::where('product_id', $item['product_id'])
                         ->where('color', $item['color'])
                         ->where('size', $item['size'])
-                        ->decrement('stock', $item['quantity']);
+                        ->first();
+                }
+
+                if ($variant) {
+                    $variant->decrement('stock', $item['quantity']);
+                    if ($variant->stock < 0) {
+                        $variant->update(['stock' => 0]);
+                    }
+                }
+
+                // TRỪ TỒN KHO TỔNG CỦA SẢN PHẨM VÀ TĂNG ĐÃ BÁN
+                $prod = Product::find($item['product_id']);
+                if ($prod) {
+                    $prod->decrement('stock', $item['quantity']);
+                    if ($prod->stock < 0) {
+                        $prod->update(['stock' => 0]);
+                    }
+                    $prod->increment('sold_count', $item['quantity']);
                 }
 
                 // Cập nhật số lượng đã bán của chương trình Ưu Đãi Trong Ngày (Daily Deal)
