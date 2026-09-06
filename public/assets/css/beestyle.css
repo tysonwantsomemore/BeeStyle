@@ -115,6 +115,10 @@ h1, h2, h3, h4, h5, h6, .bee-section-title, .bee-hero-badge {
 .beestyle-logo-text.light {
   color: #ffffff !important;
 }
+.beestyle-logo-text .text-danger,
+.beestyle-logo-text .bee-danger {
+  color: #e11d48 !important; /* Premium Crimson Red */
+}
 .beestyle-logo-text .text-warning,
 .beestyle-logo-text .style-text {
   color: #f59e0b !important;

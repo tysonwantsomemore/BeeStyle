@@ -70,9 +70,9 @@
     <div class="container">
       <div class="d-flex align-items-center justify-content-between gap-3">
         
-        <!-- LOGO (CHỈ CẦN CHỮ BEESTYLE) -->
+        <!-- LOGO (CHỈ CẦN CHỮ BEESTYLE VỚI BEE MÀU ĐỎ) -->
         <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BEESTYLE">
-          <span class="beestyle-logo-text">BEE<span class="text-warning">STYLE</span></span>
+          <span class="beestyle-logo-text"><span class="text-danger">BEE</span>STYLE</span>
         </a>
 
         <!-- SEARCH BAR -->
@@ -474,7 +474,7 @@
         <div class="col-lg-4 col-md-6">
           <div class="d-flex align-items-center gap-2 mb-3">
             <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BEESTYLE">
-              <span class="beestyle-logo-text light">BEE<span class="text-warning">STYLE</span></span>
+              <span class="beestyle-logo-text light"><span class="text-danger">BEE</span>STYLE</span>
             </a>
           </div>
           <p class="text-secondary small mb-3">
