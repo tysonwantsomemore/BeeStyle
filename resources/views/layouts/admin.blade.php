@@ -38,10 +38,10 @@
         <div class="navbar-vertical-content">
           <ul class="navbar-nav flex-column" id="navbarVerticalNav">
             
-            <!-- ADMIN UNIFIED LOGO (CHỈ CẦN CHỮ BEESTYLE VỚI BEE MÀU ĐỎ) -->
+            <!-- ADMIN UNIFIED LOGO (BEE MÀU ĐỎ, STYLE MÀU VÀNG) -->
             <li class="nav-item mb-4 px-3 pt-3">
               <a href="{{ route('admin.dashboard') }}" class="beestyle-brand-link d-inline-flex align-items-center text-decoration-none" title="BEESTYLE Admin">
-                <span class="beestyle-logo-text" style="font-size: 1.6rem;"><span class="text-danger">BEE</span>STYLE</span>
+                <span class="beestyle-logo-text" style="font-size: 1.6rem;"><span class="text-danger">BEE</span><span class="text-warning">STYLE</span></span>
               </a>
             </li>
 
@@ -183,7 +183,7 @@
             <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
           </button>
           <a class="navbar-brand me-1 me-sm-3 d-lg-none text-decoration-none" href="{{ route('admin.dashboard') }}">
-            <span class="beestyle-logo-text" style="font-size: 1.35rem;"><span class="text-danger">BEE</span>STYLE</span>
+            <span class="beestyle-logo-text" style="font-size: 1.35rem;"><span class="text-danger">BEE</span><span class="text-warning">STYLE</span></span>
           </a>
 
         </div>
