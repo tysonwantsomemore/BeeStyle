@@ -12,8 +12,10 @@
       @if($category->parent)
         <li class="breadcrumb-item"><a href="{{ route('client.categories.show', $category->parent->slug) }}" class="text-decoration-none text-muted">{{ $category->parent->name }}</a></li>
       @endif
-      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ $category->name }}</li>
-    </ol  <!-- CATEGORY HERO BANNER (DYNAMICS BY CATEGORY SLUG) -->
+    </ol>
+  </nav>
+
+  <!-- CATEGORY HERO BANNER (DYNAMICS BY CATEGORY SLUG) -->
   @if($category->slug === 'ao-polo-nam')
     <div class="card border-0 shadow-sm mb-4 text-white overflow-hidden" style="border-radius: 18px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);">
       <div class="card-body p-4 p-md-5 position-relative">
@@ -279,12 +281,32 @@
                   <div class="d-flex gap-1.5 mt-2">
                     <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap shadow-xs" 
                       data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="{{ $category->name ?? 'Thời trang nam' }}"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
                       title="Chọn màu & size thêm vào giỏ hàng" style="font-size: 0.76rem;">
                       <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
                     </button>
                     <button type="button" class="btn btn-bee-primary text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap shadow-xs" 
                       data-id="{{ $product->id }}"
+                      data-name="{{ $product->name }}"
+                      data-price="{{ $product->price }}"
+                      data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
+                      data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
+                      data-discount="{{ $product->discount_percent ?? 0 }}"
+                      data-image="{{ asset($product->image) }}"
+                      data-category="{{ $category->name ?? 'Thời trang nam' }}"
+                      data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
+                      data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
+                      data-stock="{{ $product->stock ?? 999 }}"
                       onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
                       title="Mua ngay chuyển sang thanh toán" style="font-size: 0.76rem;">
                       <i class="fa-solid fa-bolt me-1 text-dark"></i> Mua Ngay

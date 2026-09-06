@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RevenueController extends Controller
 {
@@ -93,6 +94,71 @@ class RevenueController extends Controller
             $growthRate = ($growth >= 0 ? '+' : '') . number_format($growth, 1) . '%';
         }
 
+        // 3. Biểu đồ doanh thu từng ngày trong tháng (Daily Trend)
+        $dailyRecords = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->where('shipping_status', '!=', 'cancelled')
+            ->select(
+                DB::raw('DATE(created_at) as order_date'),
+                DB::raw('COUNT(*) as order_count'),
+                DB::raw('SUM(total_amount) as daily_revenue')
+            )
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->get()
+            ->keyBy('order_date');
+
+        $dailyLabels = [];
+        $dailyRevenueData = [];
+        $dailyOrdersData = [];
+        $daysInMonth = $endOfMonth->day;
+
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dateKey = $startOfMonth->copy()->day($d)->format('Y-m-d');
+            $dailyLabels[] = $d . '/' . $startOfMonth->format('m');
+            $record = $dailyRecords->get($dateKey);
+            $dailyRevenueData[] = $record ? (int)$record->daily_revenue : 0;
+            $dailyOrdersData[] = $record ? (int)$record->order_count : 0;
+        }
+
+        // 4. Cơ cấu phương thức thanh toán
+        $paymentRaw = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total_amount) as total'))
+            ->groupBy('payment_method')
+            ->get();
+
+        $paymentLabels = [];
+        $paymentData = [];
+        $paymentCounts = [];
+        $paymentNameMap = [
+            'cod' => 'Tiền Mặt (COD)',
+            'momo' => 'Ví MoMo',
+            'zalopay' => 'Ví ZaloPay',
+            'vnpay' => 'Cổng VNPAY',
+            'bank_transfer' => 'Chuyển Khoản'
+        ];
+
+        foreach ($paymentRaw as $p) {
+            $name = $paymentNameMap[$p->payment_method] ?? strtoupper($p->payment_method ?? 'Khác');
+            $paymentLabels[] = $name;
+            $paymentData[] = (int)$p->total;
+            $paymentCounts[] = (int)$p->count;
+        }
+
+        // 5. Top 5 Khách hàng VIP chi tiêu nhiều nhất trong tháng
+        $topCustomers = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->where('shipping_status', '!=', 'cancelled')
+            ->select(
+                DB::raw('COALESCE(user_id, 0) as user_id'),
+                'customer_name',
+                'customer_phone',
+                'customer_email',
+                DB::raw('COUNT(*) as total_orders'),
+                DB::raw('SUM(total_amount) as total_spent')
+            )
+            ->groupBy('user_id', 'customer_name', 'customer_phone', 'customer_email')
+            ->orderByDesc('total_spent')
+            ->limit(5)
+            ->get();
+
         // Danh sách 12 tháng gần nhất để hiển thị dropdown chọn tháng
         $availableMonths = [];
         for ($i = 0; $i < 12; $i++) {
@@ -114,7 +180,14 @@ class RevenueController extends Controller
             'growthRate',
             'availableMonths',
             'status',
-            'search'
+            'search',
+            'dailyLabels',
+            'dailyRevenueData',
+            'dailyOrdersData',
+            'paymentLabels',
+            'paymentData',
+            'paymentCounts',
+            'topCustomers'
         ));
     }
 }

@@ -117,6 +117,19 @@ class Product extends Model
     }
 
     /**
+     * Đồng bộ tổng tồn kho sản phẩm từ các biến thể con
+     */
+    public function syncStockFromVariants(): int
+    {
+        if ($this->variants()->exists()) {
+            $totalStock = (int) $this->variants()->where('status', 'active')->sum('stock');
+            $this->update(['stock' => $totalStock]);
+            return $totalStock;
+        }
+        return (int) $this->stock;
+    }
+
+    /**
      * Accessor tính toán % giảm giá chính xác
      */
     public function getDiscountPercentAttribute($value)

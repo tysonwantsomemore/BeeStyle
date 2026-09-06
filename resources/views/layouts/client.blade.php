@@ -70,10 +70,9 @@
     <div class="container">
       <div class="d-flex align-items-center justify-content-between gap-3">
         
-        <!-- LOGO -->
-        <a href="{{ route('client.home') }}" class="beestyle-logo">
-          <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-          <span>BEE<span class="brand-highlight">STYLE</span></span>
+        <!-- LOGO (CHỈ CẦN CHỮ BEESTYLE VỚI BEE MÀU ĐỎ) -->
+        <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BEESTYLE">
+          <span class="beestyle-logo-text"><span class="text-danger">BEE</span>STYLE</span>
         </a>
 
         <!-- SEARCH BAR -->
@@ -474,10 +473,9 @@
         <!-- Brand Info -->
         <div class="col-lg-4 col-md-6">
           <div class="d-flex align-items-center gap-2 mb-3">
-            <div class="bee-logo-icon">
-              <i class="fa-solid fa-b"></i>
-            </div>
-            <span class="fs-4 fw-black tracking-wide text-white">BEE<span class="text-warning">STYLE</span></span>
+            <a href="{{ route('client.home') }}" class="beestyle-brand-link text-decoration-none d-inline-flex align-items-center" title="BEESTYLE">
+              <span class="beestyle-logo-text light"><span class="text-danger">BEE</span>STYLE</span>
+            </a>
           </div>
           <p class="text-secondary small mb-3">
             Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất lượng vượt trội.
@@ -1275,132 +1273,192 @@
   </script>
 
 
-  <!-- ========================================== -->
-  <!-- MODAL 1: CHỌN MÀU SẮC & THÔNG SỐ SIZE NHANH -->
-  <!-- ========================================== -->
+  <!-- ======================================================= -->
+  <!-- MODAL 1: CHI TIẾT SẢN PHẨM & CHỌN BIẾN THỂ NHANH (QUICK VIEW) -->
+  <!-- ======================================================= -->
   <div class="modal fade" id="quickVariantModal" tabindex="-1" aria-hidden="true" style="z-index: 1080;">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 22px; overflow: hidden;">
+    <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 960px;">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
         
         <!-- Header -->
         <div class="modal-header border-0 pb-0 pt-3 px-4 d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">CHỌN PHÂN LOẠI</span>
-            <span class="text-muted small" id="qvmCategoryName">Thời trang nam</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">CHI TIẾT NHANH</span>
+            <span class="badge bg-light text-secondary border px-2 py-0.5" id="qvmCategoryBadge" style="font-size: 0.75rem;">Thời trang nam</span>
+            <span class="text-muted small">•</span>
+            <span class="text-muted small fw-semibold" id="qvmBrandText">BeeStyle Signature</span>
+            <span class="text-muted small">•</span>
+            <span class="text-muted small font-monospace" id="qvmSkuText">SKU: BS-01</span>
           </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <!-- Body -->
-        <div class="modal-body p-4">
-          <!-- THÔNG TIN SẢN PHẨM NHANH -->
-          <div class="d-flex gap-3 mb-3 p-3 bg-light rounded-3 border">
-            <div class="position-relative flex-shrink-0 bg-white rounded-3 p-2 border shadow-xs" style="width: 105px; height: 105px; display: flex; align-items: center; justify-content: center;">
-              <img src="" id="qvmProductImage" alt="Sản phẩm" class="img-fluid rounded" style="max-height: 90px; object-fit: contain;">
-              <span class="position-absolute top-0 start-0 badge bg-danger rounded-pill m-1 shadow-xs" id="qvmDiscountBadge" style="font-size: 0.68rem; display: none;">-15%</span>
-            </div>
-            <div class="flex-grow-1">
-              <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-0.5 small mb-1" id="qvmCategoryName">Thời trang nam</span>
-              <h6 class="fw-bold text-dark mb-1" id="qvmProductName" style="font-size: 0.98rem; line-height: 1.35;">Tên sản phẩm</h6>
-              <div class="d-flex align-items-baseline gap-2 mb-1.5">
-                <span class="text-danger fw-bold fs-5" id="qvmProductPrice">0₫</span>
-                <small class="text-muted text-decoration-line-through" id="qvmProductOriginalPrice" style="display: none;">0₫</small>
-              </div>
-              <div class="d-flex align-items-center gap-2 small">
-                <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold" id="qvmStockBadge">
-                  <i class="fa-solid fa-circle-check me-1"></i> Còn <strong id="qvmStockNumber">...</strong> trong kho
-                </span>
-                <span class="text-muted small">• Miễn phí đổi size 7 ngày</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 1. CHỌN MÀU SẮC (LUXURY COLOR SWATCHES) -->
-          <div class="mb-3.5">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <label class="form-label small fw-bold text-dark mb-0">
-                <i class="fa-solid fa-palette text-warning me-1"></i> 1. Chọn Màu Sắc:
-                <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedColorText">Chưa chọn</span>
-              </label>
-              <span class="text-danger small" style="font-size: 0.72rem;">* Bắt buộc</span>
-            </div>
-            <div class="d-flex flex-wrap gap-2" id="qvmColorsContainer">
-              <!-- Render động các nút màu sắc cao cấp -->
-            </div>
-          </div>
-
-          <!-- 2. CHỌN THÔNG SỐ KÍCH THƯỚC (SIZE MATRIX VỚI GỢI Ý CÂN NẶNG) -->
-          <div class="mb-3.5">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <label class="form-label small fw-bold text-dark mb-0">
-                <i class="fa-solid fa-ruler-combined text-warning me-1"></i> 2. Chọn Kích Thước (Size):
-                <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedSizeText">Chưa chọn</span>
-              </label>
-              <span class="text-muted small" style="font-size: 0.72rem;">
-                <i class="fa-solid fa-arrows-alt-v me-0.5 text-warning"></i> Chuẩn Form Quý Ông
-              </span>
-            </div>
-            <div class="d-flex flex-wrap gap-2" id="qvmSizesContainer">
-              <!-- Render động các nút size cao cấp -->
-            </div>
-          </div>
-
-          <!-- 3. CHỌN SỐ LƯỢNG MUA (1 - 10 SẢN PHẨM) -->
-          <div class="mb-3 p-3 rounded-3 border" style="background: #f8fafc;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                <i class="fa-solid fa-calculator text-warning"></i>
-                <span>3. Số Lượng Mua:</span>
-              </label>
-              <span class="badge bg-dark text-warning border border-warning px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
-                <i class="fa-solid fa-cart-shopping"></i> Đã chọn: <span id="qvmQtyLiveBadge" class="text-white fs-6 fw-bolder">1</span> cái
-              </span>
-            </div>
+        <div class="modal-body p-3 p-lg-4">
+          <div class="row g-4">
             
-            <!-- Ô nhập số lượng + nút tăng giảm cộng trừ (Tối đa 10) -->
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-              <div class="bee-qty-stepper">
-                <button type="button" class="btn-step-minus" id="qvmBtnMinus" onclick="changeQvmQuantity(-1)" title="Giảm 1 sản phẩm">
-                  <i class="fa-solid fa-minus"></i>
-                </button>
-                <input type="number" id="qvmQuantityInput" value="1" min="1" max="10" class="qty-display-input" readonly>
-                <button type="button" class="btn-step-plus" id="qvmBtnPlus" onclick="changeQvmQuantity(1)" title="Tăng 1 sản phẩm">
-                  <i class="fa-solid fa-plus"></i>
-                </button>
+            <!-- CỘT TRÁI: ẢNH SẢN PHẨM (HOVER ZOOM) + DẢI THUMBNAILS + 3 CAM KẾT -->
+            <div class="col-lg-5 col-md-5">
+              <div class="position-relative bg-light rounded-4 p-3 text-center mb-3 bee-zoom-container" id="qvmZoomContainer" style="min-height: 340px; height: 340px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: crosshair;">
+                <span class="position-absolute top-0 start-0 m-2.5 badge bg-danger fs-6 px-2.5 py-1 rounded-pill shadow-xs" id="qvmDiscountBadge" style="z-index: 3; display: none;">-15%</span>
+                <img src="" id="qvmProductImage" alt="Sản phẩm" class="img-fluid rounded-3 shadow-xs" style="max-height: 310px; width: 100%; object-fit: contain; transition: transform 0.15s ease-out; pointer-events: none;">
+                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark bg-opacity-75 text-white px-2 py-1 rounded-pill shadow-xs" style="pointer-events: none; font-size: 0.7rem; z-index: 3;">
+                  <i class="fa-solid fa-magnifying-glass-plus text-warning me-1"></i> Rê chuột để phóng to
+                </span>
               </div>
 
-              <div>
-                <div class="d-flex align-items-baseline gap-1.5">
-                  <span class="text-muted small">Tạm tính:</span>
-                  <strong class="text-danger fs-6 fw-bold" id="qvmSubtotalLive">0₫</strong>
+              <!-- DẢI ẢNH THUMBNAILS GALLERY -->
+              <div class="d-flex gap-2 justify-content-center flex-wrap mb-3" id="qvmThumbnailsContainer">
+                <!-- Render động các ảnh thumbnail -->
+              </div>
+
+              <!-- 3 CAM KẾT CHẤT LƯỢNG (TRUST BADGES) -->
+              <div class="row g-2 text-center" style="font-size: 0.74rem;">
+                <div class="col-4">
+                  <div class="p-2 rounded-3 bg-light border text-muted d-flex align-items-center justify-content-center gap-1">
+                    <i class="fa-solid fa-camera text-warning"></i> Ảnh Thật 100%
+                  </div>
                 </div>
-                <small class="text-muted fs-11 d-block">
-                  Kho: <strong class="text-dark" id="qvmStockNumber">999</strong> có sẵn • Tối đa 10 cái
-                </small>
+                <div class="col-4">
+                  <div class="p-2 rounded-3 bg-light border text-muted d-flex align-items-center justify-content-center gap-1">
+                    <i class="fa-solid fa-rotate-left text-success"></i> Đổi Size 30N
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 rounded-3 bg-light border text-muted d-flex align-items-center justify-content-center gap-1">
+                    <i class="fa-solid fa-truck-fast text-primary"></i> Freeship 300k
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div id="qvmMaxLimitMsg" class="alert alert-warning border-0 py-2 px-3 small rounded-3 mt-2 mb-0 d-none fw-semibold" style="font-size: 0.78rem;">
-              <i class="fa-solid fa-circle-exclamation text-danger me-1"></i> Số lượng mua tối đa cho phép là 10 sản phẩm.
+            <!-- CỘT PHẢI: CHI TIẾT SẢN PHẨM & LỰA CHỌN BIẾN THỂ -->
+            <div class="col-lg-7 col-md-7 d-flex flex-column">
+              <!-- Tiêu đề & Đánh giá -->
+              <div class="mb-2">
+                <h4 class="fw-bold text-dark mb-1" style="font-size: 1.25rem; line-height: 1.35;">
+                  <a href="#" id="qvmProductTitleLink" class="text-dark text-decoration-none hover-warning">
+                    <span id="qvmProductName">Tên sản phẩm</span>
+                  </a>
+                </h4>
+                <div class="d-flex align-items-center gap-2 small text-muted flex-wrap">
+                  <div class="text-warning small" id="qvmStarsContainer">
+                    <i class="fa-solid fa-star text-warning"></i>
+                    <i class="fa-solid fa-star text-warning"></i>
+                    <i class="fa-solid fa-star text-warning"></i>
+                    <i class="fa-solid fa-star text-warning"></i>
+                    <i class="fa-solid fa-star text-warning"></i>
+                  </div>
+                  <span class="small fw-bold text-dark" id="qvmRatingText">5.0</span>
+                  <span>•</span>
+                  <span>Đã bán <strong class="text-dark" id="qvmSoldCount">0</strong> sản phẩm</span>
+                </div>
+              </div>
+
+              <!-- BẢNG GIÁ & TIẾT KIỆM -->
+              <div class="p-3 bg-light rounded-3 mb-3 d-flex align-items-baseline gap-3 flex-wrap">
+                <h3 class="fw-bold text-danger mb-0" id="qvmProductPrice" style="font-size: 1.6rem;">0₫</h3>
+                <span class="text-muted text-decoration-line-through fs-6" id="qvmProductOriginalPrice" style="display: none;">0₫</span>
+                <span class="badge bg-danger-subtle text-danger fw-bold" id="qvmSavingsBadge" style="display: none;">Tiết kiệm 0₫</span>
+              </div>
+
+              <!-- 1. CHỌN MÀU SẮC -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                  <label class="form-label small fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-palette text-warning me-1"></i> 1. Chọn Màu Sắc:
+                    <span class="badge bg-light text-muted border px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedColorText">Chưa chọn</span>
+                  </label>
+                  <span class="badge bg-danger-subtle text-danger fw-bold fs-11">* Bắt buộc chọn</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2" id="qvmColorsContainer">
+                  <!-- Render động các nút màu -->
+                </div>
+              </div>
+
+              <!-- 2. CHỌN KÍCH THƯỚC (SIZE) VỚI GỢI Ý VÀ TỒN KHO THẬT -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                  <label class="form-label small fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-ruler-combined text-warning me-1"></i> 2. Chọn Kích Thước (Size Nam):
+                    <span class="badge bg-light text-muted border px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedSizeText">Chưa chọn</span>
+                  </label>
+                  <span class="badge bg-danger-subtle text-danger fw-bold fs-11">* Bắt buộc chọn</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2" id="qvmSizesContainer">
+                  <!-- Render động các nút size với stock tag -->
+                </div>
+              </div>
+
+              <!-- 3. SỐ LƯỢNG MUA & TÌNH TRẠNG TỒN KHO -->
+              <div class="mb-3 p-3 rounded-3 border" style="background: #f8fafc;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
+                      <i class="fa-solid fa-calculator text-warning"></i> 3. Số Lượng:
+                    </label>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold" id="qvmStockBadge">
+                      <i class="fa-solid fa-circle-check me-1"></i> Còn <strong id="qvmStockNumber">...</strong> trong kho
+                    </span>
+                  </div>
+                  <span class="badge bg-dark text-warning border border-warning px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.8rem;">
+                    <i class="fa-solid fa-cart-shopping"></i> Đã chọn: <span id="qvmQtyLiveBadge" class="text-white fs-6 fw-bolder">1</span> cái
+                  </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                  <div class="bee-qty-stepper">
+                    <button type="button" class="btn-step-minus" id="qvmBtnMinus" onclick="changeQvmQuantity(-1)" title="Giảm 1 sản phẩm">
+                      <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <input type="number" id="qvmQuantityInput" value="1" min="1" max="10" class="qty-display-input" readonly>
+                    <button type="button" class="btn-step-plus" id="qvmBtnPlus" onclick="changeQvmQuantity(1)" title="Tăng 1 sản phẩm">
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
+
+                  <div>
+                    <div class="d-flex align-items-baseline gap-1.5">
+                      <span class="text-muted small">Tạm tính:</span>
+                      <strong class="text-danger fs-6 fw-bold" id="qvmSubtotalLive">0₫</strong>
+                    </div>
+                    <small class="text-muted fs-11 d-block">
+                      Kho: <strong class="text-dark" id="qvmStockNumberPreview">...</strong> có sẵn • Tối đa 10 cái / đơn
+                    </small>
+                  </div>
+                </div>
+
+                <div id="qvmMaxLimitMsg" class="alert alert-warning border-0 py-1.5 px-3 small rounded-3 mt-2 mb-0 d-none fw-semibold" style="font-size: 0.78rem;">
+                  <i class="fa-solid fa-circle-exclamation text-danger me-1"></i> Số lượng mua tối đa cho phép là 10 sản phẩm hoặc bằng số lượng tồn kho.
+                </div>
+              </div>
+
+              <!-- CẢNH BÁO THIẾU CHỌN BIẾN THỂ -->
+              <div class="alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small shadow-xs" id="qvmValidationAlert" style="display: none; font-size: 0.82rem;">
+                <i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> <span id="qvmValidationAlertText">Vui lòng chọn đầy đủ <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!</span>
+              </div>
+
+              <!-- FOOTER NÚT BẤM CAO CẤP (THÊM GIỎ & MUA NGAY) -->
+              <div class="d-flex gap-2.5 mt-auto pt-2">
+                <button type="button" class="btn btn-outline-warning text-dark flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmAddToCartBtn" onclick="submitQvmAction(false)" style="font-size: 0.95rem;">
+                  <i class="fa-solid fa-cart-plus me-1.5 text-warning"></i> Thêm Vào Giỏ Hàng
+                </button>
+                <button type="button" class="btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmBuyNowBtn" onclick="submitQvmAction(true)" style="font-size: 0.95rem;">
+                  <i class="fa-solid fa-bolt me-1.5"></i> Mua Ngay
+                </button>
+              </div>
+
+              <!-- LINK XEM CHI TIẾT TRANG SẢN PHẨM -->
+              <div class="text-center mt-2.5">
+                <a href="#" id="qvmFullDetailLink" class="text-muted small text-decoration-none hover-warning">
+                  Xem thông số chi tiết &amp; đánh giá của sản phẩm <i class="fa-solid fa-arrow-right ms-1 text-warning"></i>
+                </a>
+              </div>
+
             </div>
-          </div>
 
-          <!-- Cảnh Báo Chọn Biến Thể -->
-          <div class="alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-0 small shadow-xs" id="qvmValidationAlert" style="display: none; font-size: 0.82rem;">
-            <i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Vui lòng chọn đầy đủ <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!
           </div>
         </div>
-
-        <!-- Footer Nút Bấm Cao Cấp -->
-        <div class="modal-footer border-top bg-light p-3 d-flex gap-2">
-          <button type="button" class="btn btn-outline-warning text-dark flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmAddToCartBtn" onclick="submitQvmAction(false)" style="font-size: 0.92rem;">
-            <i class="fa-solid fa-cart-plus me-1.5 text-warning"></i> Thêm Vào Giỏ Hàng
-          </button>
-          <button type="button" class="btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmBuyNowBtn" onclick="submitQvmAction(true)" style="font-size: 0.92rem;">
-            <i class="fa-solid fa-bolt me-1.5"></i> Mua Ngay
-          </button>
-        </div>
-
 
       </div>
     </div>
@@ -1506,14 +1564,49 @@
     let cartSuccessBsModal = null;
     let isBuyNowMode = false;
 
+    // Hiệu ứng Zoom mượt mà khi rê chuột vào ảnh sản phẩm trong Modal
+    function setupQvmImageZoom() {
+      const container = document.getElementById('qvmZoomContainer');
+      const img = document.getElementById('qvmProductImage');
+      if (!container || !img) return;
 
-    // Mở Modal Chọn Biến Thể Khi Bấm [Thêm Giỏ] hoặc [Mua Ngay]
-    function openQuickVariantModal(productId, isBuyNow = false, btnEl = null) {
-      if (!IS_AUTHENTICATED) {
-        requireAuthPrompt(isBuyNow ? 'mua hàng ngay' : 'thêm sản phẩm vào giỏ hàng');
-        return;
+      if (container.dataset.zoomInitialized) return;
+      container.dataset.zoomInitialized = 'true';
+
+      container.addEventListener('mousemove', function(e) {
+        const rect = container.getBoundingClientRect();
+        const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+        const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+        img.style.transformOrigin = `${x}% ${y}%`;
+        img.style.transform = 'scale(2.2)';
+      });
+
+      container.addEventListener('mouseleave', function() {
+        img.style.transformOrigin = 'center center';
+        img.style.transform = 'scale(1)';
+      });
+    }
+
+    // Đổi ảnh chính khi bấm vào Thumbnail trong Modal
+    function changeQvmThumbnail(src, el) {
+      const img = document.getElementById('qvmProductImage');
+      if (img) {
+        img.src = src;
+        img.style.transformOrigin = 'center center';
+        img.style.transform = 'scale(1)';
       }
+      document.querySelectorAll('#qvmThumbnailsContainer .qvm-thumb-item').forEach(item => {
+        item.classList.remove('border-warning', 'border-2');
+        item.classList.add('border');
+      });
+      if (el) {
+        el.classList.add('border-warning', 'border-2');
+        el.classList.remove('border');
+      }
+    }
 
+    // Mở Modal Chi Tiết Nhanh & Chọn Biến Thể Khi Bấm [Thêm Giỏ] hoặc [Mua Ngay]
+    function openQuickVariantModal(productId, isBuyNow = false, btnEl = null) {
       isBuyNowMode = isBuyNow;
       
       const modalEl = document.getElementById('quickVariantModal');
@@ -1525,17 +1618,23 @@
       selectedColor = null;
       selectedSize = null;
       document.getElementById('qvmSelectedColorText').textContent = 'Chưa chọn';
-      document.getElementById('qvmSelectedColorText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1';
+      document.getElementById('qvmSelectedColorText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1 fw-bold';
       document.getElementById('qvmSelectedSizeText').textContent = 'Chưa chọn';
-      document.getElementById('qvmSelectedSizeText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1';
+      document.getElementById('qvmSelectedSizeText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1 fw-bold';
       document.getElementById('qvmQuantityInput').value = 1;
       document.getElementById('qvmValidationAlert').style.display = 'none';
       const maxNotice = document.getElementById('qvmMaxLimitMsg');
       if (maxNotice) maxNotice.classList.add('d-none');
 
-      // Đổi class nút bấm nếu ở chế độ Mua Ngay
+      // Đổi kiểu nút bấm theo chế độ Mua Ngay hay Thêm Giỏ
+      const buyBtn = document.getElementById('qvmBuyNowBtn');
+      const addBtn = document.getElementById('qvmAddToCartBtn');
       if (isBuyNow) {
-        document.getElementById('qvmBuyNowBtn').className = 'btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs border-2 border-dark';
+        buyBtn.className = 'btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs border-2 border-dark';
+        addBtn.className = 'btn btn-outline-secondary flex-fill fw-bold py-2.5 rounded-3 shadow-xs';
+      } else {
+        buyBtn.className = 'btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs';
+        addBtn.className = 'btn btn-outline-warning text-dark flex-fill fw-bold py-2.5 rounded-3 shadow-xs';
       }
 
       // 1. KIỂM TRA NẾU CÓ DỮ LIỆU SẴN TỪ NÚT BẤM (INSTANT RENDERING)
@@ -1550,15 +1649,23 @@
           currentQvmProduct = {
             id: productId,
             name: ds.name,
+            sku: 'BS-' + productId,
             category_name: ds.category || 'Thời trang nam',
+            brand_name: 'BeeStyle Menswear',
+            rating: 5.0,
+            sold_count: 120,
+            product_url: '{{ url("/san-pham") }}/' + productId,
             price: parseInt(ds.price) || 0,
-            price_formatted: ds.priceFormatted || ds.price + '₫',
+            price_formatted: ds.priceFormatted || (parseInt(ds.price || 0).toLocaleString('vi-VN') + '₫'),
+            original_price: parseInt(ds.originalPrice) || 0,
             original_price_formatted: ds.originalPriceFormatted || '',
             discount_percent: parseInt(ds.discount) || 0,
             image: ds.image || '',
+            gallery: [ds.image || ''],
             stock: parseInt(ds.stock) || 999,
             colors: parsedColors,
-            sizes: parsedSizes
+            sizes: parsedSizes,
+            variants: []
           };
 
           renderQvmProductData(currentQvmProduct);
@@ -1566,15 +1673,15 @@
           console.warn('Fallback parsing error:', e);
         }
       } else {
-        // Hiển thị skeleton loading nhẹ
-        document.getElementById('qvmProductName').textContent = 'Đang tải thông tin...';
+        document.getElementById('qvmProductName').textContent = 'Đang tải thông tin sản phẩm...';
         document.getElementById('qvmColorsContainer').innerHTML = '<div class="spinner-border spinner-border-sm text-warning"></div>';
         document.getElementById('qvmSizesContainer').innerHTML = '<div class="spinner-border spinner-border-sm text-warning"></div>';
       }
 
       quickVariantBsModal.show();
+      setupQvmImageZoom();
 
-      // 2. FETCH DỮ LIỆU TỪ API CHUẨN XÁC
+      // 2. FETCH DỮ LIỆU ĐẦY ĐỦ TỪ API
       const apiUrl = "{{ url('/san-pham/api-quick-view') }}/" + productId;
       fetch(apiUrl, {
         headers: {
@@ -1597,16 +1704,24 @@
           if (!currentQvmProduct || currentQvmProduct.id !== productId) {
             currentQvmProduct = {
               id: productId,
-              name: 'Sản phẩm BeeStyle',
-              category_name: 'Thời trang nam cao cấp',
+              name: 'Sản phẩm BeeStyle Menswear',
+              sku: 'BS-' + productId,
+              category_name: 'Thời trang nam',
+              brand_name: 'BeeStyle Signature',
+              rating: 5.0,
+              sold_count: 99,
+              product_url: '{{ url("/san-pham") }}/' + productId,
               price: 0,
               price_formatted: 'Liên hệ',
+              original_price: 0,
               original_price_formatted: '',
               discount_percent: 0,
               image: '{{ asset("assets/img/logo.png") }}',
+              gallery: ['{{ asset("assets/img/logo.png") }}'],
               stock: 999,
               colors: ['Đen', 'Trắng', 'Xanh Navy', 'Xám Ghi'],
-              sizes: ['S', 'M', 'L', 'XL', 'XXL']
+              sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+              variants: []
             };
             renderQvmProductData(currentQvmProduct);
           }
@@ -1646,38 +1761,112 @@
       return 'Chuẩn dáng';
     }
 
-    // Hàm render dữ liệu vào Modal với giao diện cao cấp
+    // Render dữ liệu chi tiết vào Quick View Modal
     function renderQvmProductData(data) {
-      document.getElementById('qvmCategoryName').textContent = data.category_name || 'Thời trang nam';
-      document.getElementById('qvmBrandText').textContent = data.brand_name || 'BeeStyle Signature';
-      document.getElementById('qvmSkuText').textContent = `SKU: ${data.sku || ('BS-' + data.id)}`;
-      document.getElementById('qvmProductName').textContent = data.name || 'Sản phẩm';
-      document.getElementById('qvmProductPrice').textContent = data.price_formatted || '0₫';
-      if (data.image) document.getElementById('qvmProductImage').src = data.image;
+      const catBadge = document.getElementById('qvmCategoryBadge');
+      if (catBadge) catBadge.textContent = data.category_name || 'Thời trang nam';
 
-      if (data.original_price_formatted) {
-        const origEl = document.getElementById('qvmProductOriginalPrice');
-        origEl.textContent = data.original_price_formatted;
-        origEl.style.display = 'inline';
-      } else {
-        document.getElementById('qvmProductOriginalPrice').style.display = 'none';
+      const brandEl = document.getElementById('qvmBrandText');
+      if (brandEl) brandEl.textContent = data.brand_name || 'BeeStyle Signature';
+
+      const skuEl = document.getElementById('qvmSkuText');
+      if (skuEl) skuEl.textContent = `SKU: ${data.sku || ('BS-' + data.id)}`;
+
+      const nameEl = document.getElementById('qvmProductName');
+      if (nameEl) nameEl.textContent = data.name || 'Sản phẩm';
+
+      const titleLink = document.getElementById('qvmProductTitleLink');
+      if (titleLink) titleLink.href = data.product_url || ('{{ url("/san-pham") }}/' + data.id);
+
+      const fullLink = document.getElementById('qvmFullDetailLink');
+      if (fullLink) fullLink.href = data.product_url || ('{{ url("/san-pham") }}/' + data.id);
+
+      // Đánh giá sao & Đã bán
+      const ratingText = document.getElementById('qvmRatingText');
+      if (ratingText) ratingText.textContent = (data.rating || 5.0).toFixed(1);
+
+      const soldText = document.getElementById('qvmSoldCount');
+      if (soldText) soldText.textContent = (data.sold_count || 0).toLocaleString('vi-VN');
+
+      const starsContainer = document.getElementById('qvmStarsContainer');
+      if (starsContainer) {
+        const starCount = Math.round(data.rating || 5);
+        let starHtml = '';
+        for (let i = 1; i <= 5; i++) {
+          starHtml += `<i class="fa-solid fa-star ${i <= starCount ? 'text-warning' : 'text-secondary-subtle'}"></i>`;
+        }
+        starsContainer.innerHTML = starHtml;
       }
 
-      if (data.discount_percent > 0) {
-        const discEl = document.getElementById('qvmDiscountBadge');
-        discEl.textContent = `-${data.discount_percent}%`;
-        discEl.style.display = 'block';
-      } else {
-        document.getElementById('qvmDiscountBadge').style.display = 'none';
+      // Giá bán & Tiết kiệm
+      const priceEl = document.getElementById('qvmProductPrice');
+      if (priceEl) priceEl.textContent = data.price_formatted || '0₫';
+
+      const origEl = document.getElementById('qvmProductOriginalPrice');
+      const savEl = document.getElementById('qvmSavingsBadge');
+      if (origEl) {
+        if (data.original_price && data.original_price > data.price) {
+          origEl.textContent = data.original_price_formatted || (data.original_price.toLocaleString('vi-VN') + '₫');
+          origEl.style.display = 'inline';
+
+          if (savEl) {
+            const savings = data.original_price - data.price;
+            savEl.textContent = `Tiết kiệm ${savings.toLocaleString('vi-VN')}₫`;
+            savEl.style.display = 'inline-block';
+          }
+        } else {
+          origEl.style.display = 'none';
+          if (savEl) savEl.style.display = 'none';
+        }
       }
 
-      // Cập nhật thông tin tồn kho
-      document.getElementById('qvmStockNumber').textContent = (data.stock && data.stock > 0) ? data.stock : 999;
-      
+      // Discount Badge
+      const discBadge = document.getElementById('qvmDiscountBadge');
+      if (discBadge) {
+        if (data.discount_percent > 0) {
+          discBadge.textContent = `-${data.discount_percent}%`;
+          discBadge.style.display = 'block';
+        } else {
+          discBadge.style.display = 'none';
+        }
+      }
+
+      // Main Image
+      const mainImg = document.getElementById('qvmProductImage');
+      if (mainImg && data.image) {
+        mainImg.src = data.image;
+        mainImg.style.transformOrigin = 'center center';
+        mainImg.style.transform = 'scale(1)';
+      }
+
+      // Thumbnails Gallery
+      const thumbsContainer = document.getElementById('qvmThumbnailsContainer');
+      if (thumbsContainer) {
+        const gallery = (data.gallery && data.gallery.length > 0) ? data.gallery : (data.image ? [data.image] : []);
+        if (gallery.length > 1) {
+          const thumbsHtml = gallery.map((imgUrl, idx) => `
+            <div class="border rounded-3 p-1 bg-white qvm-thumb-item cursor-pointer ${idx === 0 ? 'border-warning border-2' : ''}" 
+                 style="width: 58px; height: 58px; cursor: pointer; transition: all 0.2s ease;" 
+                 onclick="changeQvmThumbnail('${imgUrl}', this)">
+              <img src="${imgUrl}" alt="thumb" class="w-100 h-100 object-fit-contain rounded">
+            </div>
+          `).join('');
+          thumbsContainer.innerHTML = thumbsHtml;
+          thumbsContainer.style.display = 'flex';
+        } else {
+          thumbsContainer.innerHTML = '';
+          thumbsContainer.style.display = 'none';
+        }
+      }
+
+      // Tồn kho tổng
+      const stockNum = document.getElementById('qvmStockNumber');
+      if (stockNum) stockNum.textContent = (data.stock && data.stock > 0) ? data.stock : 0;
+
       const colors = (data.colors && data.colors.length > 0) ? data.colors : ['Tiêu chuẩn'];
       const sizes = (data.sizes && data.sizes.length > 0) ? data.sizes : ['Freesize'];
 
-      // Render Danh Sách Màu Sắc (Color Swatches Luxury)
+      // Render Swatches Màu Sắc
       const colorsHtml = colors.map(col => {
         const hex = getColorHex(col);
         const isWhite = hex === '#ffffff';
@@ -1692,21 +1881,143 @@
       }).join('');
       document.getElementById('qvmColorsContainer').innerHTML = colorsHtml;
 
-      // Render Danh Sách Size (Size Matrix Box)
-      const sizesHtml = sizes.map(sz => {
+      // Render Matrix Kích Thước (Size) với Stock Tag
+      const sizesHtml = sizes.map((sz, idx) => {
         return `
           <button type="button" class="btn btn-sm d-flex flex-column align-items-center justify-content-center rounded-3 p-1.5 qvm-size-item transition-all" 
+            id="qvmSizeBtn_${idx}"
+            data-size="${sz}"
             onclick="selectQvmSize('${sz}', this)"
-            style="min-width: 62px; height: 48px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e293b;">
+            style="min-width: 68px; min-height: 52px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e293b;">
             <span class="fw-bold fs-6 lh-1">${sz}</span>
             <span class="text-muted lh-1 mt-1" style="font-size: 0.65rem;">${getSizeHint(sz)}</span>
+            <span class="qvm-size-stock-tag fw-semibold mt-0.5" id="qvmSizeStockTag_${idx}" style="font-size: 0.68rem; display: none;"></span>
           </button>
         `;
       }).join('');
       document.getElementById('qvmSizesContainer').innerHTML = sizesHtml;
 
-      // Cập nhật hiển thị số lượng & tổng tiền ban đầu
+      // Cập nhật tình trạng tồn kho trên từng nút Size và Tồn kho tổng thể
+      updateQvmSizeButtonsAvailability();
+      syncQvmStock();
       updateQvmQtyDisplay(1);
+      setupQvmImageZoom();
+    }
+
+    // Cập nhật nhãn số lượng tồn kho trên các nút Size của Modal (Giống hệt show.blade.php)
+    function updateQvmSizeButtonsAvailability() {
+      if (!currentQvmProduct) return;
+      const sizeBtns = document.querySelectorAll('.qvm-size-item');
+      const variants = currentQvmProduct.variants || [];
+
+      sizeBtns.forEach((btn, idx) => {
+        const szVal = btn.dataset.size ? btn.dataset.size.trim().toUpperCase() : '';
+        const tagEl = document.getElementById('qvmSizeStockTag_' + idx);
+        if (!tagEl) return;
+
+        if (selectedColor && variants.length > 0) {
+          const matched = variants.find(v => 
+            v.color && v.color.trim().toLowerCase() === selectedColor.trim().toLowerCase() && 
+            v.size && v.size.trim().toUpperCase() === szVal
+          );
+
+          tagEl.style.display = 'inline-block';
+          if (matched) {
+            if (matched.stock <= 0) {
+              tagEl.className = 'qvm-size-stock-tag text-danger fw-bold';
+              tagEl.innerHTML = '(Hết)';
+              btn.classList.add('opacity-50');
+            } else if (matched.stock <= 5) {
+              tagEl.className = 'qvm-size-stock-tag text-warning-emphasis fw-bold';
+              tagEl.innerHTML = `(Còn ${matched.stock})`;
+              btn.classList.remove('opacity-50');
+            } else {
+              tagEl.className = 'qvm-size-stock-tag text-success fw-semibold';
+              tagEl.innerHTML = `(Còn ${matched.stock})`;
+              btn.classList.remove('opacity-50');
+            }
+          } else {
+            tagEl.className = 'qvm-size-stock-tag text-muted';
+            tagEl.innerHTML = '(0)';
+            btn.classList.add('opacity-50');
+          }
+        } else if (variants.length > 0) {
+          // Chưa chọn màu: tính tổng tồn kho theo size
+          const totalSizeStock = variants
+            .filter(v => v.size && v.size.trim().toUpperCase() === szVal)
+            .reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+
+          tagEl.style.display = 'inline-block';
+          if (totalSizeStock <= 0) {
+            tagEl.className = 'qvm-size-stock-tag text-danger fw-bold';
+            tagEl.innerHTML = '(Hết)';
+            btn.classList.add('opacity-50');
+          } else {
+            tagEl.className = 'qvm-size-stock-tag text-muted';
+            tagEl.innerHTML = `(Kho: ${totalSizeStock})`;
+            btn.classList.remove('opacity-50');
+          }
+        } else {
+          tagEl.style.display = 'none';
+          btn.classList.remove('opacity-50');
+        }
+      });
+    }
+
+    // Đồng bộ trạng thái tồn kho của biến thể trong Modal
+    function syncQvmStock() {
+      if (!currentQvmProduct) return;
+      const stockBadge = document.getElementById('qvmStockBadge');
+      const stockNum = document.getElementById('qvmStockNumber');
+      const stockNumPreview = document.getElementById('qvmStockNumberPreview');
+      const btnAdd = document.getElementById('qvmAddToCartBtn');
+      const btnBuy = document.getElementById('qvmBuyNowBtn');
+
+      let currentStock = currentQvmProduct.stock || 0;
+
+      if (selectedColor && selectedSize && currentQvmProduct.variants && currentQvmProduct.variants.length > 0) {
+        const v = currentQvmProduct.variants.find(item => 
+          item.color && item.color.trim().toLowerCase() === selectedColor.trim().toLowerCase() &&
+          item.size && item.size.trim().toUpperCase() === selectedSize.trim().toUpperCase()
+        );
+        if (v) {
+          currentStock = v.stock;
+          if (v.price && v.price > 0) {
+            document.getElementById('qvmProductPrice').textContent = v.price_formatted || (v.price.toLocaleString('vi-VN') + '₫');
+          }
+        }
+      }
+
+      if (stockNum) stockNum.textContent = currentStock;
+      if (stockNumPreview) stockNumPreview.textContent = currentStock;
+
+      if (currentStock <= 0) {
+        if (stockBadge) {
+          stockBadge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle fw-semibold';
+          stockBadge.innerHTML = '<i class="fa-solid fa-ban me-1"></i> Tạm hết hàng';
+        }
+        if (btnAdd) { btnAdd.disabled = true; btnAdd.classList.add('disabled', 'opacity-50'); }
+        if (btnBuy) { btnBuy.disabled = true; btnBuy.classList.add('disabled', 'opacity-50'); }
+      } else {
+        if (stockBadge) {
+          if (currentStock <= 5) {
+            stockBadge.className = 'badge bg-warning-subtle text-dark border border-warning-subtle fw-semibold';
+            stockBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> Sắp hết (Còn <strong>${currentStock}</strong> cái)`;
+          } else {
+            stockBadge.className = 'badge bg-success-subtle text-success border border-success-subtle fw-semibold';
+            stockBadge.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> Còn <strong>${currentStock}</strong> trong kho`;
+          }
+        }
+        if (btnAdd) { btnAdd.disabled = false; btnAdd.classList.remove('disabled', 'opacity-50'); }
+        if (btnBuy) { btnBuy.disabled = false; btnBuy.classList.remove('disabled', 'opacity-50'); }
+      }
+
+      // Giới hạn lại số lượng mua
+      const maxAllowed = Math.min(10, Math.max(1, currentStock));
+      const qtyInput = document.getElementById('qvmQuantityInput');
+      let qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+      if (qty > maxAllowed) qty = maxAllowed;
+      updateQvmQtyDisplay(qty);
     }
 
     // Xử lý chọn màu
@@ -1728,6 +2039,9 @@
       btn.style.background = '#fffbeb';
       btn.style.color = '#92400e';
       btn.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.2)';
+
+      updateQvmSizeButtonsAvailability();
+      syncQvmStock();
     }
 
     // Xử lý chọn size
@@ -1753,6 +2067,8 @@
       btn.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.25)';
       const activeHint = btn.querySelector('span:nth-child(2)');
       if (activeHint) activeHint.className = 'text-warning-emphasis lh-1 mt-1';
+
+      syncQvmStock();
     }
 
     function updateQvmQtyDisplay(val) {
@@ -1812,11 +2128,52 @@
       updateQvmQtyDisplay(val);
     }
 
-
     // Submit Thêm Vào Giỏ hoặc Mua Ngay
     function submitQvmAction(isBuyNow) {
       if (!currentQvmProduct) return;
 
+      const hasColors = currentQvmProduct.colors && currentQvmProduct.colors.length > 0;
+      const hasSizes = currentQvmProduct.sizes && currentQvmProduct.sizes.length > 0;
+
+      if ((hasColors && !selectedColor) || (hasSizes && !selectedSize)) {
+        const valAlert = document.getElementById('qvmValidationAlert');
+        const alertText = document.getElementById('qvmValidationAlertText');
+        if (valAlert) {
+          const missingColor = hasColors && !selectedColor;
+          const missingSize = hasSizes && !selectedSize;
+          if (alertText) {
+            alertText.innerHTML = (missingColor && missingSize)
+              ? 'Vui lòng chọn đầy đủ <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!'
+              : (missingColor ? 'Vui lòng chọn <strong>Màu sắc</strong> trước khi tiếp tục!' : 'Vui lòng chọn <strong>Kích thước (Size)</strong> trước khi tiếp tục!');
+          }
+          valAlert.style.display = 'block';
+          valAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
+      const qtyInput = document.getElementById('qvmQuantityInput');
+      const quantity = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+
+      // Tìm variant_id phù hợp nếu có
+      let selectedVariantId = null;
+      if (currentQvmProduct.variants && currentQvmProduct.variants.length > 0) {
+        const matchedVariant = currentQvmProduct.variants.find(v => {
+          const cMatch = !selectedColor || (v.color && v.color.trim().toLowerCase() === selectedColor.trim().toLowerCase());
+          const sMatch = !selectedSize || (v.size && v.size.trim().toUpperCase() === selectedSize.trim().toUpperCase());
+          return cMatch && sMatch;
+        });
+        if (matchedVariant) {
+          selectedVariantId = matchedVariant.id;
+          if (matchedVariant.stock <= 0) {
+            alert(`Phiên bản Màu ${selectedColor} - Size ${selectedSize} hiện đã hết hàng trong kho!`);
+            return;
+          }
+        }
+      }
+
+      const payload = {
+        product_id: currentQvmProduct.id,
         variant_id: selectedVariantId,
         color: selectedColor,
         size: selectedSize,

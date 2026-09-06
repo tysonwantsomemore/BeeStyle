@@ -5,6 +5,45 @@
 @section('content')
 @php
   $addresses = $addresses ?? ($user->addresses ?? collect());
+  
+  $totalSpent = $orders->where('shipping_status', 'completed')->sum('total_amount');
+  if ($totalSpent <= 0) {
+    $totalSpent = $orders->where('payment_status', 'paid')->sum('total_amount');
+  }
+  
+  if ($totalSpent >= 10000000) {
+    $tierName = 'VIP Kim Cương (Diamond)';
+    $tierBadgeClass = 'bg-dark text-warning border border-warning';
+    $tierIcon = 'fa-gem';
+    $nextTierName = 'Hạng Cao Nhất';
+    $nextTierTarget = 10000000;
+    $progressPercent = 100;
+    $neededMore = 0;
+  } elseif ($totalSpent >= 5000000) {
+    $tierName = 'VIP Vàng (Gold)';
+    $tierBadgeClass = 'bg-warning text-dark';
+    $tierIcon = 'fa-crown';
+    $nextTierName = 'VIP Kim Cương';
+    $nextTierTarget = 10000000;
+    $progressPercent = min(100, round(($totalSpent / 10000000) * 100));
+    $neededMore = 10000000 - $totalSpent;
+  } elseif ($totalSpent >= 2000000) {
+    $tierName = 'Hội Viên Bạc (Silver)';
+    $tierBadgeClass = 'bg-secondary text-white';
+    $tierIcon = 'fa-medal';
+    $nextTierName = 'VIP Vàng';
+    $nextTierTarget = 5000000;
+    $progressPercent = min(100, round(($totalSpent / 5000000) * 100));
+    $neededMore = 5000000 - $totalSpent;
+  } else {
+    $tierName = 'Thành Viên Đồng (Bronze)';
+    $tierBadgeClass = 'bg-light text-dark border';
+    $tierIcon = 'fa-award';
+    $nextTierName = 'Hội Viên Bạc';
+    $nextTierTarget = 2000000;
+    $progressPercent = min(100, round(($totalSpent / 2000000) * 100));
+    $neededMore = 2000000 - $totalSpent;
+  }
 @endphp
 <div class="container py-4">
   <!-- Breadcrumb -->
@@ -14,8 +53,6 @@
       <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Tài khoản cá nhân</li>
     </ol>
   </nav>
-
-
 
   @if(isset($errors) && $errors->any())
     <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
@@ -27,7 +64,6 @@
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   @endif
-
 
   <div class="row g-4">
     <!-- USER PROFILE SIDEBAR -->
@@ -44,13 +80,46 @@
         <p class="text-muted small mb-2">{{ $user->email }}</p>
 
         <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
-          <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-2 rounded-pill">
-            <i class="fa-solid fa-award me-1"></i> {{ $user->rank ?? 'Thành viên Mới' }}
-          </span>
-          <span class="badge bg-light text-dark fw-bold px-3 py-2 rounded-pill border">
-            <i class="fa-solid fa-circle-check me-1 text-success"></i> Khách Hàng Thân Thiết
+          <span class="badge {{ $tierBadgeClass }} fw-bold px-3 py-2 rounded-pill shadow-xs">
+            <i class="fa-solid {{ $tierIcon }} me-1"></i> {{ $tierName }}
           </span>
         </div>
+
+        <!-- Mini Stats Summary -->
+        <div class="row g-2 p-2.5 rounded-3 bg-light border mb-3 text-center">
+          <div class="col-4 border-end">
+            <small class="text-muted d-block" style="font-size: 0.72rem;">Đơn Hàng</small>
+            <strong class="text-dark fs-6">{{ $orders->count() }}</strong>
+          </div>
+          <div class="col-4 border-end">
+            <small class="text-muted d-block" style="font-size: 0.72rem;">Đánh Giá</small>
+            <strong class="text-warning fs-6">{{ $user->reviews->count() }}</strong>
+          </div>
+          <div class="col-4">
+            <small class="text-muted d-block" style="font-size: 0.72rem;">Tích Lũy</small>
+            <strong class="text-danger fs-6" style="font-size: 0.85rem !important;">{{ number_format($totalSpent / 1000, 0) }}k</strong>
+          </div>
+        </div>
+
+        <!-- Tier Progress Bar -->
+        @if($neededMore > 0)
+          <div class="p-2.5 rounded-3 border mb-3 text-start" style="background: #fafafa;">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="text-muted fw-semibold" style="font-size: 0.73rem;">Tiến trình lên {{ $nextTierName }}</small>
+              <small class="text-danger fw-bold" style="font-size: 0.73rem;">{{ $progressPercent }}%</small>
+            </div>
+            <div class="progress" style="height: 6px;">
+              <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ $progressPercent }}%"></div>
+            </div>
+            <small class="text-muted d-block mt-1" style="font-size: 0.68rem;">
+              Chi tiêu thêm <strong class="text-dark">{{ number_format($neededMore, 0, ',', '.') }}₫</strong> để nâng hạng đặc quyền.
+            </small>
+          </div>
+        @else
+          <div class="p-2 rounded-3 border mb-3 text-center bg-dark text-warning" style="font-size: 0.75rem;">
+            <i class="fa-solid fa-gem me-1"></i> Quý khách đã đạt hạng <strong>{{ $tierName }}</strong> cao nhất!
+          </div>
+        @endif
 
         <!-- Navigation Tabs List -->
         <div class="nav flex-column nav-pills text-start small border-top pt-3 gap-1" id="profileTabs" role="tablist">
@@ -244,6 +313,11 @@
 
 
 
+                  <!-- Order Footer: Payment Status & Actions -->
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2.5 border-top">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="small text-muted">Thanh toán:</span>
+                      <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-dark' }} fw-bold">
                         {{ $order->payment_status_label }}
                       </span>
                     </div>
@@ -847,3 +921,60 @@
       'vip': 'rewards-tab',
       'reviews': 'my-reviews-tab',
       '#tab-orders': 'orders-tab',
+      '#tab-profile': 'edit-profile-tab',
+      '#tab-bank': 'bank-tab',
+      '#tab-password': 'password-tab',
+      '#tab-addresses': 'addresses-tab',
+      '#tab-vip': 'rewards-tab',
+      '#tab-my-reviews': 'my-reviews-tab'
+    };
+
+    const targetTabId = tabMap[tabParam] || tabMap[hash];
+    if (targetTabId) {
+      const tabTrigger = document.getElementById(targetTabId);
+      if (tabTrigger) {
+        const bsTab = new bootstrap.Tab(tabTrigger);
+        bsTab.show();
+      }
+    }
+
+    // Cập nhật hash trên URL khi bấm chuyển tab
+    const tabButtons = document.querySelectorAll('#profileTabs button[data-bs-toggle="pill"]');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('shown.bs.tab', function (e) {
+        const target = e.target.getAttribute('data-bs-target');
+        if (target && history.replaceState) {
+          history.replaceState(null, null, target);
+        }
+      });
+    });
+  });
+
+  // Lightbox xem ảnh review phóng to
+  function openReviewImageLightbox(imgUrl) {
+    let modalEl = document.getElementById('profileReviewImgModal');
+    if (!modalEl) {
+      modalEl = document.createElement('div');
+      modalEl.id = 'profileReviewImgModal';
+      modalEl.className = 'modal fade';
+      modalEl.tabIndex = -1;
+      modalEl.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content bg-transparent border-0 shadow-none text-center">
+            <div class="modal-body p-0 position-relative">
+              <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 p-2 bg-dark rounded-circle" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1055;"></button>
+              <img id="profileReviewFullImg" src="" class="img-fluid rounded-4 shadow-lg" style="max-height: 85vh; object-fit: contain;">
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modalEl);
+    }
+    const fullImg = document.getElementById('profileReviewFullImg');
+    if (fullImg) fullImg.src = imgUrl;
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    bsModal.show();
+  }
+</script>
+@endpush
+@endsection

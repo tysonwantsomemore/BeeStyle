@@ -32,8 +32,22 @@ class CartService
                 $v = \App\Models\ProductVariant::find($item['variant_id']);
                 if ($v) $currentStock = $v->stock;
             } elseif (!empty($item['product_id'])) {
-                $p = \App\Models\Product::find($item['product_id']);
-                if ($p) $currentStock = $p->stock;
+                if (!empty($item['color']) && !empty($item['size'])) {
+                    $v = \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                        ->where('color', $item['color'])
+                        ->where('size', $item['size'])
+                        ->first();
+                    if ($v) {
+                        $currentStock = $v->stock;
+                        $item['variant_id'] = $v->id;
+                    } else {
+                        $p = \App\Models\Product::find($item['product_id']);
+                        if ($p) $currentStock = $p->stock;
+                    }
+                } else {
+                    $p = \App\Models\Product::find($item['product_id']);
+                    if ($p) $currentStock = $p->stock;
+                }
             }
 
             $isOutOfStock = ($currentStock <= 0);
@@ -130,7 +144,11 @@ class CartService
         $selectedSize = $variant ? $variant->size : ($size ?? ($product->sizes[0] ?? 'Tiêu chuẩn'));
 
         if ($stock <= 0) {
-            return ['success' => false, 'message' => 'Phiên bản sản phẩm đã chọn hiện đã hết hàng trong kho.'];
+            return ['success' => false, 'message' => "Phiên bản \"{$selectedColor} - Size {$selectedSize}\" hiện đã hết hàng trong kho."];
+        }
+
+        if ($quantity > $stock) {
+            return ['success' => false, 'message' => "Phiên bản này trong kho chỉ còn {$stock} sản phẩm. Quý khách vui lòng chọn tối đa {$stock} cái."];
         }
 
         // Kiểm tra xem sản phẩm có đang trong chương trình Ưu Đãi Trong Ngày (Daily Deal) không
@@ -147,14 +165,22 @@ class CartService
             $price = max(0, (int) round($price * (1 - ($runningDeal->discount_percent / 100))));
         }
 
-        // Giới hạn tối đa 10 sản phẩm mỗi lần mua
-        $quantity = min(10, max(1, $quantity));
+        // Giới hạn tối đa 10 sản phẩm mỗi lần mua hoặc không vượt quá tồn kho
+        $maxAllowed = min(10, $stock);
+        $quantity = min($maxAllowed, max(1, $quantity));
 
         $cartKey = $variant ? "v_{$variant->id}" : "{$productId}_{$selectedColor}_{$selectedSize}";
         $cart = Session::get(self::CART_SESSION_KEY, []);
 
         if (isset($cart[$cartKey])) {
-            $newQuantity = min(10, $cart[$cartKey]['quantity'] + $quantity);
+            $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
+            if ($newQuantity > $maxAllowed) {
+                $canAdd = max(0, $maxAllowed - $cart[$cartKey]['quantity']);
+                if ($canAdd <= 0) {
+                    return ['success' => false, 'message' => "Bạn đã có {$cart[$cartKey]['quantity']} sản phẩm này trong giỏ hàng (đã đạt số lượng tồn kho tối đa cho phép đặt)."];
+                }
+                return ['success' => false, 'message' => "Bạn đã có {$cart[$cartKey]['quantity']} sản phẩm này trong giỏ. Trong kho chỉ còn {$stock} cái, bạn chỉ có thể thêm tối đa {$canAdd} cái nữa."];
+            }
             $cart[$cartKey]['quantity'] = $newQuantity;
         } else {
             $cart[$cartKey] = [
@@ -201,8 +227,27 @@ class CartService
             return self::remove($cartKey);
         }
 
-        // Giới hạn số lượng tối đa 10 sản phẩm
-        $quantity = min(10, max(1, $quantity));
+        $item = $cart[$cartKey];
+        $realStock = 10;
+        if (!empty($item['variant_id'])) {
+            $v = \App\Models\ProductVariant::find($item['variant_id']);
+            if ($v) $realStock = $v->stock;
+        } elseif (!empty($item['product_id'])) {
+            $v = \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                ->where('color', $item['color'] ?? '')
+                ->where('size', $item['size'] ?? '')
+                ->first();
+            if ($v) $realStock = $v->stock;
+            else {
+                $p = \App\Models\Product::find($item['product_id']);
+                if ($p) $realStock = $p->stock;
+            }
+        }
+
+        $maxAllowed = min(10, $realStock);
+        if ($quantity > $maxAllowed) {
+            return ['success' => false, 'message' => "Kho chỉ còn {$realStock} cái, không thể tăng vượt quá tồn kho."];
+        }
 
         $cart[$cartKey]['quantity'] = $quantity;
         Session::put(self::CART_SESSION_KEY, $cart);

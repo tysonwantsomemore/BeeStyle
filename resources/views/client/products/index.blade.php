@@ -3,6 +3,10 @@
 @section('title', 'Cửa Hàng Thời Trang Nam | BeeStyle Menswear')
 
 @section('content')
+@php
+  $categorySlug = $categorySlug ?? request('category');
+  $brandSlug = $brandSlug ?? request('brand');
+@endphp
 <div class="container py-4">
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">

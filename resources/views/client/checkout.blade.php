@@ -119,48 +119,10 @@
             <i class="fa-solid fa-credit-card me-2 text-warning"></i> 2. Phương Thức Thanh Toán
           </h5>
 
-          <div class="d-flex flex-column gap-3">
-            <!-- Method 1: COD -->
-            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_cod">
-              <div class="d-flex align-items-center">
-                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_cod" value="cod" checked>
-                <div>
-                  <strong class="text-dark d-block">Thanh toán khi nhận hàng (COD)</strong>
-                  <span class="text-muted small">Thanh toán tiền mặt cho bưu tá khi nhận và thử hàng tận nhà</span>
-                </div>
-              </div>
-              <i class="fa-solid fa-hand-holding-dollar fs-3 text-warning"></i>
-            </label>
-
-            <!-- Method 2: VietQR -->
-            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_vietqr">
-              <div class="d-flex align-items-center">
-                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_vietqr" value="vietqr">
-                <div>
-                  <strong class="text-dark d-block">Chuyển khoản VietQR 24/7 (Khuyên dùng)</strong>
-                  <span class="text-muted small">Quét mã QR qua app mọi ngân hàng - Tự động xác nhận giao dịch</span>
-                </div>
-              </div>
-              <i class="fa-solid fa-qrcode fs-3 text-warning"></i>
-            </label>
-
-            <!-- Method 3: VNPAY / MoMo -->
-            <label class="bee-pay-card d-flex align-items-center justify-content-between cursor-pointer" for="pay_vnpay">
-              <div class="d-flex align-items-center">
-                <input class="form-check-input me-3 mt-0" type="radio" name="payment_method" id="pay_vnpay" value="vnpay">
-                <div>
-                  <strong class="text-dark d-block">Ví điện tử VNPAY / MoMo / Thẻ Quốc Tế</strong>
-                  <span class="text-muted small">Cổng thanh toán online an toàn bảo mật tiêu chuẩn quốc tế</span>
-                </div>
-              </div>
-              <i class="fa-solid fa-wallet fs-3 text-info"></i>
-            </label>
-          </div>
-
           <div class="d-flex flex-column gap-3" id="paymentMethodContainer">
             
             <!-- PHƯƠNG THỨC 1: COD -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_cod" id="card_pay_cod">
+            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer active" for="pay_cod" id="card_pay_cod">
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
                   <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_cod" value="cod" checked onchange="updatePayOptionCards()">
@@ -177,7 +139,7 @@
                 </div>
               </div>
               <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary" id="desc_pay_cod">
-                <i class="fa-solid fa-circle-info text-warning me-1"></i> Bạn được mở gói hàng kiểm tra và thử đồ trước khi thanh toán cho nhân viên giao hàng.
+                <i class="fa-solid fa-circle-info text-warning me-1"></i> Quý khách được mở gói hàng đồng kiểm và thử đồ trước khi thanh toán cho nhân viên bưu tá.
               </div>
             </label>
 
@@ -203,29 +165,29 @@
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 3: THANH TOÁN TRỰC TUYẾN QUA MOMO -->
+            <!-- PHƯƠNG THỨC 2: THANH TOÁN TRỰC TUYẾN QUA MOMO -->
             <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_momo" id="card_pay_momo">
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
                   <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_momo" value="momo" onchange="updatePayOptionCards()">
                   <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">Thanh toán trực tuyến qua MoMo</strong>
-                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Deep Link / Cổng MoMo</span>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <strong class="text-dark">Thanh toán trực tuyến qua ví MoMo bằng chuyển hướng ứng dụng (Redirect/Deep Link)</strong>
+                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Redirect / Deep Link</span>
                     </div>
-                    <small class="text-muted d-block mt-0.5">Mở trực tiếp ứng dụng MoMo trên điện thoại hoặc chuyển tới cổng MoMo chính thức</small>
+                    <small class="text-muted d-block mt-1">BeeStyle tích hợp thanh toán trực tuyến qua ví điện tử MoMo. Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), cho phép khách hàng mở ứng dụng MoMo và xác nhận thanh toán mà không cần quét mã QR.</small>
                   </div>
                 </div>
-                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2" style="background-color: #d82d8b; font-size: 0.85rem;">
+                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2 flex-shrink-0" style="background-color: #d82d8b; font-size: 0.85rem;">
                   <i class="fa-solid fa-wallet me-1"></i> MoMo
                 </span>
               </div>
               <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_momo">
-                <i class="fa-solid fa-circle-info text-danger me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ tự động mở ứng dụng <strong>MoMo</strong> (trên điện thoại) hoặc chuyển tiếp đến cổng thanh toán chính thức của MoMo (trên máy tính). Không hiển thị mã QR trên website.
+                <i class="fa-solid fa-circle-info text-danger me-1"></i> BeeStyle tích hợp thanh toán trực tuyến qua ví điện tử MoMo. Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), cho phép khách hàng mở ứng dụng MoMo và xác nhận thanh toán mà không cần quét mã QR.
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 4: VÍ ZALOPAY -->
+            <!-- PHƯƠNG THỨC 3: VÍ ZALOPAY -->
             <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_zalopay" id="card_pay_zalopay">
               <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
@@ -356,6 +318,7 @@
     border-color: #94a3b8 !important;
     background: #f8fafc;
   }
+
   .pay-option-card.active#card_pay_cod {
     border-color: #f59e0b !important;
     background: #fffbeb !important;

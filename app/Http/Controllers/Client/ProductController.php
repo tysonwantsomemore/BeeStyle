@@ -15,8 +15,9 @@ class ProductController extends Controller
     /**
      * Danh sách tất cả sản phẩm đang có ƯU ĐÃI TRONG NGÀY (Flash Sale)
      */
-    public function dailyDeals(Request $request)
+    public function dailyDeals(Request $request = null)
     {
+        $request = $request ?? request();
         $tab = $request->query('tab', 'all'); // all, running, upcoming
         $categorySlug = $request->query('category');
         $sort = $request->query('sort', 'discount_desc');
@@ -270,7 +271,7 @@ class ProductController extends Controller
                 $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
             })
             ->orderBy('min_order_value', 'asc')
-            ->take(4)
+            ->take(6)
             ->get();
 
         $relatedProducts = Product::with(['category', 'brand', 'variants'])
@@ -295,7 +296,22 @@ class ProductController extends Controller
             $userReview = \App\Models\Review::where('product_id', $id)->where('user_id', $user->id)->first();
         }
 
-        return view('client.products.show', compact('product', 'relatedProducts', 'categories', 'userHasPurchased', 'userReview'));
+        // Kiểm tra Deal / Flash Sale đang hoạt động
+        $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
+        if (!$runningDeal) {
+            $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->forToday()->first();
+        }
+
+        return view('client.products.show', compact(
+            'product',
+            'relatedProducts',
+            'recentlyViewedProducts',
+            'availableCoupons',
+            'runningDeal',
+            'categories',
+            'userHasPurchased',
+            'userReview'
+        ));
     }
 
     /**
@@ -303,7 +319,7 @@ class ProductController extends Controller
      */
     public function getQuickViewData($id)
     {
-        $product = Product::with(['variants' => fn($q) => $q->active(), 'category'])->active()->find($id);
+        $product = Product::with(['variants' => fn($q) => $q->active(), 'category', 'brand', 'images'])->active()->find($id);
         if (!$product) {
             return response()->json(['success' => false, 'message' => 'Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.'], 404);
         }
@@ -311,8 +327,6 @@ class ProductController extends Controller
         // Lấy danh sách màu sắc và sizes
         $colors = $product->colors ?? [];
         $sizes = $product->sizes ?? [];
-
-        // Nếu bảng variants có dữ liệu thì lấy thêm từ variants
 
         // Kiểm tra ưu đãi trong ngày
         $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
@@ -325,11 +339,26 @@ class ProductController extends Controller
             $discountPercent = $runningDeal->discount_percent;
         }
 
+        $gallery = collect([asset($product->image)]);
+        if ($product->images && $product->images->count() > 0) {
+            foreach ($product->images as $img) {
+                if ($img->image_path) {
+                    $gallery->push(asset($img->image_path));
+                }
+            }
+        }
+        $gallery = $gallery->unique()->values()->all();
+
         return response()->json([
             'success' => true,
             'id' => $product->id,
             'name' => $product->name,
+            'sku' => $product->sku ?: ('BS-' . $product->id),
             'category_name' => $product->category->name ?? 'Thời trang nam',
+            'brand_name' => $product->brand->name ?? 'BeeStyle Menswear',
+            'rating' => (float)($product->rating ?? 5.0),
+            'sold_count' => (int)($product->sold_count ?? 0),
+            'product_url' => route('client.products.show', $product->id),
             'price' => $effectivePrice,
             'price_formatted' => number_format($effectivePrice, 0, ',', '.') . '₫',
             'original_price' => $originalPrice,
@@ -338,7 +367,8 @@ class ProductController extends Controller
             'is_daily_deal' => (bool)$runningDeal,
             'deal_slot' => $runningDeal ? $runningDeal->formatted_slot : null,
             'image' => asset($product->image),
-            'stock' => $product->stock,
+            'gallery' => $gallery,
+            'stock' => $product->variants->count() > 0 ? (int)$product->variants->sum('stock') : (int)$product->stock,
             'colors' => $colors,
             'sizes' => $sizes,
             'variants' => $product->variants->map(function ($v) use ($runningDeal) {
@@ -348,11 +378,11 @@ class ProductController extends Controller
                 }
                 return [
                     'id' => $v->id,
-                    'color' => $v->color,
-                    'size' => $v->size,
+                    'color' => trim($v->color),
+                    'size' => trim($v->size),
                     'price' => $vPrice,
                     'price_formatted' => number_format($vPrice, 0, ',', '.') . '₫',
-                    'stock' => $v->stock ?? 999,
+                    'stock' => (int) $v->stock,
                 ];
             }),
         ]);

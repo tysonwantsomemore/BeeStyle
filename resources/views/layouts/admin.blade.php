@@ -38,11 +38,10 @@
         <div class="navbar-vertical-content">
           <ul class="navbar-nav flex-column" id="navbarVerticalNav">
             
-            <!-- ADMIN UNIFIED LOGO -->
+            <!-- ADMIN UNIFIED LOGO (BEE MÀU ĐỎ, STYLE MÀU VÀNG) -->
             <li class="nav-item mb-4 px-3 pt-3">
-              <a href="{{ route('admin.dashboard') }}" class="beestyle-logo logo-light">
-                <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-                <span>BEE<span class="brand-highlight">STYLE</span></span>
+              <a href="{{ route('admin.dashboard') }}" class="beestyle-brand-link d-inline-flex align-items-center text-decoration-none" title="BEESTYLE Admin">
+                <span class="beestyle-logo-text" style="font-size: 1.6rem;"><span class="text-danger">BEE</span><span class="text-warning">STYLE</span></span>
               </a>
             </li>
 
@@ -183,11 +182,8 @@
           <button class="btn navbar-toggler navbar-toggler-humburger-icon hover-bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalCollapse">
             <span class="navbar-toggle-icon"><span class="toggle-line"></span></span>
           </button>
-          <a class="navbar-brand me-1 me-sm-3 d-lg-none" href="{{ route('admin.dashboard') }}">
-            <div class="beestyle-logo" style="font-size: 1.25rem;">
-              <span class="logo-badge" style="width: 32px; height: 32px; font-size: 0.95rem;"><i class="fa-solid fa-gem"></i></span>
-              <span>BEE<span class="brand-highlight">STYLE</span></span>
-            </div>
+          <a class="navbar-brand me-1 me-sm-3 d-lg-none text-decoration-none" href="{{ route('admin.dashboard') }}">
+            <span class="beestyle-logo-text" style="font-size: 1.35rem;"><span class="text-danger">BEE</span><span class="text-warning">STYLE</span></span>
           </a>
 
         </div>

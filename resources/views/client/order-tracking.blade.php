@@ -261,11 +261,162 @@
         <div>
           <span class="text-muted small">Trạng thái:</span>
           <div>
-            @if($currentOrder->admin_notes)
+            <span class="badge {{ $currentOrder->shipping_status === 'cancelled' ? 'bg-danger text-white' : ($currentOrder->shipping_status === 'completed' ? 'bg-success text-white' : 'bg-warning text-dark') }} px-3 py-1.5 fw-bold rounded-pill">
+              {{ $currentOrder->status_label }}
+            </span>
+          </div>
+        </div>
+        <div>
+          <span class="text-muted small">Tổng tiền:</span>
+          <div class="fw-bold text-danger fs-5">{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</div>
+        </div>
+        @if(Auth::check() && Auth::id() === $currentOrder->user_id)
+          <div>
+            @if($currentOrder->canBeCancelledByCustomer())
+              <button type="button" class="btn btn-sm btn-outline-danger px-3 fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#cancelTrackingOrderModal">
+                <i class="fa-solid fa-xmark me-1"></i> Hủy Đơn
+              </button>
+            @elseif($currentOrder->canBeReturnedByCustomer())
+              <a href="{{ route('client.profile', ['tab' => 'orders']) }}" class="btn btn-sm btn-bee-outline px-3 fw-bold rounded-pill">
+                <i class="fa-solid fa-arrow-rotate-left me-1"></i> Đổi Trả / Hoàn Tiền
+              </a>
+            @endif
+          </div>
+        @endif
+      </div>
+
+      <!-- 6-STEP TIMELINE TRACKER -->
+      @if($currentOrder->shipping_status === 'cancelled')
+        <div class="alert alert-danger py-3 px-4 rounded-3 d-flex align-items-center gap-3 my-4">
+          <i class="fa-solid fa-ban fs-2 text-danger"></i>
+          <div>
+            <strong class="fs-6 d-block">ĐƠN HÀNG ĐÃ BỊ HỦY</strong>
+            <span class="small text-danger text-opacity-80">Đơn hàng này không còn trong tiến trình giao nhận hàng.</span>
+          </div>
+        </div>
+      @else
+        <div class="bee-timeline-steps my-5">
+          @php
+            $stepTimes = [
+              1 => $currentOrder->created_at,
+              2 => $currentOrder->confirmed_at,
+              3 => $currentOrder->processing_at,
+              4 => $currentOrder->shipping_at,
+              5 => $currentOrder->delivered_at,
+              6 => $currentOrder->completed_at,
+            ];
+            $steps = [
+              1 => ['label' => '1. Chờ Xác Nhận', 'desc' => 'Đơn hàng mới tạo'],
+              2 => ['label' => '2. Đã Xác Nhận', 'desc' => 'Đã duyệt thông tin'],
+              3 => ['label' => '3. Đang Đóng Gói', 'desc' => 'Kho nhặt hàng & gói'],
+              4 => ['label' => '4. Đang Giao Hàng', 'desc' => 'Bưu tá vận chuyển'],
+              5 => ['label' => '5. Đã Giao Hàng', 'desc' => 'Khách nhận & kiểm tra'],
+              6 => ['label' => '6. Hoàn Tất', 'desc' => 'Thành công'],
+            ];
+            $currentStep = $currentOrder->status_step;
+          @endphp
+
+          @foreach($steps as $stepNum => $stepData)
+            <div class="bee-timeline-step {{ $currentStep > $stepNum ? 'completed' : ($currentStep == $stepNum ? 'active' : '') }}">
+              <div class="bee-timeline-step-icon">
+                @if($currentStep > $stepNum)
+                  <i class="fa-solid fa-check"></i>
+                @else
+                  {{ $stepNum }}
+                @endif
+              </div>
+              <div class="bee-timeline-step-label fw-bold">{{ $stepData['label'] }}</div>
+              <small class="text-muted d-block" style="font-size: 0.72rem;">{{ $stepData['desc'] }}</small>
+              @if(!empty($stepTimes[$stepNum]))
+                <div class="text-success font-monospace mt-1 fw-bold" style="font-size: 0.7rem;">
+                  <i class="fa-regular fa-clock me-0.5"></i>{{ $stepTimes[$stepNum]->format('d/m/Y H:i') }}
+                </div>
+              @endif
+            </div>
+          @endforeach
+        </div>
+      @endif
+
+      <!-- COMPLETED ORDER REVIEW NOTIFICATION BANNER -->
+      @if($currentOrder->status_step >= 5 || in_array($currentOrder->shipping_status, ['delivered', 'completed']))
+        <div class="alert alert-success border-0 shadow-sm p-4 my-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 6px solid #10b981 !important;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px; min-width: 48px;">
+              <i class="fa-solid fa-heart fs-4"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold text-success mb-1 fs-6">CẢM ƠN QUÝ KHÁCH ĐÃ MUA HÀNG TẠI BEESTYLE!</h6>
+              <p class="mb-0 text-muted small">BeeStyle chân thành cảm ơn Quý khách đã tin tưởng mua sắm. Hãy chia sẻ cảm nhận của bạn để giúp chúng tôi ngày càng hoàn thiện nhé!</p>
+            </div>
+          </div>
+          <button type="button" onclick="openQuickReviewModal({{ $currentOrder->items->first()->product_id ?? 1 }})" class="btn btn-bee-primary px-4 py-2.5 text-nowrap fw-bold rounded-pill shadow-sm">
+            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM
+          </button>
+        </div>
+      @endif
+
+      <!-- ORDER DETAILS & CUSTOMER INFO -->
+      <div class="row g-4 pt-3 border-top">
+        <!-- Cột 1: Thông tin người nhận -->
+        <div class="col-md-6 border-end">
+          <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-user me-2 text-warning"></i> Thông Tin Nhận Hàng</h6>
+          <div class="p-3 bg-light rounded-3 border d-flex flex-column gap-2 small">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Người nhận:</span>
+              <strong class="text-dark">{{ $currentOrder->customer_name }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Số điện thoại:</span>
+              <strong class="text-dark">{{ $currentOrder->customer_phone }}</strong>
+            </div>
+            @if($currentOrder->customer_email)
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">Email:</span>
+                <span class="text-dark">{{ $currentOrder->customer_email }}</span>
+              </div>
+            @endif
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Địa chỉ giao:</span>
+              <span class="text-dark text-end fw-semibold" style="max-width: 250px;">{{ $currentOrder->shipping_address }}{{ $currentOrder->city ? ', ' . $currentOrder->city : '' }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Phương thức:</span>
+              <span class="text-dark fw-bold">{{ $currentOrder->payment_method_name }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted">Trạng thái thanh toán:</span>
+              <span class="badge {{ $currentOrder->payment_status === 'paid' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-dark border border-warning-subtle' }} fw-bold">
+                {{ $currentOrder->payment_status_label }}
+              </span>
+            </div>
+            @if($currentOrder->notes)
+              <div class="pt-1.5 border-top text-muted">
+                <strong>Ghi chú:</strong> "{{ $currentOrder->notes }}"
+              </div>
+            @endif
+            @if($currentOrder->tracking_code)
+              <div class="p-3 bg-primary-subtle text-primary rounded-3 border border-primary-subtle mt-2 shadow-2xs">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-truck-fast fs-4 text-primary"></i>
+                    <div>
+                      <small class="text-muted d-block" style="font-size: 0.72rem;">Đơn Vị Vận Chuyển: <strong>{{ $currentOrder->shipping_carrier ?: 'Giao Hàng Tiết Kiệm (GHTK)' }}</strong></small>
+                      <strong class="font-monospace fs-6 text-dark">{{ $currentOrder->tracking_code }}</strong>
+                    </div>
+                  </div>
+                  @if($currentOrder->tracking_url)
+                    <a href="{{ $currentOrder->tracking_url }}" target="_blank" class="btn btn-bee-primary btn-sm px-3 py-1.5 fw-bold rounded-pill shadow-xs" style="font-size: 0.75rem;">
+                      <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Tra Cứu Trực Tiếp
+                    </a>
+                  @endif
+                </div>
+              </div>
+            @elseif($currentOrder->admin_notes)
+>>>>>>> 15d4964 ( fix Theo dõi trạng thái đơn hàng)
               <div class="p-2 bg-info-subtle text-info rounded-3 border border-info-subtle d-flex align-items-center gap-2 mt-1">
                 <i class="fa-solid fa-truck-fast fs-5 text-primary"></i>
                 <div class="small text-dark">
-                  <strong class="text-primary d-block">Vận Đơn Giao Hàng:</strong> {{ $currentOrder->admin_notes }}
+                  <strong class="text-primary d-block">Thông Tin Bưu Kiện:</strong> {{ $currentOrder->admin_notes }}
                 </div>
               </div>
             @endif

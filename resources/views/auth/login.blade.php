@@ -9,10 +9,9 @@
       
       <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
         <div class="text-center mb-4">
-          <div class="beestyle-logo justify-content-center mb-2">
-            <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-            <span>BEE<span class="brand-highlight">STYLE</span></span>
-          </div>
+          <a href="{{ route('client.home') }}" class="beestyle-brand-link justify-content-center mb-3 text-decoration-none d-inline-flex" title="BEESTYLE">
+            <span class="beestyle-logo-text" style="font-size: 2.2rem;"><span class="text-danger">BEE</span>STYLE</span>
+          </a>
           <h4 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">ĐĂNG NHẬP HỆ THỐNG</h4>
           <p class="text-muted small">Khám phá thế giới thời trang nam cao cấp &amp; ưu đãi thành viên</p>
         </div>
