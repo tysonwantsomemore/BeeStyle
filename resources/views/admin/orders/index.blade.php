@@ -3,23 +3,25 @@
 @section('title', 'Quản Lý Đơn Hàng | BeeStyle Admin')
 
 @section('content')
-<div class="mb-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">GIAO DỊCH</span>
-        <h3 class="fw-bold text-dark mb-0">Quản Lý Đơn Hàng &amp; Vận Chuyển</h3>
-      </div>
-      <p class="text-muted small mb-0">Theo dõi tiến trình xử lý, tài khoản đặt hàng, đóng gói, vận chuyển và đối soát doanh thu đơn hàng</p>
+<!-- HEADER -->
+<div class="row gy-3 mb-4 justify-content-between align-items-center">
+  <div class="col-md">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge badge-phoenix badge-phoenix-warning fs-10 fw-bold px-2 py-1">GIAO DỊCH &amp; VẬN CHUYỂN</span>
+      <h2 class="mb-0 text-body-emphasis fw-bold">Quản Lý Đơn Hàng</h2>
     </div>
+    <p class="text-body-tertiary mb-0">Theo dõi tiến trình xử lý, tài khoản đặt hàng, đóng gói, vận chuyển và đối soát doanh thu</p>
   </div>
 </div>
 
-<div class="bee-table-card">
+<!-- ORDERS TABLE CARD -->
+<div class="card border-0 shadow-sm mb-4">
   <!-- FILTER TOOLBAR -->
-  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+  <div class="card-header border-bottom border-translucent bg-body-emphasis d-flex justify-content-between align-items-center flex-wrap gap-3">
     <form action="{{ route('admin.orders.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
-      <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="Tìm theo mã đơn, tài khoản, SĐT..." style="width: 280px;">
+      <div class="position-relative">
+        <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm search-input" placeholder="Tìm mã đơn, tài khoản, SĐT..." style="width: 240px;">
+      </div>
       <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 190px;">
         <option value="">Tất cả trạng thái</option>
         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
@@ -30,146 +32,147 @@
         <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Hoàn tất</option>
         <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
       </select>
-      <button type="submit" class="btn btn-sm btn-outline-secondary">Lọc</button>
+      <button type="submit" class="btn btn-sm btn-phoenix-secondary">Lọc</button>
       @if(request('q') || request('status'))
         <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-link text-danger p-0 ms-1">Xóa lọc</a>
       @endif
     </form>
-    <div class="text-muted small">
-      Tổng số: <strong>{{ $orders->total() }}</strong> đơn hàng
+    <div class="text-body-tertiary fs-10">
+      Tổng số: <strong class="text-body-emphasis">{{ $orders->total() }}</strong> đơn hàng
     </div>
   </div>
 
-  <div class="table-responsive">
-    <table class="table align-middle mb-0">
-      <thead>
-        <tr>
-          <th>Mã Đơn Hàng</th>
-          <th>Thời Gian</th>
-          <th>Tài Khoản Đặt Hàng</th>
-          <th>Người Nhận Hàng</th>
-          <th>Sản Phẩm</th>
-          <th>Tổng Giá Trị</th>
-          <th>Thanh Toán</th>
-          <th>Tiến Trình Giao Hàng</th>
-          <th class="text-end">Thao Tác</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($orders as $order)
+  <div class="card-body p-0">
+    <div class="table-responsive scrollbar">
+      <table class="table table-sm fs-9 mb-0 align-middle">
+        <thead class="bg-body-tertiary text-body-tertiary">
           <tr>
-            <td>
-              <a href="{{ route('admin.orders.show', $order->id) }}" class="font-monospace fw-bold text-primary text-decoration-none">
-                {{ $order->order_code }}
-              </a>
-            </td>
-            <td><small class="text-muted text-nowrap">{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }}</small></td>
-            
-            <!-- CỘT TÀI KHOẢN ĐẶT HÀNG -->
-            <td>
-              @if($order->user)
-                <div class="d-flex align-items-center gap-2">
-                  <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-xs flex-shrink-0" style="width: 34px; height: 34px; font-size: 0.82rem;">
-                    {{ strtoupper(substr($order->user->name, 0, 1)) }}
+            <th class="ps-3 py-2">Mã Đơn Hàng</th>
+            <th class="py-2">Thời Gian</th>
+            <th class="py-2">Tài Khoản Đặt</th>
+            <th class="py-2">Người Nhận Hàng</th>
+            <th class="py-2">Sản Phẩm</th>
+            <th class="py-2">Tổng Tiền</th>
+            <th class="py-2">Thanh Toán</th>
+            <th class="py-2">Tiến Trình Giao Hàng</th>
+            <th class="text-end pe-3 py-2">Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody class="list">
+          @forelse($orders as $order)
+            <tr class="hover-actions-trigger btn-reveal-trigger position-static border-bottom border-translucent">
+              <td class="ps-3 py-2">
+                <a href="{{ route('admin.orders.show', $order->id) }}" class="font-monospace fw-bold text-primary text-decoration-none">
+                  {{ $order->order_code }}
+                </a>
+              </td>
+              <td class="py-2"><small class="text-body-tertiary text-nowrap fs-10">{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }}</small></td>
+              
+              <!-- TÀI KHOẢN ĐẶT HÀNG -->
+              <td class="py-2">
+                @if($order->user)
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold fs-10 flex-shrink-0" style="width: 32px; height: 32px;">
+                      {{ strtoupper(substr($order->user->name, 0, 1)) }}
+                    </div>
+                    <div>
+                      <a href="{{ route('admin.customers.show', $order->user->id) }}" class="fw-bold text-body-emphasis text-decoration-none d-block fs-9">
+                        {{ $order->user->name }}
+                      </a>
+                      <small class="text-body-tertiary d-block text-truncate fs-10" style="max-width: 140px;">
+                        {{ $order->user->email }}
+                      </small>
+                      <span class="badge badge-phoenix badge-phoenix-primary fs-11">
+                        Thành viên #{{ $order->user->id }}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <a href="{{ route('admin.customers.show', $order->user->id) }}" class="fw-bold text-dark text-decoration-none hover-primary d-block" style="font-size: 0.84rem;">
-                      {{ $order->user->name }}
-                    </a>
-                    <small class="text-muted d-block text-truncate" style="max-width: 150px; font-size: 0.74rem;">
-                      <i class="fa-regular fa-envelope me-1"></i>{{ $order->user->email }}
-                    </small>
-                    <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 0.68rem;">
-                      <i class="fa-solid fa-user-check me-0.5"></i> Thành viên #{{ $order->user->id }}
-                    </span>
+                @else
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-body-tertiary text-body-tertiary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                      <i class="fa-solid fa-user-slash fs-10"></i>
+                    </div>
+                    <div>
+                      <span class="badge badge-phoenix badge-phoenix-secondary fs-10">
+                        Khách Vãng Lai
+                      </span>
+                    </div>
                   </div>
-                </div>
-              @else
-                <div class="d-flex align-items-center gap-2">
-                  <div class="rounded-circle bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 34px; height: 34px; font-size: 0.82rem;">
-                    <i class="fa-solid fa-user-slash"></i>
-                  </div>
-                  <div>
-                    <span class="badge bg-secondary-subtle text-muted fw-bold" style="font-size: 0.72rem;">
-                      <i class="fa-solid fa-user-clock me-0.5"></i> Khách Vãng Lai
-                    </span>
-                    <small class="text-muted d-block" style="font-size: 0.72rem;">(Chưa đăng nhập)</small>
-                  </div>
-                </div>
-              @endif
-            </td>
+                @endif
+              </td>
 
-            <!-- CỘT NGƯỜI NHẬN HÀNG -->
-            <td>
-              <div class="fw-bold text-dark small">{{ $order->customer_name }}</div>
-              <div class="text-muted small" style="font-size: 0.76rem;">
-                <i class="fa-solid fa-phone me-1 text-secondary"></i>{{ $order->customer_phone }}
-              </div>
-              @if($order->shipping_address)
-                <small class="text-muted text-truncate d-block" style="max-width: 160px; font-size: 0.72rem;" title="{{ $order->shipping_address }}">
-                  <i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ $order->shipping_address }}
-                </small>
-              @endif
-            </td>
-
-            <td><span class="badge bg-light text-dark border px-2 py-1">{{ $order->items->count() }} sản phẩm</span></td>
-            <td><strong class="text-danger">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong></td>
-            <td>
-              <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-dark' }} py-1 px-2 fw-bold">
-                {{ $order->payment_status_label }}
-              </span>
-              <div class="text-muted" style="font-size: 0.72rem;">{{ $order->payment_method_name }}</div>
-            </td>
-            <td>
-              @if($order->shipping_status === 'completed')
-                <span class="badge bg-success-subtle text-success py-1 px-2 fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Bước 6/6: Hoàn tất</span>
-              @elseif($order->shipping_status === 'delivered')
-                <span class="badge bg-success-subtle text-success py-1 px-2 fw-bold"><i class="fa-solid fa-box-open me-1"></i> Bước 5/6: Đã giao</span>
-              @elseif($order->shipping_status === 'shipping')
-                <span class="badge bg-warning-subtle text-dark py-1 px-2 fw-bold"><i class="fa-solid fa-truck-fast me-1"></i> Bước 4/6: Đang giao</span>
-              @elseif($order->shipping_status === 'processing')
-                <span class="badge bg-info-subtle text-info py-1 px-2 fw-bold"><i class="fa-solid fa-boxes-packing me-1"></i> Bước 3/6: Đóng gói</span>
-              @elseif($order->shipping_status === 'confirmed')
-                <span class="badge bg-secondary-subtle text-dark py-1 px-2 fw-bold"><i class="fa-solid fa-clipboard-check me-1"></i> Bước 2/6: Đã xác nhận</span>
-              @elseif($order->shipping_status === 'cancelled')
-                <span class="badge bg-danger-subtle text-danger py-1 px-2 fw-bold"><i class="fa-solid fa-ban me-1"></i> Đã hủy đơn</span>
-                @if($order->cancel_reason)
-                  <small class="text-muted d-block text-truncate" style="max-width: 140px; font-size: 0.68rem;" title="{{ $order->cancel_reason }}">
-                    {{ $order->cancel_reason }}
+              <!-- NGƯỜI NHẬN HÀNG -->
+              <td class="py-2">
+                <div class="fw-bold text-body-emphasis fs-9">{{ $order->customer_name }}</div>
+                <div class="text-body-tertiary fs-10">
+                  <i class="fa-solid fa-phone me-1"></i>{{ $order->customer_phone }}
+                </div>
+                @if($order->shipping_address)
+                  <small class="text-body-tertiary text-truncate d-block fs-10" style="max-width: 160px;" title="{{ $order->shipping_address }}">
+                    <i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ $order->shipping_address }}
                   </small>
                 @endif
-              @else
-                <span class="badge bg-warning-subtle text-dark py-1 px-2 fw-bold"><i class="fa-solid fa-clock me-1"></i> Bước 1/6: Chờ xác nhận</span>
-              @endif
+              </td>
 
-              @if($order->latestReturn)
-                <div class="mt-1">
-                  <a href="{{ route('admin.returns.show', $order->latestReturn->id) }}" class="badge bg-warning-subtle text-dark border border-warning text-decoration-none" style="font-size: 0.68rem;">
-                    <i class="fa-solid fa-arrow-rotate-left text-warning me-0.5"></i> RMA: {{ $order->latestReturn->status_label }}
-                  </a>
-                </div>
-              @endif
-            </td>
-            <td class="text-end">
-              <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold py-1 px-2.5" style="font-size: 0.75rem;">
-                Xử Lý Đơn <i class="fa-solid fa-chevron-right ms-1"></i>
-              </a>
-            </td>
-          </tr>
-        @empty
-          <tr>
-            <td colspan="9" class="text-center py-5 text-muted">
-              <i class="fa-solid fa-cart-shopping fs-2 text-muted mb-2 d-block"></i>
-              Không tìm thấy đơn hàng nào.
-            </td>
-          </tr>
-        @endforelse
-      </tbody>
-    </table>
+              <td class="py-2"><span class="badge badge-phoenix badge-phoenix-secondary">{{ $order->items->count() }} món</span></td>
+              <td class="py-2"><strong class="text-danger">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong></td>
+              <td class="py-2">
+                <span class="badge badge-phoenix {{ $order->payment_status === 'paid' ? 'badge-phoenix-success' : 'badge-phoenix-warning' }}">
+                  {{ $order->payment_status_label }}
+                </span>
+                <div class="text-body-tertiary fs-10">{{ $order->payment_method_name }}</div>
+              </td>
+              <td class="py-2">
+                @if($order->shipping_status === 'completed')
+                  <span class="badge badge-phoenix badge-phoenix-success"><i class="fa-solid fa-circle-check me-1"></i> Bước 6/6: Hoàn tất</span>
+                @elseif($order->shipping_status === 'delivered')
+                  <span class="badge badge-phoenix badge-phoenix-success"><i class="fa-solid fa-box-open me-1"></i> Bước 5/6: Đã giao</span>
+                @elseif($order->shipping_status === 'shipping')
+                  <span class="badge badge-phoenix badge-phoenix-warning"><i class="fa-solid fa-truck-fast me-1"></i> Bước 4/6: Đang giao</span>
+                @elseif($order->shipping_status === 'processing')
+                  <span class="badge badge-phoenix badge-phoenix-info"><i class="fa-solid fa-boxes-packing me-1"></i> Bước 3/6: Đóng gói</span>
+                @elseif($order->shipping_status === 'confirmed')
+                  <span class="badge badge-phoenix badge-phoenix-secondary"><i class="fa-solid fa-clipboard-check me-1"></i> Bước 2/6: Đã xác nhận</span>
+                @elseif($order->shipping_status === 'cancelled')
+                  <span class="badge badge-phoenix badge-phoenix-danger"><i class="fa-solid fa-ban me-1"></i> Đã hủy</span>
+                  @if($order->cancel_reason)
+                    <small class="text-body-tertiary d-block text-truncate fs-10" style="max-width: 140px;" title="{{ $order->cancel_reason }}">
+                      {{ $order->cancel_reason }}
+                    </small>
+                  @endif
+                @else
+                  <span class="badge badge-phoenix badge-phoenix-warning"><i class="fa-solid fa-clock me-1"></i> Bước 1/6: Chờ duyệt</span>
+                @endif
+
+                @if($order->latestReturn)
+                  <div class="mt-1">
+                    <a href="{{ route('admin.returns.show', $order->latestReturn->id) }}" class="badge badge-phoenix badge-phoenix-warning text-decoration-none fs-11">
+                      <i class="fa-solid fa-arrow-rotate-left me-1"></i> RMA: {{ $order->latestReturn->status_label }}
+                    </a>
+                  </div>
+                @endif
+              </td>
+              <td class="text-end pe-3 py-2">
+                <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-phoenix-primary py-1 px-2 fs-10">
+                  Xử Lý Đơn <i class="fa-solid fa-chevron-right ms-1"></i>
+                </a>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="9" class="text-center py-5 text-body-tertiary">
+                <i class="fa-solid fa-cart-shopping fs-4 text-body-tertiary mb-2 d-block"></i>
+                Không tìm thấy đơn hàng nào.
+              </td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
   </div>
 
   @if($orders->hasPages())
-    <div class="card-footer d-flex justify-content-center py-3">
+    <div class="card-footer d-flex justify-content-center py-3 bg-body-emphasis border-top border-translucent">
       {{ $orders->links('pagination::bootstrap-5') }}
     </div>
   @endif

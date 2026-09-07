@@ -18,6 +18,8 @@ class Order extends Model
         'shipping_address',
         'city',
         'district',
+        'ward',
+        'shipping_address_snapshot',
         'notes',
         'payment_method',
         'payment_status',
@@ -36,13 +38,14 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'status_step' => 'integer',
-        'subtotal' => 'integer',
-        'discount_amount' => 'integer',
-        'shipping_fee' => 'integer',
-        'total_amount' => 'integer',
-        'review_notified' => 'boolean',
-        'cancelled_at' => 'datetime',
+        'status_step'               => 'integer',
+        'subtotal'                  => 'integer',
+        'discount_amount'           => 'integer',
+        'shipping_fee'              => 'integer',
+        'total_amount'              => 'integer',
+        'review_notified'           => 'boolean',
+        'cancelled_at'              => 'datetime',
+        'shipping_address_snapshot' => 'array',
     ];
 
 

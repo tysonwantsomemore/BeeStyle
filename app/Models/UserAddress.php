@@ -13,6 +13,9 @@ class UserAddress extends Model
         'user_id',
         'recipient_name',
         'phone',
+        'province_id',
+        'district_id',
+        'ward_id',
         'city',
         'district',
         'ward',
@@ -22,21 +25,40 @@ class UserAddress extends Model
         'notes',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_default' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'is_default'  => 'boolean',
+        'province_id' => 'integer',
+        'district_id' => 'integer',
+        'ward_id'     => 'integer',
+    ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function districtRelation()
+    {
+        return $this->belongsTo(District::class, 'district_id');
+    }
+
+    public function wardRelation()
+    {
+        return $this->belongsTo(Ward::class, 'ward_id');
+    }
+
     public function getFullAddressAttribute(): string
     {
-        $parts = array_filter([$this->address, $this->ward, $this->district, $this->city]);
+        $wardName = $this->wardRelation?->name ?? $this->ward;
+        $districtName = $this->districtRelation?->name ?? $this->district;
+        $cityName = $this->province?->name ?? $this->city;
+
+        $parts = array_filter([$this->address, $wardName, $districtName, $cityName]);
         return implode(', ', $parts);
     }
 }

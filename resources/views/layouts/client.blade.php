@@ -1,477 +1,461 @@
 <!DOCTYPE html>
-<html lang="vi" dir="ltr">
+<html lang="vi" class="scroll-smooth">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>@yield('title', 'BeeStyle - Thời Trang Nam Chuẩn Casual & Thanh Lịch')</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="description" content="@yield('meta_description', 'Beestyle - Thời trang thiết kế đương đại, sang trọng & tối giản. Khám phá bộ sưu tập quần áo, phụ kiện và lookbook mới nhất 2026.')">
+  <title>@yield('title', 'BEESTYLE — Contemporary Fashion & Studio')</title>
 
   <!-- Favicon -->
-  <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/img/favicons/apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/favicons/favicon-32x32.png') }}">
-  <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/img/favicons/favicon-16x16.png') }}">
-  <meta name="theme-color" content="#111827">
 
-  <!-- Google Fonts: Montserrat + Plus Jakarta Sans (Atino Minimalist Style) -->
+  <!-- Google Fonts: Libre Franklin, Cormorant Garamond & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Libre+Franklin:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Core Theme & Vendors Styles -->
-  <link href="{{ asset('vendors/simplebar/simplebar.min.css') }}" rel="stylesheet">
-  <link href="{{ asset('assets/css/theme.min.css') }}" rel="stylesheet" id="style-default">
-  <link href="{{ asset('vendors/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Atino Inspired BeeStyle Custom Design System -->
-  <link href="{{ asset('assets/css/beestyle.css') }}" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Libre Franklin"', 'sans-serif'],
+            serif: ['"Cormorant Garamond"', 'serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#faf8f5',
+              100: '#f5f0e8',
+              200: '#e8dcce',
+              300: '#d7c2ad',
+              400: '#c3a388',
+              500: '#b48c6f',
+              600: '#a3775f',
+              700: '#875f4d',
+              800: '#6f4e41',
+              900: '#1c1917',
+              950: '#0c0a09'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Libre Franklin', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-serif-luxury {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+    .collection-card img {
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .collection-card:hover img {
+      transform: scale(1.05);
+    }
+    nav a {
+      position: relative;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1.5px;
+      background: currentColor;
+      transition: width 0.3s ease;
+    }
+    nav a:hover::after, nav a.active::after {
+      width: 100%;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c5b8a5;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #998877;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-toast {
+      animation: slideDown 0.3s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.35s ease-out forwards;
+    }
+  </style>
 
   @stack('styles')
 </head>
 
-<body>
-  <!-- ANNOUNCEMENT TOP BAR -->
-  <div class="bee-announcement-bar">
-    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <div class="d-flex align-items-center gap-3">
-        <span><i class="fa-solid fa-truck-fast me-1 text-danger"></i> FREESHIP TOÀN QUỐC CHO ĐƠN TỪ <strong>300.000₫</strong></span>
-        <span class="d-none d-md-inline text-secondary">|</span>
-        <span class="d-none d-md-inline"><i class="fa-solid fa-phone me-1"></i> HOTLINE: <strong>1900 8888</strong></span>
+<body class="bg-brand-50 text-neutral-900 selection:bg-neutral-900 selection:text-white flex flex-col min-h-screen">
+
+  <!-- ========================================================================= -->
+  <!-- 1. ANNOUNCEMENT TOP BAR -->
+  <!-- ========================================================================= -->
+  <div class="bg-neutral-950 text-neutral-200 py-2 px-4 text-xs tracking-widest uppercase border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex justify-between items-center text-[11px]">
+      <div class="flex items-center gap-4">
+        <span><span class="text-amber-400 font-semibold">ƯU ĐÃI THÀNH VIÊN:</span> MÃ <strong class="text-white bg-neutral-800 px-1.5 py-0.5 rounded cursor-pointer" onclick="if(window.BeeCore) BeeCore.copyCode('BEESTYLE15')">BEESTYLE15</strong> GIẢM 15% | <strong class="text-white bg-neutral-800 px-1.5 py-0.5 rounded cursor-pointer" onclick="if(window.BeeCore) BeeCore.copyCode('BEESTYLE50')">BEESTYLE50</strong> GIẢM 50K</span>
+        <span class="hidden lg:inline text-neutral-500">|</span>
+        <span class="hidden lg:inline text-neutral-400">FREESHIP ĐƠN TỪ 500.000₫</span>
       </div>
-      <div class="d-flex align-items-center gap-3">
-        <a href="{{ route('client.order-tracking') }}"><i class="fa-solid fa-location-dot me-1"></i> Tra cứu đơn hàng</a>
-        <span class="text-secondary">|</span>
-        @auth
-          @if(Auth::user()->isAdmin())
-            <a href="{{ route('admin.dashboard') }}" class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-gear me-1"></i> Quản Trị (Admin)</a>
-          @else
-            <a href="{{ route('client.profile') }}" class="text-white text-decoration-none"><i class="fa-solid fa-user me-1 text-danger"></i> Chào, <strong>{{ Auth::user()->name }}</strong></a>
-          @endif
-          <span class="text-secondary">|</span>
-          <form action="{{ route('auth.logout') }}" method="POST" class="d-inline">
-            @csrf
-            <button type="submit" class="btn btn-link text-white-50 p-0 fs-11 text-decoration-none hover-white">
-              <i class="fa-solid fa-arrow-right-from-bracket me-1 text-danger"></i> Đăng xuất
-            </button>
-          </form>
-        @else
-          <a href="{{ route('auth.login') }}" class="text-white"><i class="fa-solid fa-arrow-right-to-bracket me-1 text-danger"></i> Đăng nhập</a>
-          <span class="text-secondary">/</span>
-          <a href="{{ route('auth.register') }}" class="text-danger fw-bold">Đăng ký</a>
-        @endauth
+      <div class="flex items-center gap-6">
+        <a href="{{ route('client.order-tracking') }}" class="hover:text-white flex items-center gap-1 transition-colors">
+          <i data-lucide="package" class="w-3.5 h-3.5"></i>
+          <span>Tra Cứu Đơn Hàng</span>
+        </a>
+        <a href="{{ route('client.profile', ['tab' => 'returns']) }}" class="hover:text-white flex items-center gap-1 transition-colors">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Đổi Trả &amp; Hoàn Tiền</span>
+        </a>
       </div>
     </div>
   </div>
 
-  <!-- MAIN HEADER NAVBAR -->
-  <header class="bee-navbar-main">
-    <div class="container">
-      <div class="d-flex align-items-center justify-content-between gap-3">
+  <!-- ========================================================================= -->
+  <!-- 2. STICKY MAIN HEADER -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 left-0 w-full z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200/80 transition-all duration-300 shadow-sm" id="main-header">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      
+      <!-- Mobile Menu Button -->
+      <div class="flex items-center gap-3 md:hidden">
+        <button onclick="toggleMobileNav()" class="p-1.5 text-neutral-800 hover:text-black" aria-label="Menu">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        <button onclick="if(window.BeeCore) BeeCore.openSearchModal()" class="p-1.5 text-neutral-800 hover:text-black" aria-label="Tìm kiếm">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Main Desktop Navigation Links -->
+      <nav class="hidden md:flex items-center gap-8 text-xs tracking-[0.2em] uppercase font-medium text-neutral-700">
+        <a href="{{ route('client.home') }}" class="hover:text-black transition-colors {{ request()->routeIs('client.home') ? 'active text-neutral-950 font-bold' : '' }}">Trang Chủ</a>
+        <a href="{{ route('client.home') }}#collections" class="hover:text-black transition-colors">Bộ Sưu Tập</a>
         
-        <!-- LOGO -->
-        <a href="{{ route('client.home') }}" class="beestyle-logo">
-          <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
-          <span>BEE<span class="brand-highlight">STYLE</span></span>
-        </a>
+        <!-- ZARA MEGA MENU TRIGGER (SẢN PHẨM) -->
+        <div class="relative group/mega py-3">
+          <a href="{{ route('client.products.index') }}" class="hover:text-black transition-colors flex items-center gap-1 font-semibold text-neutral-900 {{ request()->routeIs('client.products.*') ? 'text-amber-800' : '' }}">
+            <span>Sản Phẩm</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 group-hover/mega:rotate-180 transition-transform duration-300 text-neutral-400"></i>
+          </a>
 
-        <!-- SEARCH BAR -->
-        <div class="d-none d-lg-block flex-grow-1 mx-4" style="max-width: 520px;">
-          <form action="{{ route('client.products.index') }}" method="GET" class="bee-search-wrapper">
-            <i class="fa-solid fa-magnifying-glass bee-search-icon"></i>
-            <input type="text" name="q" value="{{ request('q') }}" class="form-control bee-search-input" placeholder="Tìm kiếm áo polo nam, sơ mi, áo phông, blazer, sweater...">
-          </form>
-        </div>
+          <!-- Dark backdrop overlay -->
+          <div class="fixed inset-0 top-[65px] bg-neutral-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none z-40"></div>
 
-        <!-- RIGHT ACTIONS -->
-        <div class="d-flex align-items-center gap-2">
-          
-          <!-- NOTIFICATION CENTER (TRUNG TÂM THÔNG BÁO TỔNG HỢP: ĐÁNH GIÁ, ĐƠN HÀNG, VOUCHER, VIP) -->
-          @auth
-            <div class="dropdown bee-notification-dropdown" id="beeNotificationDropdown">
-              <button class="btn bee-icon-btn position-relative border-0" type="button" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Thông báo & Đánh giá đơn hàng">
-                <i class="fa-solid fa-bell {{ (isset($pendingReviewItems) && $pendingReviewItems->count() > 0) ? 'text-warning' : 'text-secondary' }} fs-5"></i>
-                @if(isset($pendingReviewItems) && $pendingReviewItems->count() > 0)
-                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light animate-pulse" style="font-size: 0.65rem;">
-                    {{ $pendingReviewItems->count() }}
-                  </span>
-                @endif
-              </button>
+          <!-- ZARA MEGA MENU DROPDOWN -->
+          <div class="fixed top-[65px] left-0 w-full bg-white border-b-2 border-neutral-950 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] transition-all duration-200 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none group-hover/mega:pointer-events-auto z-50">
+            <div class="max-w-7xl mx-auto px-8 py-10 grid grid-cols-12 gap-8 text-neutral-950 bg-white">
               
-              <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-0 mt-2 bee-notif-menu" style="border-radius: 18px; width: 420px; max-width: 94vw; overflow: hidden; z-index: 1060;">
-                <!-- Header -->
-                <div class="p-3 text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #111827, #1f2937);">
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-bell text-warning fs-5"></i>
-                    <div>
-                      <strong class="fs-9 text-uppercase d-block leading-none">Trung Tâm Thông Báo</strong>
-                      <small class="text-white-50" style="font-size: 0.72rem;">Cập nhật đơn hàng &amp; ưu đãi của bạn</small>
-                    </div>
-                  </div>
-                  @if(isset($pendingReviewItems) && $pendingReviewItems->count() > 0)
-                    <span class="badge bg-danger text-white fs-11 fw-bold rounded-pill">
-                      {{ $pendingReviewItems->count() }} cần đánh giá
-                    </span>
-                  @endif
-                </div>
-
-                <!-- Notification Navigation Filter Tabs -->
-                <ul class="nav nav-tabs nav-fill bg-light border-bottom small fw-bold px-2 pt-2" id="notifTabs" role="tablist" style="font-size: 0.78rem;">
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link active py-2 px-1 text-dark border-0 border-bottom border-2 border-danger" id="notif-all-tab" data-bs-toggle="tab" data-bs-target="#notif-all" type="button" role="tab">
-                      Tất Cả ({{ isset($allShopNotifications) ? $allShopNotifications->count() : 0 }})
-                    </button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link py-2 px-1 text-secondary border-0" id="notif-reviews-tab" data-bs-toggle="tab" data-bs-target="#notif-reviews" type="button" role="tab">
-                      ⭐ Đánh Giá ({{ isset($pendingReviewItems) ? $pendingReviewItems->count() : 0 }})
-                    </button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link py-2 px-1 text-secondary border-0" id="notif-orders-tab" data-bs-toggle="tab" data-bs-target="#notif-orders" type="button" role="tab">
-                      📦 Đơn Hàng ({{ isset($recentCustomerOrders) ? $recentCustomerOrders->count() : 0 }})
-                    </button>
-                  </li>
-                </ul>
-
-                <!-- Notification Body Content -->
-                <div class="tab-content" id="notifTabsContent" style="max-height: 380px; overflow-y: auto;">
-                  
-                  <!-- TAB 1: TẤT CẢ THÔNG BÁO -->
-                  <div class="tab-pane fade show active p-3" id="notif-all" role="tabpanel">
-                    @if(isset($allShopNotifications) && $allShopNotifications->count() > 0)
-                      <div class="d-flex flex-column gap-2.5">
-                        @foreach($allShopNotifications as $notif)
-                          <div class="p-2.5 rounded-3 border transition-all hover-lift {{ $notif['type'] === 'review' ? 'bg-warning-subtle border-warning' : 'bg-light' }}" style="cursor: pointer;" onclick="window.location='{{ $notif['link'] }}'">
-                            <div class="d-flex align-items-start gap-2.5">
-                              @if(!empty($notif['image']))
-                                <img src="{{ $notif['image'] }}" alt="thumb" style="width: 44px; height: 44px; object-fit: cover;" class="rounded-2 border bg-white flex-shrink-0">
-                              @else
-                                <div class="rounded-circle bg-white border d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
-                                  <i class="{{ $notif['icon'] }} fs-5"></i>
-                                </div>
-                              @endif
-                              
-                              <div class="flex-grow-1 min-w-0">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                  <span class="badge {{ $notif['badge_class'] }}" style="font-size: 0.68rem;">{{ $notif['badge'] }}</span>
-                                  <small class="text-muted" style="font-size: 0.7rem;">{{ $notif['time_ago'] }}</small>
-                                </div>
-                                <h6 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 0.82rem;">{{ $notif['title'] }}</h6>
-                                <p class="text-secondary small mb-2 text-truncate-2" style="font-size: 0.74rem; line-height: 1.35;">
-                                  {{ $notif['content'] }}
-                                </p>
-                                <div class="text-end">
-                                  <a href="{{ $notif['link'] }}" class="btn btn-sm {{ $notif['type'] === 'review' ? 'btn-bee-primary' : 'btn-bee-outline' }} py-0.5 px-2.5 fw-bold text-nowrap" style="font-size: 0.72rem;">
-                                    {{ $notif['action_text'] }} <i class="fa-solid fa-arrow-right ms-1"></i>
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        @endforeach
-                      </div>
-                    @else
-                      <div class="text-center py-4">
-                        <i class="fa-regular fa-bell-slash fs-2 text-muted mb-2"></i>
-                        <p class="small text-muted mb-0">Bạn chưa có thông báo mới nào.</p>
-                      </div>
-                    @endif
-                  </div>
-
-                  <!-- TAB 2: CHỈ THÔNG BÁO ĐÁNH GIÁ -->
-                  <div class="tab-pane fade p-3" id="notif-reviews" role="tabpanel">
-                    @if(isset($pendingReviewItems) && $pendingReviewItems->count() > 0)
-                      <div class="alert alert-warning border-0 p-2 rounded-2 mb-3 d-flex align-items-center gap-2 small" style="background: #fffbeb;">
-                        <i class="fa-solid fa-heart text-danger fs-5"></i>
-                        <div style="font-size: 0.75rem;">
-                          Cảm ơn bạn đã mua hàng! Hãy chia sẻ cảm nhận về sản phẩm nhé.
-                        </div>
-                      </div>
-                      <div class="d-flex flex-column gap-2">
-                        @foreach($pendingReviewItems as $pItem)
-                          <div class="p-2.5 bg-light rounded-3 border">
-                            <div class="d-flex align-items-center gap-2.5 mb-2">
-                              <img src="{{ asset($pItem->image ?? ($pItem->product->image ?? '/assets/img/products/1.png')) }}" alt="{{ $pItem->product_name }}" style="width: 44px; height: 44px; object-fit: cover;" class="rounded border bg-white">
-                              <div class="flex-grow-1 text-truncate">
-                                <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.8rem;">{{ $pItem->product_name }}</h6>
-                                <div class="text-muted" style="font-size: 0.72rem;">
-                                  <span>Đơn: <strong class="text-dark font-monospace">{{ $pItem->order->order_code ?? '' }}</strong></span>
-                                  @if($pItem->color || $pItem->size)
-                                    <span> • {{ $pItem->color ?? '' }} / {{ $pItem->size ?? '' }}</span>
-                                  @endif
-                                </div>
-                              </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center pt-1 border-top">
-                              <span class="text-success small" style="font-size: 0.72rem;">
-                                <i class="fa-solid fa-circle-check me-1"></i> Đã hoàn tất
-                              </span>
-                              <button type="button" onclick="openQuickReviewModal({{ $pItem->product_id }})" class="btn btn-sm btn-bee-primary py-1 px-3 fw-bold text-nowrap" style="font-size: 0.75rem;">
-                                <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
-                              </button>
-                            </div>
-                          </div>
-                        @endforeach
-                      </div>
-
-                    @else
-                      <div class="text-center py-4">
-                        <i class="fa-solid fa-circle-check fs-2 text-success mb-2"></i>
-                        <p class="small text-dark fw-bold mb-1">Tuyệt vời!</p>
-                        <p class="small text-muted mb-0">Bạn đã đánh giá tất cả các sản phẩm đã mua.</p>
-                      </div>
-                    @endif
-                  </div>
-
-                  <!-- TAB 3: CHỈ ĐƠN HÀNG GẦN ĐÂY -->
-                  <div class="tab-pane fade p-3" id="notif-orders" role="tabpanel">
-                    @if(isset($recentCustomerOrders) && $recentCustomerOrders->count() > 0)
-                      <div class="d-flex flex-column gap-2">
-                        @foreach($recentCustomerOrders as $rOrder)
-                          <div class="p-2.5 bg-light rounded-3 border d-flex justify-content-between align-items-center">
-                            <div>
-                              <strong class="text-dark font-monospace" style="font-size: 0.8rem;">{{ $rOrder->order_code }}</strong>
-                              <div class="text-muted" style="font-size: 0.72rem;">
-                                {{ number_format($rOrder->total_amount, 0, ',', '.') }}₫ • {{ $rOrder->created_at ? $rOrder->created_at->format('d/m/Y') : '' }}
-                              </div>
-                            </div>
-                            <div class="text-end">
-                              @if($rOrder->shipping_status === 'completed')
-                                <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">Hoàn tất</span>
-                              @elseif($rOrder->shipping_status === 'delivered')
-                                <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">Đã giao</span>
-                              @elseif($rOrder->shipping_status === 'shipping')
-                                <span class="badge bg-warning-subtle text-dark" style="font-size: 0.7rem;">Đang giao</span>
-                              @elseif($rOrder->shipping_status === 'cancelled')
-                                <span class="badge bg-danger-subtle text-danger" style="font-size: 0.7rem;">Đã hủy</span>
-                              @else
-                                <span class="badge bg-info-subtle text-info" style="font-size: 0.7rem;">Đang xử lý</span>
-                              @endif
-                              <a href="{{ route('client.order-tracking', ['code' => $rOrder->order_code]) }}" class="d-block text-secondary small text-decoration-none mt-1 fw-bold" style="font-size: 0.7rem;">
-                                Tra cứu <i class="fa-solid fa-arrow-right"></i>
-                              </a>
-                            </div>
-                          </div>
-                        @endforeach
-                      </div>
-                    @else
-                      <div class="text-center py-4">
-                        <i class="fa-solid fa-box-open fs-2 text-muted mb-2"></i>
-                        <p class="small text-muted mb-0">Bạn chưa có đơn hàng nào gần đây.</p>
-                      </div>
-                    @endif
-                  </div>
-
-                </div>
-
-                <!-- Footer -->
-                <div class="p-2.5 bg-light text-center border-top">
-                  <a href="{{ route('client.profile') }}" class="small text-danger fw-bold text-decoration-none">
-                    Xem tất cả trong Hồ sơ cá nhân <i class="fa-solid fa-arrow-right ms-1"></i>
-                  </a>
+              <!-- Col 1: Big Typography Departments -->
+              <div class="col-span-3 space-y-2 pr-6 border-r border-neutral-200">
+                <a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="block font-serif text-3xl xl:text-4xl text-neutral-950 font-bold hover:text-amber-800 transition-colors uppercase tracking-tight py-0.5 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-neutral-950 inline-block"></span>
+                  NAM
+                </a>
+                <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  BLAZER &amp; ÁO KHOÁC
+                </a>
+                <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  POLO LUXURY
+                </a>
+                <a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="block font-serif text-3xl xl:text-4xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  ÁO THUN &amp; DẠO PHỐ
+                </a>
+                <a href="{{ route('client.home') }}#lookbook" class="block font-serif text-2xl xl:text-3xl text-neutral-500 hover:text-black transition-colors uppercase tracking-tight py-0.5 font-normal">
+                  LOOKBOOK 2026
+                </a>
+                <div class="pt-6 border-t border-neutral-100 mt-4">
+                  <span class="font-serif-luxury text-sm tracking-[0.3em] text-neutral-950 font-bold uppercase block">BEESTYLE</span>
+                  <span class="text-[9px] tracking-[0.4em] text-neutral-500 uppercase font-sans font-semibold">ATELIER VIETNAM</span>
                 </div>
               </div>
-            </div>
-          @endauth
 
+              <!-- Col 2: Numbered Categories & Lists -->
+              <div class="col-span-4 space-y-5 text-xs tracking-wider uppercase font-medium pl-4">
+                <!-- [01] MỚI -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[01] MỚI</span>
+                  <a href="{{ route('client.products.index', ['sort' => 'latest']) }}" class="block text-neutral-950 hover:text-amber-800 font-bold text-sm transition-colors">THE NEW 2026</a>
+                  <a href="{{ route('client.products.index') }}" class="block text-neutral-600 hover:text-black transition-colors">SARTORIAL x BEESTYLE</a>
+                </div>
 
+                <!-- [02] DÒNG THIẾT KẾ -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[02] ĐẶC QUYỀN</span>
+                  <a href="{{ route('client.products.index', ['featured' => 1]) }}" class="block text-neutral-800 hover:text-black font-semibold transition-colors">BEESTYLE ORIGINS</a>
+                </div>
 
-          <!-- USER DROPDOWN -->
-          @auth
-            <div class="dropdown">
-              <button class="btn bee-icon-btn d-flex align-items-center gap-2 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Tài khoản của tôi">
-                <img src="{{ asset(Auth::user()->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ Auth::user()->name }}" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover;">
-                <span class="d-none d-md-inline small fw-semibold text-dark">{{ Str::limit(Auth::user()->name, 12) }}</span>
-                <i class="fa-solid fa-chevron-down fs-10 text-muted"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-3 mt-2" style="border-radius: 12px; min-width: 240px;">
-                <li class="pb-2 mb-2 border-bottom">
-                  <div class="fw-bold text-dark">{{ Auth::user()->name }}</div>
-                  <div class="small text-muted">{{ Auth::user()->email }}</div>
-                  <div class="d-flex align-items-center gap-1 mt-1">
-                    <span class="badge bg-danger-subtle text-danger fs-10 fw-bold">{{ Auth::user()->rank ?? 'Thành viên' }}</span>
-                    <span class="badge bg-light text-dark fs-10 border"><i class="fa-solid fa-circle-check text-success me-1"></i>Đã xác thực</span>
+                <!-- [03] SPOTLIGHT -->
+                <div class="space-y-1">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[03] ƯU ĐÃI</span>
+                  <a href="{{ route('client.daily-deals.index') }}" class="block text-rose-700 font-bold hover:text-rose-800 transition-colors flex items-center gap-1.5">
+                    <span>FLASH SALE TRONG NGÀY</span>
+                    <span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px]">HOT</span>
+                  </a>
+                </div>
+
+                <!-- [04] BỘ SƯU TẬP & DANH MỤC -->
+                <div class="space-y-2 pt-4 border-t border-neutral-200">
+                  <span class="text-[10px] text-neutral-400 font-mono tracking-widest block font-bold">[04] DANH MỤC SẢN PHẨM</span>
+                  <div class="grid grid-cols-2 gap-y-2.5 gap-x-4 text-xs leading-relaxed">
+                    <a href="{{ route('client.products.index') }}" class="text-neutral-950 font-bold hover:underline">XEM TẤT CẢ</a>
+                    <a href="{{ route('client.products.index', ['sort' => 'bestseller']) }}" class="text-amber-800 font-bold hover:underline">BEST SELLERS</a>
+                    <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="text-neutral-700 hover:text-black font-medium">ÁO POLO NAM</a>
+                    <a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="text-neutral-700 hover:text-black font-medium">ÁO SƠ MI LỤA</a>
+                    <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="text-neutral-700 hover:text-black font-medium">BLAZER MAY ĐO</a>
+                    <a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="text-neutral-700 hover:text-black font-medium">ÁO THUN FOAM BOXY</a>
+                    <a href="{{ route('client.products.index', ['category' => 'ao-thu-dong-nam']) }}" class="text-neutral-700 hover:text-black font-medium">ÁO THU ĐÔNG</a>
+                    <a href="{{ route('client.brands.index') }}" class="text-neutral-700 hover:text-black font-medium">THƯƠNG HIỆU ĐỐI TÁC</a>
                   </div>
-                </li>
+                </div>
+              </div>
+
+              <!-- Col 3: Curated Visual Thumbnails -->
+              <div class="col-span-5 grid grid-cols-3 gap-3.5 pl-6 border-l border-neutral-200">
+                <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="group/card flex flex-col">
+                  <div class="aspect-[3/4] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=400&auto=format&fit=crop" alt="Blazer May Đo" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">BLAZER MAY ĐO</span>
+                </a>
+
+                <a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="group/card flex flex-col">
+                  <div class="aspect-[3/4] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop" alt="Áo Sơ Mi Lụa" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">SƠ MI LỤA PHÁP</span>
+                </a>
+
+                <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="group/card flex flex-col">
+                  <div class="aspect-[3/4] rounded-lg bg-neutral-100 overflow-hidden mb-2 border border-neutral-200 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=400&auto=format&fit=crop" alt="Polo Nam" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500">
+                  </div>
+                  <span class="text-[10px] tracking-wider uppercase font-bold text-neutral-900 text-center truncate group-hover/card:underline">POLO SỢI COTTON</span>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <a href="{{ route('client.home') }}#lookbook" class="hover:text-black transition-colors">Lookbook</a>
+        <a href="{{ route('client.home') }}#about" class="hover:text-black transition-colors">Beestyle</a>
+      </nav>
+
+      <!-- Brand Logo Center -->
+      <div class="text-center">
+        <a href="{{ route('client.home') }}" class="inline-block group">
+          <span class="font-serif-luxury text-2xl md:text-3xl font-bold tracking-[0.25em] text-neutral-900 uppercase group-hover:opacity-80 transition-opacity">
+            BEESTYLE
+          </span>
+          <span class="block text-[9px] tracking-[0.4em] text-neutral-500 uppercase -mt-1 font-sans">
+            STUDIO • 2026
+          </span>
+        </a>
+      </div>
+
+      <!-- Action Icons Right -->
+      <div class="flex items-center gap-5 text-neutral-800">
+        
+        <!-- Search Trigger / Modal Trigger -->
+        <button onclick="if(window.BeeCore) BeeCore.openSearchModal();" class="hidden md:flex items-center gap-1.5 text-xs uppercase tracking-wider hover:text-black transition-colors p-1" title="Tìm kiếm">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span class="hidden lg:inline text-[11px]">Tìm kiếm</span>
+        </button>
+
+        <!-- Wishlist Link -->
+        <a href="{{ route('client.wishlist.index') }}" class="relative hover:text-black transition-colors p-1" title="Yêu thích">
+          <i data-lucide="heart" class="w-5 h-5"></i>
+          @if(isset($wishlistCount) && $wishlistCount > 0)
+            <span class="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{{ $wishlistCount }}</span>
+          @endif
+        </a>
+
+        <!-- Shopping Cart Link / Slideover -->
+        <a href="{{ route('client.cart') }}" class="relative hover:text-black transition-colors flex items-center gap-2 p-1" title="Túi mua hàng">
+          <div class="relative">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            @php $cartQty = session('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0; @endphp
+            @if($cartQty > 0)
+              <span class="absolute -top-1.5 -right-1.5 bg-neutral-900 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{{ $cartQty }}</span>
+            @endif
+          </div>
+          @php
+            $cartSubtotal = 0;
+            if (session('cart')) {
+              foreach(session('cart') as $cItem) {
+                $cartSubtotal += ($cItem['price'] ?? 0) * ($cItem['quantity'] ?? 1);
+              }
+            }
+          @endphp
+          <span class="hidden lg:inline text-xs font-semibold tracking-wider text-neutral-900">{{ number_format($cartSubtotal, 0, ',', '.') }}₫</span>
+        </a>
+
+        <!-- Auth Area -->
+        <div class="header-auth-area relative">
+          @auth
+            <div class="relative group/user py-2">
+              <button class="flex items-center gap-2 text-xs font-medium text-neutral-800 hover:text-black transition-colors">
+                <div class="w-7 h-7 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold uppercase shadow-sm">
+                  {{ mb_substr(Auth::user()->name ?? 'U', 0, 1) }}
+                </div>
+                <span class="hidden md:inline font-semibold max-w-[120px] truncate">{{ Auth::user()->name }}</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 text-neutral-400 group-hover/user:rotate-180 transition-transform"></i>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div class="absolute right-0 top-full w-56 bg-white border border-neutral-200 rounded-xl shadow-xl py-2 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 z-50">
+                <div class="px-4 py-2 border-b border-neutral-100">
+                  <p class="text-xs font-semibold text-neutral-900 truncate">{{ Auth::user()->name }}</p>
+                  <p class="text-[11px] text-neutral-500 truncate">{{ Auth::user()->email }}</p>
+                </div>
                 @if(Auth::user()->isAdmin())
-                  <li>
-                    <a class="dropdown-item py-2 rounded-2 text-danger fw-bold" href="{{ route('admin.dashboard') }}">
-                      <i class="fa-solid fa-gauge-high me-2"></i> Bảng Quản Trị Admin
-                    </a>
-                  </li>
+                  <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-amber-800 hover:bg-amber-50 font-semibold transition-colors">
+                    <i data-lucide="shield" class="w-4 h-4 text-amber-600"></i> Quản Trị Hệ Thống (Admin)
+                  </a>
                 @endif
-                 <li>
-                  <a class="dropdown-item py-2 rounded-2" href="{{ route('client.wishlist.index') }}">
-                    <i class="fa-solid fa-heart me-2 text-danger"></i> Sản Phẩm Yêu Thích
-                    @if(\App\Services\WishlistService::count() > 0)
-                      <span class="badge bg-danger ms-1 small">{{ \App\Services\WishlistService::count() }}</span>
-                    @endif
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item py-2 rounded-2" href="{{ route('client.profile') }}">
-                    <i class="fa-regular fa-user me-2 text-muted"></i> Hồ Sơ &amp; Đơn Hàng
-                    @if(isset($pendingReviewItems) && $pendingReviewItems->count() > 0)
-                      <span class="badge bg-danger ms-1 small">{{ $pendingReviewItems->count() }}</span>
-                    @endif
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item py-2 rounded-2" href="{{ route('client.order-tracking') }}">
-                    <i class="fa-solid fa-truck-fast me-2 text-muted"></i> Tra Cứu Đơn Hàng
-                  </a>
-                </li>
-                <li class="pt-2 mt-2 border-top">
-                  <form action="{{ route('auth.logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="dropdown-item py-2 rounded-2 text-danger">
-                      <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng Xuất
-                    </button>
-                  </form>
-                </li>
-              </ul>
+                <a href="{{ route('client.profile') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-neutral-700 hover:bg-neutral-50 hover:text-black transition-colors font-medium">
+                  <i data-lucide="user" class="w-4 h-4 text-neutral-400"></i> Hồ sơ tài khoản
+                </a>
+                <a href="{{ route('client.profile', ['tab' => 'orders']) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-neutral-700 hover:bg-neutral-50 hover:text-black transition-colors font-medium">
+                  <i data-lucide="shopping-bag" class="w-4 h-4 text-neutral-400"></i> Đơn hàng của tôi
+                </a>
+                <a href="{{ route('client.profile', ['tab' => 'address']) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-neutral-700 hover:bg-neutral-50 hover:text-black transition-colors font-medium">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-neutral-400"></i> Sổ địa chỉ nhận hàng
+                </a>
+                <a href="{{ route('client.profile', ['tab' => 'security']) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-xs text-neutral-700 hover:bg-neutral-50 hover:text-black transition-colors font-medium">
+                  <i data-lucide="lock" class="w-4 h-4 text-neutral-400"></i> Bảo mật &amp; Mật khẩu
+                </a>
+                <div class="border-t border-neutral-100 my-1"></div>
+                <form action="{{ route('auth.logout') }}" method="POST">
+                  @csrf
+                  <button type="submit" class="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 font-medium transition-colors">
+                    <i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i> Đăng xuất
+                  </button>
+                </form>
+              </div>
             </div>
           @else
-            <a href="{{ route('auth.login') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-bold">
-              <i class="fa-regular fa-user me-1"></i> Đăng Nhập
+            <a href="{{ route('auth.login') }}" class="flex items-center gap-1.5 text-xs uppercase tracking-wider text-neutral-700 hover:text-black font-semibold transition-colors">
+              <i data-lucide="user" class="w-4 h-4"></i>
+              <span class="hidden md:inline">Đăng Nhập</span>
             </a>
           @endauth
+        </div>
 
-          <!-- Wishlist (Sản phẩm yêu thích) -->
-          @auth
-            <a href="{{ route('client.wishlist.index') }}" class="bee-icon-btn position-relative" title="Sản phẩm yêu thích">
-              <i class="fa-solid fa-heart text-danger"></i>
-              <span class="bee-badge-count bg-danger" id="wishlistCountBadge" style="display: {{ \App\Services\WishlistService::count() > 0 ? 'flex' : 'none' }};">
-                {{ \App\Services\WishlistService::count() }}
-              </span>
+      </div>
+
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-nav" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden">
+      <div class="w-4/5 max-w-sm h-full bg-white p-6 flex flex-col justify-between shadow-2xl animate-fade-in">
+        <div>
+          <div class="flex justify-between items-center pb-4 border-b border-neutral-200">
+            <div>
+              <span class="font-serif-luxury text-xl font-bold tracking-[0.2em]">BEESTYLE</span>
+              <span class="block text-[8px] tracking-[0.3em] text-neutral-500 uppercase">STUDIO • 2026</span>
+            </div>
+            <button onclick="toggleMobileNav()" class="p-2 text-neutral-500 hover:text-black">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <nav class="flex flex-col gap-4 mt-6 text-sm tracking-[0.2em] uppercase font-medium">
+            <a href="{{ route('client.home') }}" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Trang Chủ</a>
+            <a href="{{ route('client.home') }}#collections" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Bộ Sưu Tập 2026</a>
+            <a href="{{ route('client.products.index') }}" class="py-2 border-b border-neutral-100 text-neutral-950 font-bold">Tất Cả Sản Phẩm</a>
+            <a href="{{ route('client.daily-deals.index') }}" class="py-2 border-b border-neutral-100 text-rose-700 font-bold flex items-center justify-between">
+              <span>Flash Sale Ngày</span>
+              <span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px]">HOT</span>
             </a>
-          @else
-            <a href="javascript:void(0)" onclick="requireAuthPrompt('xem danh sách sản phẩm yêu thích')" class="bee-icon-btn position-relative" title="Sản phẩm yêu thích">
-              <i class="fa-solid fa-heart text-danger"></i>
+            <a href="{{ route('client.home') }}#lookbook" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Lookbook Editorial</a>
+            <a href="{{ route('client.home') }}#about" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Beestyle Atelier</a>
+            <a href="{{ route('client.order-tracking') }}" class="py-2 text-amber-700 flex items-center gap-2">
+              <i data-lucide="package" class="w-4 h-4"></i> Tra cứu đơn hàng
             </a>
-          @endauth
-
-          <!-- Shop -->
-          <a href="{{ route('client.products.index') }}" class="bee-icon-btn" title="Tất cả sản phẩm">
-            <i class="fa-solid fa-store"></i>
-          </a>
-
-          <!-- Cart -->
-          <a href="{{ route('client.cart') }}" class="bee-icon-btn position-relative" title="Giỏ hàng">
-            <i class="fa-solid fa-bag-shopping"></i>
-            <span class="bee-badge-count" id="cartCountBadge" style="{{ \App\Services\CartService::count() > 0 ? '' : 'display: none;' }}">{{ \App\Services\CartService::count() }}</span>
-          </a>
-
-
-
-          <!-- Mobile Toggle Button -->
-          <button class="navbar-toggler d-lg-none bee-icon-btn ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#beeMainNav">
-            <i class="fa-solid fa-bars"></i>
-          </button>
+            <div class="mt-2 pt-3 border-t border-neutral-100 flex flex-col gap-2">
+              <span class="text-[10px] tracking-widest uppercase text-neutral-400 font-semibold">TÀI KHOẢN KHÁCH HÀNG</span>
+              @auth
+                <a href="{{ route('client.profile') }}" class="py-1 text-xs text-neutral-800 flex items-center gap-2 font-normal">
+                  <i data-lucide="user" class="w-4 h-4 text-neutral-500"></i> Thông tin: {{ Auth::user()->name }}
+                </a>
+                <a href="{{ route('client.profile', ['tab' => 'orders']) }}" class="py-1 text-xs text-neutral-800 flex items-center gap-2 font-normal">
+                  <i data-lucide="shopping-bag" class="w-4 h-4 text-neutral-500"></i> Đơn hàng của tôi
+                </a>
+                <form action="{{ route('auth.logout') }}" method="POST">
+                  @csrf
+                  <button type="submit" class="py-1 text-xs text-rose-600 flex items-center gap-2 font-normal">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                  </button>
+                </form>
+              @else
+                <a href="{{ route('auth.login') }}" class="py-1 text-xs text-neutral-800 flex items-center gap-2 font-semibold">
+                  <i data-lucide="log-in" class="w-4 h-4 text-neutral-500"></i> Đăng nhập / Đăng ký
+                </a>
+              @endauth
+            </div>
+          </nav>
+        </div>
+        <div class="pt-6 border-t border-neutral-200 text-xs text-neutral-500">
+          <p class="font-medium text-neutral-800 mb-1">BEESTYLE ATELIER VIETNAM</p>
+          <p>Hotline: 1900 8899 (8:00 - 22:00)</p>
+          <p class="mt-2 text-[11px]">© 2026 Beestyle. All rights reserved.</p>
         </div>
       </div>
     </div>
-
-    <!-- CATEGORY & BRAND NAVIGATION BAR -->
-    <nav class="navbar navbar-expand-lg py-2 mt-2 border-top">
-      <div class="container">
-        <div class="collapse navbar-collapse" id="beeMainNav">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 align-items-center">
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->routeIs('client.home') ? 'active' : '' }}" href="{{ route('client.home') }}">
-                TRANG CHỦ
-              </a>
-            </li>
-
-            <!-- Áo Polo Nam -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-polo-nam') || request()->get('category') == 'ao-polo-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-polo-nam') }}">
-                Áo Polo
-              </a>
-            </li>
-
-            <!-- Áo Sơ Mi Nam -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-so-mi-nam') || request()->get('category') == 'ao-so-mi-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-so-mi-nam') }}">
-                Áo Sơ Mi
-              </a>
-            </li>
-
-            <!-- Áo Phông & T-Shirt -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-phong-tshirt-nam') || request()->get('category') == 'ao-phong-tshirt-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}">
-                Áo Phông
-              </a>
-            </li>
-
-            <!-- Áo Khoác & Blazer -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-khoac-blazer-nam') || request()->get('category') == 'ao-khoac-blazer-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}">
-                Áo Khoác &amp; Blazer
-              </a>
-            </li>
-
-            <!-- Áo Thun Nam -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-thun-nam') || request()->get('category') == 'ao-thun-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-thun-nam') }}">
-                Áo Thun
-              </a>
-            </li>
-
-            <!-- Áo Thu Đông -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ (request()->routeIs('client.categories.show') && request()->route('slug') == 'ao-thu-dong-nam') || request()->get('category') == 'ao-thu-dong-nam' ? 'active' : '' }}" href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}">
-                Áo Thu Đông
-              </a>
-            </li>
-
-            <!-- Thương Hiệu (Brands) -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link {{ request()->routeIs('client.brands.*') ? 'active' : '' }}" href="{{ route('client.brands.index') }}">
-                <i class="fa-solid fa-crown me-1 text-warning"></i> Thương Hiệu
-              </a>
-            </li>
-
-            <!-- Ưu Đãi Trong Ngày (Daily Deals) -->
-            <li class="nav-item">
-              <a class="nav-link bee-nav-link text-danger fw-bold {{ request()->routeIs('client.daily-deals.*') ? 'active' : '' }}" href="{{ route('client.daily-deals.index') }}">
-                <i class="fa-solid fa-bolt me-1 text-danger"></i> ƯU ĐÃI TRONG NGÀY
-                <span class="badge bg-danger ms-1 text-white fs-11 px-1.5 py-0.5 rounded-pill shadow-xs">HOT</span>
-              </a>
-            </li>
-          </ul>
-
-          <div class="d-flex align-items-center gap-3">
-            <span class="badge bg-danger-subtle text-danger px-3 py-2 fw-semibold rounded-pill">
-              <i class="fa-solid fa-tags me-1"></i> VOUCHER: BEESTYLEVIP
-            </span>
-          </div>
-        </div>
-      </div>
-    </nav>
   </header>
 
-  <!-- MAIN CONTENT -->
-  <main class="bee-main-content">
-    
-    @if(session('success') && !session('payment_success_order'))
-      <div class="container mt-3">
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2" role="alert">
-          <i class="fa-solid fa-circle-check text-success fs-5"></i>
-          <div>{{ session('success') }}</div>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <!-- ========================================================================= -->
+  <!-- 3. MAIN PAGE CONTENT -->
+  <!-- ========================================================================= -->
+  <main class="w-full flex-grow">
+    @if(session('success'))
+      <div class="max-w-7xl mx-auto px-6 pt-4">
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-xs flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+            <span>{{ session('success') }}</span>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800">&times;</button>
         </div>
       </div>
     @endif
 
     @if(session('error'))
-      <div class="container mt-3">
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2" role="alert">
-          <i class="fa-solid fa-triangle-exclamation text-danger fs-5"></i>
-          <div>{{ session('error') }}</div>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div class="max-w-7xl mx-auto px-6 pt-4">
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg text-xs flex items-center justify-between shadow-sm animate-fade-in">
+          <div class="flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+            <span>{{ session('error') }}</span>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-800">&times;</button>
         </div>
       </div>
     @endif
@@ -479,1948 +463,65 @@
     @yield('content')
   </main>
 
-  <!-- PAYMENT CELEBRATION MODAL -->
-  @if(session('payment_success_order'))
-    <div class="modal fade" id="globalPaymentSuccessModal" tabindex="-1" aria-labelledby="globalPaymentSuccessModalLabel" aria-hidden="true" data-bs-backdrop="static">
-      <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
-        <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden text-center p-4" style="background: #ffffff;">
-          
-          <!-- Animation Icon -->
-          <div class="my-2 position-relative d-inline-block">
-            <div class="rounded-circle bg-success-subtle text-success p-3 d-inline-flex align-items-center justify-content-center shadow-md" style="width: 80px; height: 80px;">
-              <i class="fa-solid fa-circle-check fs-1 text-success"></i>
-            </div>
-            <span class="position-absolute top-0 end-0 badge rounded-pill bg-warning text-dark fw-bold px-2 py-1 shadow-sm" style="font-size: 0.75rem;">
-              <i class="fa-solid fa-sparkles me-1"></i> Thành Công
-            </span>
-          </div>
-
-          <h4 class="fw-black text-dark mb-1 mt-2">THANH TOÁN THÀNH CÔNG!</h4>
-          <p class="text-muted small mb-3">BeeStyle đã ghi nhận thanh toán cho đơn hàng của bạn.</p>
-
-          <!-- Order Summary Card in Modal -->
-          <div class="p-3 bg-light rounded-3 border text-start mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-              <span class="text-muted">Mã đơn hàng:</span>
-              <strong class="text-primary font-monospace fs-6">#{{ session('payment_success_order') }}</strong>
-            </div>
-            @if(session('payment_success_amount'))
-              <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-                <span class="text-muted">Số tiền thanh toán:</span>
-                <strong class="text-danger fs-5 fw-black">{{ number_format(session('payment_success_amount'), 0, ',', '.') }}₫</strong>
-              </div>
-            @endif
-            @if(session('payment_success_method'))
-              <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-                <span class="text-muted">Hình thức:</span>
-                <span class="badge bg-white border text-dark fw-semibold">{{ session('payment_success_method') }}</span>
-              </div>
-            @endif
-            <div class="d-flex justify-content-between align-items-center small">
-              <span class="text-muted">Trạng thái thanh toán:</span>
-              <span class="badge bg-success text-white fw-bold"><i class="fa-solid fa-check me-1"></i> Đã Thanh Toán</span>
-            </div>
-          </div>
-
-          <!-- Warehouse Processing Notice -->
-          <div class="alert alert-warning py-2.5 px-3 rounded-3 text-start small border-0 mb-3" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
-            <div class="d-flex gap-2">
-              <i class="fa-solid fa-box-open text-warning fs-5 mt-0.5"></i>
-              <div>
-                <strong class="text-dark d-block">Đang Xử Lý Gửi Hàng:</strong>
-                <span class="text-muted" style="font-size: 0.78rem;">Dữ liệu đơn hàng đã được gửi đến bộ phận kho. Nhân viên kho đang kiểm tra và đóng gói để gửi hàng đến cho bạn sớm nhất!</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="d-flex flex-column gap-2">
-            <a href="{{ route('client.order-tracking', ['code' => session('payment_success_order')]) }}" class="btn btn-bee-primary py-2.5 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
-              <i class="fa-solid fa-truck-fast"></i> Tra Cứu Tiến Độ Vận Chuyển
-            </a>
-            <button type="button" class="btn btn-outline-secondary py-2 small fw-semibold rounded-3" data-bs-dismiss="modal">
-              Tiếp Tục Mua Sắm
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var myModal = new bootstrap.Modal(document.getElementById('globalPaymentSuccessModal'));
-        myModal.show();
-      });
-    </script>
-  @endif
-
-
-  <!-- LUXURY PRO E-COMMERCE FOOTER -->
-  <footer class="bee-footer text-light pt-0 pb-4 mt-5" style="background: linear-gradient(180deg, #0f172a 0%, #090d16 100%); border-top: 3px solid #f59e0b;">
-    <!-- 1. BRAND TRUST BAR (4 CỘT CAM KẾT VÀNG) -->
-    <div class="border-bottom py-4" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08) !important;">
-      <div class="container">
-        <div class="row g-4 text-start">
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-truck-fast fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">GIAO HÀNG HỎA TỐC</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Freeship toàn quốc đơn từ 300K</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-arrows-rotate fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">30 NGÀY ĐỔI TRẢ</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Đổi size tận nhà miễn phí 100%</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-shield-halved fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">100% CHÍNH HÃNG</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Sợi tự nhiên cao cấp kháng khuẩn</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-3 col-sm-6">
-            <div class="d-flex align-items-center gap-3 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02);">
-              <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 48px; height: 48px;">
-                <i class="fa-solid fa-headset fs-5"></i>
-              </div>
-              <div>
-                <h6 class="text-white fw-bold mb-0.5" style="font-size: 0.92rem;">HỖ TRỢ 24/7</h6>
-                <small class="text-secondary" style="font-size: 0.78rem;">Hotline: <strong class="text-warning">1900 8888</strong> (Miễn cước)</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. MAIN FOOTER CONTENT -->
-    <div class="container pt-5">
-      <div class="row g-4 pb-5 border-bottom" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-        <!-- Brand Info -->
-        <div class="col-lg-4 col-md-6 pe-lg-4">
-          <a href="{{ route('client.home') }}" class="beestyle-logo logo-light mb-3 d-inline-flex align-items-center text-decoration-none">
-            <span class="logo-badge me-2" style="background: #f59e0b; color: #111; padding: 6px 10px; border-radius: 10px;"><i class="fa-solid fa-gem"></i></span>
-            <span class="fs-4 fw-bolder tracking-wide text-white">BEE<span class="brand-highlight text-warning">STYLE</span></span>
-          </a>
-          <p class="text-secondary small mb-3 leading-relaxed">
-            Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất liệu sợi tự nhiên tuyển chọn vượt trội.
-          </p>
-          <div class="d-flex flex-column gap-2 text-secondary small mb-3">
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-location-dot text-warning" style="width: 18px;"></i>
-              <span>Tầng 5, Tòa Nhà BeeStyle Center, Q. Cầu Giấy, Hà Nội</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-phone text-warning" style="width: 18px;"></i>
-              <span>Hotline đặt hàng: <strong class="text-white">1900 8888</strong> (08:00 - 22:00)</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-envelope text-warning" style="width: 18px;"></i>
-              <span>Email: <strong class="text-white">cskh@beestyle.vn</strong></span>
-            </div>
-          </div>
-          <div class="d-flex gap-2 pt-1">
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Instagram"><i class="fa-brands fa-instagram text-danger"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="YouTube"><i class="fa-brands fa-youtube text-danger"></i></a>
-          </div>
-        </div>
-
-        <!-- Quick Links -->
-        <div class="col-lg-2 col-md-6 col-6">
-          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
-            DANH MỤC ÁO NAM
-            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
-          </h6>
-          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
-            <li><a href="{{ route('client.categories.show', 'ao-polo-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Polo Nam</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-so-mi-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Sơ Mi Công Sở</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Phông (T-Shirt)</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Khoác &amp; Blazer</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-thun-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thun Nam Basic</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thu Đông Cao Cấp</a></li>
-          </ul>
-        </div>
-
-        <!-- Customer Service -->
-        <div class="col-lg-3 col-md-6 col-6">
-          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
-            CHĂM SÓC KHÁCH HÀNG
-            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
-          </h6>
-          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
-            <li><a href="{{ route('client.order-tracking') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-truck-ramp-box me-1.5 text-warning small"></i> Tra cứu hành trình đơn</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-rotate-left me-1.5 text-warning small"></i> Chính sách đổi trả 30 ngày</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-ruler-combined me-1.5 text-warning small"></i> Bảng quy đổi Size chuẩn</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-crown me-1.5 text-warning small"></i> Chính sách Hội Viên VIP</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-store me-1.5 text-warning small"></i> Hệ thống 15+ Showroom</a></li>
-            <li><a href="#" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-user-shield me-1.5 text-warning small"></i> Bảo mật thông tin</a></li>
-          </ul>
-        </div>
-
-        <!-- Contact & Newsletter -->
-        <div class="col-lg-3 col-md-6">
-          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
-            NHẬN VOUCHER 50.000₫
-            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
-          </h6>
-          <p class="text-secondary small mb-3">Đăng ký email để nhận ngay mã ưu đãi <strong>50.000₫</strong> cho đơn hàng đầu tiên.</p>
-          <form id="footerNewsletterForm" onsubmit="event.preventDefault(); Swal.fire({ icon: 'success', title: 'Đăng Ký Thành Công!', text: 'Mã Voucher 50.000₫ đã được gửi vào hòm thư của bạn!', timer: 3000, showConfirmButton: false }); this.reset();">
-            <div class="input-group mb-3">
-              <input type="email" class="form-control form-control-sm bg-dark text-white border-secondary border-opacity-50" placeholder="Nhập email của bạn..." required>
-              <button class="btn btn-warning btn-sm px-3 fw-bold text-dark" type="submit">NHẬN MÃ</button>
-            </div>
-          </form>
-
-          <div class="mt-3">
-            <p class="small text-secondary mb-2 fw-semibold">Phương thức thanh toán bảo mật:</p>
-            <div class="d-flex gap-2 flex-wrap text-white-50 fs-4 align-items-center">
-              <i class="fa-brands fa-cc-visa text-white" title="Visa"></i>
-              <i class="fa-brands fa-cc-mastercard text-white" title="Mastercard"></i>
-              <span class="badge bg-dark border border-warning text-warning fs-11 px-2 py-1"><i class="fa-solid fa-qrcode me-1"></i> VietQR</span>
-              <span class="badge bg-primary text-white fs-11 px-2 py-1">VNPAY-QR</span>
-              <span class="badge bg-danger text-white fs-11 px-2 py-1">MoMo</span>
-              <span class="badge bg-success text-white fs-11 px-2 py-1"><i class="fa-solid fa-money-bill-wave me-1"></i> COD</span>
-            </div>
-          </div>
-
-          <!-- Trust Badges -->
-          <div class="mt-3 pt-2 d-flex align-items-center gap-2">
-            <div class="p-1 px-2 rounded border border-secondary border-opacity-25 bg-black bg-opacity-40 d-inline-flex align-items-center gap-1.5">
-              <i class="fa-solid fa-lock text-success small"></i>
-              <span class="text-white-50" style="font-size: 0.68rem;">SSL 256-BIT SECURE</span>
-            </div>
-            <div class="p-1 px-2 rounded border border-secondary border-opacity-25 bg-black bg-opacity-40 d-inline-flex align-items-center gap-1.5">
-              <i class="fa-solid fa-circle-check text-warning small"></i>
-              <span class="text-white-50" style="font-size: 0.68rem;">ĐÃ THÔNG BÁO BỘ CÔNG THƯƠNG</span>
-            </div>
-          </div>
-        </div>
+  <!-- ========================================================================= -->
+  <!-- 4. LUXURY FOOTER -->
+  <!-- ========================================================================= -->
+  <footer class="w-full bg-neutral-950 text-neutral-400 pt-16 pb-12 border-t border-neutral-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      
+      <div>
+        <span class="font-serif-luxury text-2xl font-bold tracking-[0.25em] text-white uppercase block mb-3">BEESTYLE</span>
+        <p class="text-xs leading-relaxed text-neutral-400 font-light mb-4">
+          Nhà may đương đại &amp; thời trang thiết kế tối giản. Tôn vinh vẻ đẹp tự nhiên và sự chuẩn mực trong từng đường kim mũi chỉ.
+        </p>
+        <span class="text-xs text-neutral-300">Hotline: 1900 8899 (8:00 - 22:00)</span>
       </div>
 
-      <!-- 3. FOOTER BOTTOM (BẢN QUYỀN & THÔNG TIN DOANH NGHIỆP) -->
-      <div class="pt-4 d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary" style="font-size: 0.8rem;">
-        <div>
-          &copy; {{ date('Y') }} <strong class="text-white">BEESTYLE MENSWEAR VIETNAM</strong>. Bản quyền thuộc về Công ty Cổ phần Thời trang BeeStyle.
-          <div class="text-muted fs-11 mt-1">Giấy chứng nhận ĐKKD số: 0108998899 do Sở Kế hoạch và Đầu tư TP. Hà Nội cấp.</div>
-        </div>
-        <div class="d-flex gap-3 text-secondary small flex-wrap">
-          <a href="#" class="text-secondary text-decoration-none hover-warning">Điều khoản sử dụng</a>
-          <span>•</span>
-          <a href="#" class="text-secondary text-decoration-none hover-warning">Chính sách bảo mật</a>
-          <span>•</span>
-          <a href="#" class="text-secondary text-decoration-none hover-warning">Hệ thống phân phối</a>
-          <span>•</span>
-          <a href="tel:19008888" class="text-warning fw-bold text-decoration-none"><i class="fa-solid fa-phone me-1"></i> 1900 8888</a>
-        </div>
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Danh Mục</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="hover:text-white transition-colors">Sơ Mi Lụa May Đo</a></li>
+          <li><a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="hover:text-white transition-colors">Blazer &amp; Áo Khoác Ý</a></li>
+          <li><a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="hover:text-white transition-colors">Polo Luxury Cotton</a></li>
+          <li><a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="hover:text-white transition-colors">Áo Thun Streetwear Boxy</a></li>
+        </ul>
       </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Dịch Vụ Khách Hàng</h4>
+        <ul class="space-y-2 text-xs">
+          <li><a href="{{ route('client.order-tracking') }}" class="hover:text-white transition-colors">Tra Cứu Đơn Hàng</a></li>
+          <li><a href="{{ route('client.profile', ['tab' => 'returns']) }}" class="hover:text-white transition-colors">Đổi Trả &amp; Bảo Hành 30 Ngày</a></li>
+          <li><a href="{{ route('client.home') }}#about" class="hover:text-white transition-colors">Về Thương Hiệu Beestyle</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs uppercase tracking-[0.2em] font-semibold text-white mb-4">Atelier Vietnam</h4>
+        <p class="text-xs leading-relaxed text-neutral-400 mb-2">
+          Flagship Store: 88 Lê Lợi, Bến Nghé, Quận 1, TP. Hồ Chí Minh
+        </p>
+        <p class="text-[11px] text-neutral-500">© 2026 Beestyle Atelier. All rights reserved.</p>
+      </div>
+
     </div>
   </footer>
 
-  <!-- MODAL THÔNG BÁO ĐƠN HÀNG HOÀN TẤT (CHỈ HIỂN THỊ 1 LẦN DUY NHẤT CHO MỖI ĐƠN HÀNG) -->
-  @auth
-    @if(isset($unnotifiedReviewItems) && $unnotifiedReviewItems->count() > 0)
-      @php
-        $notifiedOrderIds = $unnotifiedReviewItems->pluck('order_id')->unique()->values()->toArray();
-      @endphp
-      <div class="modal fade" id="reviewPromptModal" tabindex="-1" aria-labelledby="reviewPromptModalLabel" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-            <div class="modal-header border-0 pb-0 text-white position-relative" style="background: linear-gradient(135deg, #111827, #1f2937); padding: 24px 24px 16px;">
-              <div class="d-flex align-items-center gap-3">
-                <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; min-width: 48px;">
-                  <i class="fa-solid fa-gift fs-4"></i>
-                </div>
-                <div>
-                  <span class="badge bg-warning text-dark fw-bold px-2 py-0.5 rounded-pill small mb-1">ĐƠN HÀNG HOÀN TẤT</span>
-                  <h5 class="modal-title fw-bold text-white mb-0" id="reviewPromptModalLabel">Bạn Có Sản Phẩm Chờ Đánh Giá!</h5>
-                </div>
-              </div>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markReviewNotified()"></button>
-            </div>
-            
-            <div class="modal-body p-4">
-              <div class="alert alert-warning border-0 p-2.5 rounded-3 mb-3 d-flex align-items-center gap-2 small" style="background: #fffbeb;">
-                <i class="fa-solid fa-heart text-danger fs-5"></i>
-                <div>
-                  <strong>Cảm ơn bạn đã mua sắm tại BeeStyle!</strong> Ý kiến đánh giá của bạn là nguồn động lực lớn để chúng tôi ngày càng hoàn thiện.
-                </div>
-              </div>
+  <!-- App Core JS & Helper Scripts -->
+  <script src="{{ asset('assets/js/app-core.js') }}"></script>
+  <script src="{{ asset('assets/js/ecommerce-validators.js') }}"></script>
 
-              <p class="small text-muted mb-3">Đơn hàng của bạn đã được giao thành công. Hãy chia sẻ cảm nhận về chất lượng và độ vừa vặn của sản phẩm:</p>
-
-              <div class="d-flex flex-column gap-2 mb-3" style="max-height: 250px; overflow-y: auto;">
-                @foreach($unnotifiedReviewItems as $pItem)
-                  <div class="d-flex align-items-center justify-content-between p-2.5 bg-light rounded-3 border">
-                    <div class="d-flex align-items-center gap-3">
-                      <img src="{{ asset($pItem->image ?? ($pItem->product->image ?? '/assets/img/products/1.png')) }}" alt="{{ $pItem->product_name }}" style="width: 48px; height: 48px; object-fit: cover;" class="rounded border bg-white">
-                      <div>
-                        <h6 class="small fw-bold text-dark mb-0 text-truncate" style="max-width: 200px;">{{ $pItem->product_name }}</h6>
-                        <small class="text-muted">Đơn: <span class="font-monospace fw-semibold">{{ $pItem->order->order_code ?? '' }}</span></small>
-                      </div>
-                    </div>
-                    <button type="button" onclick="const modal = bootstrap.Modal.getInstance(document.getElementById('reviewPromptModal')); if(modal) modal.hide(); markReviewNotified(); openQuickReviewModal({{ $pItem->product_id }});" class="btn btn-bee-primary btn-sm px-3 fw-bold text-nowrap" style="font-size: 0.8rem;">
-                      <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá
-                    </button>
-                  </div>
-                @endforeach
-              </div>
-            </div>
-
-
-            <div class="modal-footer border-top bg-light py-2.5 px-4 d-flex justify-content-between align-items-center">
-              <a href="{{ route('client.profile') }}" onclick="markReviewNotified()" class="small text-muted text-decoration-underline">Xem trong lịch sử đơn hàng</a>
-              <button type="button" class="btn btn-secondary btn-sm px-3 rounded-2" data-bs-dismiss="modal" onclick="markReviewNotified()">
-                Đã hiểu / Để sau
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    @endif
-  @endauth
-
-  <!-- QUICK PRODUCT REVIEW MODAL (HIỆN THÔNG TIN SẢN PHẨM & ĐÁNH GIÁ TRỰC QUAN) -->
-  <div class="modal fade" id="quickProductReviewModal" tabindex="-1" aria-labelledby="quickProductReviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-        <div class="modal-header border-0 text-white" style="background: linear-gradient(135deg, #111827, #1f2937); padding: 18px 24px;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fa-solid fa-star text-warning fs-5"></i>
-            <h5 class="modal-title fw-bold text-white mb-0" id="quickProductReviewModalLabel">Đánh Giá &amp; Nhận Xét Sản Phẩm</h5>
-          </div>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <div class="modal-body p-4" style="max-height: 80vh; overflow-y: auto;">
-          <!-- Loading Spinner -->
-          <div id="qrmLoading" class="text-center py-5">
-            <div class="spinner-border text-warning" role="status">
-              <span class="visually-hidden">Đang tải...</span>
-            </div>
-            <p class="small text-muted mt-2 mb-0">Đang tải thông tin sản phẩm và các đánh giá...</p>
-          </div>
-
-          <div id="qrmContent" style="display: none;">
-            <!-- Product Header Card -->
-            <div class="p-3 bg-light rounded-3 border mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
-              <div class="d-flex align-items-center gap-3">
-                <img id="qrmProductImg" src="" alt="product" style="width: 60px; height: 60px; object-fit: cover;" class="rounded border bg-white shadow-sm">
-                <div>
-                  <span class="badge bg-danger-subtle text-danger fs-11 fw-bold" id="qrmProductCat">Áo Polo Nam</span>
-                  <h6 class="fw-bold text-dark mb-1 mt-0.5" id="qrmProductName">Tên sản phẩm</h6>
-                  <div class="d-flex align-items-center gap-2 small">
-                    <span class="text-danger fw-bold fs-6" id="qrmProductPrice">0₫</span>
-                    <span class="text-muted">|</span>
-                    <span class="text-warning small" id="qrmProductRating">
-                      <i class="fa-solid fa-star"></i> <strong>5.0</strong> (0 nhận xét)
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <a href="#" id="qrmProductLink" target="_blank" class="btn btn-sm btn-outline-dark fw-bold">
-                Xem trang SP <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
-              </a>
-            </div>
-
-            <!-- Alert status message -->
-            <div id="qrmAlertBox" style="display: none;" class="alert alert-success border-0 py-2.5 px-3 rounded-3 mb-3 small"></div>
-
-            <!-- Notice when not purchased -->
-            <div id="qrmUnpurchasedNotice" class="alert alert-warning border-0 small p-3 rounded-3 mb-4 d-flex align-items-center gap-2.5 shadow-xs" style="display: none;">
-              <i class="fa-solid fa-shield-halved text-warning fs-4 flex-shrink-0"></i>
-              <div>
-                <strong class="text-dark d-block">Xác thực người mua hàng:</strong>
-                <span class="text-muted" style="font-size: 0.8rem;">Chỉ tài khoản khách hàng đã từng mua sản phẩm này tại BeeStyle mới có thể viết đánh giá xác thực.</span>
-              </div>
-            </div>
-
-            <!-- Review Form -->
-            <div id="qrmFormCard" class="card border-0 p-3.5 rounded-3 mb-4 shadow-sm" style="background: #ffffff; border: 1px solid var(--atino-border) !important;">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.85rem;">
-                  <i class="fa-solid fa-pen-nib text-danger me-1.5"></i> <span id="qrmFormTitle">Viết Đánh Giá Của Bạn</span>
-                </h6>
-                <span class="badge bg-light text-dark border fw-semibold"><i class="fa-solid fa-heart text-danger me-1"></i> Đóng góp ý kiến</span>
-              </div>
-
-              <form id="qrmForm">
-                <input type="hidden" id="qrmProductId" value="">
-                
-                <!-- Star selection -->
-                <div class="mb-3">
-                  <label class="form-label small fw-semibold text-dark mb-1">1. Đánh giá độ hài lòng của bạn:</label>
-                  <div class="d-flex align-items-center gap-2 flex-wrap" id="qrmStarGroup">
-                    <input type="radio" class="btn-check" name="qrm_rating" id="qrm_star_5" value="5" checked>
-                    <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2.5 py-1" for="qrm_star_5">5 <i class="fa-solid fa-star text-warning"></i> Tuyệt vời</label>
-
-                    <input type="radio" class="btn-check" name="qrm_rating" id="qrm_star_4" value="4">
-                    <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2.5 py-1" for="qrm_star_4">4 <i class="fa-solid fa-star text-warning"></i> Hài lòng</label>
-
-                    <input type="radio" class="btn-check" name="qrm_rating" id="qrm_star_3" value="3">
-                    <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2.5 py-1" for="qrm_star_3">3 <i class="fa-solid fa-star text-warning"></i> Bình thường</label>
-
-                    <input type="radio" class="btn-check" name="qrm_rating" id="qrm_star_2" value="2">
-                    <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2.5 py-1" for="qrm_star_2">2 <i class="fa-solid fa-star text-warning"></i> Chưa ưng</label>
-
-                    <input type="radio" class="btn-check" name="qrm_rating" id="qrm_star_1" value="1">
-                    <label class="btn btn-sm btn-outline-warning text-dark fw-bold px-2.5 py-1" for="qrm_star_1">1 <i class="fa-solid fa-star text-warning"></i> Kém</label>
-                  </div>
-                </div>
-
-                <!-- Comment -->
-                <div class="mb-3">
-                  <label class="form-label small fw-semibold text-dark mb-1">2. Chia sẻ cảm nhận chi tiết (chất vải, form dáng, độ vừa vặn):</label>
-                  <textarea id="qrmComment" class="form-control form-control-sm" rows="3" placeholder="Ví dụ: Vải cotton dệt tổ ong mặc rất mát, form áo lên chuẩn dáng, đường may rất chắc chắn..." required></textarea>
-                </div>
-
-                <!-- 3. Photo Upload with Live Preview -->
-                <div class="mb-3">
-                  <label class="form-label small fw-semibold text-dark mb-1 d-flex align-items-center justify-content-between">
-                    <span><i class="fa-solid fa-camera text-warning me-1"></i> 3. Đính kèm ảnh thực tế:</span>
-                    <span class="text-muted fs-11" id="qrmImgCount">Tối đa 5 ảnh</span>
-                  </label>
-                  <div class="p-2.5 rounded-3 border bg-light text-center" style="border: 2px dashed #cbd5e1 !important; cursor: pointer;" onclick="document.getElementById('qrmImagesInput').click()">
-                    <i class="fa-solid fa-cloud-arrow-up text-warning fs-3 mb-1 d-block"></i>
-                    <span class="small text-dark fw-bold d-block">Bấm để chọn hoặc kéo thả ảnh chụp áo</span>
-                    <small class="text-muted fs-11">Hỗ trợ JPG, PNG, WEBP (tối đa 5MB/ảnh)</small>
-                    <input type="file" id="qrmImagesInput" class="d-none" multiple accept="image/*" onchange="previewReviewPhotos(this, 'qrmImagesPreview')">
-                  </div>
-                  <div id="qrmImagesPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center">
-                  <button type="submit" id="qrmSubmitBtn" class="btn btn-bee-primary btn-sm px-4 py-2 fw-bold">
-                    <i class="fa-solid fa-paper-plane me-1"></i> <span id="qrmBtnText">GỬI ĐÁNH GIÁ NGAY</span>
-                  </button>
-                  <small class="text-muted" style="font-size: 0.75rem;">BeeStyle bảo mật &amp; trân trọng mọi góp ý</small>
-                </div>
-              </form>
-            </div>
-
-            <!-- Reviews List Section -->
-            <div>
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-size: 0.85rem;">
-                  <i class="fa-solid fa-comments text-warning me-1.5"></i> Đánh Giá Từ Khách Hàng Đã Mua (<span id="qrmReviewsCount">0</span>)
-                </h6>
-              </div>
-
-              <div id="qrmReviewsList" class="d-flex flex-column gap-2.5">
-                <!-- Dynamically populated reviews -->
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- GLOBAL REVIEW PHOTO LIGHTBOX MODAL -->
-  <div class="modal fade" id="reviewPhotoLightboxModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content bg-transparent border-0 text-center position-relative">
-        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 z-3" data-bs-dismiss="modal" aria-label="Close"></button>
-        <img id="reviewPhotoLightboxImg" src="" class="img-fluid rounded-4 shadow-lg mx-auto" style="max-height: 85vh; object-fit: contain; background: rgba(0,0,0,0.85); border: 2px solid rgba(255,255,255,0.2);">
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="{{ asset('vendors/bootstrap/bootstrap.min.js') }}"></script>
-  <script src="{{ asset('vendors/simplebar/simplebar.min.js') }}"></script>
-  <script src="{{ asset('vendors/swiper/swiper-bundle.min.js') }}"></script>
-  <script src="{{ asset('vendors/feather-icons/feather.min.js') }}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    if (typeof feather !== 'undefined') {
-      feather.replace();
+    function toggleMobileNav() {
+      document.getElementById('mobile-nav')?.classList.toggle('hidden');
     }
 
-    // Hàm mở Modal phóng to ảnh đánh giá (Global Lightbox)
-    function openReviewImageLightbox(imgSrc) {
-      if (!imgSrc) return;
-      const lightboxModal = document.getElementById('reviewPhotoLightboxModal');
-      const lightboxImg = document.getElementById('reviewPhotoLightboxImg');
-      if (lightboxModal && lightboxImg) {
-        lightboxImg.src = imgSrc;
-        bootstrap.Modal.getOrCreateInstance(lightboxModal).show();
-      }
-    }
-
-    // Hàm xem trước ảnh tải lên cho Form đánh giá
-    function previewReviewPhotos(input, previewContainerId) {
-      const container = document.getElementById(previewContainerId);
-      if (!container) return;
-      container.innerHTML = '';
-
-      if (input.files && input.files.length > 0) {
-        const maxFiles = Math.min(input.files.length, 5);
-        for (let i = 0; i < maxFiles; i++) {
-          const file = input.files[i];
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'position-relative';
-            wrapper.innerHTML = `
-              <img src="${e.target.result}" class="rounded border shadow-xs" style="width: 58px; height: 58px; object-fit: cover;">
-            `;
-            container.appendChild(wrapper);
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-    }
-
-    // Hàm hiển thị nhanh đánh giá trực tiếp vào danh sách trong Modal
-    function renderReviewDirectlyInModal(r, totalCount) {
-      const listEl = document.getElementById('qrmReviewsList');
-      if (!listEl || !r) return;
-
-      if (totalCount !== undefined) {
-        const countEl = document.getElementById('qrmReviewsCount');
-        if (countEl) countEl.textContent = totalCount;
-      }
-
-      let starsHtml = '';
-      const rRating = parseInt(r.rating) || 5;
-      for (let i = 1; i <= 5; i++) {
-        starsHtml += `<i class="fa-solid fa-star ${i <= rRating ? 'text-warning' : 'text-secondary-subtle'}"></i>`;
-      }
-
-      let photosHtml = '';
-      if (r.images && r.images.length > 0) {
-        photosHtml += '<div class="d-flex gap-2 flex-wrap mt-2 pt-2 border-top border-secondary border-opacity-10">';
-        r.images.forEach(photo => {
-          photosHtml += `
-            <div class="position-relative" style="cursor: pointer;" onclick="openReviewImageLightbox('${photo}')">
-              <img src="${photo}" alt="Ảnh đánh giá" class="rounded border shadow-xs" style="width: 60px; height: 60px; object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              <span class="position-absolute bottom-0 end-0 bg-dark text-white px-1 py-0.5 rounded-start" style="font-size: 0.6rem; opacity: 0.85;">
-                <i class="fa-solid fa-magnifying-glass-plus"></i>
-              </span>
-            </div>
-          `;
-        });
-        photosHtml += '</div>';
-      }
-
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'p-3 bg-light rounded-3 border';
-      itemDiv.id = 'qrm-review-item-' + (r.id || 'new');
-      itemDiv.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-1.5 flex-wrap gap-2">
-          <div class="d-flex align-items-center gap-2">
-            <img src="${r.user_avatar}" alt="${r.user_name}" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
-            <div>
-              <strong class="text-dark small d-block leading-none">${r.user_name}</strong>
-              <span class="badge bg-success-subtle text-success py-0 px-1" style="font-size: 0.65rem;">
-                <i class="fa-solid fa-circle-check"></i> Đã mua hàng
-              </span>
-            </div>
-          </div>
-          <small class="text-muted" style="font-size: 0.72rem;">${r.time_ago || 'Vừa xong'}</small>
-        </div>
-        <div class="text-warning small mb-1.5">
-          ${starsHtml} <span class="text-dark fw-bold ms-1">(${rRating}/5)</span>
-        </div>
-        <p class="small text-dark mb-0 fst-italic leading-relaxed" style="font-size: 0.8rem;">
-          "${r.comment}"
-        </p>
-        ${photosHtml}
-      `;
-
-      // Xóa empty message nếu có
-      if (listEl.querySelector('.fa-comment-dots')) {
-        listEl.innerHTML = '';
-      }
-
-      const existingEl = document.getElementById('qrm-review-item-' + r.id);
-      if (existingEl) {
-        existingEl.replaceWith(itemDiv);
-      } else {
-        listEl.insertBefore(itemDiv, listEl.firstChild);
-      }
-    }
-
-    // Hàm mở Modal Đánh Giá & Xem Nhận Xét Sản Phẩm Nhanh
-    function openQuickReviewModal(productId, isSilent = false) {
-      const modalEl = document.getElementById('quickProductReviewModal');
-      if (!modalEl) return;
-
-      const pId = parseInt(productId) || 1;
-      const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      const loadingEl = document.getElementById('qrmLoading');
-      const contentEl = document.getElementById('qrmContent');
-      const alertBox = document.getElementById('qrmAlertBox');
-      const imgPreview = document.getElementById('qrmImagesPreview');
-      const imgInput = document.getElementById('qrmImagesInput');
-
-      if (!isSilent) {
-        if (imgInput) imgInput.value = '';
-        if (imgPreview) imgPreview.innerHTML = '';
-
-        loadingEl.innerHTML = `
-          <div class="spinner-border text-warning" role="status">
-            <span class="visually-hidden">Đang tải...</span>
-          </div>
-          <p class="small text-muted mt-2 mb-0">Đang tải thông tin sản phẩm và các đánh giá...</p>
-        `;
-        loadingEl.style.display = 'block';
-        contentEl.style.display = 'none';
-        alertBox.style.display = 'none';
-        bsModal.show();
-      }
-
-      // Fetch dữ liệu sản phẩm & toàn bộ đánh giá bằng đường dẫn tuyệt đối theo Window Origin
-      const fetchUrl = window.location.origin + "/san-pham/" + pId + "/danh-gia-chi-tiet";
-      fetch(fetchUrl, {
-        headers: { 
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP error ' + res.status);
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.success) {
-          const p = data.product;
-          const pIdEl = document.getElementById('qrmProductId');
-          if (pIdEl) pIdEl.value = p.id;
-          const pNameEl = document.getElementById('qrmProductName');
-          if (pNameEl) pNameEl.textContent = p.name || '';
-          const pImgEl = document.getElementById('qrmProductImg');
-          if (pImgEl) pImgEl.src = p.image || '';
-          const pPriceEl = document.getElementById('qrmProductPrice');
-          if (pPriceEl) pPriceEl.textContent = p.price || '';
-          const pCatEl = document.getElementById('qrmProductCat');
-          if (pCatEl) pCatEl.textContent = p.category_name || '';
-          const pLinkEl = document.getElementById('qrmProductLink');
-          if (pLinkEl) pLinkEl.href = p.url || '#';
-          const pRatingEl = document.getElementById('qrmProductRating');
-          if (pRatingEl) pRatingEl.innerHTML = `<i class="fa-solid fa-star"></i> <strong>${p.rating}</strong> (${p.reviews_count} nhận xét)`;
-          const pRevCountEl = document.getElementById('qrmReviewsCount');
-          if (pRevCountEl) pRevCountEl.textContent = data.reviews ? data.reviews.length : 0;
-
-          // Kiểm tra quyền đánh giá (chỉ khách đã mua mới thấy form nhập)
-          const formCard = document.getElementById('qrmFormCard');
-          const noticeCard = document.getElementById('qrmUnpurchasedNotice');
-
-          if (data.user_has_purchased) {
-            if (formCard) formCard.style.display = 'block';
-            if (noticeCard) noticeCard.style.display = 'none';
-
-            const fTitle = document.getElementById('qrmFormTitle');
-            const fBtn = document.getElementById('qrmBtnText');
-            const fComment = document.getElementById('qrmComment');
-
-            if (data.user_review) {
-              if (fTitle) fTitle.textContent = 'Cập Nhật Đánh Giá & Hình Ảnh';
-              if (fBtn) fBtn.textContent = 'CẬP NHẬT ĐÁNH GIÁ';
-              if (fComment) fComment.value = data.user_review.comment || '';
-              const starRadio = document.querySelector(`input[name="qrm_rating"][value="${data.user_review.rating}"]`);
-              if (starRadio) starRadio.checked = true;
-
-              // Render existing user photos
-              if (data.user_review.images && data.user_review.images.length > 0 && imgPreview) {
-                imgPreview.innerHTML = '';
-                data.user_review.images.forEach(img => {
-                  imgPreview.innerHTML += `<img src="${img}" class="rounded border shadow-xs" style="width: 58px; height: 58px; object-fit: cover;">`;
-                });
-              }
-            } else {
-              if (fTitle) fTitle.textContent = 'Viết Đánh Giá & Đính Kèm Ảnh';
-              if (fBtn) fBtn.textContent = 'GỬI ĐÁNH GIÁ NGAY';
-              if (!isSilent) {
-                if (fComment) fComment.value = '';
-                const star5 = document.getElementById('qrm_star_5');
-                if (star5) star5.checked = true;
-              }
-            }
-          } else {
-            if (formCard) formCard.style.display = 'none';
-            if (noticeCard) noticeCard.style.display = 'flex';
-          }
-
-          // Render danh sách đánh giá của các khách hàng khác
-          const listEl = document.getElementById('qrmReviewsList');
-          if (listEl) {
-            listEl.innerHTML = '';
-
-            if (data.reviews && data.reviews.length > 0) {
-              data.reviews.forEach(r => {
-                renderReviewDirectlyInModal(r);
-              });
-            } else {
-              listEl.innerHTML = `
-                <div class="text-center py-4 bg-light rounded-3 border">
-                  <i class="fa-regular fa-comment-dots fs-2 text-muted mb-2 d-block"></i>
-                  <p class="small text-muted mb-0">Chưa có đánh giá nào khác. Hãy là người đầu tiên nhận xét sản phẩm này!</p>
-                </div>
-              `;
-            }
-          }
-
-          if (loadingEl) loadingEl.style.display = 'none';
-          if (contentEl) contentEl.style.display = 'block';
-        } else {
-          throw new Error('Dữ liệu không hợp lệ');
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching review data:', err);
-        if (!isSilent && contentEl && contentEl.style.display !== 'block' && loadingEl) {
-          loadingEl.innerHTML = `
-            <div class="text-center py-4">
-              <i class="fa-solid fa-circle-exclamation text-danger fs-2 mb-2 d-block"></i>
-              <p class="text-dark fw-semibold small mb-2">Chưa thể tải dữ liệu đánh giá sản phẩm</p>
-              <button type="button" class="btn btn-sm btn-outline-dark px-3 fw-bold rounded-pill" onclick="openQuickReviewModal(${pId})">
-                <i class="fa-solid fa-rotate-right me-1"></i> Bấm để thử lại
-              </button>
-            </div>
-          `;
-        }
-      });
-    }
-
-    // Xử lý gửi Form Đánh Giá AJAX (kèm hỗ trợ tải lên file ảnh FormData) trong Modal
-    document.addEventListener("DOMContentLoaded", function () {
-      const qrmForm = document.getElementById('qrmForm');
-      if (qrmForm) {
-        qrmForm.addEventListener('submit', function (e) {
-          e.preventDefault();
-          const pIdInput = document.getElementById('qrmProductId');
-          const productId = parseInt(pIdInput ? pIdInput.value : 1) || 1;
-          const ratingInput = document.querySelector('input[name="qrm_rating"]:checked');
-          const commentInput = document.getElementById('qrmComment');
-          const comment = commentInput ? commentInput.value : '';
-          const imgInput = document.getElementById('qrmImagesInput');
-          const submitBtn = document.getElementById('qrmSubmitBtn');
-          const alertBox = document.getElementById('qrmAlertBox');
-
-          if (!ratingInput || !comment.trim()) return;
-
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi đánh giá & ảnh...';
-          }
-
-          const formData = new FormData();
-          formData.append('rating', ratingInput.value);
-          formData.append('comment', comment);
-          if (imgInput && imgInput.files && imgInput.files.length > 0) {
-            const maxFiles = Math.min(imgInput.files.length, 5);
-            for (let i = 0; i < maxFiles; i++) {
-              formData.append('review_images[]', imgInput.files[i]);
-            }
-          }
-
-          const postUrl = window.location.origin + "/san-pham/" + productId + "/danh-gia";
-          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
-          formData.append('_token', csrfToken);
-
-          fetch(postUrl, {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'X-CSRF-TOKEN': csrfToken,
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: formData
-          })
-          .then(async res => {
-            const isJson = res.headers.get('content-type')?.includes('application/json');
-            const data = isJson ? await res.json() : null;
-
-            if (!res.ok) {
-              const errMsg = (data && data.message) ? data.message : `Lỗi ${res.status}: Vui lòng kiểm tra lại thông tin gửi đánh giá`;
-              throw new Error(errMsg);
-            }
-
-            return data;
-          })
-          .then(data => {
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> CẬP NHẬT ĐÁNH GIÁ';
-            }
-
-            if (data && data.success) {
-              if (alertBox) {
-                alertBox.className = 'alert alert-success border-0 py-2.5 px-3 rounded-3 mb-3 small';
-                alertBox.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> ${data.message}`;
-                alertBox.style.display = 'block';
-              }
-
-              // Cập nhật title form
-              const fTitle = document.getElementById('qrmFormTitle');
-              if (fTitle) fTitle.textContent = 'Cập Nhật Đánh Giá & Hình Ảnh';
-              const fBtn = document.getElementById('qrmBtnText');
-              if (fBtn) fBtn.textContent = 'CẬP NHẬT ĐÁNH GIÁ';
-
-              // Cập nhật rating và reviews_count trên header modal
-              const pRating = document.getElementById('qrmProductRating');
-              if (pRating && data.product_rating) {
-                pRating.innerHTML = `<i class="fa-solid fa-star"></i> <strong>${data.product_rating}</strong> (${data.product_reviews_count} nhận xét)`;
-              }
-
-              // Render review ngay lập tức vào danh sách hiển thị
-              if (data.review) {
-                renderReviewDirectlyInModal(data.review, data.product_reviews_count);
-                syncReviewToProfilePage(data.review, productId);
-              }
-
-              // Xóa input file đã gửi
-              if (imgInput) imgInput.value = '';
-
-              // Sync dữ liệu ngầm sau 500ms mà không làm giật modal
-              setTimeout(() => {
-                openQuickReviewModal(productId, true);
-              }, 500);
-            } else {
-              if (alertBox) {
-                alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
-                alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> ${data?.message || 'Không thể gửi đánh giá'}`;
-                alertBox.style.display = 'block';
-              }
-            }
-          })
-          .catch(err => {
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ';
-            }
-            if (alertBox) {
-              alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
-              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> ${err.message || 'Có lỗi xảy ra khi gửi đánh giá.'}`;
-              alertBox.style.display = 'block';
-            }
-          });
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.lucide) {
+        lucide.createIcons();
       }
     });
-
-    // Hàm đồng bộ dữ liệu đánh giá vừa sửa sang Trang Hồ Sơ Tài Khoản
-    function syncReviewToProfilePage(reviewData, productId) {
-      if (!reviewData || !productId) return;
-
-      const commentEl = document.getElementById('profile-rev-comment-' + productId);
-      if (commentEl) {
-        commentEl.textContent = `"${reviewData.comment}"`;
-      }
-
-      const starsEl = document.getElementById('profile-rev-stars-' + productId);
-      if (starsEl) {
-        let starsHtml = '';
-        const rRating = parseInt(reviewData.rating) || 5;
-        for (let i = 1; i <= 5; i++) {
-          starsHtml += `<i class="fa-solid fa-star ${i <= rRating ? 'text-warning' : 'text-secondary-subtle'}"></i> `;
-        }
-        starsHtml += `<span class="fw-bold text-dark ms-1">(${rRating}/5)</span>`;
-        starsEl.innerHTML = starsHtml;
-      }
-
-      const photosEl = document.getElementById('profile-rev-photos-' + productId);
-      if (photosEl) {
-        if (reviewData.images && reviewData.images.length > 0) {
-          photosEl.classList.remove('d-none');
-          photosEl.style.display = 'flex';
-          photosEl.innerHTML = '';
-          reviewData.images.forEach(photoUrl => {
-            photosEl.innerHTML += `
-              <div class="position-relative" style="cursor: pointer;" onclick="openReviewImageLightbox('${photoUrl}')">
-                <img src="${photoUrl}" alt="Ảnh đánh giá" class="rounded border shadow-xs" style="width: 54px; height: 54px; object-fit: cover;">
-                <span class="position-absolute bottom-0 end-0 bg-dark text-white px-1 py-0.5 rounded-start" style="font-size: 0.6rem; opacity: 0.85;">
-                  <i class="fa-solid fa-magnifying-glass-plus"></i>
-                </span>
-              </div>
-            `;
-          });
-        }
-      }
-
-      // Đổi nút Đơn Hàng sang "Xem / Sửa Đánh Giá"
-      const orderBtn = document.getElementById('order-btn-review-' + productId);
-      if (orderBtn) {
-        orderBtn.className = 'btn btn-sm btn-outline-success py-0.5 px-2 mt-1 fw-bold text-nowrap';
-        orderBtn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Xem / Sửa Đánh Giá';
-      }
-    }
-
-    // Hàm đánh dấu đã gửi thông báo 1 lần duy nhất trên Database & Trình duyệt
-    function markReviewNotified() {
-      @auth
-        @if(isset($notifiedOrderIds) && count($notifiedOrderIds) > 0)
-          const orderIds = @json($notifiedOrderIds);
-          
-          // Gửi request ngầm cập nhật Database review_notified = true
-          fetch("{{ route('client.reviews.dismissNotification') }}", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({ order_ids: orderIds })
-          }).catch(err => console.log(err));
-
-          // Lưu vào localStorage
-          let savedNotified = JSON.parse(localStorage.getItem('beestyle_notified_orders') || '[]');
-          orderIds.forEach(id => {
-            if (!savedNotified.includes(id)) savedNotified.push(id);
-          });
-          localStorage.setItem('beestyle_notified_orders', JSON.stringify(savedNotified));
-        @endif
-      @endauth
-    }
-
-
-    // Tự động mở Modal Thông báo Đánh giá đúng 1 LẦN DUY NHẤT khi khách hàng có đơn hoàn tất mới
-    document.addEventListener("DOMContentLoaded", function () {
-      @auth
-        @if(isset($unnotifiedReviewItems) && $unnotifiedReviewItems->count() > 0)
-          const orderIds = @json($notifiedOrderIds ?? []);
-          const savedNotified = JSON.parse(localStorage.getItem('beestyle_notified_orders') || '[]');
-          
-          // Kiểm tra xem tất cả các đơn hàng này đã được thông báo 1 lần ở trình duyệt chưa
-          const hasUnnotifiedInBrowser = orderIds.some(id => !savedNotified.includes(id));
-
-          if (hasUnnotifiedInBrowser) {
-            setTimeout(function () {
-              const modalEl = document.getElementById('reviewPromptModal');
-              if (modalEl) {
-                const promptModal = new bootstrap.Modal(modalEl);
-                promptModal.show();
-                
-                // Đánh dấu ngay khi modal đã xuất hiện
-                markReviewNotified();
-              }
-            }, 800);
-          }
-        @endif
-
-        // Hỗ trợ Hover và Click thông minh cho Trung tâm thông báo
-        const notifDropdown = document.getElementById('beeNotificationDropdown');
-        const notifBtn = document.getElementById('notifBellBtn');
-        if (notifDropdown && notifBtn && typeof bootstrap !== 'undefined') {
-          let hideTimeout = null;
-          const bsDropdown = bootstrap.Dropdown.getOrCreateInstance(notifBtn);
-
-          // Rê chuột vào để mở
-          notifDropdown.addEventListener('mouseenter', function () {
-            clearTimeout(hideTimeout);
-            bsDropdown.show();
-          });
-
-          // Rê chuột ra ngoài có độ trễ 250ms tránh tắt đột ngột
-          notifDropdown.addEventListener('mouseleave', function () {
-            hideTimeout = setTimeout(function () {
-              bsDropdown.hide();
-            }, 250);
-          });
-        }
-      @endauth
-    });
   </script>
-
-
-  <!-- ========================================== -->
-  <!-- MODAL 1: PRO E-COMMERCE QUICK VIEW & PURCHASE MODAL (2 CỘT ĐỒNG BỘ CHI TIẾT SẢN PHẨM) -->
-  <!-- ========================================== -->
-  <div class="modal fade" id="quickVariantModal" tabindex="-1" aria-hidden="true" style="z-index: 1080;">
-    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1020px;">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden; background: #ffffff;">
-        
-        <!-- Header -->
-        <div class="modal-header border-bottom py-3 px-4 d-flex justify-content-between align-items-center bg-light bg-opacity-50">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
-              <i class="fa-solid fa-bolt me-1"></i> MUA NHANH SẢN PHẨM
-            </span>
-            <span class="text-muted small" id="qvmBrandText">BeeStyle Signature</span>
-            <span class="text-muted small">•</span>
-            <span class="badge bg-light text-dark border px-2 py-0.5 small" id="qvmCategoryName">Thời trang nam</span>
-            <span class="badge bg-secondary-subtle text-secondary px-2 py-0.5 small" id="qvmSkuText">SKU: BS-0001</span>
-          </div>
-          <button type="button" class="btn-close rounded-circle p-2 bg-light" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <!-- Body 2 Cột chuẩn Chi Tiết Sản Phẩm -->
-        <div class="modal-body p-4 p-lg-4">
-          <div class="row g-4 align-items-start">
-            
-            <!-- CỘT TRÁI (5/12): GALLERY ẢNH & CAM KẾT DỊCH VỤ -->
-            <div class="col-lg-5 col-md-5">
-              <!-- Khung ảnh chính -->
-              <div class="position-relative bg-light rounded-4 p-3 text-center border overflow-hidden d-flex align-items-center justify-content-center mb-3" style="height: 340px; background: #f8fafc;">
-                <img src="" id="qvmProductImage" alt="Sản phẩm" class="img-fluid rounded-3 transition-all" style="max-height: 310px; max-width: 100%; object-fit: contain;">
-                
-                <span class="position-absolute top-0 start-0 badge bg-danger rounded-pill m-3 px-2.5 py-1 shadow-xs fw-bold" id="qvmDiscountBadge" style="font-size: 0.75rem; display: none;">
-                  -15%
-                </span>
-                <span class="position-absolute top-0 end-0 badge bg-warning text-dark rounded-pill m-3 px-2.5 py-1 shadow-xs fw-bold" id="qvmHotBadge" style="font-size: 0.72rem;">
-                  <i class="fa-solid fa-fire me-1"></i> BÁN CHẠY
-                </span>
-              </div>
-
-              <!-- Dải thumbnail các góc chụp -->
-              <div class="d-flex gap-2 overflow-x-auto pb-2 mb-3" id="qvmThumbnailsContainer" style="scrollbar-width: thin;">
-                <!-- Render động thumbnails -->
-              </div>
-
-              <!-- Hộp 4 Cam Kết Mua Sắm Chuẩn BeeStyle -->
-              <div class="p-3 rounded-3 border bg-light bg-opacity-70" style="font-size: 0.78rem;">
-                <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-1.5">
-                  <i class="fa-solid fa-shield-halved text-warning"></i>
-                  <span>CAM KẾT CHÍNH HÃNG BEESTYLE</span>
-                </div>
-                <div class="row g-2 text-muted">
-                  <div class="col-6">
-                    <i class="fa-solid fa-truck-fast text-success me-1"></i> Giao hỏa tốc 2H
-                  </div>
-                  <div class="col-6">
-                    <i class="fa-solid fa-rotate-left text-primary me-1"></i> Đổi size 30 ngày
-                  </div>
-                  <div class="col-6">
-                    <i class="fa-solid fa-certificate text-warning me-1"></i> Bảo hành 6 tháng
-                  </div>
-                  <div class="col-6">
-                    <i class="fa-solid fa-box-open text-info me-1"></i> Freeship đơn 300k
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- CỘT PHẢI (7/12): THÔNG TIN SẢN PHẨM, BIẾN THỂ & ĐẶT HÀNG -->
-            <div class="col-lg-7 col-md-7">
-              <!-- Tên sản phẩm -->
-              <h5 class="fw-bold text-dark mb-2" id="qvmProductName" style="font-size: 1.22rem; line-height: 1.4;">
-                Đang tải tên sản phẩm...
-              </h5>
-
-              <!-- Đánh giá, Lượt bán, Lượt xem -->
-              <div class="d-flex align-items-center gap-2 gap-md-3 flex-wrap mb-3 small">
-                <div class="text-warning fw-bold d-flex align-items-center gap-1">
-                  <i class="fa-solid fa-star"></i>
-                  <span id="qvmRatingText">4.9</span>
-                  <span class="text-muted fw-normal" id="qvmReviewsCountText">(86 đánh giá)</span>
-                </div>
-                <span class="text-muted">•</span>
-                <span class="text-muted">Đã bán <strong class="text-dark" id="qvmSoldCountText">1.240</strong></span>
-                <span class="text-muted">•</span>
-                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
-                  <i class="fa-solid fa-eye me-1"></i> <span id="qvmLiveViewers">12</span> người đang xem
-                </span>
-              </div>
-
-              <!-- Khối Hiển Thị Giá Bán & Tiết Kiệm -->
-              <div class="p-3 rounded-3 mb-3 border d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
-                <div>
-                  <div class="d-flex align-items-baseline gap-2">
-                    <strong class="text-danger fs-4 fw-bolder" id="qvmProductPrice">0₫</strong>
-                    <small class="text-muted text-decoration-line-through fs-6" id="qvmProductOriginalPrice" style="display: none;">0₫</small>
-                  </div>
-                  <small class="text-success fw-semibold" id="qvmSaveAmountBadge" style="font-size: 0.8rem; display: none;">
-                    <i class="fa-solid fa-piggy-bank me-1"></i> Tiết kiệm: <span id="qvmSaveAmountText">0₫</span>
-                  </small>
-                </div>
-                <span class="badge bg-dark text-warning border border-warning px-2.5 py-1 rounded-pill small fw-bold">
-                  <i class="fa-solid fa-crown me-1"></i> GIÁ TỐT NHẤT
-                </span>
-              </div>
-
-              <!-- Khối Bảng Thông Số Kỹ Thuật (Thu Gọn) -->
-              <div class="mb-3 p-2.5 rounded-3 border bg-light small" id="qvmSpecsBox" style="font-size: 0.78rem;">
-                <div class="fw-bold text-dark mb-1.5 d-flex align-items-center gap-1">
-                  <i class="fa-solid fa-circle-info text-warning"></i>
-                  <span>ĐẶC ĐIỂM NỔI BẬT:</span>
-                </div>
-                <div class="d-flex flex-wrap gap-x-3 gap-y-1 text-muted" id="qvmSpecsContainer">
-                  <!-- Render động thông số kỹ thuật -->
-                </div>
-              </div>
-
-              <!-- 1. CHỌN MÀU SẮC (COLOR SWATCHES) -->
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1.5">
-                  <label class="form-label small fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-palette text-warning me-1"></i> Màu Sắc:
-                    <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedColorText">Chưa chọn</span>
-                  </label>
-                  <span class="text-danger small" style="font-size: 0.72rem;">* Bắt buộc</span>
-                </div>
-                <div class="d-flex flex-wrap gap-2" id="qvmColorsContainer">
-                  <!-- Render động các nút màu sắc cao cấp -->
-                </div>
-              </div>
-
-              <!-- 2. CHỌN KÍCH THƯỚC (SIZE MATRIX) -->
-              <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1.5">
-                  <label class="form-label small fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-ruler-combined text-warning me-1"></i> Kích Thước (Size):
-                    <span class="badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold" id="qvmSelectedSizeText">Chưa chọn</span>
-                  </label>
-                  <span class="text-muted small" style="font-size: 0.72rem;">
-                    <i class="fa-solid fa-arrows-alt-v me-0.5 text-warning"></i> Chuẩn Form Quý Ông
-                  </span>
-                </div>
-                <div class="d-flex flex-wrap gap-2" id="qvmSizesContainer">
-                  <!-- Render động các nút size cao cấp -->
-                </div>
-              </div>
-
-              <!-- 3. CHỌN SỐ LƯỢNG & TỒN KHO REALTIME -->
-              <div class="mb-3.5 p-3 rounded-3 border bg-light bg-opacity-70">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-calculator text-warning"></i>
-                    <span>Số Lượng Mua:</span>
-                  </label>
-                  <span class="badge bg-dark text-warning border border-warning px-2.5 py-0.5 fw-bold" style="font-size: 0.78rem;">
-                    Đã chọn: <span id="qvmQtyLiveBadge" class="text-white fw-bold">1</span> cái
-                  </span>
-                </div>
-
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                  <div class="bee-qty-stepper">
-                    <button type="button" class="btn-step-minus" id="qvmBtnMinus" onclick="changeQvmQuantity(-1)" title="Giảm 1 sản phẩm">
-                      <i class="fa-solid fa-minus"></i>
-                    </button>
-                    <input type="number" id="qvmQuantityInput" value="1" min="1" max="10" class="qty-display-input" readonly>
-                    <button type="button" class="btn-step-plus" id="qvmBtnPlus" onclick="changeQvmQuantity(1)" title="Tăng 1 sản phẩm">
-                      <i class="fa-solid fa-plus"></i>
-                    </button>
-                  </div>
-
-                  <div class="text-end">
-                    <div class="d-flex align-items-baseline gap-1.5 justify-content-end">
-                      <span class="text-muted small">Tạm tính:</span>
-                      <strong class="text-danger fs-5 fw-bold" id="qvmSubtotalLive">0₫</strong>
-                    </div>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold" id="qvmStockBadge" style="font-size: 0.72rem;">
-                      <i class="fa-solid fa-circle-check me-1"></i> Còn <strong id="qvmStockNumber">...</strong> sản phẩm trong kho
-                    </span>
-                  </div>
-                </div>
-
-                <div id="qvmMaxLimitMsg" class="alert alert-warning border-0 py-2 px-3 small rounded-3 mt-2 mb-0 d-none fw-semibold" style="font-size: 0.78rem;">
-                  <i class="fa-solid fa-circle-exclamation text-danger me-1"></i> Số lượng mua tối đa cho phép là 10 sản phẩm mỗi lần.
-                </div>
-              </div>
-
-              <!-- Cảnh Báo Chọn Biến Thể -->
-              <div class="alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small shadow-xs" id="qvmValidationAlert" style="display: none; font-size: 0.82rem;">
-                <i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Vui lòng chọn đầy đủ <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!
-              </div>
-
-              <!-- 4. 2 NÚT HÀNH ĐỘNG LỚN -->
-              <div class="d-flex gap-2 mb-2">
-                <button type="button" class="btn btn-outline-dark flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmAddToCartBtn" onclick="submitQvmAction(false)" style="font-size: 0.95rem;">
-                  <i class="fa-solid fa-cart-plus me-1.5 text-warning"></i> Thêm Vào Giỏ Hàng
-                </button>
-                <button type="button" class="btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs" id="qvmBuyNowBtn" onclick="submitQvmAction(true)" style="font-size: 0.95rem;">
-                  <i class="fa-solid fa-bolt me-1.5 text-dark"></i> Mua Ngay
-                </button>
-              </div>
-
-              <!-- Link Xem Chi Tiết Đầy Đủ -->
-              <div class="text-center pt-1">
-                <a href="#" id="qvmDetailLink" class="text-muted small text-decoration-none hover-warning fw-semibold">
-                  <i class="fa-solid fa-arrow-up-right-from-square me-1 text-warning"></i> Xem trang chi tiết đầy đủ sản phẩm (Bảng size, Đánh giá, Vouchers) &rarr;
-                </a>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- MODAL 2: THÔNG BÁO THÊM GIỎ HÀNG THÀNH CÔNG -->
-  <!-- ========================================== -->
-  <div class="modal fade" id="cartSuccessModal" tabindex="-1" aria-hidden="true" style="z-index: 1090;">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 22px; overflow: hidden;">
-        
-        <div class="modal-body p-4 text-center">
-          <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center mx-auto mb-3 shadow-xs" style="width: 64px; height: 64px;">
-            <i class="fa-solid fa-circle-check fs-2"></i>
-          </div>
-
-          <h5 class="fw-bold text-dark mb-1" style="font-size: 1.15rem;">Đã Thêm Vào Giỏ Hàng!</h5>
-          <p class="text-muted small mb-3">Sản phẩm đã được thêm vào giỏ hàng của bạn thành công.</p>
-
-          <!-- Thẻ Sản Phẩm Vừa Thêm -->
-          <div class="p-3 bg-light rounded-3 border text-start d-flex align-items-center gap-3 mb-4">
-            <img src="" id="csmProductImage" alt="Sản phẩm" class="rounded border bg-white flex-shrink-0" style="width: 56px; height: 56px; object-fit: contain;">
-            <div class="flex-grow-1 text-truncate">
-              <h6 class="fw-bold text-dark mb-1 text-truncate" id="csmProductName" style="font-size: 0.88rem;">Tên sản phẩm</h6>
-              <div class="text-muted small" style="font-size: 0.78rem;">
-                Phân loại: <strong class="text-dark" id="csmVariantText">Đen / Size L</strong> • SL: <strong class="text-dark" id="csmQuantityText">1</strong>
-              </div>
-              <strong class="text-danger" id="csmPriceText">0₫</strong>
-            </div>
-          </div>
-
-          <!-- 2 Nút Hành Động Rõ Ràng -->
-          <div class="d-flex flex-column gap-2">
-            <a href="{{ route('client.cart') }}" class="btn btn-warning text-dark fw-bold py-2.5 rounded-3 shadow-xs w-100">
-              <i class="fa-solid fa-cart-shopping me-1.5"></i> Xem Giỏ Hàng &amp; Kiểm Tra Ngay
-            </a>
-            <button type="button" class="btn btn-outline-secondary py-2 rounded-3 w-100 small fw-semibold" data-bs-dismiss="modal">
-              <i class="fa-solid fa-arrow-left me-1"></i> Tiếp Tục Chọn Mua Thêm
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- MODAL 3: YÊU CẦU ĐĂNG NHẬP ĐỂ THAO TÁC -->
-  <!-- ========================================== -->
-  <div class="modal fade" id="authRequiredModal" tabindex="-1" aria-hidden="true" style="z-index: 1095;">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 22px; overflow: hidden;">
-        
-        <div class="modal-body p-4 text-center">
-          <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center mx-auto mb-3 shadow-xs" style="width: 68px; height: 68px;">
-            <i class="fa-solid fa-lock text-dark fs-2"></i>
-          </div>
-
-          <h5 class="fw-bold text-dark mb-2" style="font-size: 1.2rem;">Yêu Cầu Đăng Nhập Tài Khoản</h5>
-          <p class="text-muted small mb-4" style="line-height: 1.5;">
-            Để thực hiện <strong class="text-dark" id="authRequiredActionText">yêu thích, thêm giỏ hàng hoặc mua sắm</strong>, quý khách vui lòng đăng nhập hoặc đăng ký tài khoản thành viên BeeStyle.
-          </p>
-
-          <!-- 2 Nút Đăng Nhập & Đăng Ký -->
-          <div class="d-flex flex-column gap-2">
-            <a href="{{ route('auth.login') }}" class="btn btn-bee-primary fw-bold py-2.5 rounded-3 shadow-xs w-100">
-              <i class="fa-solid fa-arrow-right-to-bracket me-1.5"></i> Đăng Nhập Ngay
-            </a>
-            <a href="{{ route('auth.register') }}" class="btn btn-outline-dark fw-bold py-2.5 rounded-3 shadow-xs w-100">
-              <i class="fa-solid fa-user-plus me-1.5"></i> Đăng Ký Tài Khoản Mới
-            </a>
-            <button type="button" class="btn btn-link text-muted text-decoration-none py-1 small" data-bs-dismiss="modal">
-              Để sau, tôi muốn tiếp tục xem sản phẩm
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- SCRIPT XỬ LÝ CHỌN BIẾN THỂ & THÊM GIỎ HÀNG TOÀN HỆ THỐNG -->
-  <script>
-    const IS_AUTHENTICATED = {{ auth()->check() ? 'true' : 'false' }};
-
-    function requireAuthPrompt(actionName = 'thực hiện thao tác này') {
-      const actEl = document.getElementById('authRequiredActionText');
-      if (actEl) actEl.textContent = actionName;
-      const modalEl = document.getElementById('authRequiredModal');
-      if (modalEl) {
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
-      } else {
-        window.location.href = "{{ route('auth.login') }}";
-      }
-    }
-
-    let currentQvmProduct = null;
-    let selectedColor = null;
-    let selectedSize = null;
-    let quickVariantBsModal = null;
-    let cartSuccessBsModal = null;
-    let isBuyNowMode = false;
-
-
-    // Mở Modal Chọn Biến Thể Khi Bấm [Thêm Vào Giỏ Hàng] hoặc [Mua Ngay]
-    function openQuickVariantModal(productId, isBuyNow = false, btnEl = null) {
-      isBuyNowMode = isBuyNow;
-      
-      const modalEl = document.getElementById('quickVariantModal');
-      if (!modalEl) return;
-
-      quickVariantBsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      
-      // Reset trạng thái
-      selectedColor = null;
-      selectedSize = null;
-      document.getElementById('qvmSelectedColorText').textContent = 'Chưa chọn';
-      document.getElementById('qvmSelectedColorText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1';
-      document.getElementById('qvmSelectedSizeText').textContent = 'Chưa chọn';
-      document.getElementById('qvmSelectedSizeText').className = 'badge bg-light text-muted border px-2 py-0.5 ms-1';
-      document.getElementById('qvmQuantityInput').value = 1;
-      document.getElementById('qvmValidationAlert').style.display = 'none';
-      const maxNotice = document.getElementById('qvmMaxLimitMsg');
-      if (maxNotice) maxNotice.classList.add('d-none');
-
-      // Đổi class nút bấm nếu ở chế độ Mua Ngay
-      if (isBuyNow) {
-        document.getElementById('qvmBuyNowBtn').className = 'btn btn-bee-primary flex-fill fw-bold py-2.5 rounded-3 shadow-xs border-2 border-dark';
-      }
-
-      // 1. KIỂM TRA NẾU CÓ DỮ LIỆU SẴN TỪ NÚT BẤM (INSTANT RENDERING)
-      if (btnEl && btnEl.dataset && btnEl.dataset.name) {
-        try {
-          const ds = btnEl.dataset;
-          let parsedColors = ['Đen', 'Trắng', 'Xanh Navy'];
-          let parsedSizes = ['S', 'M', 'L', 'XL', 'XXL'];
-          try { if (ds.colors) parsedColors = JSON.parse(ds.colors); } catch(e){}
-          try { if (ds.sizes) parsedSizes = JSON.parse(ds.sizes); } catch(e){}
-
-          currentQvmProduct = {
-            id: productId,
-            name: ds.name,
-            category_name: ds.category || 'Thời trang nam',
-            price: parseInt(ds.price) || 0,
-            price_formatted: ds.priceFormatted || ds.price + '₫',
-            original_price_formatted: ds.originalPriceFormatted || '',
-            discount_percent: parseInt(ds.discount) || 0,
-            image: ds.image || '',
-            stock: parseInt(ds.stock) || 999,
-            colors: parsedColors,
-            sizes: parsedSizes
-          };
-
-          renderQvmProductData(currentQvmProduct);
-        } catch (e) {
-          console.warn('Fallback parsing error:', e);
-        }
-      } else {
-        // Hiển thị skeleton loading nhẹ
-        document.getElementById('qvmProductName').textContent = 'Đang tải thông tin...';
-        document.getElementById('qvmColorsContainer').innerHTML = '<div class="spinner-border spinner-border-sm text-warning"></div>';
-        document.getElementById('qvmSizesContainer').innerHTML = '<div class="spinner-border spinner-border-sm text-warning"></div>';
-      }
-
-      quickVariantBsModal.show();
-
-      // 2. FETCH DỮ LIỆU TỪ API CHUẨN XÁC
-      const apiUrl = "{{ url('/san-pham/api-quick-view') }}/" + productId;
-      fetch(apiUrl, {
-        headers: {
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('HTTP error ' + res.status);
-          return res.json();
-        })
-        .then(data => {
-          if (data && data.success) {
-            currentQvmProduct = data;
-            renderQvmProductData(data);
-          }
-        })
-        .catch(err => {
-          console.warn('API Quick View Fetch notice:', err);
-          if (!currentQvmProduct || currentQvmProduct.id !== productId) {
-            currentQvmProduct = {
-              id: productId,
-              name: 'Sản phẩm BeeStyle',
-              category_name: 'Thời trang nam cao cấp',
-              price: 0,
-              price_formatted: 'Liên hệ',
-              original_price_formatted: '',
-              discount_percent: 0,
-              image: '{{ asset("assets/img/logo.png") }}',
-              stock: 999,
-              colors: ['Đen', 'Trắng', 'Xanh Navy', 'Xám Ghi'],
-              sizes: ['S', 'M', 'L', 'XL', 'XXL']
-            };
-            renderQvmProductData(currentQvmProduct);
-          }
-        });
-    }
-
-    // Bản đồ màu sắc chuẩn thời trang nam
-    function getColorHex(colorName) {
-      if (!colorName) return '#475569';
-      const c = colorName.toLowerCase().trim();
-      if (c.includes('đen') || c.includes('black')) return '#0f172a';
-      if (c.includes('trắng') || c.includes('white')) return '#ffffff';
-      if (c.includes('navy') || c.includes('xanh than') || c.includes('xanh đen')) return '#1e3a8a';
-      if (c.includes('xám ghi') || c.includes('ghi') || c.includes('xám tiêu') || c.includes('gray')) return '#64748b';
-      if (c.includes('xám nhạt') || c.includes('bạc')) return '#cbd5e1';
-      if (c.includes('đỏ') || c.includes('burgundy') || c.includes('mận')) return '#881337';
-      if (c.includes('be') || c.includes('beige') || c.includes('khaki') || c.includes('kem')) return '#d4b996';
-      if (c.includes('rêu') || c.includes('olive') || c.includes('xanh lá')) return '#365314';
-      if (c.includes('nâu') || c.includes('brown') || c.includes('coffee')) return '#78350f';
-      if (c.includes('vàng') || c.includes('mustard')) return '#d97706';
-      if (c.includes('xanh dương') || c.includes('blue') || c.includes('pastel')) return '#0284c7';
-      if (c.includes('cam')) return '#ea580c';
-      return '#334155';
-    }
-
-    // Gợi ý cân nặng chuẩn vóc dáng quý ông Việt Nam
-    function getSizeHint(sizeName) {
-      if (!sizeName) return '';
-      const s = sizeName.toUpperCase().trim();
-      if (s === 'S') return '50-58kg';
-      if (s === 'M') return '58-65kg';
-      if (s === 'L') return '65-72kg';
-      if (s === 'XL') return '72-80kg';
-      if (s === 'XXL' || s === '2XL') return '80-88kg';
-      if (s === '3XL' || s === 'XXXL') return '> 88kg';
-      if (s === 'FREESIZE') return 'Chuẩn form';
-      return 'Chuẩn dáng';
-    }
-
-    // Hàm render dữ liệu vào Modal với giao diện cao cấp
-    function renderQvmProductData(data) {
-      document.getElementById('qvmCategoryName').textContent = data.category_name || 'Thời trang nam';
-      document.getElementById('qvmBrandText').textContent = data.brand_name || 'BeeStyle Signature';
-      document.getElementById('qvmSkuText').textContent = `SKU: ${data.sku || ('BS-' + data.id)}`;
-      document.getElementById('qvmProductName').textContent = data.name || 'Sản phẩm';
-      document.getElementById('qvmProductPrice').textContent = data.price_formatted || '0₫';
-      if (data.image) document.getElementById('qvmProductImage').src = data.image;
-
-      // Cập nhật link chi tiết sản phẩm
-      const detailLink = document.getElementById('qvmDetailLink');
-      if (detailLink) {
-        detailLink.href = data.detail_url || (`/san-pham/${data.id}`);
-      }
-
-      // Đánh giá sao, lượt bán, người xem trực tiếp
-      const ratingEl = document.getElementById('qvmRatingText');
-      if (ratingEl) ratingEl.textContent = Number(data.rating || 4.9).toFixed(1);
-      const reviewsEl = document.getElementById('qvmReviewsCountText');
-      if (reviewsEl) reviewsEl.textContent = `(${data.reviews_count || 86} đánh giá)`;
-      const soldEl = document.getElementById('qvmSoldCountText');
-      if (soldEl) soldEl.textContent = Number(data.sold_count || 1240).toLocaleString('vi-VN');
-      const viewersEl = document.getElementById('qvmLiveViewers');
-      if (viewersEl) viewersEl.textContent = Math.floor(Math.random() * 18) + 8;
-
-      // Giá gốc & Tiết kiệm
-      if (data.original_price_formatted && data.original_price > data.price) {
-        const origEl = document.getElementById('qvmProductOriginalPrice');
-        origEl.textContent = data.original_price_formatted;
-        origEl.style.display = 'inline';
-
-        const saveEl = document.getElementById('qvmSaveAmountBadge');
-        const saveText = document.getElementById('qvmSaveAmountText');
-        if (saveEl && saveText && data.save_amount_formatted) {
-          saveText.textContent = data.save_amount_formatted;
-          saveEl.style.display = 'inline-block';
-        }
-      } else {
-        document.getElementById('qvmProductOriginalPrice').style.display = 'none';
-        const saveEl = document.getElementById('qvmSaveAmountBadge');
-        if (saveEl) saveEl.style.display = 'none';
-      }
-
-      if (data.discount_percent > 0) {
-        const discEl = document.getElementById('qvmDiscountBadge');
-        discEl.textContent = `-${data.discount_percent}%`;
-        discEl.style.display = 'block';
-      } else {
-        document.getElementById('qvmDiscountBadge').style.display = 'none';
-      }
-
-      // Render Dải Thumbnail Gallery Ảnh
-      const thumbsCont = document.getElementById('qvmThumbnailsContainer');
-      if (thumbsCont) {
-        const gallery = (data.gallery_images && data.gallery_images.length > 0) ? data.gallery_images : [data.image];
-        thumbsCont.innerHTML = gallery.map((imgSrc, idx) => `
-          <button type="button" class="btn p-0 rounded-2 overflow-hidden border qvm-thumb-btn ${idx === 0 ? 'border-warning shadow-xs' : 'border-secondary-subtle'} flex-shrink-0" 
-            onclick="setQvmMainImage('${imgSrc}', this)" 
-            style="width: 58px; height: 58px; background: #ffffff;">
-            <img src="${imgSrc}" class="w-100 h-100" style="object-fit: cover;" alt="Thumbnail">
-          </button>
-        `).join('');
-      }
-
-      // Render Bảng Thông Số Kỹ Thuật
-      const specsCont = document.getElementById('qvmSpecsContainer');
-      if (specsCont) {
-        const specs = data.specifications || {
-          'Chất liệu': 'Cotton Compact dệt tổ ong kháng khuẩn',
-          'Phom dáng': 'Regular Fit chuẩn quý ông',
-          'Xuất xứ': 'Việt Nam xuất khẩu',
-          'Bảo hành': 'Đổi size miễn phí trong 30 ngày'
-        };
-        specsCont.innerHTML = Object.entries(specs).slice(0, 4).map(([k, v]) => `
-          <div class="col-6 mb-1">
-            <strong class="text-dark">• ${k}:</strong> <span class="text-secondary">${v}</span>
-          </div>
-        `).join('');
-      }
-
-      // Cập nhật thông tin tồn kho
-      document.getElementById('qvmStockNumber').textContent = (data.stock && data.stock > 0) ? data.stock : 999;
-      
-      const colors = (data.colors && data.colors.length > 0) ? data.colors : ['Tiêu chuẩn'];
-      const sizes = (data.sizes && data.sizes.length > 0) ? data.sizes : ['Freesize'];
-
-      // Render Danh Sách Màu Sắc (Color Swatches Luxury)
-      const colorsHtml = colors.map(col => {
-        const hex = getColorHex(col);
-        const isWhite = hex === '#ffffff';
-        return `
-          <button type="button" class="btn btn-sm d-flex align-items-center gap-2 rounded-pill px-3 py-1.5 qvm-color-item transition-all" 
-            onclick="selectQvmColor('${col}', this)"
-            style="border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e293b; font-weight: 600; font-size: 0.82rem;">
-            <span class="rounded-circle d-inline-block shadow-xs" style="width: 15px; height: 15px; background-color: ${hex}; border: ${isWhite ? '1px solid #cbd5e1' : '1px solid rgba(0,0,0,0.15)'};"></span>
-            <span>${col}</span>
-          </button>
-        `;
-      }).join('');
-      document.getElementById('qvmColorsContainer').innerHTML = colorsHtml;
-
-      // Render Danh Sách Size (Size Matrix Box)
-      const sizesHtml = sizes.map(sz => {
-        return `
-          <button type="button" class="btn btn-sm d-flex flex-column align-items-center justify-content-center rounded-3 p-1.5 qvm-size-item transition-all" 
-            onclick="selectQvmSize('${sz}', this)"
-            style="min-width: 62px; height: 48px; border: 1.5px solid #e2e8f0; background: #ffffff; color: #1e293b;">
-            <span class="fw-bold fs-6 lh-1">${sz}</span>
-            <span class="text-muted lh-1 mt-1" style="font-size: 0.65rem;">${getSizeHint(sz)}</span>
-          </button>
-        `;
-      }).join('');
-      document.getElementById('qvmSizesContainer').innerHTML = sizesHtml;
-
-      // Không tự động chọn sẵn màu và size - Bắt buộc khách hàng tự tay lựa chọn
-      selectedColor = null;
-      selectedSize = null;
-      selectedVariantId = null;
-
-      // Cập nhật hiển thị số lượng & tổng tiền ban đầu
-      updateQvmQtyDisplay(1);
-    }
-
-    function setQvmMainImage(src, btn) {
-      const mainImg = document.getElementById('qvmProductImage');
-      if (mainImg) mainImg.src = src;
-      document.querySelectorAll('.qvm-thumb-btn').forEach(b => {
-        b.classList.remove('border-warning', 'shadow-xs');
-        b.classList.add('border-secondary-subtle');
-      });
-      if (btn) {
-        btn.classList.remove('border-secondary-subtle');
-        btn.classList.add('border-warning', 'shadow-xs');
-      }
-    }
-
-    let selectedVariantId = null;
-
-    // Xử lý chọn màu
-    function selectQvmColor(color, btn) {
-      selectedColor = color;
-      const colorBadge = document.getElementById('qvmSelectedColorText');
-      colorBadge.innerHTML = `${color} <i class="fa-solid fa-check ms-1 text-warning"></i>`;
-      colorBadge.className = 'badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold shadow-xs';
-      document.getElementById('qvmValidationAlert').style.display = 'none';
-
-      document.querySelectorAll('.qvm-color-item').forEach(b => {
-        b.style.border = '1.5px solid #e2e8f0';
-        b.style.background = '#ffffff';
-        b.style.color = '#1e293b';
-        b.style.boxShadow = 'none';
-      });
-
-      btn.style.border = '2px solid #d97706';
-      btn.style.background = '#fffbeb';
-      btn.style.color = '#92400e';
-      btn.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.2)';
-
-      updateQvmMatchedVariant();
-    }
-
-    // Xử lý chọn size
-    function selectQvmSize(size, btn) {
-      selectedSize = size;
-      const sizeBadge = document.getElementById('qvmSelectedSizeText');
-      sizeBadge.innerHTML = `Size ${size} (${getSizeHint(size)}) <i class="fa-solid fa-check ms-1 text-warning"></i>`;
-      sizeBadge.className = 'badge bg-dark text-warning border border-warning px-2 py-0.5 ms-1 fw-bold shadow-xs';
-      document.getElementById('qvmValidationAlert').style.display = 'none';
-
-      document.querySelectorAll('.qvm-size-item').forEach(b => {
-        b.style.border = '1.5px solid #e2e8f0';
-        b.style.background = '#ffffff';
-        b.style.color = '#1e293b';
-        b.style.boxShadow = 'none';
-        const hint = b.querySelector('.text-muted, .text-warning-emphasis');
-        if (hint) hint.className = 'text-muted lh-1 mt-1';
-      });
-
-      btn.style.border = '2px solid #d97706';
-      btn.style.background = '#0f172a';
-      btn.style.color = '#f59e0b';
-      btn.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.25)';
-      const activeHint = btn.querySelector('span:nth-child(2)');
-      if (activeHint) activeHint.className = 'text-warning-emphasis lh-1 mt-1';
-
-      updateQvmMatchedVariant();
-    }
-
-    function updateQvmMatchedVariant() {
-      if (currentQvmProduct && currentQvmProduct.variants && selectedColor && selectedSize) {
-        const matched = currentQvmProduct.variants.find(v => v.color === selectedColor && v.size === selectedSize);
-        if (matched) {
-          selectedVariantId = matched.id;
-          if (matched.price) {
-            currentQvmProduct.price = matched.price;
-            currentQvmProduct.price_formatted = matched.price_formatted || (matched.price.toLocaleString('vi-VN') + '₫');
-            const priceEl = document.getElementById('qvmProductPrice');
-            if (priceEl) priceEl.textContent = currentQvmProduct.price_formatted;
-          }
-          if (matched.stock !== undefined) {
-            const stockEl = document.getElementById('qvmStockNumber');
-            if (stockEl) stockEl.textContent = matched.stock;
-          }
-          if (matched.image) {
-            const imgEl = document.getElementById('qvmProductImage');
-            if (imgEl) imgEl.src = matched.image;
-          }
-        } else {
-          selectedVariantId = null;
-        }
-      }
-      const curQty = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
-      updateQvmQtyDisplay(curQty);
-    }
-
-    function updateQvmQtyDisplay(val) {
-      const qtyInput = document.getElementById('qvmQuantityInput');
-      const badge = document.getElementById('qvmQtyLiveBadge');
-      const subtotal = document.getElementById('qvmSubtotalLive');
-      const btnMinus = document.getElementById('qvmBtnMinus');
-      const btnPlus = document.getElementById('qvmBtnPlus');
-      const maxMsg = document.getElementById('qvmMaxLimitMsg');
-
-      if (qtyInput) qtyInput.value = val;
-      if (badge) {
-        badge.textContent = val;
-        badge.classList.remove('animate-scale');
-        void badge.offsetWidth;
-        badge.classList.add('animate-scale');
-      }
-      if (subtotal && currentQvmProduct && currentQvmProduct.price) {
-        const total = currentQvmProduct.price * val;
-        subtotal.textContent = total.toLocaleString('vi-VN') + '₫';
-      } else if (subtotal && currentQvmProduct && currentQvmProduct.price_formatted) {
-        subtotal.textContent = currentQvmProduct.price_formatted;
-      }
-      if (btnMinus) {
-        btnMinus.disabled = (val <= 1);
-        btnMinus.style.opacity = (val <= 1) ? '0.45' : '1';
-      }
-      if (btnPlus) {
-        btnPlus.disabled = (val >= 10);
-        btnPlus.style.opacity = (val >= 10) ? '0.45' : '1';
-      }
-      if (maxMsg) {
-        if (val >= 10) {
-          maxMsg.classList.remove('d-none');
-        } else {
-          maxMsg.classList.add('d-none');
-        }
-      }
-    }
-
-    // Tăng / giảm số lượng bằng nút bấm (Tối đa 10)
-    function changeQvmQuantity(delta) {
-      const qtyInput = document.getElementById('qvmQuantityInput');
-      if (!qtyInput) return;
-      let current = parseInt(qtyInput.value) || 1;
-      current += delta;
-      if (current < 1) current = 1;
-      if (current > 10) current = 10;
-      updateQvmQtyDisplay(current);
-    }
-
-    // Kiểm tra tính hợp lệ khi khách hàng tự gõ số lượng (1 - 10)
-    function validateQvmQuantity(input) {
-      let val = parseInt(input.value);
-      if (isNaN(val) || val < 1) val = 1;
-      if (val > 10) val = 10;
-      updateQvmQtyDisplay(val);
-    }
-
-
-    // Submit Thêm Vào Giỏ hoặc Mua Ngay
-    function submitQvmAction(isBuyNow) {
-      if (!currentQvmProduct) return;
-
-      // Bắt buộc khách hàng phải tự tay chọn cả Màu sắc và Kích thước (Size)
-      const alertEl = document.getElementById('qvmValidationAlert');
-      if (!selectedColor && !selectedSize) {
-        alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Quý khách vui lòng chọn <strong>Màu sắc</strong> và <strong>Kích thước (Size)</strong> trước khi tiếp tục!';
-        alertEl.style.display = 'block';
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Chưa Chọn Biến Thể',
-            text: 'Vui lòng chọn Màu sắc và Kích thước (Size) sản phẩm!',
-            toast: true,
-            position: 'top-end',
-            timer: 2500,
-            showConfirmButton: false
-          });
-        }
-        return;
-      }
-      if (!selectedColor) {
-        alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Quý khách vui lòng chọn <strong>Màu sắc</strong> sản phẩm!';
-        alertEl.style.display = 'block';
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Chưa Chọn Màu Sắc',
-            text: 'Vui lòng chọn 1 Màu sắc sản phẩm!',
-            toast: true,
-            position: 'top-end',
-            timer: 2500,
-            showConfirmButton: false
-          });
-        }
-        return;
-      }
-      if (!selectedSize) {
-        alertEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger me-1 fs-6 align-middle"></i> Quý khách vui lòng chọn <strong>Kích thước (Size)</strong> sản phẩm!';
-        alertEl.style.display = 'block';
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Chưa Chọn Kích Thước',
-            text: 'Vui lòng chọn 1 Kích thước (Size) sản phẩm!',
-            toast: true,
-            position: 'top-end',
-            timer: 2500,
-            showConfirmButton: false
-          });
-        }
-        return;
-      }
-
-      const quantity = parseInt(document.getElementById('qvmQuantityInput').value) || 1;
-      const payload = {
-        product_id: currentQvmProduct.id,
-        variant_id: selectedVariantId,
-        color: selectedColor,
-        size: selectedSize,
-        quantity: quantity,
-        buy_now: isBuyNow ? 1 : 0
-      };
-
-      const actionBtn = isBuyNow ? document.getElementById('qvmBuyNowBtn') : document.getElementById('qvmAddToCartBtn');
-      const originalText = actionBtn.innerHTML;
-      actionBtn.disabled = true;
-      actionBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
-
-      fetch('{{ route("client.cart.add") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(data => {
-        actionBtn.disabled = false;
-        actionBtn.innerHTML = originalText;
-
-        if (data.success) {
-          // Cập nhật số lượng giỏ hàng trên Header
-          document.querySelectorAll('.bee-badge-count').forEach(badge => {
-            badge.textContent = data.cart_count;
-          });
-
-          // Đóng Modal Chọn Biến Thể
-          quickVariantBsModal.hide();
-
-          if (isBuyNow) {
-            // Nếu là Mua Ngay -> Chuyển thẳng sang trang Thanh Toán
-            window.location.href = '{{ route("client.checkout") }}';
-          } else {
-            // Nếu là Thêm Vào Giỏ -> Hiển thị Modal Kiểm Tra Giỏ Hàng
-            document.getElementById('csmProductImage').src = currentQvmProduct.image;
-            document.getElementById('csmProductName').textContent = currentQvmProduct.name;
-            document.getElementById('csmVariantText').textContent = `${selectedColor} / Size ${selectedSize}`;
-            document.getElementById('csmQuantityText').textContent = quantity;
-            document.getElementById('csmPriceText').textContent = currentQvmProduct.price_formatted;
-
-            const cartSuccessEl = document.getElementById('cartSuccessModal');
-            cartSuccessBsModal = bootstrap.Modal.getOrCreateInstance(cartSuccessEl);
-            cartSuccessBsModal.show();
-          }
-        } else {
-          alert(data.message || 'Không thể thêm sản phẩm vào giỏ hàng.');
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        actionBtn.disabled = false;
-        actionBtn.innerHTML = originalText;
-        alert('Có lỗi xảy ra khi thêm vào giỏ hàng.');
-      });
-    }
-
-    // ========================================================
-    // XỬ LÝ SẢN PHẨM YÊU THÍCH (WISHLIST AJAX & LIVE TOAST)
-    // ========================================================
-    function toggleWishlist(productId, btnEl) {
-      if (!IS_AUTHENTICATED) {
-        requireAuthPrompt('thêm sản phẩm vào danh sách yêu thích');
-        return;
-      }
-
-      if (!productId) return;
-
-      const heartIcon = btnEl ? btnEl.querySelector('i') : null;
-      if (heartIcon) {
-        heartIcon.className = 'fa-solid fa-spinner fa-spin text-warning';
-      }
-
-      fetch('{{ route("client.wishlist.toggle") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ product_id: productId })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          // Cập nhật tất cả các nút trái tim của sản phẩm này trên trang
-          document.querySelectorAll(`.btn-wishlist-${productId}`).forEach(btn => {
-            const icon = btn.querySelector('i');
-            if (data.is_favorite) {
-              btn.classList.add('active');
-              if (icon) icon.className = 'fa-solid fa-heart text-danger fs-6 animate-heart';
-            } else {
-              btn.classList.remove('active');
-              if (icon) icon.className = 'fa-regular fa-heart text-dark fs-6';
-            }
-          });
-
-          if (heartIcon) {
-            if (data.is_favorite) {
-              if (btnEl) btnEl.classList.add('active');
-              heartIcon.className = 'fa-solid fa-heart text-danger fs-6 animate-heart';
-            } else {
-              if (btnEl) btnEl.classList.remove('active');
-              heartIcon.className = 'fa-regular fa-heart text-dark fs-6';
-            }
-          }
-
-          // Cập nhật Badge số lượng trên Header
-          const badge = document.getElementById('wishlistCountBadge');
-          if (badge) {
-            badge.textContent = data.count;
-            badge.style.display = data.count > 0 ? 'flex' : 'none';
-          }
-
-          // Hiển thị Toast thông báo nhanh
-          showWishlistToast(data.message, data.is_favorite);
-        } else {
-          if (heartIcon) heartIcon.className = 'fa-regular fa-heart text-dark';
-          alert(data.message || 'Không thể thực hiện thao tác.');
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        if (heartIcon) heartIcon.className = 'fa-regular fa-heart text-dark';
-      });
-    }
-
-    // Hiển thị Toast thông báo yêu thích
-    function showWishlistToast(message, isFavorite) {
-      let toastContainer = document.getElementById('beeToastContainer');
-      if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'beeToastContainer';
-        toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
-        toastContainer.style.zIndex = '9999';
-        document.body.appendChild(toastContainer);
-      }
-
-      const toastId = 'toast_' + Date.now();
-      const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center text-white ${isFavorite ? 'bg-dark' : 'bg-secondary'} border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 12px;">
-          <div class="d-flex">
-            <div class="toast-body d-flex align-items-center gap-2 py-2.5 px-3">
-              <i class="fa-solid ${isFavorite ? 'fa-heart text-danger fs-5' : 'fa-circle-check text-warning fs-5'}"></i>
-              <span class="small fw-semibold">${message}</span>
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-        </div>
-      `;
-
-      toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-      const toastEl = document.getElementById(toastId);
-      const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 });
-      bsToast.show();
-
-      toastEl.addEventListener('hidden.bs.toast', () => {
-        toastEl.remove();
-      });
-    }
-  </script>
-
-  <style>
-    @keyframes heartBeat {
-      0% { transform: scale(1); }
-      25% { transform: scale(1.3); }
-      50% { transform: scale(1); }
-      75% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    .animate-heart {
-      animation: heartBeat 0.45s ease-in-out;
-    }
-    .btn-wishlist-toggle {
-      transition: all 0.2s ease;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(4px);
-    }
-    .btn-wishlist-toggle:hover {
-      background: #ffffff;
-      transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .btn-wishlist-toggle.active {
-      background: #ffffff;
-      border-color: #fee2e2 !important;
-    }
-  </style>
 
   @stack('scripts')
 </body>

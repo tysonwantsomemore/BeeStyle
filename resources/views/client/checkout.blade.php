@@ -1,390 +1,295 @@
 @extends('layouts.client')
 
-@section('title', 'Thanh Toán Đơn Hàng | BeeStyle Menswear')
+@section('title', 'Thanh Toán Đơn Hàng — BEESTYLE Studio')
 
 @section('content')
-<div class="container py-4">
+<main class="w-full flex-grow py-10 px-6 max-w-6xl mx-auto">
   
-  <!-- CHECKOUT STEP PROGRESS BAR -->
-  <div class="card border-0 shadow-sm p-3 mb-4 rounded-4 bg-white">
-    <div class="d-flex align-items-center justify-content-center gap-2 gap-md-4 flex-wrap text-center">
-      <div class="d-flex align-items-center gap-2 text-success fw-bold small">
-        <span class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;"><i class="fa-solid fa-check"></i></span>
-        <span>1. Giỏ Hàng</span>
-      </div>
-      <i class="fa-solid fa-chevron-right text-muted small d-none d-sm-inline"></i>
-      <div class="d-flex align-items-center gap-2 text-warning fw-bold small">
-        <span class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;">2</span>
-        <span class="text-dark">2. Thông Tin &amp; Thanh Toán</span>
-      </div>
-      <i class="fa-solid fa-chevron-right text-muted small d-none d-sm-inline"></i>
-      <div class="d-flex align-items-center gap-2 text-muted small">
-        <span class="rounded-circle bg-light border text-muted d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;">3</span>
-        <span>3. Hoàn Tất Đơn Hàng</span>
-      </div>
-    </div>
+  <!-- Breadcrumb Steps -->
+  <div class="flex items-center justify-center gap-4 text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-10 pb-4 border-b border-neutral-200">
+    <a href="{{ route('client.cart') }}" class="text-neutral-700 hover:text-black flex items-center gap-1.5">
+      <span class="w-5 h-5 rounded-full bg-neutral-200 text-neutral-700 flex items-center justify-center text-[10px] font-bold">1</span>
+      Túi Mua Hàng
+    </a>
+    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neutral-300"></i>
+    <span class="text-neutral-950 font-bold flex items-center gap-1.5">
+      <span class="w-5 h-5 rounded-full bg-neutral-950 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+      Thông Tin &amp; Thanh Toán
+    </span>
+    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neutral-300"></i>
+    <span class="flex items-center gap-1.5 text-neutral-400">
+      <span class="w-5 h-5 rounded-full bg-neutral-100 text-neutral-400 flex items-center justify-center text-[10px] font-bold">3</span>
+      Hoàn Tất
+    </span>
   </div>
 
-  <form action="{{ route('client.checkout.process') }}" method="POST" id="checkoutForm">
-    @csrf
-    <div class="row g-4">
+  @if($errors->any())
+    <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl mb-6 text-xs animate-fade-in">
+      <div class="flex items-center gap-2 font-semibold mb-1">
+        <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+        <span>Vui lòng kiểm tra lại thông tin giao hàng:</span>
+      </div>
+      <ul class="list-disc list-inside space-y-0.5 text-rose-700 pl-2">
+        @foreach($errors->all() as $err)
+          <li>{{ $err }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
+
+  <!-- Main 2-Column Checkout Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+    
+    <!-- Left Column: Delivery Info & Payment Methods (7 cols) -->
+    <div class="lg:col-span-7 space-y-8">
       
-      <!-- CỘT TRÁI: THÔNG TIN NHẬN HÀNG & PHƯƠNG THỨC THANH TOÁN -->
-      <div class="col-lg-7">
-        
-        <!-- KHỐI 1: THÔNG TIN GIAO HÀNG -->
-        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px;">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-dark mb-0">
-              <i class="fa-solid fa-location-dot me-2 text-warning"></i> 1. Thông Tin Nhận Hàng
-            </h5>
-            <span class="badge bg-warning-subtle text-dark fw-semibold small">Giao tận nơi</span>
+      <form action="{{ route('client.checkout.process') }}" method="POST" id="checkout-form" class="space-y-8">
+        @csrf
+
+        <!-- STEP 1: Thông Tin Giao Hàng -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+          <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-100">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">1</span>
+              <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Thông Tin Người Nhận</h3>
+            </div>
+            @guest
+              <a href="{{ route('auth.login') }}" class="text-xs text-amber-800 hover:underline font-semibold">Đăng nhập để chọn địa chỉ</a>
+            @endguest
           </div>
 
-          @if(isset($addresses) && $addresses->count() > 0)
-            <div class="mb-3 p-3 bg-light rounded-3 border">
-              <label class="form-label small fw-bold text-dark mb-2">
-                <i class="fa-solid fa-address-book me-1 text-warning"></i> Chọn nhanh từ sổ địa chỉ đã lưu:
+          @if(isset($addresses) && $addresses->isNotEmpty())
+            <!-- Saved Address Selector -->
+            <div class="mb-6 p-4 bg-brand-50 rounded-xl border border-brand-200">
+              <label class="block font-semibold uppercase text-neutral-800 text-[11px] mb-2">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 inline text-amber-800 mr-1"></i> Chọn sổ địa chỉ đã lưu:
               </label>
-              <div class="d-flex flex-column gap-2">
+              <select id="savedAddressSelect" onchange="fillSavedAddress(this)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-800 focus:outline-none focus:border-neutral-950">
+                <option value="">-- Nhập địa chỉ mới --</option>
                 @foreach($addresses as $addr)
-                  <div class="form-check p-2.5 border rounded-2 bg-white d-flex align-items-center transition-all hover-lift">
-                    <input class="form-check-input ms-1 me-2.5 saved-address-radio" type="radio" name="saved_address_picker" id="addr_pick_{{ $addr->id }}"
-                      data-name="{{ $addr->recipient_name }}"
-                      data-phone="{{ $addr->phone }}"
-                      data-address="{{ $addr->address }}"
-                      data-city="{{ $addr->city }}"
-                      data-district="{{ $addr->district }}"
-                      data-ward="{{ $addr->ward }}"
-                      data-notes="{{ $addr->notes }}"
-                      {{ $addr->is_default ? 'checked' : '' }}
-                      onchange="applySavedAddress(this)">
-                    <label class="form-check-label small d-flex justify-content-between align-items-center flex-grow-1 cursor-pointer" for="addr_pick_{{ $addr->id }}">
-                      <div>
-                        <strong>{{ $addr->recipient_name }}</strong> ({{ $addr->phone }})
-                        <span class="badge bg-secondary ms-1">{{ $addr->label ?? 'Nhà riêng' }}</span>
-                        @if($addr->is_default)
-                          <span class="badge bg-warning text-dark ms-1">Mặc định</span>
-                        @endif
-                        <div class="text-muted" style="font-size: 0.75rem;">{{ $addr->full_address }}</div>
-                      </div>
-                    </label>
-                  </div>
+                  <option value="{{ $addr->id }}" 
+                    data-name="{{ $addr->receiver_name }}" 
+                    data-phone="{{ $addr->receiver_phone }}" 
+                    data-address="{{ $addr->detail_address }}"
+                    data-city="{{ $addr->province_name }}"
+                    data-district="{{ $addr->district_name }}"
+                    data-ward="{{ $addr->ward_name }}"
+                    {{ $defaultAddress && $defaultAddress->id === $addr->id ? 'selected' : '' }}>
+                    {{ $addr->receiver_name }} — {{ $addr->receiver_phone }} ({{ $addr->detail_address }}, {{ $addr->ward_name }}, {{ $addr->district_name }}, {{ $addr->province_name }})
+                  </option>
                 @endforeach
-              </div>
+              </select>
             </div>
           @endif
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Họ và tên người nhận <span class="text-danger">*</span></label>
-              <input type="text" name="customer_name" id="input_customer_name" class="form-control form-control-sm" value="{{ old('customer_name', $defaultAddress->recipient_name ?? $user->name ?? '') }}" required placeholder="Ví dụ: Nguyễn Văn Hùng">
+          <div class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Họ và Tên <span class="text-rose-600">*</span></label>
+                <input type="text" name="customer_name" id="cust_name" value="{{ old('customer_name', $user->name ?? '') }}" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Số Điện Thoại <span class="text-rose-600">*</span></label>
+                <input type="tel" name="customer_phone" id="cust_phone" value="{{ old('customer_phone', $user->phone ?? '') }}" required placeholder="0987654321" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
             </div>
 
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-              <input type="tel" name="customer_phone" id="input_customer_phone" class="form-control form-control-sm" value="{{ old('customer_phone', $defaultAddress->phone ?? $user->phone ?? '') }}" required placeholder="Ví dụ: 0987654321">
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Email nhận hóa đơn điện tử</label>
+              <input type="email" name="customer_email" id="cust_email" value="{{ old('customer_email', $user->email ?? '') }}" placeholder="email@gmail.com" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
             </div>
 
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Địa chỉ Email (Nhận mã đơn &amp; hóa đơn điện tử)</label>
-              <input type="email" name="customer_email" class="form-control form-control-sm" value="{{ old('customer_email', $user->email ?? '') }}" placeholder="email@gmail.com">
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Địa chỉ nhận hàng (Số nhà, tên đường) <span class="text-rose-600">*</span></label>
+              <input type="text" name="shipping_address" id="cust_address" value="{{ old('shipping_address', $defaultAddress->detail_address ?? '') }}" required placeholder="Ví dụ: 88 Lê Lợi..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
             </div>
 
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-              <input type="text" name="city" id="input_city" class="form-control form-control-sm" value="{{ old('city', $defaultAddress->city ?? $user->city ?? 'Hồ Chí Minh') }}" required placeholder="Ví dụ: TP. Hồ Chí Minh">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Tỉnh / Thành Phố</label>
+                <input type="text" name="city" id="cust_city" value="{{ old('city', $defaultAddress->province_name ?? 'TP. Hồ Chí Minh') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Quận / Huyện</label>
+                <input type="text" name="district" id="cust_district" value="{{ old('district', $defaultAddress->district_name ?? 'Quận 1') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Phường / Xã</label>
+                <input type="text" name="ward" id="cust_ward" value="{{ old('ward', $defaultAddress->ward_name ?? 'Bến Nghé') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
             </div>
 
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Quận / Huyện</label>
-              <input type="text" name="district" id="input_district" class="form-control form-control-sm" value="{{ old('district', $defaultAddress->district ?? $user->district ?? 'Quận 1') }}" placeholder="Ví dụ: Quận 1">
-            </div>
-
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Địa chỉ chi tiết (Số nhà, tên đường, phường xã) <span class="text-danger">*</span></label>
-              <input type="text" name="shipping_address" id="input_shipping_address" class="form-control form-control-sm" value="{{ old('shipping_address', $defaultAddress->address ?? $user->address ?? '') }}" required placeholder="Ví dụ: Số 45 Đường Lê Duẩn, Phường Bến Nghé">
-            </div>
-
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Ghi chú giao hàng (Tùy chọn)</label>
-              <textarea name="notes" id="input_notes" class="form-control form-control-sm" rows="2" placeholder="Ví dụ: Giao hàng vào giờ hành chính, gọi trước khi giao 15 phút...">{{ old('notes', $defaultAddress->notes ?? '') }}</textarea>
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ghi chú cho nghệ nhân may đo / đóng gói</label>
+              <textarea name="notes" rows="2" placeholder="Ví dụ: Giao giờ hành chính, đóng hộp quà tặng..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors"></textarea>
             </div>
           </div>
         </div>
 
-        <!-- KHỐI 2: CHỌN PHƯƠNG THỨC THANH TOÁN (E-COMMERCE STANDARD) -->
-        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px;">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-dark mb-0">
-              <i class="fa-solid fa-credit-card me-2 text-warning"></i> 2. Phương Thức Thanh Toán
-            </h5>
-            <span class="badge bg-success-subtle text-success small fw-bold"><i class="fa-solid fa-shield-halved me-1"></i> Bảo Mật 100%</span>
+        <!-- STEP 2: Phương Thức Thanh Toán -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+          <div class="flex items-center gap-2 pb-4 mb-6 border-b border-neutral-100">
+            <span class="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">2</span>
+            <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Phương Thức Thanh Toán</h3>
           </div>
 
-          <div class="d-flex flex-column gap-3" id="paymentMethodContainer">
-            
-            <!-- PHƯƠNG THỨC 1: COD -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_cod" id="card_pay_cod">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_cod" value="cod" checked onchange="updatePayOptionCards()">
-                  <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">Thanh toán khi nhận hàng (COD)</strong>
-                      <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Phổ biến</span>
-                    </div>
-                    <small class="text-muted d-block mt-0.5">Thanh toán tiền mặt cho bưu tá khi nhận và kiểm tra hàng tận nhà</small>
-                  </div>
+          <div class="space-y-3 text-xs">
+            <!-- COD -->
+            <label class="flex items-start gap-3 p-4 border-2 border-neutral-950 bg-neutral-50 rounded-xl cursor-pointer payment-option transition-all">
+              <input type="radio" name="payment_method" value="cod" checked class="mt-0.5 text-neutral-900 focus:ring-neutral-900">
+              <div class="flex-grow">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-neutral-900 uppercase">Thanh toán khi nhận hàng (COD)</span>
+                  <i data-lucide="banknote" class="w-4 h-4 text-neutral-700"></i>
                 </div>
-                <div class="text-warning fs-3 ms-2">
-                  <i class="fa-solid fa-hand-holding-dollar"></i>
-                </div>
-              </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary" id="desc_pay_cod">
-                <i class="fa-solid fa-circle-info text-warning me-1"></i> Bạn được mở gói hàng kiểm tra và thử đồ trước khi thanh toán cho nhân viên giao hàng.
+                <p class="text-neutral-500 mt-0.5 text-[11px]">Kiểm tra sản phẩm và thanh toán tiền mặt trực tiếp cho bưu tá.</p>
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 2: THANH TOÁN ONLINE -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_online" id="card_pay_online">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_online" value="online" onchange="updatePayOptionCards()">
-                  <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">Thanh toán Online (ATM Nội Địa / Internet Banking / Visa)</strong>
-                      <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Napas / Visa</span>
-                    </div>
-                    <small class="text-muted d-block mt-0.5">Chuyển khoản trực tuyến bảo mật qua cổng Ngân hàng điện tử &amp; Thẻ quốc tế</small>
-                  </div>
+            <!-- MoMo -->
+            <label class="flex items-start gap-3 p-4 border border-neutral-200 hover:border-neutral-900 rounded-xl cursor-pointer payment-option transition-all">
+              <input type="radio" name="payment_method" value="momo" class="mt-0.5 text-neutral-900 focus:ring-neutral-900">
+              <div class="flex-grow">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-neutral-900 uppercase">Ví Điện Tử MoMo (Quét Mã QR)</span>
+                  <span class="px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-[10px] font-bold">MOMO QR</span>
                 </div>
-                <div class="text-primary fs-3 ms-2">
-                  <i class="fa-solid fa-credit-card"></i>
-                </div>
-              </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_online">
-                <i class="fa-solid fa-circle-info text-primary me-1"></i> Giao dịch trực tuyến bảo mật qua cổng Ngân hàng điện tử SSL 256-Bit. Đơn hàng tự động xác nhận ngay.
+                <p class="text-neutral-500 mt-0.5 text-[11px]">Thanh toán tức thì qua ứng dụng MoMo an toàn 100%.</p>
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 3: VÍ MOMO -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_momo" id="card_pay_momo">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_momo" value="momo" onchange="updatePayOptionCards()">
-                  <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">Ví Điện Tử MoMo (Khuyên dùng)</strong>
-                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">1-Chạm Siêu Tốc</span>
-                    </div>
-                    <small class="text-muted d-block mt-0.5">Thanh toán nhanh chóng, tiện lợi và an toàn qua ứng dụng ví điện tử MoMo</small>
-                  </div>
+            <!-- Online Banking / VietQR -->
+            <label class="flex items-start gap-3 p-4 border border-neutral-200 hover:border-neutral-900 rounded-xl cursor-pointer payment-option transition-all">
+              <input type="radio" name="payment_method" value="online" class="mt-0.5 text-neutral-900 focus:ring-neutral-900">
+              <div class="flex-grow">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-neutral-900 uppercase">Chuyển Khoản Ngân Hàng (VietQR)</span>
+                  <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">VIETQR 24/7</span>
                 </div>
-                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2" style="background-color: #d82d8b; font-size: 0.85rem;">
-                  <i class="fa-solid fa-wallet me-1"></i> MoMo
-                </span>
-              </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_momo">
-                <i class="fa-solid fa-circle-info text-danger me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ chuyển bạn sang <strong>Cổng Thanh Toán MoMo Gateway</strong> để quét mã QR và hoàn tất giao dịch.
+                <p class="text-neutral-500 mt-0.5 text-[11px]">Chuyển khoản liên ngân hàng 24/7 với mã QR tự động xác thực.</p>
               </div>
             </label>
-
-            <!-- PHƯƠNG THỨC 4: VÍ ZALOPAY -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_zalopay" id="card_pay_zalopay">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_zalopay" value="zalopay" onchange="updatePayOptionCards()">
-                  <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">Ví Điện Tử ZaloPay</strong>
-                      <span class="badge bg-info-subtle text-info fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Zalo / ZaloPay</span>
-                    </div>
-                    <small class="text-muted d-block mt-0.5">Thanh toán tiện lợi qua tài khoản ví ZaloPay hoặc trực tiếp trên ứng dụng Zalo</small>
-                  </div>
-                </div>
-                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2" style="background-color: #008fe5; font-size: 0.85rem;">
-                  <i class="fa-solid fa-wallet me-1"></i> ZaloPay
-                </span>
-              </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_zalopay">
-                <i class="fa-solid fa-circle-info text-info me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ chuyển bạn sang <strong>Cổng Thanh Toán ZaloPay Gateway</strong> để quét mã QR và xác nhận giao dịch.
-              </div>
-            </label>
-
           </div>
-
         </div>
 
+        <!-- Submit Button for Mobile -->
+        <button type="submit" class="w-full py-4 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-[0.25em] uppercase rounded-xl shadow-xl transition-all flex items-center justify-center gap-2">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          <span>Xác Nhận Đặt Hàng An Toàn</span>
+        </button>
+
+      </form>
+
+    </div>
+
+    <!-- Right Column: Order Summary & Item List (5 cols) -->
+    <div class="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm sticky top-28">
+      <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-100">
+        <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Tóm Tắt Đơn Hàng</h3>
+        <span class="text-xs text-neutral-500">{{ $cartCount ?? count($cartItems) }} sản phẩm</span>
       </div>
 
-      <!-- CỘT PHẢI: TÓM TẮT ĐƠN HÀNG & NÚT ĐẶT HÀNG -->
-      <div class="col-lg-5">
-        <div class="card border-0 shadow-sm p-4" style="border-radius: 20px; position: sticky; top: 100px;">
-          
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-dark mb-0">Đơn Hàng Của Bạn</h5>
-            <span class="badge bg-dark text-white rounded-pill px-2.5 py-1">{{ count($cartItems) }} món</span>
-          </div>
-
-          <!-- DANH SÁCH MÓN HÀNG -->
-          <div class="d-flex flex-column gap-2.5 mb-3" style="max-height: 260px; overflow-y: auto;">
-            @foreach($cartItems as $item)
-              <div class="d-flex align-items-center justify-content-between gap-2 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2.5">
-                  <div class="position-relative bg-white rounded-2 border p-1" style="width: 48px; height: 48px; min-width: 48px;">
-                    <img src="{{ asset($item['image']) }}" alt="{{ $item['name'] }}" class="w-100 h-100 object-fit-contain">
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style="font-size: 0.65rem;">{{ $item['quantity'] }}</span>
-                  </div>
-                  <div>
-                    <h6 class="small fw-bold text-dark mb-0 text-truncate" style="max-width: 180px;">{{ $item['name'] }}</h6>
-                    <small class="text-muted" style="font-size: 0.72rem;">Màu: {{ $item['color'] }} • Size: {{ $item['size'] }}</small>
-                  </div>
-                </div>
-                <span class="small fw-bold text-dark text-end">{{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}₫</span>
-              </div>
-            @endforeach
-          </div>
-
-          <!-- BẢNG TÍNH TIỀN -->
-          <div class="d-flex flex-column gap-2 small mb-3">
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Tạm tính tiền hàng:</span>
-              <span class="fw-semibold text-dark">{{ number_format($subtotal, 0, ',', '.') }}₫</span>
+      <!-- Items List -->
+      <div class="space-y-4 max-h-80 overflow-y-auto pr-1 mb-6">
+        @foreach($cartItems as $item)
+          @php
+            $itemImg = $item['image'] ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop';
+            if (!str_starts_with($itemImg, 'http')) {
+              $itemImg = asset($itemImg);
+            }
+          @endphp
+          <div class="flex gap-3.5 pb-3 border-b border-neutral-100">
+            <div class="w-16 h-20 rounded-lg bg-neutral-100 overflow-hidden shrink-0 border border-neutral-200">
+              <img src="{{ $itemImg }}" alt="{{ $item['name'] }}" class="w-full h-full object-cover">
             </div>
-            @if($discount > 0)
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Giảm giá voucher ({{ $appliedCoupon->code ?? 'VOUCHER' }}):</span>
-                <span class="fw-semibold text-success">-{{ number_format($discount, 0, ',', '.') }}₫</span>
+            <div class="flex-grow flex flex-col justify-between text-xs">
+              <div>
+                <h4 class="font-semibold text-neutral-900 line-clamp-1">{{ $item['name'] }}</h4>
+                <p class="text-[11px] text-neutral-500 mt-0.5">
+                  @if(!empty($item['color'])) Màu: {{ $item['color'] }} @endif
+                  @if(!empty($item['size'])) | Size: {{ $item['size'] }} @endif
+                </p>
+                <span class="text-neutral-400 text-[11px]">Số lượng: {{ $item['quantity'] }}</span>
               </div>
-            @endif
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Phí giao hàng:</span>
-              @if($shipping == 0)
-                <span class="fw-semibold text-success"><i class="fa-solid fa-truck-fast me-1"></i> Miễn phí (Freeship)</span>
-              @else
-                <span class="fw-semibold text-dark">{{ number_format($shipping, 0, ',', '.') }}₫</span>
-              @endif
-            </div>
-          </div>
-
-          <hr class="border-secondary-subtle my-2">
-
-          <!-- TỔNG CỘNG THANH TOÁN -->
-          <div class="d-flex justify-content-between align-items-baseline mb-4">
-            <div>
-              <span class="fw-bold text-dark fs-6 d-block">Tổng thanh toán:</span>
-              <small class="text-muted" style="font-size: 0.75rem;">(Đã bao gồm thuế VAT &amp; phí vận chuyển)</small>
-            </div>
-            <span class="fs-4 fw-bold text-danger font-monospace">{{ number_format($total, 0, ',', '.') }}₫</span>
-          </div>
-
-          <!-- NÚT XÁC NHẬN ĐẶT HÀNG -->
-          <button type="submit" class="btn btn-bee-primary w-100 py-3 fs-6 fw-bold shadow-md rounded-3">
-            <i class="fa-solid fa-lock me-2"></i> XÁC NHẬN ĐẶT HÀNG
-          </button>
-
-          <!-- CAM KẾT SÀN TMĐT CHUYÊN NGHIỆP -->
-          <div class="mt-4 pt-3 border-top">
-            <div class="d-flex flex-column gap-2 text-muted" style="font-size: 0.78rem;">
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-circle-check text-success"></i>
-                <span>Cam kết 100% hàng chính hãng <strong>BeeStyle Menswear</strong></span>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-box-open text-primary"></i>
-                <span>Được kiểm tra &amp; mặc thử đồ trước khi thanh toán</span>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-rotate-left text-warning"></i>
-                <span>Hỗ trợ đổi size linh hoạt trong vòng 30 ngày</span>
+              <div class="font-serif-luxury text-sm font-bold text-neutral-950">
+                {{ number_format(($item['price'] ?? 0) * ($item['quantity'] ?? 1), 0, ',', '.') }}₫
               </div>
             </div>
           </div>
+        @endforeach
+      </div>
 
+      <!-- Price Breakdown -->
+      <div class="space-y-2.5 text-xs text-neutral-600 pb-4 mb-4 border-b border-neutral-200">
+        <div class="flex justify-between">
+          <span>Tạm tính giỏ hàng:</span>
+          <span class="font-semibold text-neutral-900">{{ number_format($subtotal, 0, ',', '.') }}₫</span>
         </div>
+        <div class="flex justify-between">
+          <span>Phí vận chuyển toàn quốc:</span>
+          @if($shipping == 0)
+            <span class="font-semibold text-emerald-700">MIỄN PHÍ</span>
+          @else
+            <span class="font-semibold text-neutral-900">{{ number_format($shipping, 0, ',', '.') }}₫</span>
+          @endif
+        </div>
+        @if($discount > 0)
+          <div class="flex justify-between text-rose-700">
+            <span>Ưu đãi giảm giá (Coupon):</span>
+            <span class="font-semibold">-{{ number_format($discount, 0, ',', '.') }}₫</span>
+          </div>
+        @endif
+      </div>
+
+      <!-- Total Price -->
+      <div class="flex justify-between items-baseline mb-6">
+        <span class="text-xs uppercase font-bold tracking-wider text-neutral-900">Tổng Thanh Toán:</span>
+        <div class="text-right">
+          <span class="font-serif-luxury text-2xl md:text-3xl font-bold text-neutral-950 block">
+            {{ number_format($total, 0, ',', '.') }}₫
+          </span>
+          <span class="text-[10px] text-neutral-400">Đã bao gồm thuế VAT &amp; Phí đóng gói Atelier</span>
+        </div>
+      </div>
+
+      <!-- Guarantees Badge -->
+      <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 text-[11px] text-neutral-600 space-y-1.5">
+        <div class="flex items-center gap-2 text-neutral-800 font-semibold">
+          <i data-lucide="shield-check" class="w-4 h-4 text-amber-800"></i>
+          <span>ĐẶC QUYỀN KHÁCH HÀNG BEESTYLE:</span>
+        </div>
+        <p>• Đồng kiểm tra sản phẩm trước khi thanh toán.</p>
+        <p>• Hỗ trợ đổi size tận nơi miễn phí 30 ngày.</p>
       </div>
 
     </div>
-  </form>
-</div>
+
+  </div>
+</main>
+@endsection
 
 @push('scripts')
-<style>
-  .pay-option-card {
-    cursor: pointer;
-    border: 1.5px solid #e2e8f0 !important;
-    background: #ffffff;
-    transition: all 0.2s ease-in-out;
-  }
-  .pay-option-card:hover {
-    border-color: #94a3b8 !important;
-    background: #f8fafc;
-  }
-  .pay-option-card.active#card_pay_cod {
-    border-color: #f59e0b !important;
-    background: #fffbeb !important;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
-  }
-  .pay-option-card.active#card_pay_online {
-    border-color: #0284c7 !important;
-    background: #f0f9ff !important;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
-  }
-  .pay-option-card.active#card_pay_momo {
-    border-color: #d82d8b !important;
-    background: #fdf2f8 !important;
-    box-shadow: 0 4px 12px rgba(216, 45, 139, 0.12);
-  }
-  .pay-option-card.active#card_pay_zalopay {
-    border-color: #008fe5 !important;
-    background: #f0f9ff !important;
-    box-shadow: 0 4px 12px rgba(0, 143, 229, 0.15);
-  }
-</style>
-
 <script>
-  function applySavedAddress(el) {
-    if (!el) return;
-    const name = el.getAttribute('data-name');
-    const phone = el.getAttribute('data-phone');
-    const addr = el.getAttribute('data-address');
-    const city = el.getAttribute('data-city');
-    const district = el.getAttribute('data-district');
-    const notes = el.getAttribute('data-notes');
-
-    if (name) document.getElementById('input_customer_name').value = name;
-    if (phone) document.getElementById('input_customer_phone').value = phone;
-    if (addr) document.getElementById('input_shipping_address').value = addr;
-    if (city) document.getElementById('input_city').value = city;
-    if (district) document.getElementById('input_district').value = district;
-    if (notes) document.getElementById('input_notes').value = notes;
+  function fillSavedAddress(select) {
+    const opt = select.options[select.selectedIndex];
+    if (opt.value) {
+      document.getElementById('cust_name').value = opt.getAttribute('data-name') || '';
+      document.getElementById('cust_phone').value = opt.getAttribute('data-phone') || '';
+      document.getElementById('cust_address').value = opt.getAttribute('data-address') || '';
+      document.getElementById('cust_city').value = opt.getAttribute('data-city') || '';
+      document.getElementById('cust_district').value = opt.getAttribute('data-district') || '';
+      document.getElementById('cust_ward').value = opt.getAttribute('data-ward') || '';
+    }
   }
 
-  function updatePayOptionCards() {
-    const cards = document.querySelectorAll('.pay-option-card');
-    cards.forEach(card => {
-      const radio = card.querySelector('.pay-radio');
-      const desc = card.querySelector('.pay-desc-box');
-      if (radio && radio.checked) {
-        card.classList.add('active');
-        if (desc) desc.classList.remove('d-none');
-      } else {
-        card.classList.remove('active');
-        if (desc) desc.classList.add('d-none');
-      }
+  // Highlight selected payment method
+  document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('.payment-option').forEach(el => {
+        el.className = el.className.replace('border-neutral-950 bg-neutral-50', 'border-neutral-200');
+      });
+      this.closest('.payment-option').className = this.closest('.payment-option').className.replace('border-neutral-200', 'border-neutral-950 bg-neutral-50');
     });
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    // Gắn sự kiện lắng nghe click/change trên toàn bộ các radio
-    document.querySelectorAll('.pay-radio').forEach(radio => {
-      radio.addEventListener('change', updatePayOptionCards);
-    });
-
-    updatePayOptionCards();
   });
 </script>
 @endpush
-
-@endsection

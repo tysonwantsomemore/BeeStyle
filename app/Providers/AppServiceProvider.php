@@ -6,6 +6,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
+use Illuminate\Support\Facades\Event;
+use App\Events\PasswordChangedEvent;
+use App\Events\AccountRegisteredEvent;
+use App\Events\ContactVerificationRequestedEvent;
+use App\Listeners\SendPasswordChangedNotification;
+use App\Listeners\SendVerificationCodeNotification;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -21,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 1. Đăng ký các Event & Listeners bảo mật và OTP
+        Event::listen(PasswordChangedEvent::class, SendPasswordChangedNotification::class);
+        Event::listen(AccountRegisteredEvent::class, [SendVerificationCodeNotification::class, 'handleRegistered']);
+        Event::listen(ContactVerificationRequestedEvent::class, [SendVerificationCodeNotification::class, 'handleContactChange']);
         // Chia sẻ danh sách thông báo đầy đủ của Shop cho toàn bộ view Client
         View::composer(['layouts.client', 'client.*'], function ($view) {
             $pendingReviewItems = collect();

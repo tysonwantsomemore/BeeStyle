@@ -60,12 +60,17 @@ class CheckoutController extends Controller
             'shipping_address' => 'required|string|max:255',
             'city' => 'nullable|string|max:100',
             'district' => 'nullable|string|max:100',
+            'ward' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:1000',
             'payment_method' => 'required|string|in:cod,online,momo,zalopay,vnpay,vietqr',
         ]);
 
         $user = Auth::user();
         $orderCode = 'BEE-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+
+        // Tạo Snapshot địa chỉ bất biến tại thời điểm chốt đơn
+        $addressService = app(\App\Services\Address\AddressService::class);
+        $addressSnapshot = $addressService->createOrderAddressSnapshot($validated);
 
         DB::beginTransaction();
 
@@ -79,6 +84,8 @@ class CheckoutController extends Controller
                 'shipping_address' => $validated['shipping_address'],
                 'city' => $validated['city'] ?? 'Hồ Chí Minh',
                 'district' => $validated['district'] ?? '',
+                'ward' => $validated['ward'] ?? '',
+                'shipping_address_snapshot' => $addressSnapshot,
                 'notes' => $validated['notes'] ?? null,
                 'payment_method' => $validated['payment_method'],
                 'payment_status' => in_array($validated['payment_method'], ['cod', 'online', 'momo', 'zalopay']) ? 'unpaid' : 'paid',
