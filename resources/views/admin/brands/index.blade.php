@@ -19,6 +19,32 @@
   </div>
 </div>
 
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(isset($errors) && $errors->any())
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-xmark me-2"></i> <strong>Đã xảy ra lỗi nhập liệu:</strong>
+    <ul class="mb-0 mt-1 small ps-3">
+      @foreach($errors->all() as $err)
+        <li>{{ $err }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 <!-- STATS CARDS -->
 <div class="row g-3 mb-4">
   <div class="col-12 col-sm-4">
@@ -177,6 +203,11 @@
       </table>
     </div>
   </div>
+  @if($brands->hasPages())
+    <div class="card-footer d-flex justify-content-center py-3">
+      {{ $brands->links('pagination::bootstrap-5') }}
+    </div>
+  @endif
 </div>
 
 <!-- MODAL ADD BRAND -->
@@ -328,6 +359,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const editForm = document.getElementById('editBrandForm');
   const currentLogoPreview = document.getElementById('current_logo_preview');
   const editLogoImg = document.getElementById('edit_logo_img');
+  const currentBannerPreview = document.getElementById('current_banner_preview');
+  const editBannerImg = document.getElementById('edit_banner_img');
 
   document.querySelectorAll('.btn-edit-brand').forEach(button => {
     button.addEventListener('click', function () {
@@ -337,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const sort = this.dataset.sort;
       const active = this.dataset.active;
       const logo = this.dataset.logo;
+      const banner = this.dataset.banner;
       const description = this.dataset.description;
 
       editForm.action = `/admin/brands/${id}`;
@@ -346,12 +380,22 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('edit_is_active').checked = (active === '1');
       document.getElementById('edit_description').value = description || '';
       document.getElementById('edit_logo_url').value = '';
+      if (document.getElementById('edit_banner_url')) {
+        document.getElementById('edit_banner_url').value = '';
+      }
 
       if (logo) {
-        editLogoImg.src = logo.startsWith('http') ? logo : `/${logo.replace(/^\//, '')}`;
+        editLogoImg.src = logo;
         currentLogoPreview.classList.remove('d-none');
       } else {
         currentLogoPreview.classList.add('d-none');
+      }
+
+      if (banner && editBannerImg) {
+        editBannerImg.src = banner;
+        currentBannerPreview.classList.remove('d-none');
+      } else if (currentBannerPreview) {
+        currentBannerPreview.classList.add('d-none');
       }
 
       editModal.show();

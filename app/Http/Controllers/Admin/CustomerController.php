@@ -58,7 +58,7 @@ class CustomerController extends Controller
             'orders' => fn($q) => $q->with('items')->latest(),
             'reviews' => fn($q) => $q->with('product')->latest(),
             'addresses'
-        ])->findOrFail($id);
+        ])->where('role', 'customer')->findOrFail($id);
 
         // Chi tiêu của khách hàng hiện tại
         $customerTotalSpent = $customer->orders->where('shipping_status', '!=', 'cancelled')->sum('total_amount');
@@ -70,11 +70,12 @@ class CustomerController extends Controller
         // Thống kê toàn bộ các khách hàng và toàn shop từ trước đến nay
         $totalAllCustomersSpent = Order::where('shipping_status', '!=', 'cancelled')->sum('total_amount');
         $totalCompletedSpent = Order::whereIn('shipping_status', ['completed', 'delivered'])->sum('total_amount');
-        $totalAllRegisteredCustomers = User::count();
+        $totalAllRegisteredCustomers = User::where('role', 'customer')->count();
         $totalShopOrdersCount = Order::where('shipping_status', '!=', 'cancelled')->count();
 
         // Danh sách tất cả các tài khoản khách hàng đã từng mua hàng từ trước đến nay
-        $allPurchasingCustomers = User::withCount([
+        $allPurchasingCustomers = User::where('role', 'customer')
+            ->withCount([
                 'orders' => fn($q) => $q->where('shipping_status', '!=', 'cancelled'),
                 'reviews'
             ])

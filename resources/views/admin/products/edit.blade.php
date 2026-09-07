@@ -18,6 +18,21 @@
   </div>
 </div>
 
+@if (isset($errors) && $errors->any())
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+      <strong class="fs-6">Vui lòng kiểm tra lại thông tin nhập liệu:</strong>
+    </div>
+    <ul class="mb-0 small ps-4">
+      @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
   @csrf
   @method('PUT')
@@ -108,6 +123,37 @@
               @endforeach
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- GALLERY IMAGES -->
+      <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-images text-warning me-2"></i>5. Thư Viện Ảnh Phụ (Gallery Images)</h5>
+        <p class="text-muted small mb-3">Tải thêm ảnh mới hoặc chọn xóa bớt ảnh phụ không cần thiết</p>
+
+        @if($product->images && $product->images->count() > 0)
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark">Ảnh phụ hiện tại (Tích vào ảnh để XÓA):</label>
+            <div class="row g-2">
+              @foreach($product->images as $gImg)
+                <div class="col-md-3 col-4">
+                  <div class="border rounded p-2 text-center bg-light position-relative">
+                    <img src="{{ asset($gImg->image_path) }}" alt="Gallery image" class="img-fluid rounded mb-2" style="height: 90px; object-fit: cover; width: 100%;">
+                    <div class="form-check d-flex align-items-center justify-content-center gap-1 text-danger small">
+                      <input class="form-check-input" type="checkbox" name="delete_gallery_ids[]" value="{{ $gImg->id }}" id="del_g_{{ $gImg->id }}">
+                      <label class="form-check-label small fw-bold" for="del_g_{{ $gImg->id }}">Xóa ảnh này</label>
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          </div>
+        @endif
+
+        <div class="border border-dashed p-3 text-center rounded-3 bg-light">
+          <i class="fa-solid fa-cloud-arrow-up fs-3 text-secondary mb-2"></i>
+          <p class="small text-muted mb-2">Tải thêm ảnh phụ mới từ máy tính</p>
+          <input type="file" name="gallery_images[]" class="form-control form-control-sm" accept="image/*" multiple>
         </div>
       </div>
     </div>

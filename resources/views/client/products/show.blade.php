@@ -2,6 +2,327 @@
 
 @section('title', $product->name . ' — BEESTYLE Studio')
 
+@push('styles')
+<style>
+  /* ========================================================
+     TIER-1 E-COMMERCE PRODUCT DETAIL STYLES - BEESTYLE
+     ======================================================== */
+  :root {
+    --bee-primary: #f59e0b;
+    --bee-primary-hover: #d97706;
+    --bee-dark: #0f172a;
+    --bee-danger: #e11d48;
+    --bee-border: #e2e8f0;
+    --bee-bg-light: #f8fafc;
+  }
+
+  /* Sticky Gallery on Desktop */
+  .bee-gallery-sticky {
+    position: sticky;
+    top: 90px;
+    z-index: 10;
+  }
+
+  /* Main Gallery Image Box */
+  .bee-main-gallery-box {
+    position: relative;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px solid var(--bee-border);
+    min-height: 440px;
+    height: 440px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: crosshair;
+    user-select: none;
+  }
+
+  .bee-main-gallery-box img#mainProductImg {
+    max-height: 410px;
+    width: 100%;
+    object-fit: contain;
+    transition: transform 0.12s cubic-bezier(0.2, 0, 0.2, 1);
+    pointer-events: none;
+  }
+
+  /* Gallery Navigation Arrows */
+  .bee-gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--bee-border);
+    color: var(--bee-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 4;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  .bee-gallery-arrow:hover {
+    background: var(--bee-dark);
+    color: #ffffff;
+    border-color: var(--bee-dark);
+  }
+  .bee-gallery-arrow.prev { left: 12px; }
+  .bee-gallery-arrow.next { right: 12px; }
+
+  /* Gallery Thumbnails Filmstrip */
+  .bee-thumb-strip {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .bee-thumb-item {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    border: 2px solid var(--bee-border);
+    background: #ffffff;
+    padding: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bee-thumb-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    transition: transform 0.2s;
+  }
+
+  .bee-thumb-item:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+  }
+
+  .bee-thumb-item.active {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+    transform: translateY(-2px);
+  }
+
+  /* Flash Sale / Deal Banner */
+  .bee-deal-banner {
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 50%, #9f1239 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(225, 29, 72, 0.25);
+  }
+
+  .bee-deal-timer-unit {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 3px 8px;
+    border-radius: 6px;
+    min-width: 32px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1.1;
+  }
+
+  /* Price Area */
+  .bee-price-box {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid var(--bee-border);
+    margin-bottom: 18px;
+  }
+
+  /* Voucher Mini Tickets */
+  .bee-voucher-ticket {
+    background: #ffffff;
+    border: 1px dashed #f59e0b;
+    border-radius: 8px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .bee-voucher-ticket:hover {
+    background: #fffbeb;
+    border-color: #d97706;
+    transform: translateY(-1px);
+  }
+
+  /* Swatches: Color */
+  .bee-color-btn {
+    border: 2px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #1e293b;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .bee-color-btn:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+  }
+  .btn-check:checked + .bee-color-btn {
+    border-color: #0f172a !important;
+    background: #0f172a !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  }
+
+  /* Swatches: Size */
+  .bee-size-btn {
+    border: 2px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    min-width: 72px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .bee-size-btn:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+  }
+  .btn-check:checked + .bee-size-btn {
+    border-color: #0f172a !important;
+    background: #0f172a !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  }
+  .btn-check:checked + .bee-size-btn .text-muted {
+    color: #cbd5e1 !important;
+  }
+  .btn-check:checked + .bee-size-btn .size-stock-tag {
+    color: #fde047 !important;
+  }
+
+  .bee-size-btn.out-of-stock {
+    opacity: 0.45;
+    background: #f1f5f9;
+    border-style: dashed;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+
+  /* Trust Badges Card */
+  .bee-service-pill {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid var(--bee-border);
+    transition: all 0.2s ease;
+    height: 100%;
+  }
+  .bee-service-pill:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Tabs Styling */
+  .bee-product-tabs .nav-link {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #64748b;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 14px 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .bee-product-tabs .nav-link:hover {
+    color: #0f172a;
+  }
+  .bee-product-tabs .nav-link.active {
+    color: #e11d48;
+    border-bottom-color: #e11d48;
+    background: transparent;
+  }
+
+  /* Floating Sticky Purchase Bar */
+  .bee-sticky-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--bee-border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 1040;
+    padding: 12px 0;
+    transform: translateY(120%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Star Breakdown Bars */
+  .bee-star-bar {
+    height: 8px;
+    border-radius: 10px;
+    background: #e2e8f0;
+    overflow: hidden;
+    flex-grow: 1;
+  }
+  .bee-star-fill {
+    height: 100%;
+    background: #f59e0b;
+    border-radius: 10px;
+  }
+
+  /* Smart AI Size Calculator Box */
+  .bee-smart-size-box {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+
+  /* Animation pulse */
+  @keyframes flameGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.75; transform: scale(1.15); }
+  }
+  .animate-pulse {
+    animation: flameGlow 1.5s infinite;
+  }
+</style>
+@endpush
+
 @section('content')
 <main class="w-full flex-grow py-8 md:py-12">
   <div class="max-w-7xl mx-auto px-6">

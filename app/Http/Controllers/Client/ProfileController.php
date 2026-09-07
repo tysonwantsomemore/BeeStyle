@@ -55,7 +55,7 @@ class ProfileController extends Controller
         $addresses = UserAddress::where('user_id', $user->id)->orderBy('is_default', 'desc')->latest()->get();
         $pendingReviewItems = method_exists($user, 'getPendingReviewItems') ? $user->getPendingReviewItems() : collect();
 
-        return view('client.profile', compact('user', 'orders', 'returns', 'addresses', 'pendingReviewItems'));
+        return view('client.profile', compact('user', 'orders', 'addresses', 'pendingReviewItems'));
     }
 
     /**
@@ -180,7 +180,7 @@ class ProfileController extends Controller
 
         $this->addressService->createAddress($user, $request->validated());
 
-        return redirect()->route('client.profile', ['tab' => 'addresses'])->with('success', 'Đã thêm địa chỉ nhận hàng mới vào sổ địa chỉ!');
+        return back()->with('success', 'Đã thêm địa chỉ nhận hàng mới vào sổ địa chỉ!');
     }
 
     /**
@@ -198,7 +198,7 @@ class ProfileController extends Controller
         $address = $user->addresses()->findOrFail($id);
         $this->addressService->deleteAddress($address);
 
-        return redirect()->route('client.profile', ['tab' => 'addresses'])->with('success', 'Đã xóa địa chỉ khỏi sổ địa chỉ!');
+        return back()->with('success', 'Đã xóa địa chỉ khỏi sổ địa chỉ!');
     }
 
     /**
@@ -216,7 +216,7 @@ class ProfileController extends Controller
         $address = $user->addresses()->findOrFail($id);
         $this->addressService->updateAddress($address, $request->validated());
 
-        return redirect()->route('client.profile', ['tab' => 'addresses'])->with('success', 'Đã cập nhật địa chỉ giao hàng thành công!');
+        return back()->with('success', 'Đã cập nhật địa chỉ giao hàng thành công!');
     }
 
     /**
@@ -234,6 +234,6 @@ class ProfileController extends Controller
         $address = $user->addresses()->findOrFail($id);
         $this->addressService->setDefaultAddress($address);
 
-        return redirect()->route('client.profile', ['tab' => 'addresses'])->with('success', 'Đã thiết lập địa chỉ nhận hàng mặc định!');
+        return back()->with('success', 'Đã thiết lập địa chỉ nhận hàng mặc định!');
     }
 }

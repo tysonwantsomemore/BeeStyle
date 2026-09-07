@@ -37,8 +37,14 @@ class CategoryController extends Controller
     /**
      * Hiển thị trang danh mục sản phẩm chi tiết theo slug kèm bộ lọc chuyên sâu
      */
-    public function show(Request $request, $slug)
+    public function show($request, $slug = null)
     {
+        if (is_string($request) && $slug === null) {
+            $slug = $request;
+            $request = request();
+        } elseif (!$request instanceof Request) {
+            $request = request();
+        }
         $category = Category::where('slug', $slug)->where('is_active', true)->first();
 
         // Fallback thông minh nếu khách hàng vào link cũ hoặc slug biến thể

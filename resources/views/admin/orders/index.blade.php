@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Quản Lý Đơn Hàng | BeeStyle Admin')
+@section('title', 'Quản Lý Đơn Hàng & Vận Chuyển | BeeStyle Admin')
 
 @section('content')
 <!-- HEADER -->
@@ -177,4 +177,152 @@
     </div>
   @endif
 </div>
+
+@push('scripts')
+<script>
+  function toggleCustomDate(preset) {
+    const row = document.getElementById('customDateRow');
+    if (preset === 'custom') {
+      row.classList.remove('d-none');
+    } else {
+      row.classList.add('d-none');
+    }
+  }
+
+  function toggleSelectAll(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.order-item-checkbox');
+    checkboxes.forEach(cb => {
+      cb.checked = masterCheckbox.checked;
+      const row = document.getElementById('row_order_' + cb.value);
+      if (row) {
+        if (masterCheckbox.checked) {
+          row.classList.add('table-warning');
+        } else {
+          row.classList.remove('table-warning');
+        }
+      }
+    });
+    updateSelectedState();
+  }
+
+  function handleItemCheckboxChange(cb) {
+    const row = document.getElementById('row_order_' + cb.value);
+    if (row) {
+      if (cb.checked) {
+        row.classList.add('table-warning');
+      } else {
+        row.classList.remove('table-warning');
+      }
+    }
+
+    const allCheckboxes = document.querySelectorAll('.order-item-checkbox');
+    const checkedCount = document.querySelectorAll('.order-item-checkbox:checked').length;
+    const master = document.getElementById('selectAllCheckbox');
+    if (master) {
+      master.checked = (allCheckboxes.length > 0 && checkedCount === allCheckboxes.length);
+    }
+
+    updateSelectedState();
+  }
+
+  function updateSelectedState() {
+    const checkedBoxes = document.querySelectorAll('.order-item-checkbox:checked');
+    const count = checkedBoxes.length;
+    const bar = document.getElementById('bulkActionBar');
+    const countBadge = document.getElementById('selectedCountBadge');
+
+    if (count > 0) {
+      bar.classList.remove('d-none');
+      countBadge.textContent = count;
+    } else {
+      bar.classList.add('d-none');
+      countBadge.textContent = '0';
+    }
+  }
+
+  function deselectAll() {
+    const master = document.getElementById('selectAllCheckbox');
+    if (master) master.checked = false;
+    toggleSelectAll({ checked: false });
+  }
+
+  function submitBulkPrint() {
+    const checkedBoxes = document.querySelectorAll('.order-item-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+      alert('Vui lòng chọn ít nhất một đơn hàng để in phiếu đóng gói!');
+      return;
+    }
+
+    const container = document.getElementById('bulkPrintIdsContainer');
+    container.innerHTML = '';
+    checkedBoxes.forEach(cb => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'order_ids[]';
+      input.value = cb.value;
+      container.appendChild(input);
+    });
+
+    document.getElementById('bulkPrintForm').submit();
+  }
+
+  function submitBulkAction(actionType) {
+    const checkedBoxes = document.querySelectorAll('.order-item-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+      alert('Vui lòng chọn ít nhất một đơn hàng để thực hiện!');
+      return;
+    }
+
+    const actionTextMap = {
+      'confirm': 'XÁC NHẬN (BƯỚC 2: ĐÃ XÁC NHẬN)',
+      'processing': 'CHUYỂN KHO ĐÓNG GÓI (BƯỚC 3)',
+      'shipping': 'BÀN GIAO CHO BƯU TÁ VẬN CHUYỂN (BƯỚC 4)',
+      'delivered': 'GIAO HÀNG THÀNH CÔNG (BƯỚC 5)',
+      'completed': 'HOÀN TẤT ĐƠN HÀNG (BƯỚC 6)',
+      'mark_paid': 'ĐÁNH DẤU ĐÃ THU ĐỦ TIỀN',
+      'cancel': 'HỦY ĐƠN HÀNG VÀ HOÀN LẠI TOÀN BỘ KHO HÀNG'
+    };
+
+    const actionName = actionTextMap[actionType] || actionType;
+    if (!confirm(`Bạn có chắc chắn muốn thực hiện "${actionName}" đồng bộ cho ${checkedBoxes.length} đơn hàng đã chọn?`)) {
+      return;
+    }
+
+    const container = document.getElementById('bulkOrderIdsContainer');
+    container.innerHTML = '';
+    checkedBoxes.forEach(cb => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'order_ids[]';
+      input.value = cb.value;
+      container.appendChild(input);
+    });
+
+    document.getElementById('bulkActionInput').value = actionType;
+    document.getElementById('bulkActionForm').submit();
+  }
+
+  function generateOrderTracking(orderId, carrier) {
+    let prefix = 'GHTK';
+    if (carrier.includes('GHN')) prefix = 'GHN';
+    else if (carrier.includes('Viettel')) prefix = 'VTP';
+    else if (carrier.includes('J&T')) prefix = 'JT';
+    else if (carrier.includes('Ninja')) prefix = 'NJV';
+    else if (carrier.includes('Nội Bộ')) prefix = 'BEE';
+
+    const randomStr = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const input = document.getElementById('trackingCodeInput' + orderId);
+    if (input) {
+      input.value = prefix + '-' + randomStr;
+    }
+  }
+
+  function generateRandomOrderTracking(orderId) {
+    const select = document.getElementById('carrierSelect' + orderId);
+    if (select) {
+      generateOrderTracking(orderId, select.value);
+    }
+  }
+</script>
+@endpush
 @endsection

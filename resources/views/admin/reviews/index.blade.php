@@ -428,9 +428,8 @@
 
     document.getElementById('mdlCustSpent').textContent = totalSpent.toLocaleString('vi-VN') + '₫';
     
-    const targetUserId = user.id || rev.user_id;
-    if (targetUserId) {
-      document.getElementById('mdlCustLink').href = `/admin/customers/${targetUserId}`;
+    if (user.id) {
+      document.getElementById('mdlCustLink').href = `/admin/customers/${user.id}`;
       document.getElementById('mdlCustLink').style.display = 'inline-block';
     } else {
       document.getElementById('mdlCustLink').style.display = 'none';
@@ -478,7 +477,7 @@
     document.getElementById('mdlStarsContainer').innerHTML = starsHtml;
     document.getElementById('mdlRatingText').textContent = `(${rev.rating}/5 Sao)`;
     document.getElementById('mdlReviewComment').textContent = `"${rev.comment}"`;
-    document.getElementById('mdlReviewTime').textContent = rev.created_at ? new Date(rev.created_at).toLocaleString('vi-VN') : '25/08/2026';
+    document.getElementById('mdlReviewTime').textContent = rev.created_at ? new Date(rev.created_at).toLocaleString('vi-VN') : '';
 
     const photosSection = document.getElementById('mdlPhotosSection');
     const photosContainer = document.getElementById('mdlReviewPhotos');

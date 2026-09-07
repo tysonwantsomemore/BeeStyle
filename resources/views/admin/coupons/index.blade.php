@@ -17,6 +17,73 @@
       <span class="fa-solid fa-plus me-2"></span>Tạo Voucher Mới
     </button>
   </div>
+@if(session('success'))
+  <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(session('error'))
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+@if(isset($errors) && $errors->any())
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <i class="fa-solid fa-circle-xmark me-2"></i> <strong>Đã xảy ra lỗi nhập liệu:</strong>
+    <ul class="mb-0 mt-1 small ps-3">
+      @foreach($errors->all() as $err)
+        <li>{{ $err }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
+<!-- STATS CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 p-3">
+      <div class="d-flex align-items-center">
+        <div class="avatar bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+          <i class="fa-solid fa-ticket fs-4"></i>
+        </div>
+        <div>
+          <div class="text-muted small fw-semibold">Tổng Số Voucher</div>
+          <div class="fs-4 fw-bold text-dark">{{ $totalCoupons ?? count($coupons) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 p-3">
+      <div class="d-flex align-items-center">
+        <div class="avatar bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+          <i class="fa-solid fa-circle-check fs-4"></i>
+        </div>
+        <div>
+          <div class="text-muted small fw-semibold">Đang Áp Dụng</div>
+          <div class="fs-4 fw-bold text-success">{{ $activeCouponsCount ?? 0 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 p-3">
+      <div class="d-flex align-items-center">
+        <div class="avatar bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+          <i class="fa-solid fa-fire fs-4"></i>
+        </div>
+        <div>
+          <div class="text-muted small fw-semibold">Tổng Lượt Đã Sử Dụng</div>
+          <div class="fs-4 fw-bold text-danger">{{ $totalUsedCount ?? 0 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 4 THẺ THỐNG KÊ VOUCHER -->
@@ -106,6 +173,11 @@
       </div>
     </div>
   </div>
+  @if($coupons->hasPages())
+    <div class="card-footer d-flex justify-content-center py-3">
+      {{ $coupons->links('pagination::bootstrap-5') }}
+    </div>
+  @endif
 </div>
 
 <!-- BẢNG DANH SÁCH MÃ GIẢM GIÁ -->

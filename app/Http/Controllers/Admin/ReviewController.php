@@ -39,12 +39,12 @@ class ReviewController extends Controller
 
         $reviews = $query->paginate(15)->withQueryString();
 
-        // Nối thông tin đơn hàng khách đã mua sản phẩm này & tính tổng chi tiêu thực tế của khách
+        // Nối thông tin đơn hàng khách đã mua sản phẩm này
         foreach ($reviews as $rev) {
             $this->attachMatchedOrder($rev);
         }
 
-        $latestReviews = Review::with(['product', 'user.orders'])->latest()->take(4)->get();
+        $latestReviews = Review::with(['product', 'user'])->latest()->take(4)->get();
         foreach ($latestReviews as $lRev) {
             $this->attachMatchedOrder($lRev);
         }
@@ -66,7 +66,7 @@ class ReviewController extends Controller
     }
 
     /**
-     * Nối thông tin Đơn hàng khách đã mua sản phẩm được đánh giá & tính chi tiêu từng khách
+     * Nối thông tin Đơn hàng khách đã mua sản phẩm được đánh giá
      */
     private function attachMatchedOrder(&$review)
     {
@@ -135,48 +135,7 @@ class ReviewController extends Controller
             }
         }
     }
-
-
-
-
-    /**
-     * Cập nhật trạng thái duyệt / ẩn đánh giá
-     */
-    public function updateStatus(Request $request, $id)
-    {
-        $review = Review::findOrFail($id);
-        $status = $request->input('status', 'approved');
-
-        $review->update(['status' => $status]);
-
-        // Cập nhật lại rating trung bình và số lượng review của sản phẩm
-        $product = Product::find($review->product_id);
-        if ($product) {
-            $product->rating = round(Review::where('product_id', $product->id)->where('status', 'approved')->avg('rating'), 1) ?: 5.0;
-            $product->reviews_count = Review::where('product_id', $product->id)->where('status', 'approved')->count();
-            $product->save();
-        }
-
-        return back()->with('success', "Đã cập nhật trạng thái đánh giá thành \"{$status}\" thành công!");
-    }
-
-    /**
-     * Xóa đánh giá
-     */
-    public function destroy($id)
-    {
-        $review = Review::findOrFail($id);
-        $productId = $review->product_id;
-        $review->delete();
-
-        // Cập nhật lại rating sản phẩm
-        $product = Product::find($productId);
-        if ($product) {
-            $product->rating = round(Review::where('product_id', $product->id)->where('status', 'approved')->avg('rating'), 1) ?: 5.0;
-            $product->reviews_count = Review::where('product_id', $product->id)->where('status', 'approved')->count();
-            $product->save();
-        }
-
-        return back()->with('success', 'Đã xóa đánh giá của khách hàng thành công!');
-    }
 }
+
+
+

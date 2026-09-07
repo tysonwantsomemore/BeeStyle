@@ -46,7 +46,10 @@ class OrderReturnController extends Controller
             foreach ($order->items as $item) {
                 if ($item->product_id) {
                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                    Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                    $prod = Product::find($item->product_id);
+                    if ($prod && $prod->sold_count >= $item->quantity) {
+                        $prod->decrement('sold_count', $item->quantity);
+                    }
 
                     if (!empty($item->color) && !empty($item->size)) {
                         ProductVariant::where('product_id', $item->product_id)

@@ -51,26 +51,6 @@ class User extends Authenticatable
     ];
 
     /**
-     * Lấy tổng chi tiêu thực tế của khách hàng từ tất cả các đơn hàng không bị hủy
-     */
-    public function getActualTotalSpentAttribute(): int
-    {
-        if ($this->relationLoaded('orders')) {
-            $sum = (int) $this->orders->where('shipping_status', '!=', 'cancelled')->sum('total_amount');
-            if ($sum > 0) {
-                return $sum;
-            }
-        }
-
-        $spent = (int) $this->orders()->where('shipping_status', '!=', 'cancelled')->sum('total_amount');
-        if ($spent > 0) {
-            return $spent;
-        }
-
-        return (int) ($this->attributes['total_spent'] ?? 0);
-    }
-
-    /**
      * Lấy URL avatar chuẩn xác 100% của khách hàng
      */
     public function getAvatarUrlAttribute(): string
@@ -138,6 +118,11 @@ class User extends Authenticatable
     }
 
     public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function getIsAdminAttribute(): bool
     {
         return $this->role === 'admin';
     }

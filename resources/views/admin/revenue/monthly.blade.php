@@ -2,6 +2,80 @@
 
 @section('title', 'Báo Cáo Doanh Thu Tháng ' . $parsedDate->format('m/Y') . ' | BeeStyle Admin')
 
+@push('styles')
+<style>
+  /* Monthly Revenue Dashboard Luxury Styling */
+  .bee-kpi-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+  }
+  .bee-kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  }
+  .bee-kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+  }
+  .bee-kpi-card.gold::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+  .bee-kpi-card.emerald::before { background: linear-gradient(180deg, #10b981, #059669); }
+  .bee-kpi-card.blue::before { background: linear-gradient(180deg, #3b82f6, #2563eb); }
+  .bee-kpi-card.indigo::before { background: linear-gradient(180deg, #8b5cf6, #7c3aed); }
+
+  .bee-kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+  }
+  .bee-kpi-icon.gold { background: #fef3c7; color: #b45309; }
+  .bee-kpi-icon.emerald { background: #d1fae5; color: #047857; }
+  .bee-kpi-icon.blue { background: #dbeafe; color: #1d4ed8; }
+  .bee-kpi-icon.indigo { background: #ede9fe; color: #6d28d9; }
+
+  .bee-chart-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+  }
+
+  .bee-vip-rank-1 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .bee-vip-rank-2 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+  .bee-vip-rank-3 { background: #fed7aa; color: #c2410c; border: 1px solid #fdba74; }
+  .bee-vip-rank-default { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+  @media print {
+    .navbar-vertical, .navbar-top, .footer, .no-print {
+      display: none !important;
+    }
+    .main {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .bee-chart-card, .bee-kpi-card {
+      box-shadow: none !important;
+      border: 1px solid #ccc !important;
+    }
+  }
+</style>
+@endpush
+
 @section('content')
 <!-- HEADER BÁO CÁO DOANH THU THÁNG -->
 <div class="row gy-3 mb-4 justify-content-between align-items-center">
@@ -170,7 +244,19 @@
           <span class="fa-solid fa-magnifying-glass"></span>
         </button>
       </div>
-    </form>
+
+      <!-- Search Form -->
+      <form action="{{ route('admin.revenue.monthly') }}" method="GET" class="d-flex align-items-center gap-2">
+        <input type="hidden" name="month" value="{{ $selectedMonth }}">
+        @if(!empty($status))
+          <input type="hidden" name="status" value="{{ $status }}">
+        @endif
+        <div class="input-group input-group-sm" style="width: 250px;">
+          <input type="text" name="q" class="form-control" placeholder="Tìm tên khách, SĐT, mã..." value="{{ $search }}">
+          <button class="btn btn-bee-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <div class="card-body p-0">
@@ -532,32 +618,188 @@
 
 @push('scripts')
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('filterMonthlyCustomersInput');
-    const rows = document.querySelectorAll('#monthlyCustomersTable tbody .customer-row');
-    const countEl = document.getElementById('visibleCustomerCount');
+  document.addEventListener('DOMContentLoaded', function () {
+    // 1. BIỂU ĐỒ DOANH THU THEO NGÀY (DAILY REVENUE LINE CHART)
+    const dailyCtx = document.getElementById('dailyRevenueChart');
+    if (dailyCtx) {
+      const dailyLabels = @json($dailyLabels);
+      const dailyRevenue = @json($dailyRevenueData);
+      const dailyOrders = @json($dailyOrdersData);
 
-    if (searchInput) {
-      searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        let visible = 0;
-
-        rows.forEach(row => {
-          const text = row.getAttribute('data-search') || '';
-          if (text.includes(query)) {
-            row.style.display = '';
-            visible++;
-          } else {
-            row.style.display = 'none';
+      new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+          labels: dailyLabels,
+          datasets: [
+            {
+              label: 'Doanh Thu (VNĐ)',
+              data: dailyRevenue,
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 3.5,
+              pointHoverRadius: 6,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Số Lượng Đơn',
+              data: dailyOrders,
+              borderColor: '#3b82f6',
+              backgroundColor: 'transparent',
+              borderWidth: 1.8,
+              borderDash: [4, 4],
+              tension: 0.3,
+              pointRadius: 2.5,
+              pointHoverRadius: 5,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: '600' }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) label += ': ';
+                  if (context.datasetIndex === 0) {
+                    label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
+                  } else {
+                    label += context.parsed.y + ' đơn';
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              grid: { color: 'rgba(226, 232, 240, 0.6)' },
+              ticks: {
+                font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 },
+                callback: function(value) {
+                  if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                  if (value >= 1000) return (value / 1000).toFixed(0) + 'k';
+                  return value;
+                }
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              grid: { drawOnChartArea: false },
+              ticks: {
+                font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 },
+                stepSize: 1,
+                precision: 0
+              }
+            }
           }
-        });
+        }
+      });
+    }
 
-        if (countEl) {
-          countEl.textContent = visible;
+    // 2. BIỂU ĐỒ CƠ CẤU THANH TOÁN (PAYMENT METHOD DOUGHNUT CHART)
+    const paymentCtx = document.getElementById('paymentMethodChart');
+    if (paymentCtx) {
+      const paymentLabels = @json($paymentLabels);
+      const paymentData = @json($paymentData);
+
+      const colorPalette = ['#f59e0b', '#ec4899', '#3b82f6', '#10b981', '#8b5cf6', '#64748b'];
+
+      new Chart(paymentCtx, {
+        type: 'doughnut',
+        data: {
+          labels: paymentLabels.length > 0 ? paymentLabels : ['Chưa có giao dịch'],
+          datasets: [{
+            data: paymentData.length > 0 ? paymentData : [1],
+            backgroundColor: paymentData.length > 0 ? colorPalette.slice(0, paymentLabels.length) : ['#e2e8f0'],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 10,
+                font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '500' }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.parsed;
+                  return ' ' + context.label + ': ' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+                }
+              }
+            }
+          },
+          cutout: '68%'
         }
       });
     }
   });
+
+  // 3. EXPORT TABLE TO CSV UTILITY
+  function exportTableToCSV(filename) {
+    const table = document.getElementById('monthlyOrdersTable');
+    if (!table) return;
+
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+      let row = [], cols = rows[i].querySelectorAll('td, th');
+      for (let j = 0; j < cols.length - 1; j++) { // bỏ cột thao tác
+        let text = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/\s+/g, ' ').trim();
+        text = text.replace(/"/g, '""');
+        row.push('"' + text + '"');
+      }
+      if (row.length > 0) {
+        csv.push(row.join(','));
+      }
+    }
+
+    const csvFile = new Blob(['\uFEFF' + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const downloadLink = document.createElement('a');
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  }
 </script>
 @endpush
 @endsection

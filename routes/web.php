@@ -25,6 +25,7 @@ use App\Http\Controllers\Client\ProfileController;
 use App\Http\Controllers\Client\ReviewController;
 use App\Http\Controllers\Client\WishlistController;
 use App\Http\Controllers\Client\OrderReturnController;
+use App\Http\Controllers\Client\MomoPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,16 +65,8 @@ Route::get('/register', function () {
 Route::name('auth.')->group(function () {
 
     // Đăng nhập
-    Route::get(
-        '/dang-nhap',
-        [AuthController::class, 'showLoginForm']
-    )->name('login');
-
-    Route::post(
-        '/dang-nhap',
-        [AuthController::class, 'login']
-    )->name('login.post');
-
+    Route::get('/dang-nhap', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/dang-nhap', [AuthController::class, 'login'])->name('login.post');
 
     // Đăng ký
     Route::get(
@@ -93,13 +86,15 @@ Route::name('auth.')->group(function () {
     )->name('verify-otp');
 
     // Đăng xuất
-    Route::post(
-        '/dang-xuat',
-        [AuthController::class, 'logout']
-    )->name('logout');
+    Route::post('/dang-xuat', [AuthController::class, 'logout'])->name('logout');
 
 });
 
+
+// Route aliases cho Cổng MoMo (Hỗ trợ gọi cả route('payment.momo.result') và route('client.payment.momo.result'))
+Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
+Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
+Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
 
 /*
 |--------------------------------------------------------------------------
@@ -111,130 +106,93 @@ Route::name('client.')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | HOME
+    | HOME & SẢN PHẨM KHÁCH HÀNG (PUBLIC)
     |--------------------------------------------------------------------------
     */
-    Route::get(
-        '/',
-        [HomeController::class, 'index']
-    )->name('home');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
-    // Categories (Xem danh mục sản phẩm)
+    // Ưu đãi trong ngày (Daily Deals / Flash Sale)
+    Route::get('/uu-dai-trong-ngay', [ClientProductController::class, 'dailyDeals'])->name('daily-deals.index');
+    Route::get('/deal-ngay', [ClientProductController::class, 'dailyDeals']);
+
+    // Sản phẩm
+    Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
+    Route::get('/san-pham/api-quick-view/{id}', [ClientProductController::class, 'getQuickViewData'])->name('products.quickView');
+    Route::get('/san-pham/api-reviewer-profile/{id}', [ClientProductController::class, 'getReviewerProfile'])->name('products.reviewerProfile');
+    Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
+    Route::get('/san-pham/{id}/danh-gia-chi-tiet', [ReviewController::class, 'getProductReviewsData'])->name('products.reviews.data');
+
+    // Danh mục sản phẩm (Categories)
     Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
     Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
 
+    // Thương hiệu (Brands)
+    Route::get('/thuong-hieu', [ClientBrandController::class, 'index'])->name('brands.index');
+    Route::get('/thuong-hieu/{slug}', [ClientBrandController::class, 'show'])->name('brands.show');
 
     /*
     |--------------------------------------------------------------------------
-    | PRODUCTS
+    | SẢN PHẨM YÊU THÍCH (WISHLIST - SESSION BASED)
     |--------------------------------------------------------------------------
     */
-    Route::get(
-        '/uu-dai-trong-ngay',
-        [ClientProductController::class, 'dailyDeals']
-    )->name('daily-deals.index');
-
-    Route::get(
-        '/deal-ngay',
-        [ClientProductController::class, 'dailyDeals']
-    );
-
-
-    Route::get(
-        '/san-pham',
-        [ClientProductController::class, 'index']
-    )->name('products.index');
-
-
-    Route::get(
-        '/san-pham/api-quick-view/{id}',
-        [ClientProductController::class, 'getQuickViewData']
-    )->name('products.quickView');
-
-
-    Route::get(
-        '/san-pham/{id}',
-        [ClientProductController::class, 'show']
-    )->name('products.show');
-
-    Route::get(
-        '/san-pham/api-reviewer-profile/{id}',
-        [ClientProductController::class, 'getReviewerProfile']
-    )->name('products.reviewerProfile');
-
+    Route::get('/san-pham-yeu-thich', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/san-pham-yeu-thich/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::delete('/san-pham-yeu-thich/xoa/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+    Route::post('/san-pham-yeu-thich/xoa-tat-ca', [WishlistController::class, 'clear'])->name('wishlist.clear');
 
     /*
     |--------------------------------------------------------------------------
-    | BRANDS
+    | GIỎ HÀNG (CART - HỖ TRỢ CẢ KHÁCH VÃNG LAI VÀ THÀNH VIÊN)
     |--------------------------------------------------------------------------
     */
-    Route::get(
-        '/thuong-hieu',
-        [ClientBrandController::class, 'index']
-    )->name('brands.index');
-
-
-    Route::get(
-        '/thuong-hieu/{slug}',
-        [ClientBrandController::class, 'show']
-    )->name('brands.show');
-
+    Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
+    Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
+    Route::match(['delete', 'post'], '/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
+    Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
+    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
+    Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
 
     /*
     |--------------------------------------------------------------------------
-    | PRODUCT REVIEWS
+    | TRA CỨU ĐƠN HÀNG (ORDER TRACKING - TRA CỨU BẰNG MÃ ĐƠN HÀNG)
     |--------------------------------------------------------------------------
     */
-    Route::get(
-        '/san-pham/{id}/danh-gia-chi-tiet',
-        [ReviewController::class, 'getProductReviewsData']
-    )->name('products.reviews.data');
+    Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
+    Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
 
-
-    Route::post(
-        '/san-pham/{id}/danh-gia',
-        [ReviewController::class, 'store']
-    )->middleware('auth')
-        ->name('products.review');
-
-
-    Route::post(
-        '/danh-dau-thong-bao-danh-gia',
-        [ReviewController::class, 'dismissNotification']
-    )->middleware('auth')
-        ->name('reviews.dismissNotification');
-
+    // Cổng Tra Cứu Vận Đơn Bưu Tá Trực Tuyến (GHTK, GHN, Viettel Post...)
+    Route::get('/tra-cuu-van-don/{code?}', [OrderTrackingController::class, 'carrierTracking'])->name('carrier-tracking');
 
     /*
     |--------------------------------------------------------------------------
-    | CLIENT AUTHENTICATED ROUTES
+    | MOMO ONLINE PAYMENT GATEWAY (DEEP LINK / APP-TO-APP / SANDBOX)
+    |--------------------------------------------------------------------------
+    */
+    // API tạo giao dịch MoMo: POST /api/payments/momo/create
+    Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
+
+    // API IPN Webhook: POST /api/payments/momo/ipn
+    Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
+
+    // Trang kết quả giao dịch: GET /payment/momo/result
+    Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
+
+    // Legacy/Fallback routes cho tương thích
+    Route::get('/thanh-toan/momo/callback', [MomoPaymentController::class, 'result'])->name('checkout.momo.callback');
+    Route::post('/thanh-toan/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('checkout.momo.ipn');
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLIENT AUTHENTICATED ROUTES (BẮT BUỘC ĐĂNG NHẬP)
     |--------------------------------------------------------------------------
     */
     Route::middleware('auth')->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | WISHLIST
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/san-pham-yeu-thich', [WishlistController::class, 'index'])->name('wishlist.index');
-        Route::post('/san-pham-yeu-thich/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
-        Route::delete('/san-pham-yeu-thich/xoa/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
-        Route::post('/san-pham-yeu-thich/xoa-tat-ca', [WishlistController::class, 'clear'])->name('wishlist.clear');
-
-        /*
-        |--------------------------------------------------------------------------
-        | CART
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
-        Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
-        Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-        Route::match(['delete', 'post'], '/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
-        Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
-        Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
-        Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-        Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
+        // Đánh giá sản phẩm đã mua
+        Route::post('/san-pham/{id}/danh-gia', [ReviewController::class, 'store'])->name('products.review');
+        Route::post('/danh-dau-thong-bao-danh-gia', [ReviewController::class, 'dismissNotification'])->name('reviews.dismissNotification');
 
         /*
         |--------------------------------------------------------------------------
@@ -247,6 +205,7 @@ Route::name('client.')->group(function () {
         // Cổng Thanh Toán MoMo Gateway
         Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
         Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
+        Route::post('/thanh-toan/momo/{code}/sandbox-redirect', [CheckoutController::class, 'momoRedirectSandbox'])->name('checkout.momo.redirect');
 
         // Cổng Thanh Toán ZaloPay Gateway
         Route::get('/thanh-toan/zalopay/{code}', [CheckoutController::class, 'zalopayGateway'])->name('checkout.zalopay');
@@ -263,15 +222,7 @@ Route::name('client.')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | ORDER TRACKING
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
-        Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
-
-        /*
-        |--------------------------------------------------------------------------
-        | USER PROFILE
+        | USER PROFILE & SỔ ĐỊA CHỈ
         |--------------------------------------------------------------------------
         */
         Route::get('/tai-khoan', [ProfileController::class, 'index'])->name('profile');
@@ -298,7 +249,6 @@ Route::name('client.')->group(function () {
 });
 
 
-
 /*
 |--------------------------------------------------------------------------
 | ADMIN DASHBOARD & MANAGEMENT ROUTES
@@ -314,294 +264,125 @@ Route::prefix('admin')
         | DASHBOARD
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/',
-            [DashboardController::class, 'index']
-        )->name('dashboard');
-
-        Route::get(
-            '/dashboard',
-            [DashboardController::class, 'index']
-        );
-
-        Route::get(
-            '/dashboard/revenue-data',
-            [DashboardController::class, 'getRevenueData']
-        )->name('dashboard.revenueData');
-
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/dashboard/revenue-data', [DashboardController::class, 'getRevenueData'])->name('dashboard.revenueData');
 
         /*
         |--------------------------------------------------------------------------
         | REVENUE & REPORTS
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/revenue/monthly',
-            [AdminRevenueController::class, 'monthly']
-        )->name('revenue.monthly');
-
-        Route::get(
-            '/reports',
-            [ReportController::class, 'index']
-        )->name('reports.index');
-
+        Route::get('/revenue/monthly', [AdminRevenueController::class, 'monthly'])->name('revenue.monthly');
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
         /*
         |--------------------------------------------------------------------------
         | USER MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/users',
-            [UserManagementController::class, 'index']
-        )->name('users.index');
-
-        Route::put(
-            '/users/{user}',
-            [UserManagementController::class, 'update']
-        )->name('users.update');
-
+        Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
 
         /*
         |--------------------------------------------------------------------------
         | PRODUCTS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/products',
-            [AdminProductController::class, 'index']
-        )->name('products.index');
-
-        Route::get(
-            '/products/create',
-            [AdminProductController::class, 'create']
-        )->name('products.create');
-
-        Route::post(
-            '/products',
-            [AdminProductController::class, 'store']
-        )->name('products.store');
-
-        Route::get(
-            '/products/{id}/edit',
-            [AdminProductController::class, 'edit']
-        )->name('products.edit');
-
-        Route::put(
-            '/products/{id}',
-            [AdminProductController::class, 'update']
-        )->name('products.update');
-
-        Route::delete(
-            '/products/{id}',
-            [AdminProductController::class, 'destroy']
-        )->name('products.destroy');
-
-        Route::post(
-            '/products/{id}/toggle',
-            [AdminProductController::class, 'toggleStatus']
-        )->name('products.toggle');
-
+        Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+        Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create');
+        Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+        Route::get('/products/{id}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
+        Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{id}', [AdminProductController::class, 'destroy'])->name('products.destroy');
+        Route::post('/products/{id}/toggle', [AdminProductController::class, 'toggleStatus'])->name('products.toggle');
 
         /*
         |--------------------------------------------------------------------------
         | CATEGORIES MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/categories',
-            [AdminCategoryController::class, 'index']
-        )->name('categories.index');
-
-        Route::post(
-            '/categories',
-            [AdminCategoryController::class, 'store']
-        )->name('categories.store');
-
-        Route::put(
-            '/categories/{id}',
-            [AdminCategoryController::class, 'update']
-        )->name('categories.update');
-
-        Route::delete(
-            '/categories/{id}',
-            [AdminCategoryController::class, 'destroy']
-        )->name('categories.destroy');
-
-        Route::patch(
-            '/categories/{id}/toggle-status',
-            [AdminCategoryController::class, 'toggleStatus']
-        )->name('categories.toggleStatus');
-
+        Route::get('/categories', [AdminCategoryController::class, 'index'])->name('categories.index');
+        Route::post('/categories', [AdminCategoryController::class, 'store'])->name('categories.store');
+        Route::put('/categories/{id}', [AdminCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{id}', [AdminCategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::patch('/categories/{id}/toggle-status', [AdminCategoryController::class, 'toggleStatus'])->name('categories.toggleStatus');
 
         /*
         |--------------------------------------------------------------------------
         | BRANDS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/brands',
-            [AdminBrandController::class, 'index']
-        )->name('brands.index');
-
-        Route::post(
-            '/brands',
-            [AdminBrandController::class, 'store']
-        )->name('brands.store');
-
-        Route::put(
-            '/brands/{id}',
-            [AdminBrandController::class, 'update']
-        )->name('brands.update');
-
-        Route::delete(
-            '/brands/{id}',
-            [AdminBrandController::class, 'destroy']
-        )->name('brands.destroy');
-
-        Route::patch(
-            '/brands/{id}/toggle-status',
-            [AdminBrandController::class, 'toggleStatus']
-        )->name('brands.toggleStatus');
-
+        Route::get('/brands', [AdminBrandController::class, 'index'])->name('brands.index');
+        Route::post('/brands', [AdminBrandController::class, 'store'])->name('brands.store');
+        Route::put('/brands/{id}', [AdminBrandController::class, 'update'])->name('brands.update');
+        Route::delete('/brands/{id}', [AdminBrandController::class, 'destroy'])->name('brands.destroy');
+        Route::patch('/brands/{id}/toggle-status', [AdminBrandController::class, 'toggleStatus'])->name('brands.toggleStatus');
 
         /*
         |--------------------------------------------------------------------------
         | ORDERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/orders',
-            [AdminOrderController::class, 'index']
-        )->name('orders.index');
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
 
-        Route::get(
-            '/orders/{id}',
-            [AdminOrderController::class, 'show']
-        )->name('orders.show');
+        // Thao tác hàng loạt & tự động xác nhận tất cả đơn hàng
+        Route::post('/orders/bulk-action', [AdminOrderController::class, 'bulkAction'])->name('orders.bulkAction');
+        Route::post('/orders/confirm-all-pending', [AdminOrderController::class, 'confirmAllPending'])->name('orders.confirmAllPending');
 
-        Route::post(
-            '/orders/{id}/status',
-            [AdminOrderController::class, 'updateStatus']
-        )->name('orders.updateStatus');
+        // Xuất Excel / CSV & In phiếu đóng gói hàng loạt (Chuẩn TMĐT)
+        Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
+        Route::post('/orders/bulk-print', [AdminOrderController::class, 'bulkPrint'])->name('orders.bulkPrint');
 
+        Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
 
         /*
         |--------------------------------------------------------------------------
         | CUSTOMERS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/customers',
-            [AdminCustomerController::class, 'index']
-        )->name('customers.index');
-
-        Route::get(
-            '/customers/{id}',
-            [AdminCustomerController::class, 'show']
-        )->name('customers.show');
-
+        Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/{id}', [AdminCustomerController::class, 'show'])->name('customers.show');
 
         /*
         |--------------------------------------------------------------------------
         | REVIEWS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/reviews',
-            [AdminReviewController::class, 'index']
-        )->name('reviews.index');
-
-        Route::post(
-            '/reviews/{id}/status',
-            [AdminReviewController::class, 'updateStatus']
-        )->name('reviews.updateStatus');
-
-        Route::delete(
-            '/reviews/{id}',
-            [AdminReviewController::class, 'destroy']
-        )->name('reviews.destroy');
-
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::post('/reviews/{id}/status', [AdminReviewController::class, 'updateStatus'])->name('reviews.updateStatus');
+        Route::delete('/reviews/{id}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 
         /*
         |--------------------------------------------------------------------------
         | DAILY DEALS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/daily-deals',
-            [AdminDailyDealController::class, 'index']
-        )->name('daily-deals.index');
-
-        Route::post(
-            '/daily-deals',
-            [AdminDailyDealController::class, 'store']
-        )->name('daily-deals.store');
-
-        Route::put(
-            '/daily-deals/{id}',
-            [AdminDailyDealController::class, 'update']
-        )->name('daily-deals.update');
-
-        Route::delete(
-            '/daily-deals/{id}',
-            [AdminDailyDealController::class, 'destroy']
-        )->name('daily-deals.destroy');
-
-        Route::post(
-            '/daily-deals/{id}/toggle',
-            [AdminDailyDealController::class, 'toggleStatus']
-        )->name('daily-deals.toggle');
-
-        Route::post(
-            '/daily-deals/{id}/renew',
-            [AdminDailyDealController::class, 'renew']
-        )->name('daily-deals.renew');
-
+        Route::get('/daily-deals', [AdminDailyDealController::class, 'index'])->name('daily-deals.index');
+        Route::post('/daily-deals', [AdminDailyDealController::class, 'store'])->name('daily-deals.store');
+        Route::put('/daily-deals/{id}', [AdminDailyDealController::class, 'update'])->name('daily-deals.update');
+        Route::delete('/daily-deals/{id}', [AdminDailyDealController::class, 'destroy'])->name('daily-deals.destroy');
+        Route::post('/daily-deals/{id}/toggle', [AdminDailyDealController::class, 'toggleStatus'])->name('daily-deals.toggle');
+        Route::post('/daily-deals/{id}/renew', [AdminDailyDealController::class, 'renew'])->name('daily-deals.renew');
 
         /*
         |--------------------------------------------------------------------------
         | COUPONS MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/coupons',
-            [AdminCouponController::class, 'index']
-        )->name('coupons.index');
-
-        Route::post(
-            '/coupons',
-            [AdminCouponController::class, 'store']
-        )->name('coupons.store');
-
-        Route::put(
-            '/coupons/{id}',
-            [AdminCouponController::class, 'update']
-        )->name('coupons.update');
-
-        Route::delete(
-            '/coupons/{id}',
-            [AdminCouponController::class, 'destroy']
-        )->name('coupons.destroy');
+        Route::get('/coupons', [AdminCouponController::class, 'index'])->name('coupons.index');
+        Route::post('/coupons', [AdminCouponController::class, 'store'])->name('coupons.store');
+        Route::put('/coupons/{id}', [AdminCouponController::class, 'update'])->name('coupons.update');
+        Route::delete('/coupons/{id}', [AdminCouponController::class, 'destroy'])->name('coupons.destroy');
 
         /*
         |--------------------------------------------------------------------------
         | RETURNS & REFUNDS (RMA) MANAGEMENT
         |--------------------------------------------------------------------------
         */
-        Route::get(
-            '/returns',
-            [AdminReturnController::class, 'index']
-        )->name('returns.index');
-
-        Route::get(
-            '/returns/{id}',
-            [AdminReturnController::class, 'show']
-        )->name('returns.show');
-
-        Route::post(
-            '/returns/{id}/status',
-            [AdminReturnController::class, 'updateStatus']
-        )->name('returns.updateStatus');
+        Route::get('/returns', [AdminReturnController::class, 'index'])->name('returns.index');
+        Route::get('/returns/{id}', [AdminReturnController::class, 'show'])->name('returns.show');
+        Route::post('/returns/{id}/status', [AdminReturnController::class, 'updateStatus'])->name('returns.updateStatus');
 
     });

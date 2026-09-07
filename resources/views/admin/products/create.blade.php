@@ -18,6 +18,21 @@
   </div>
 </div>
 
+@if (isset($errors) && $errors->any())
+  <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+      <strong class="fs-6">Vui lòng kiểm tra lại thông tin nhập liệu:</strong>
+    </div>
+    <ul class="mb-0 small ps-4">
+      @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+@endif
+
 <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
   @csrf
   <div class="row g-4">
@@ -99,6 +114,18 @@
               @endforeach
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- GALLERY IMAGES -->
+      <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
+        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-images text-warning me-2"></i>5. Thư Viện Ảnh Phụ (Gallery Images)</h5>
+        <p class="text-muted small mb-3">Tải lên nhiều ảnh sản phẩm ở các góc chụp khác nhau để hiển thị slider trang chi tiết</p>
+        
+        <div class="border border-dashed p-3 text-center rounded-3 bg-light">
+          <i class="fa-solid fa-images fs-2 text-secondary mb-2"></i>
+          <p class="small text-muted mb-2">Chọn một hoặc nhiều file ảnh từ máy tính</p>
+          <input type="file" name="gallery_images[]" class="form-control form-control-sm" accept="image/*" multiple>
         </div>
       </div>
     </div>

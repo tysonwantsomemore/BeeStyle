@@ -5,6 +5,45 @@
 @section('content')
 @php
   $addresses = $addresses ?? ($user->addresses ?? collect());
+  
+  $totalSpent = $orders->where('shipping_status', 'completed')->sum('total_amount');
+  if ($totalSpent <= 0) {
+    $totalSpent = $orders->where('payment_status', 'paid')->sum('total_amount');
+  }
+  
+  if ($totalSpent >= 10000000) {
+    $tierName = 'VIP Kim Cương (Diamond)';
+    $tierBadgeClass = 'bg-dark text-warning border border-warning';
+    $tierIcon = 'fa-gem';
+    $nextTierName = 'Hạng Cao Nhất';
+    $nextTierTarget = 10000000;
+    $progressPercent = 100;
+    $neededMore = 0;
+  } elseif ($totalSpent >= 5000000) {
+    $tierName = 'VIP Vàng (Gold)';
+    $tierBadgeClass = 'bg-warning text-dark';
+    $tierIcon = 'fa-crown';
+    $nextTierName = 'VIP Kim Cương';
+    $nextTierTarget = 10000000;
+    $progressPercent = min(100, round(($totalSpent / 10000000) * 100));
+    $neededMore = 10000000 - $totalSpent;
+  } elseif ($totalSpent >= 2000000) {
+    $tierName = 'Hội Viên Bạc (Silver)';
+    $tierBadgeClass = 'bg-secondary text-white';
+    $tierIcon = 'fa-medal';
+    $nextTierName = 'VIP Vàng';
+    $nextTierTarget = 5000000;
+    $progressPercent = min(100, round(($totalSpent / 5000000) * 100));
+    $neededMore = 5000000 - $totalSpent;
+  } else {
+    $tierName = 'Thành Viên Đồng (Bronze)';
+    $tierBadgeClass = 'bg-light text-dark border';
+    $tierIcon = 'fa-award';
+    $nextTierName = 'Hội Viên Bạc';
+    $nextTierTarget = 2000000;
+    $progressPercent = min(100, round(($totalSpent / 2000000) * 100));
+    $neededMore = 2000000 - $totalSpent;
+  }
 @endphp
 
 <main class="w-full flex-grow py-10 px-6 max-w-7xl mx-auto">
