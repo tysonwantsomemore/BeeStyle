@@ -69,8 +69,21 @@ Route::name('auth.')->group(function () {
     Route::post('/dang-nhap', [AuthController::class, 'login'])->name('login.post');
 
     // Đăng ký
-    Route::get('/dang-ky', [AuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('/dang-ky', [AuthController::class, 'register'])->name('register.post');
+    Route::get(
+        '/dang-ky',
+        [AuthController::class, 'showRegisterForm']
+    )->name('register');
+
+    Route::post(
+        '/dang-ky',
+        [AuthController::class, 'register']
+    )->name('register.post');
+
+    // Xác thực kích hoạt tài khoản qua OTP
+    Route::post(
+        '/xac-thuc-otp',
+        [AuthController::class, 'verifyOtp']
+    )->name('verify-otp');
 
     // Đăng xuất
     Route::post('/dang-xuat', [AuthController::class, 'logout'])->name('logout');
@@ -216,12 +229,15 @@ Route::name('client.')->group(function () {
         */
         Route::get('/tai-khoan', [ProfileController::class, 'index'])->name('profile');
         Route::put('/tai-khoan/cap-nhat', [ProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::post('/tai-khoan/doi-lien-he/yeu-cau', [ProfileController::class, 'requestContactChange'])->name('profile.contact.request');
+        Route::post('/tai-khoan/doi-lien-he/xac-nhan', [ProfileController::class, 'confirmContactChange'])->name('profile.contact.confirm');
         Route::put('/tai-khoan/doi-mat-khau', [ProfileController::class, 'updatePassword'])->name('profile.password');
         Route::put('/tai-khoan/ngan-hang', [ProfileController::class, 'updateBank'])->name('profile.bank');
         Route::post('/tai-khoan/dia-chi', [ProfileController::class, 'storeAddress'])->name('profile.address.store');
         Route::put('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
-        Route::delete('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'deleteAddress'])->name('profile.address.delete');
-        Route::post('/tai-khoan/dia-chi/{id}/mac-dinh', [ProfileController::class, 'setDefaultAddress'])->name('profile.address.default');
+        Route::delete('/tai-khoan/dia-chi/{id}', [ProfileController::class, 'deleteAddress'])->name('profile.address.destroy');
+        Route::delete('/tai-khoan/dia-chi/{id}/delete', [ProfileController::class, 'deleteAddress'])->name('profile.address.delete');
+        Route::match(['post', 'put'], '/tai-khoan/dia-chi/{id}/mac-dinh', [ProfileController::class, 'setDefaultAddress'])->name('profile.address.default');
 
         /*
         |--------------------------------------------------------------------------

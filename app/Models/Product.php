@@ -91,6 +91,23 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class)->where('status', 'active')->orderBy('id', 'asc');
     }
 
+    public function primaryImage()
+    {
+        return $this->hasOne(ProductImage::class)->orderBy('sort_order', 'asc');
+    }
+
+    public function getThumbnailAttribute()
+    {
+        if (!empty($this->attributes['image'] ?? null)) {
+            return $this->attributes['image'];
+        }
+        $first = $this->images->first();
+        if ($first && !empty($first->image_path)) {
+            return $first->image_path;
+        }
+        return 'assets/img/products/1.png';
+    }
+
     public function images()
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order', 'asc');

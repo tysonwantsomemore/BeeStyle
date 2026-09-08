@@ -1,151 +1,165 @@
 @extends('layouts.client')
 
-@section('title', 'Thanh Toán Đơn Hàng | BeeStyle Menswear')
+@section('title', 'Thanh Toán Đơn Hàng — BEESTYLE Studio')
 
 @section('content')
-<div class="container py-4">
+<main class="w-full flex-grow py-10 px-6 max-w-6xl mx-auto">
   
-  <!-- CHECKOUT STEP PROGRESS BAR -->
-  <div class="card border-0 shadow-sm p-3 mb-4 rounded-4 bg-white">
-    <div class="d-flex align-items-center justify-content-center gap-2 gap-md-4 flex-wrap text-center">
-      <div class="d-flex align-items-center gap-2 text-success fw-bold small">
-        <span class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;"><i class="fa-solid fa-check"></i></span>
-        <span>1. Giỏ Hàng</span>
-      </div>
-      <i class="fa-solid fa-chevron-right text-muted small d-none d-sm-inline"></i>
-      <div class="d-flex align-items-center gap-2 text-warning fw-bold small">
-        <span class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;">2</span>
-        <span class="text-dark">2. Thông Tin &amp; Thanh Toán</span>
-      </div>
-      <i class="fa-solid fa-chevron-right text-muted small d-none d-sm-inline"></i>
-      <div class="d-flex align-items-center gap-2 text-muted small">
-        <span class="rounded-circle bg-light border text-muted d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.75rem;">3</span>
-        <span>3. Hoàn Tất Đơn Hàng</span>
-      </div>
-    </div>
+  <!-- Breadcrumb Steps -->
+  <div class="flex items-center justify-center gap-4 text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-10 pb-4 border-b border-neutral-200">
+    <a href="{{ route('client.cart') }}" class="text-neutral-700 hover:text-black flex items-center gap-1.5">
+      <span class="w-5 h-5 rounded-full bg-neutral-200 text-neutral-700 flex items-center justify-center text-[10px] font-bold">1</span>
+      Túi Mua Hàng
+    </a>
+    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neutral-300"></i>
+    <span class="text-neutral-950 font-bold flex items-center gap-1.5">
+      <span class="w-5 h-5 rounded-full bg-neutral-950 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+      Thông Tin &amp; Thanh Toán
+    </span>
+    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-neutral-300"></i>
+    <span class="flex items-center gap-1.5 text-neutral-400">
+      <span class="w-5 h-5 rounded-full bg-neutral-100 text-neutral-400 flex items-center justify-center text-[10px] font-bold">3</span>
+      Hoàn Tất
+    </span>
   </div>
 
-  <form action="{{ route('client.checkout.process') }}" method="POST" id="checkoutForm">
+  @if($errors->any())
+    <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl mb-6 text-xs animate-fade-in">
+      <div class="flex items-center gap-2 font-semibold mb-1">
+        <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+        <span>Vui lòng kiểm tra lại thông tin giao hàng:</span>
+      </div>
+      <ul class="list-disc list-inside space-y-0.5 text-rose-700 pl-2">
+        @foreach($errors->all() as $err)
+          <li>{{ $err }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
+
+  <!-- Main 2-Column Checkout Form -->
+  <form action="{{ route('client.checkout.process') }}" method="POST" id="checkout-form">
     @csrf
-    <div class="row g-4">
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
       
-      <!-- CỘT TRÁI: THÔNG TIN NHẬN HÀNG & PHƯƠNG THỨC THANH TOÁN -->
-      <div class="col-lg-7">
+      <!-- Left Column: Delivery Info & Payment Methods (7 cols) -->
+      <div class="lg:col-span-7 space-y-8">
         
-        <!-- KHỐI 1: THÔNG TIN GIAO HÀNG -->
-        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px;">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-dark mb-0">
-              <i class="fa-solid fa-location-dot me-2 text-warning"></i> 1. Thông Tin Nhận Hàng
-            </h5>
-            <span class="badge bg-warning-subtle text-dark fw-semibold small">Giao tận nơi</span>
+        <!-- STEP 1: Thông Tin Giao Hàng -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+          <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-100">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">1</span>
+              <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Thông Tin Người Nhận</h3>
+            </div>
+            @guest
+              <a href="{{ route('auth.login') }}" class="text-xs text-amber-800 hover:underline font-semibold">Đăng nhập để chọn địa chỉ</a>
+            @endguest
           </div>
 
-          @if(isset($addresses) && $addresses->count() > 0)
-            <div class="mb-3 p-3 bg-light rounded-3 border">
-              <label class="form-label small fw-bold text-dark mb-2">
-                <i class="fa-solid fa-address-book me-1 text-warning"></i> Chọn nhanh từ sổ địa chỉ đã lưu:
+          @if(isset($addresses) && $addresses->isNotEmpty())
+            <!-- Saved Address Selector -->
+            <div class="mb-6 p-4 bg-brand-50 rounded-xl border border-brand-200">
+              <label class="block font-semibold uppercase text-neutral-800 text-[11px] mb-2">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 inline text-amber-800 mr-1"></i> Chọn sổ địa chỉ đã lưu:
               </label>
-              <div class="d-flex flex-column gap-2">
+              <select id="savedAddressSelect" onchange="fillSavedAddress(this)" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-neutral-950">
+                <option value="">-- Nhập địa chỉ mới --</option>
                 @foreach($addresses as $addr)
-                  <div class="form-check p-2.5 border rounded-2 bg-white d-flex align-items-center transition-all hover-lift">
-                    <input class="form-check-input ms-1 me-2.5 saved-address-radio" type="radio" name="saved_address_picker" id="addr_pick_{{ $addr->id }}"
-                      data-name="{{ $addr->recipient_name }}"
-                      data-phone="{{ $addr->phone }}"
-                      data-address="{{ $addr->address }}"
-                      data-city="{{ $addr->city }}"
-                      data-district="{{ $addr->district }}"
-                      data-ward="{{ $addr->ward }}"
-                      data-notes="{{ $addr->notes }}"
-                      {{ $addr->is_default ? 'checked' : '' }}
-                      onchange="applySavedAddress(this)">
-                    <label class="form-check-label small d-flex justify-content-between align-items-center flex-grow-1 cursor-pointer" for="addr_pick_{{ $addr->id }}">
-                      <div>
-                        <strong>{{ $addr->recipient_name }}</strong> ({{ $addr->phone }})
-                        <span class="badge bg-secondary ms-1">{{ $addr->label ?? 'Nhà riêng' }}</span>
-                        @if($addr->is_default)
-                          <span class="badge bg-warning text-dark ms-1">Mặc định</span>
-                        @endif
-                        <div class="text-muted" style="font-size: 0.75rem;">{{ $addr->full_address }}</div>
-                      </div>
-                    </label>
-                  </div>
+                  <option value="{{ $addr->id }}" 
+                    data-name="{{ $addr->receiver_name }}" 
+                    data-phone="{{ $addr->receiver_phone }}" 
+                    data-address="{{ $addr->detail_address }}"
+                    data-city="{{ $addr->province_name }}"
+                    data-district="{{ $addr->district_name }}"
+                    data-ward="{{ $addr->ward_name }}"
+                    {{ (isset($defaultAddress) && $defaultAddress && $defaultAddress->id === $addr->id) ? 'selected' : '' }}>
+                    {{ $addr->receiver_name }} — {{ $addr->receiver_phone }} ({{ $addr->detail_address }}, {{ $addr->ward_name }}, {{ $addr->district_name }}, {{ $addr->province_name }})
+                  </option>
                 @endforeach
-              </div>
+              </select>
             </div>
           @endif
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Họ và tên người nhận <span class="text-danger">*</span></label>
-              <input type="text" name="customer_name" id="input_customer_name" class="form-control form-control-sm" value="{{ old('customer_name', $defaultAddress->recipient_name ?? $user->name ?? '') }}" required placeholder="Ví dụ: Nguyễn Văn Hùng">
+          <div class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Họ và Tên <span class="text-rose-600">*</span></label>
+                <input type="text" name="customer_name" id="cust_name" value="{{ old('customer_name', $user->name ?? '') }}" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Số Điện Thoại <span class="text-rose-600">*</span></label>
+                <input type="tel" name="customer_phone" id="cust_phone" value="{{ old('customer_phone', $user->phone ?? '') }}" required placeholder="0987654321" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
             </div>
 
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-              <input type="tel" name="customer_phone" id="input_customer_phone" class="form-control form-control-sm" value="{{ old('customer_phone', $defaultAddress->phone ?? $user->phone ?? '') }}" required placeholder="Ví dụ: 0987654321">
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Email nhận hóa đơn điện tử</label>
+              <input type="email" name="customer_email" id="cust_email" value="{{ old('customer_email', $user->email ?? '') }}" placeholder="email@gmail.com" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
             </div>
 
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Địa chỉ Email (Nhận mã đơn &amp; hóa đơn điện tử)</label>
-              <input type="email" name="customer_email" class="form-control form-control-sm" value="{{ old('customer_email', $user->email ?? '') }}" placeholder="email@gmail.com">
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Địa chỉ nhận hàng (Số nhà, tên đường) <span class="text-rose-600">*</span></label>
+              <input type="text" name="shipping_address" id="cust_address" value="{{ old('shipping_address', $defaultAddress->detail_address ?? '') }}" required placeholder="Ví dụ: 88 Lê Lợi..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
             </div>
 
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-              <input type="text" name="city" id="input_city" class="form-control form-control-sm" value="{{ old('city', $defaultAddress->city ?? $user->city ?? 'Hồ Chí Minh') }}" required placeholder="Ví dụ: TP. Hồ Chí Minh">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Tỉnh / Thành Phố</label>
+                <input type="text" name="city" id="cust_city" value="{{ old('city', $defaultAddress->province_name ?? 'TP. Hồ Chí Minh') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Quận / Huyện</label>
+                <input type="text" name="district" id="cust_district" value="{{ old('district', $defaultAddress->district_name ?? 'Quận 1') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Phường / Xã</label>
+                <input type="text" name="ward" id="cust_ward" value="{{ old('ward', $defaultAddress->ward_name ?? 'Bến Nghé') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              </div>
             </div>
 
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Quận / Huyện</label>
-              <input type="text" name="district" id="input_district" class="form-control form-control-sm" value="{{ old('district', $defaultAddress->district ?? $user->district ?? 'Quận 1') }}" placeholder="Ví dụ: Quận 1">
-            </div>
-
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Địa chỉ chi tiết (Số nhà, tên đường, phường xã) <span class="text-danger">*</span></label>
-              <input type="text" name="shipping_address" id="input_shipping_address" class="form-control form-control-sm" value="{{ old('shipping_address', $defaultAddress->address ?? $user->address ?? '') }}" required placeholder="Ví dụ: Số 45 Đường Lê Duẩn, Phường Bến Nghé">
-            </div>
-
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Ghi chú giao hàng (Tùy chọn)</label>
-              <textarea name="notes" id="input_notes" class="form-control form-control-sm" rows="2" placeholder="Ví dụ: Giao hàng vào giờ hành chính, gọi trước khi giao 15 phút...">{{ old('notes', $defaultAddress->notes ?? '') }}</textarea>
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ghi chú cho nghệ nhân may đo / đóng gói</label>
+              <textarea name="notes" rows="2" placeholder="Ví dụ: Giao giờ hành chính, đóng hộp quà tặng..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors"></textarea>
             </div>
           </div>
         </div>
 
-        <!-- SECTION 2: PAYMENT METHOD -->
-        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 16px;">
-          <h5 class="fw-bold text-dark mb-3">
-            <i class="fa-solid fa-credit-card me-2 text-warning"></i> 2. Phương Thức Thanh Toán
-          </h5>
+        <!-- STEP 2: Phương Thức Thanh Toán -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+          <div class="flex items-center gap-2 pb-4 mb-6 border-b border-neutral-100">
+            <span class="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">2</span>
+            <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Phương Thức Thanh Toán</h3>
+          </div>
 
           @if(!empty($depositInfo['is_required']))
-            <!-- THÔNG BÁO CHÍNH SÁCH ĐẶT CỌC 50% CHO ĐƠN HÀNG SỐ LƯỢNG LỚN (>= 10 SẢN PHẨM) -->
-            <div class="alert border-0 p-3.5 mb-4 rounded-4 shadow-sm" style="background: #fffbeb; border-left: 5px solid #f59e0b !important;">
-              <div class="d-flex align-items-start gap-3">
-                <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 44px; height: 44px;">
-                  <i class="fa-solid fa-coins fs-5"></i>
+            <!-- Thông Báo Đặt Cọc 50% Cho Đơn Hàng >= 10 Sản Phẩm -->
+            <div class="p-4 mb-6 rounded-xl border border-amber-300 bg-amber-50 text-xs">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center shrink-0 shadow-sm">
+                  <i data-lucide="coins" class="w-5 h-5"></i>
                 </div>
-                <div class="w-100">
-                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
-                    <strong class="text-dark fs-6 d-flex align-items-center gap-1.5">
-                      <i class="fa-solid fa-shield-halved text-warning"></i> CHÍNH SÁCH ĐẶT CỌC 50% ĐƠN HÀNG SỐ LƯỢNG LỚN
+                <div class="w-full space-y-2">
+                  <div class="flex items-center justify-between flex-wrap gap-2">
+                    <strong class="text-neutral-950 font-bold uppercase tracking-wide flex items-center gap-1.5">
+                      <i data-lucide="shield-alert" class="w-4 h-4 text-amber-700"></i> Chính Sách Đặt Cọc 50% Đơn Hàng Số Lượng Lớn
                     </strong>
-                    <span class="badge bg-warning text-dark font-monospace fw-bold px-2.5 py-1">
+                    <span class="px-2 py-0.5 bg-amber-200 text-amber-900 rounded font-mono font-bold text-[10px]">
                       {{ $depositInfo['total_quantity'] }} Sản Phẩm (≥ 10)
                     </span>
                   </div>
-                  <p class="text-dark text-opacity-80 small mb-2.5" style="line-height: 1.55;">
-                    Đơn hàng của quý khách có tổng số lượng <strong>{{ $depositInfo['total_quantity'] }} sản phẩm</strong> (từ 10 sản phẩm trở lên). Theo chính sách đơn hàng số lượng lớn của BeeStyle, quý khách vui lòng <strong>đặt cọc trước 50% giá trị đơn hàng</strong> để kho tiến hành chuẩn bị và xuất kho. Số tiền 50% còn lại thanh toán cho bưu tá khi nhận hàng.
+                  <p class="text-neutral-700 leading-relaxed text-[11px]">
+                    Đơn hàng của quý khách có tổng <strong>{{ $depositInfo['total_quantity'] }} sản phẩm</strong>. Theo chính sách của BeeStyle, quý khách vui lòng <strong>đặt cọc trước 50%</strong> để xưởng chuẩn bị may đo và đóng gói xuất kho. Số tiền 50% còn lại thanh toán cho bưu tá khi nhận hàng.
                   </p>
-                  <div class="p-3 bg-white rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-3 small shadow-2xs">
+                  <div class="p-3 bg-white rounded-lg border border-amber-200 flex items-center justify-between flex-wrap gap-3">
                     <div>
-                      <span class="text-muted d-block" style="font-size: 0.75rem;">Số tiền đặt cọc trước (50%):</span>
-                      <strong class="text-danger fs-5 font-monospace">{{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫</strong>
+                      <span class="text-neutral-400 text-[10px] block uppercase">Cọc trước (50%):</span>
+                      <strong class="text-rose-600 font-mono text-sm">{{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫</strong>
                     </div>
-                    <div class="text-md-end">
-                      <span class="text-muted d-block" style="font-size: 0.75rem;">Còn lại thanh toán khi nhận hàng COD (50%):</span>
-                      <strong class="text-dark fs-5 font-monospace">{{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫</strong>
+                    <div class="text-right">
+                      <span class="text-neutral-400 text-[10px] block uppercase">Còn lại thanh toán COD (50%):</span>
+                      <strong class="text-neutral-900 font-mono text-sm">{{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫</strong>
                     </div>
                   </div>
                 </div>
@@ -153,472 +167,415 @@
             </div>
           @endif
 
-          <div class="d-flex flex-column gap-3" id="paymentMethodContainer">
+          <div class="space-y-3.5 text-xs" id="paymentMethodContainer">
             
-            <!-- PHƯƠNG THỨC 1: COD -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer active" for="pay_cod" id="card_pay_cod">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_cod" value="cod" checked onchange="updatePayOptionCards()">
+            <!-- COD -->
+            <label class="pay-option-card block p-4 border-2 border-neutral-950 bg-neutral-50 rounded-xl cursor-pointer transition-all active" id="card_pay_cod">
+              <div class="flex items-center justify-between">
+                <div class="flex items-start gap-3">
+                  <input type="radio" name="payment_method" id="pay_cod" value="cod" checked class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
                   <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <strong class="text-neutral-950 text-sm font-semibold">
                         @if(!empty($depositInfo['is_required']))
                           Đặt cọc 50% &amp; Thu COD 50% khi nhận hàng
                         @else
                           Thanh toán khi nhận hàng (COD)
                         @endif
                       </strong>
-                      <span class="badge {{ !empty($depositInfo['is_required']) ? 'bg-warning text-dark' : 'bg-warning-subtle text-dark' }} fw-bold px-2 py-0.5" style="font-size: 0.68rem;">
-                        {{ !empty($depositInfo['is_required']) ? 'Cọc 50%' : 'Phổ biến' }}
+                      <span class="px-2 py-0.5 {{ !empty($depositInfo['is_required']) ? 'bg-amber-100 text-amber-800' : 'bg-neutral-200 text-neutral-800' }} rounded text-[10px] font-bold">
+                        {{ !empty($depositInfo['is_required']) ? 'Cọc 50%' : 'Phổ Biến' }}
                       </span>
                     </div>
-                    <small class="text-muted d-block mt-0.5">
+                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
                       @if(!empty($depositInfo['is_required']))
-                        Cọc trước 50% ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫) để xuất kho, 50% còn lại ({{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫) thanh toán tiền mặt cho bưu tá khi nhận hàng
+                        Cọc trước 50% ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫) để xưởng chuẩn bị hàng. Số tiền {{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫ còn lại thanh toán trực tiếp cho bưu tá.
                       @else
-                        Thanh toán tiền mặt cho bưu tá khi nhận và kiểm tra hàng tận nhà
+                        Kiểm tra sản phẩm tận tay và thanh toán tiền mặt trực tiếp cho nhân viên bưu tá.
                       @endif
-                    </small>
+                    </p>
                   </div>
                 </div>
-                <div class="text-warning fs-3 ms-2">
-                  <i class="fa-solid fa-hand-holding-dollar"></i>
-                </div>
+                <i data-lucide="banknote" class="w-5 h-5 text-neutral-700 shrink-0 ml-2"></i>
               </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary" id="desc_pay_cod">
+              <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px]" id="desc_pay_cod">
                 @if(!empty($depositInfo['is_required']))
-                  <i class="fa-solid fa-shield-halved text-warning me-1"></i> Đơn hàng số lượng lớn ({{ $depositInfo['total_quantity'] }} sản phẩm) áp dụng <strong>chính sách đặt cọc 50% ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫)</strong>. Sau khi đặt hàng, bạn có thể chuyển khoản cọc qua VietQR hoặc nhân viên BeeStyle sẽ liên hệ hướng dẫn cọc trước khi xuất kho. Số tiền 50% còn lại ({{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫) thanh toán cho bưu tá khi nhận hàng.
+                  <span class="text-amber-700 font-semibold">• Lưu ý:</span> Nhân viên Atelier sẽ liên hệ xác nhận và hướng dẫn chuyển khoản tiền cọc 50% trước khi xử lý đơn hàng.
                 @else
-                  <i class="fa-solid fa-circle-info text-warning me-1"></i> Quý khách được mở gói hàng đồng kiểm và thử đồ trước khi thanh toán tiền mặt cho nhân viên bưu tá.
+                  <span class="text-emerald-700 font-semibold">• Đặc quyền:</span> Quý khách được mở gói hàng đồng kiểm và thử form dáng trang phục trước khi thanh toán.
                 @endif
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 2: THANH TOÁN ONLINE / CHUYỂN KHOẢN VIETQR -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_online" id="card_pay_online">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_online" value="online" onchange="updatePayOptionCards()">
+            <!-- Online Banking / VietQR -->
+            <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_online">
+              <div class="flex items-center justify-between">
+                <div class="flex items-start gap-3">
+                  <input type="radio" name="payment_method" id="pay_online" value="online" class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
                   <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <strong class="text-neutral-950 text-sm font-semibold">
                         @if(!empty($depositInfo['is_required']))
-                          Chuyển khoản cọc 50% qua VietQR 24/7 (Techcombank)
+                          Chuyển khoản cọc 50% qua VietQR (Techcombank)
                         @else
-                          Chuyển khoản Ngân Hàng 24/7 / Quét mã VietQR (Techcombank)
+                          Chuyển khoản Ngân Hàng / Quét mã VietQR 24/7
                         @endif
                       </strong>
-                      <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-0.5" style="font-size: 0.68rem;">
-                        <i class="fa-solid fa-qrcode me-0.5"></i> {{ !empty($depositInfo['is_required']) ? 'Cọc 50% VietQR' : 'VietQR / Napas 247' }}
+                      <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">
+                        VietQR Techcombank
                       </span>
                     </div>
-                    <small class="text-muted d-block mt-0.5">
+                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
                       @if(!empty($depositInfo['is_required']))
-                        Quét mã VietQR thanh toán tự động 50% tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫) qua ứng dụng mọi ngân hàng
+                        Quét mã QR qua app ngân hàng để chuyển đúng 50% tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫).
                       @else
-                        Quét mã QR qua ứng dụng mọi Ngân Hàng (Techcombank, Vietcombank, MB, BIDV, VPBank...) để thanh toán tự động
+                        Mở app mọi ngân hàng (Techcombank, Vietcombank, MB...) quét mã xác thực tự động 24/7.
                       @endif
-                    </small>
+                    </p>
                   </div>
                 </div>
-                <div class="text-primary fs-3 ms-2">
-                  <i class="fa-solid fa-qrcode"></i>
-                </div>
+                <i data-lucide="qr-code" class="w-5 h-5 text-emerald-700 shrink-0 ml-2"></i>
               </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_online">
-                @if(!empty($depositInfo['is_required']))
-                  <i class="fa-solid fa-circle-info text-primary me-1"></i> Sau khi nhấn "Xác Nhận Đặt Cọc 50% &amp; Đặt Hàng", hệ thống sẽ hiển thị <strong>Mã VietQR Techcombank (STK: 77427842310105 - NGUYEN XUAN BAC)</strong> được điền sẵn chính xác <strong>50% số tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫)</strong> và mã đơn hàng để khớp lệnh tự động 24/7.
-                @else
-                  <i class="fa-solid fa-circle-info text-primary me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ hiển thị <strong>Mã VietQR Techcombank (STK: 77427842310105 - NGUYEN XUAN BAC)</strong> được điền sẵn chính xác số tiền thanh toán <strong>({{ number_format($total, 0, ',', '.') }}₫)</strong> và mã đơn hàng để khớp lệnh tự động 24/7.
-                @endif
+              <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_online">
+                Sau khi bấm "Xác Nhận Đặt Hàng", mã QR Techcombank (STK: <strong>77427842310105</strong> - NGUYEN XUAN BAC) sẽ hiển thị với số tiền {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫ cùng mã đối soát tự động.
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 2: THANH TOÁN TRỰC TUYẾN QUA MOMO -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_momo" id="card_pay_momo">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_momo" value="momo" onchange="updatePayOptionCards()">
+            <!-- MoMo -->
+            <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_momo">
+              <div class="flex items-center justify-between">
+                <div class="flex items-start gap-3">
+                  <input type="radio" name="payment_method" id="pay_momo" value="momo" class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
                   <div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                      <strong class="text-dark">
-                        @if(!empty($depositInfo['is_required']))
-                          Thanh toán cọc 50% trực tuyến qua ví MoMo (Deep Link)
-                        @else
-                          Thanh toán trực tuyến qua ví MoMo bằng chuyển hướng ứng dụng (Redirect/Deep Link)
-                        @endif
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <strong class="text-neutral-950 text-sm font-semibold">
+                        Ví Điện Tử MoMo (Chuyển Hướng Ứng Dụng)
                       </strong>
-                      <span class="badge bg-danger-subtle text-danger fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Redirect / Deep Link</span>
+                      <span class="px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-[10px] font-bold">
+                        MOMO App
+                      </span>
                     </div>
-                    <small class="text-muted d-block mt-1">
-                      @if(!empty($depositInfo['is_required']))
-                        Mở ứng dụng MoMo để thanh toán 50% số tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫)
-                      @else
-                        BeeStyle tích hợp thanh toán trực tuyến qua ví điện tử MoMo. Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), cho phép khách hàng mở ứng dụng MoMo và xác nhận thanh toán mà không cần quét mã QR.
-                      @endif
-                    </small>
+                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
+                      Hệ thống tự động chuyển tiếp sang ứng dụng MoMo để xác nhận giao dịch an toàn không cần nhập lại số tiền.
+                    </p>
                   </div>
                 </div>
-                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2 flex-shrink-0" style="background-color: #d82d8b; font-size: 0.85rem;">
-                  <i class="fa-solid fa-wallet me-1"></i> MoMo
-                </span>
+                <span class="px-2.5 py-1 bg-[#d82d8b] text-white font-bold rounded-md text-[10px] shrink-0 ml-2">MOMO</span>
               </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_momo">
-                @if(!empty($depositInfo['is_required']))
-                  <i class="fa-solid fa-circle-info text-danger me-1"></i> Chuyển hướng sang ứng dụng MoMo để thanh toán <strong>50% tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫)</strong>.
-                @else
-                  <i class="fa-solid fa-circle-info text-danger me-1"></i> BeeStyle tích hợp thanh toán trực tuyến qua ví điện tử MoMo. Hệ thống sử dụng hình thức chuyển hướng (Redirect/Deep Link), cho phép khách hàng mở ứng dụng MoMo và xác nhận thanh toán mà không cần quét mã QR.
-                @endif
+              <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_momo">
+                Xác nhận thanh toán số tiền {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫ qua cổng thanh toán MoMo Official Gateway.
               </div>
             </label>
 
-            <!-- PHƯƠNG THỨC 3: VÍ ZALOPAY -->
-            <label class="pay-option-card d-block p-3.5 border rounded-3 transition-all cursor-pointer" for="pay_zalopay" id="card_pay_zalopay">
-              <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
-                  <input class="form-check-input mt-0 pay-radio" type="radio" name="payment_method" id="pay_zalopay" value="zalopay" onchange="updatePayOptionCards()">
+            <!-- ZaloPay -->
+            <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_zalopay">
+              <div class="flex items-center justify-between">
+                <div class="flex items-start gap-3">
+                  <input type="radio" name="payment_method" id="pay_zalopay" value="zalopay" class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
                   <div>
-                    <div class="d-flex align-items-center gap-2">
-                      <strong class="text-dark">
-                        @if(!empty($depositInfo['is_required']))
-                          Ví Điện Tử ZaloPay (Cọc 50%)
-                        @else
-                          Ví Điện Tử ZaloPay
-                        @endif
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <strong class="text-neutral-950 text-sm font-semibold">
+                        Ví Điện Tử ZaloPay Gateway
                       </strong>
-                      <span class="badge bg-info-subtle text-info fw-bold px-2 py-0.5" style="font-size: 0.68rem;">Zalo / ZaloPay</span>
+                      <span class="px-2 py-0.5 bg-sky-100 text-sky-700 rounded text-[10px] font-bold">
+                        ZaloPay
+                      </span>
                     </div>
-                    <small class="text-muted d-block mt-0.5">
-                      @if(!empty($depositInfo['is_required']))
-                        Thanh toán 50% tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫) qua tài khoản ví ZaloPay
-                      @else
-                        Thanh toán tiện lợi qua tài khoản ví ZaloPay hoặc trực tiếp trên ứng dụng Zalo
-                      @endif
-                    </small>
+                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
+                      Thanh toán tiện lợi qua ví ZaloPay hoặc quét mã trực tiếp trên ứng dụng chat Zalo.
+                    </p>
                   </div>
                 </div>
-                <span class="badge text-white fw-bold px-2.5 py-1.5 rounded-2 shadow-xs ms-2" style="background-color: #008fe5; font-size: 0.85rem;">
-                  <i class="fa-solid fa-wallet me-1"></i> ZaloPay
-                </span>
+                <span class="px-2.5 py-1 bg-[#008fe5] text-white font-bold rounded-md text-[10px] shrink-0 ml-2">ZaloPay</span>
               </div>
-              <div class="pay-desc-box mt-2.5 pt-2 border-top small text-secondary d-none" id="desc_pay_zalopay">
-                @if(!empty($depositInfo['is_required']))
-                  <i class="fa-solid fa-circle-info text-info me-1"></i> Sau khi nhấn "Xác Nhận Đặt Cọc 50% &amp; Đặt Hàng", hệ thống sẽ chuyển bạn sang <strong>Cổng Thanh Toán ZaloPay Gateway</strong> để thanh toán 50% số tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫).
-                @else
-                  <i class="fa-solid fa-circle-info text-info me-1"></i> Sau khi nhấn "Xác Nhận Đặt Hàng", hệ thống sẽ chuyển bạn sang <strong>Cổng Thanh Toán ZaloPay Gateway</strong> để quét mã QR và xác nhận giao dịch.
-                @endif
+              <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_zalopay">
+                Chuyển tiếp bảo mật sang cổng ZaloPay Gateway để thanh toán đơn hàng.
               </div>
             </label>
 
           </div>
+        </div>
 
+        <!-- Submit Button for Mobile Screens -->
+        <div class="block lg:hidden pt-2">
+          <button type="submit" class="w-full py-4 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-[0.25em] uppercase rounded-xl shadow-xl transition-all flex items-center justify-center gap-2">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+            <span>{{ !empty($depositInfo['is_required']) ? 'Xác Nhận Đặt Cọc 50% & Đặt Hàng' : 'Xác Nhận Đặt Hàng An Toàn' }}</span>
+          </button>
         </div>
 
       </div>
 
-      <!-- CỘT PHẢI: TÓM TẮT ĐƠN HÀNG & NÚT ĐẶT HÀNG -->
-      <div class="col-lg-5">
-        <div class="card border-0 shadow-sm p-4" style="border-radius: 20px; position: sticky; top: 100px;">
-          
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-dark mb-0">Đơn Hàng Của Bạn</h5>
-            <span class="badge bg-dark text-white rounded-pill px-2.5 py-1">{{ count($cartItems) }} món</span>
-          </div>
+      <!-- Right Column: Order Summary & Voucher (5 cols) -->
+      <div class="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm sticky top-28 space-y-6">
+        
+        <div class="flex items-center justify-between pb-4 border-b border-neutral-100">
+          <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Tóm Tắt Đơn Hàng</h3>
+          <span class="text-xs text-neutral-500">{{ $cartCount ?? count($cartItems) }} sản phẩm</span>
+        </div>
 
-          <!-- DANH SÁCH MÓN HÀNG -->
-          <div class="d-flex flex-column gap-2.5 mb-3" style="max-height: 260px; overflow-y: auto;">
-            @foreach($cartItems as $item)
-              <div class="d-flex align-items-center justify-content-between gap-2 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2.5">
-                  <div class="position-relative bg-white rounded-2 border p-1" style="width: 48px; height: 48px; min-width: 48px;">
-                    <img src="{{ asset($item['image']) }}" alt="{{ $item['name'] }}" class="w-100 h-100 object-fit-contain">
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark small">{{ $item['quantity'] }}</span>
-                  </div>
-                  <div>
-                    <h6 class="small fw-bold text-dark mb-0 text-truncate" style="max-width: 180px;">{{ $item['name'] }}</h6>
-                    <small class="text-muted" style="font-size: 0.72rem;">Màu: {{ $item['color'] }} • Size: {{ $item['size'] }}</small>
-                  </div>
-                </div>
-                <span class="small fw-bold text-dark text-end">{{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}₫</span>
+        <!-- Items List -->
+        <div class="space-y-4 max-h-72 overflow-y-auto pr-1">
+          @foreach($cartItems as $item)
+            @php
+              $itemImg = $item['image'] ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop';
+              if (!str_starts_with($itemImg, 'http')) {
+                $itemImg = asset($itemImg);
+              }
+            @endphp
+            <div class="flex gap-3.5 pb-3 border-b border-neutral-100">
+              <div class="w-16 h-20 rounded-lg bg-neutral-100 overflow-hidden shrink-0 border border-neutral-200">
+                <img src="{{ $itemImg }}" alt="{{ $item['name'] }}" class="w-full h-full object-cover">
               </div>
-            @endforeach
-          </div>
-
-          <!-- KHỐI MÃ GIẢM GIÁ / VOUCHER (CHUẨN TMĐT SHOPEE / LAZADA) -->
-          <div class="mb-3 p-3 rounded-3 border" style="background: #fffdf5; border-color: #fde68a !important;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <label class="small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                <i class="fa-solid fa-ticket text-warning fs-6"></i> Mã Giảm Giá BeeStyle
-              </label>
-              @if(isset($coupons) && $coupons->count() > 0)
-                <button type="button" class="btn btn-link text-danger p-0 small fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#checkoutVoucherModal">
-                  <i class="fa-solid fa-tags me-1"></i> Chọn mã ({{ $coupons->count() }}) <i class="fa-solid fa-chevron-right ms-0.5" style="font-size: 0.65rem;"></i>
-                </button>
-              @endif
+              <div class="flex-grow flex flex-col justify-between text-xs">
+                <div>
+                  <h4 class="font-semibold text-neutral-900 line-clamp-1">{{ $item['name'] }}</h4>
+                  <p class="text-[11px] text-neutral-500 mt-0.5">
+                    @if(!empty($item['color'])) Màu: {{ $item['color'] }} @endif
+                    @if(!empty($item['size'])) | Size: {{ $item['size'] }} @endif
+                  </p>
+                  <span class="text-neutral-400 text-[11px]">Số lượng: {{ $item['quantity'] }}</span>
+                </div>
+                <div class="font-serif-luxury text-sm font-bold text-neutral-950">
+                  {{ number_format(($item['price'] ?? 0) * ($item['quantity'] ?? 1), 0, ',', '.') }}₫
+                </div>
+              </div>
             </div>
+          @endforeach
+        </div>
 
-            @if($appliedCoupon)
-              <!-- Voucher Đang Áp Dụng -->
-              <div class="p-2.5 bg-white rounded-3 border border-warning shadow-2xs d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                  <div class="bg-danger text-white rounded-2 px-2 py-1 font-monospace fw-bold fs-12 flex-shrink-0">
-                    {{ $appliedCoupon->code }}
-                  </div>
-                  <div>
-                    <span class="small fw-bold text-dark d-block mb-0">{{ $appliedCoupon->title }}</span>
-                    <span class="badge bg-success-subtle text-success fw-bold" style="font-size: 0.7rem;">
-                      <i class="fa-solid fa-circle-check me-0.5"></i> Giảm {{ number_format($discount, 0, ',', '.') }}₫
-                    </span>
-                  </div>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill fw-bold" onclick="removeCheckoutCoupon()" title="Hủy áp dụng mã này" style="font-size: 0.72rem;">
-                  <i class="fa-solid fa-xmark me-0.5"></i> Bỏ mã
-                </button>
-              </div>
-            @else
-              <!-- Nhập Voucher Thủ Công -->
-              <div class="input-group input-group-sm">
-                <input type="text" id="manualCheckoutCouponInput" class="form-control font-monospace text-uppercase" placeholder="Nhập mã voucher...">
-                <button class="btn btn-bee-primary px-3 fw-bold" type="button" onclick="applyManualCheckoutCoupon()">
-                  Áp Dụng
-                </button>
-              </div>
-              <small class="text-muted d-block mt-1.5" style="font-size: 0.72rem;">
-                <i class="fa-solid fa-circle-info text-secondary me-0.5"></i> Bấm "Chọn mã" để xem tất cả mã ưu đãi &amp; freeship khả dụng
-              </small>
+        <!-- Khối Áp Dụng Voucher Tại Checkout -->
+        <div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50 text-xs">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-neutral-900 uppercase text-[11px] flex items-center gap-1.5">
+              <i data-lucide="ticket" class="w-3.5 h-3.5 text-amber-700"></i> Mã Giảm Giá BeeStyle
+            </span>
+            @if(isset($coupons) && $coupons->count() > 0)
+              <button type="button" onclick="openVoucherModal()" class="text-rose-600 hover:underline text-[11px] font-semibold flex items-center gap-0.5">
+                Xem mã ({{ $coupons->count() }}) <i data-lucide="chevron-right" class="w-3 h-3"></i>
+              </button>
             @endif
           </div>
 
-          <!-- BẢNG TÍNH TIỀN -->
-          <div class="d-flex flex-column gap-2 small mb-3">
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Tạm tính tiền hàng:</span>
-              <span class="fw-semibold text-dark">{{ number_format($subtotal, 0, ',', '.') }}₫</span>
-            </div>
-            @if($discount > 0)
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Giảm giá voucher ({{ $appliedCoupon->code ?? 'VOUCHER' }}):</span>
-                <span class="fw-semibold text-success">-{{ number_format($discount, 0, ',', '.') }}₫</span>
-              </div>
-            @endif
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Phí giao hàng:</span>
-              @if($shipping == 0)
-                <span class="fw-semibold text-success"><i class="fa-solid fa-truck-fast me-1"></i> Miễn phí (Freeship)</span>
-              @else
-                <span class="fw-semibold text-dark">{{ number_format($shipping, 0, ',', '.') }}₫</span>
-              @endif
-            </div>
-          </div>
-
-          <hr class="border-secondary-subtle my-2">
-
-          <!-- TỔNG CỘNG THANH TOÁN -->
-          <div class="d-flex justify-content-between align-items-baseline mb-3">
-            <div>
-              <span class="fw-bold text-dark fs-6 d-block">Tổng giá trị đơn hàng:</span>
-              <small class="text-muted" style="font-size: 0.75rem;">(Đã gồm VAT &amp; phí vận chuyển)</small>
-            </div>
-            <span class="fs-4 fw-bold text-danger font-monospace">{{ number_format($total, 0, ',', '.') }}₫</span>
-          </div>
-
-          @if(!empty($depositInfo['is_required']))
-            <!-- PHÂN RÃ SỐ TIỀN ĐẶT CỌC 50% -->
-            <div class="p-3 rounded-3 mb-3 border" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
-              <div class="d-flex justify-content-between align-items-center mb-1.5">
-                <span class="small fw-bold text-dark">
-                  <i class="fa-solid fa-coins text-warning me-1"></i> Số tiền đặt cọc trước (50%):
+          @if(!empty($appliedCoupon))
+            <div class="p-2.5 bg-white rounded-lg border border-amber-300 flex justify-between items-center">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2 py-0.5 bg-rose-600 text-white font-mono font-bold text-[11px] rounded">{{ $appliedCoupon->code }}</span>
+                  <span class="font-semibold text-neutral-900 text-xs">{{ $appliedCoupon->title }}</span>
+                </div>
+                <span class="text-[11px] text-emerald-700 font-semibold block mt-0.5">
+                  ✓ Giảm {{ number_format($discount ?? 0, 0, ',', '.') }}₫
                 </span>
-                <strong class="text-danger font-monospace fs-6">{{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫</strong>
               </div>
-              <div class="d-flex justify-content-between align-items-center small">
-                <span class="text-muted">Số tiền thu COD khi nhận hàng:</span>
-                <strong class="text-dark font-monospace">{{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫</strong>
-              </div>
-              <small class="text-muted d-block mt-1 pt-1 border-top" style="font-size: 0.72rem;">
-                * Áp dụng chính sách cọc 50% cho đơn mua số lượng lớn trên 10 sản phẩm.
-              </small>
+              <button type="button" onclick="removeCheckoutCoupon()" class="text-rose-600 hover:text-rose-800 text-[11px] font-semibold px-2 py-1 rounded hover:bg-rose-50 transition-colors">
+                Bỏ mã
+              </button>
+            </div>
+          @else
+            <div class="flex gap-2">
+              <input type="text" id="manualCheckoutCouponInput" placeholder="Nhập mã voucher..." class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-xs uppercase font-mono focus:outline-none focus:border-neutral-950">
+              <button type="button" onclick="applyManualCheckoutCoupon()" class="px-3.5 py-2 bg-neutral-950 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 uppercase tracking-wider transition-colors shrink-0">
+                Áp Dụng
+              </button>
             </div>
           @endif
+        </div>
 
-          <!-- NÚT XÁC NHẬN ĐẶT HÀNG -->
-          <button type="submit" class="btn btn-bee-primary w-100 py-3 fs-6 fw-bold shadow-md rounded-3">
-            <i class="fa-solid fa-lock me-2"></i> {{ !empty($depositInfo['is_required']) ? 'XÁC NHẬN ĐẶT CỌC 50% & ĐẶT HÀNG' : 'XÁC NHẬN ĐẶT HÀNG' }}
-          </button>
+        <!-- Price Breakdown -->
+        <div class="space-y-2.5 text-xs text-neutral-600 pb-4 border-b border-neutral-200">
+          <div class="flex justify-between">
+            <span>Tạm tính giỏ hàng:</span>
+            <span class="font-semibold text-neutral-900">{{ number_format($subtotal, 0, ',', '.') }}₫</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Phí vận chuyển:</span>
+            @if(($shipping ?? 0) == 0)
+              <span class="font-semibold text-emerald-700">MIỄN PHÍ</span>
+            @else
+              <span class="font-semibold text-neutral-900">{{ number_format($shipping, 0, ',', '.') }}₫</span>
+            @endif
+          </div>
+          @if(isset($discount) && $discount > 0)
+            <div class="flex justify-between text-rose-700 font-semibold">
+              <span>Ưu đãi giảm giá (Coupon):</span>
+              <span>-{{ number_format($discount, 0, ',', '.') }}₫</span>
+            </div>
+          @endif
+        </div>
 
-          <!-- CAM KẾT SÀN TMĐT CHUYÊN NGHIỆP -->
-          <div class="mt-4 pt-3 border-top">
-            <div class="d-flex flex-column gap-2 text-muted" style="font-size: 0.78rem;">
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-circle-check text-success"></i>
-                <span>Cam kết 100% hàng chính hãng <strong>BeeStyle Menswear</strong></span>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-box-open text-primary"></i>
-                <span>Được kiểm tra &amp; mặc thử đồ trước khi thanh toán</span>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-rotate-left text-warning"></i>
-                <span>Hỗ trợ đổi size linh hoạt trong vòng 30 ngày</span>
-              </div>
+        <!-- Chi tiết Cọc hoặc Tổng Thanh Toán -->
+        @if(!empty($depositInfo['is_required']))
+          <div class="p-3.5 rounded-xl border border-amber-300 bg-amber-50 text-xs space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-neutral-900">Số tiền đặt cọc trước (50%):</span>
+              <strong class="text-rose-600 font-mono text-base">{{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫</strong>
+            </div>
+            <div class="flex justify-between items-center text-neutral-600">
+              <span>Thu COD khi nhận hàng (50%):</span>
+              <strong class="text-neutral-900 font-mono">{{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫</strong>
+            </div>
+            <div class="pt-2 border-t border-amber-200 flex justify-between items-baseline text-neutral-500 text-[11px]">
+              <span>Tổng giá trị đơn hàng:</span>
+              <span class="font-semibold text-neutral-900">{{ number_format($total, 0, ',', '.') }}₫</span>
             </div>
           </div>
+        @else
+          <div class="flex justify-between items-baseline">
+            <span class="text-xs uppercase font-bold tracking-wider text-neutral-900">Tổng Thanh Toán:</span>
+            <div class="text-right">
+              <span class="font-serif-luxury text-2xl md:text-3xl font-bold text-neutral-950 block">
+                {{ number_format($total, 0, ',', '.') }}₫
+              </span>
+              <span class="text-[10px] text-neutral-400">Đã gồm VAT &amp; Phí đóng gói Atelier</span>
+            </div>
+          </div>
+        @endif
 
+        <!-- Desktop Submit Button -->
+        <button type="submit" class="hidden lg:flex w-full py-4 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-[0.25em] uppercase rounded-xl shadow-xl transition-all items-center justify-center gap-2">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+          <span>{{ !empty($depositInfo['is_required']) ? 'Xác Nhận Đặt Cọc 50% & Đặt Hàng' : 'Xác Nhận Đặt Hàng An Toàn' }}</span>
+        </button>
+
+        <!-- Guarantees Badge -->
+        <div class="p-3.5 bg-brand-50 rounded-xl border border-brand-200 text-[11px] text-neutral-600 space-y-1.5">
+          <div class="flex items-center gap-2 text-neutral-800 font-semibold">
+            <i data-lucide="shield-check" class="w-4 h-4 text-amber-800"></i>
+            <span>ĐẶC QUYỀN KHÁCH HÀNG BEESTYLE:</span>
+          </div>
+          <p>• Cam kết 100% may đo thủ công chuẩn Atelier.</p>
+          <p>• Đồng kiểm tra sản phẩm tận tay trước khi thanh toán.</p>
+          <p>• Miễn phí đổi size trong 30 ngày tại nhà.</p>
         </div>
+
       </div>
 
     </div>
   </form>
-</div>
 
-<!-- MODAL CHỌN VOUCHER SHOPEE STYLE TẠI TRANG THANH TOÁN -->
-<div class="modal fade" id="checkoutVoucherModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-      <div class="modal-header border-bottom pb-3">
-        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-          <i class="fa-solid fa-ticket text-warning"></i>
-          <span>Kho Mã Giảm Giá BeeStyle</span>
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</main>
+
+<!-- Modal Chọn Voucher -->
+<div id="checkoutVoucherModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+  <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden animate-fade-in">
+    <div class="flex items-center justify-between p-5 border-b border-neutral-100">
+      <h3 class="font-serif-luxury text-lg font-bold text-neutral-900 flex items-center gap-2">
+        <i data-lucide="ticket" class="w-5 h-5 text-amber-600"></i>
+        <span>Kho Mã Giảm Giá BeeStyle</span>
+      </h3>
+      <button type="button" onclick="closeVoucherModal()" class="text-neutral-400 hover:text-neutral-900">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="p-5 space-y-4">
+      <div class="flex gap-2">
+        <input type="text" id="modalCouponInput" placeholder="Nhập mã voucher cá nhân..." class="w-full bg-neutral-50 border border-neutral-300 rounded-lg px-3 py-2 text-xs uppercase font-mono focus:outline-none focus:border-neutral-950">
+        <button type="button" onclick="applyFromModalInput()" class="px-4 py-2 bg-neutral-950 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 uppercase tracking-wider transition-colors shrink-0">
+          Áp Dụng
+        </button>
       </div>
-      <div class="modal-body p-3.5">
-        <!-- Ô nhập mã nhanh trong modal -->
-        <div class="input-group input-group-sm mb-3">
-          <input type="text" id="modalCouponInput" class="form-control font-monospace text-uppercase" placeholder="Nhập mã ưu đãi của bạn...">
-          <button class="btn btn-bee-primary px-3 fw-bold" type="button" onclick="applyFromModalInput()">Áp Dụng</button>
-        </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-          <span class="small fw-bold text-dark">Mã Giảm Giá Sẵn Có</span>
-          <span class="badge bg-light text-muted border">{{ count($coupons ?? []) }} mã</span>
-        </div>
-
-        <div class="d-flex flex-column gap-2.5" style="max-height: 380px; overflow-y: auto;">
-          @if(isset($coupons) && $coupons->count() > 0)
-            @foreach($coupons as $cp)
-              @php
-                $isEligible = ($subtotal >= $cp->min_order_value);
-                $isCurrentlyUsing = ($appliedCoupon && strcasecmp($appliedCoupon->code, $cp->code) === 0);
-              @endphp
-              <div class="p-3 rounded-3 border d-flex align-items-center justify-content-between gap-3 transition-all {{ $isCurrentlyUsing ? 'border-warning bg-warning-subtle' : ($isEligible ? 'bg-light hover-lift' : 'bg-white opacity-75') }}">
-                <div class="min-w-0">
-                  <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge {{ $isEligible ? 'bg-danger' : 'bg-secondary' }} text-white font-monospace fw-bold fs-12">{{ $cp->code }}</span>
-                    <span class="badge {{ $isEligible ? 'bg-warning-subtle text-dark' : 'bg-light text-muted' }} fw-bold" style="font-size: 0.68rem;">
-                      {{ $cp->discount_type === 'percent' ? 'Giảm ' . $cp->discount_value . '%' : ($cp->discount_type === 'shipping' ? 'Freeship' : 'Giảm ' . number_format($cp->discount_value, 0, ',', '.') . '₫') }}
-                    </span>
-                  </div>
-                  <strong class="text-dark d-block small mb-0.5">{{ $cp->title }}</strong>
-                  <small class="text-muted fs-11 d-block">
-                    Đơn tối thiểu: <strong>{{ number_format($cp->min_order_value, 0, ',', '.') }}₫</strong> • HSD: {{ $cp->expires_at ? $cp->expires_at->format('d/m/Y') : 'Vô thời hạn' }}
-                  </small>
-                  @if(!$isEligible)
-                    <small class="text-danger fw-semibold d-block mt-0.5" style="font-size: 0.7rem;">
-                      <i class="fa-solid fa-circle-exclamation me-0.5"></i> Mua thêm {{ number_format($cp->min_order_value - $subtotal, 0, ',', '.') }}₫ để dùng mã này
-                    </small>
-                  @endif
+      <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
+        @if(isset($coupons) && $coupons->count() > 0)
+          @foreach($coupons as $cp)
+            @php
+              $isEligible = ($subtotal >= $cp->min_order_value);
+              $isCurrentlyUsing = (!empty($appliedCoupon) && strcasecmp($appliedCoupon->code, $cp->code) === 0);
+            @endphp
+            <div class="p-3.5 rounded-xl border {{ $isCurrentlyUsing ? 'border-amber-500 bg-amber-50/60' : ($isEligible ? 'border-neutral-200 bg-white hover:border-neutral-400' : 'border-neutral-200 bg-neutral-50 opacity-60') }} flex items-center justify-between gap-3 text-xs transition-all">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="px-2 py-0.5 {{ $isEligible ? 'bg-rose-600 text-white' : 'bg-neutral-400 text-white' }} font-mono font-bold rounded text-[11px]">{{ $cp->code }}</span>
+                  <span class="px-1.5 py-0.5 bg-amber-100 text-amber-900 font-semibold rounded text-[10px]">
+                    {{ $cp->discount_type === 'percent' ? 'Giảm ' . $cp->discount_value . '%' : ($cp->discount_type === 'shipping' ? 'Freeship' : 'Giảm ' . number_format($cp->discount_value, 0, ',', '.') . '₫') }}
+                  </span>
                 </div>
-
-                <div class="flex-shrink-0">
-                  @if($isCurrentlyUsing)
-                    <button type="button" class="btn btn-outline-danger btn-sm px-3 py-1.5 rounded-pill fw-bold text-nowrap" onclick="removeCheckoutCoupon()">
-                      Đang Dùng (Bỏ)
-                    </button>
-                  @elseif($isEligible)
-                    <button type="button" class="btn btn-bee-primary btn-sm px-3 py-1.5 rounded-pill fw-bold text-nowrap" onclick="executeApplyCheckoutCoupon('{{ $cp->code }}')">
-                      Áp Dụng
-                    </button>
-                  @else
-                    <button type="button" class="btn btn-light text-muted btn-sm px-3 py-1.5 rounded-pill fw-semibold text-nowrap border" disabled>
-                      Chưa Đủ ĐK
-                    </button>
-                  @endif
-                </div>
+                <strong class="text-neutral-900 block font-semibold text-xs">{{ $cp->title }}</strong>
+                <span class="text-neutral-500 text-[11px] block mt-0.5">
+                  Đơn tối thiểu: <strong>{{ number_format($cp->min_order_value, 0, ',', '.') }}₫</strong>
+                  @if($cp->expires_at) • HSD: {{ $cp->expires_at->format('d/m/Y') }} @endif
+                </span>
+                @if(!$isEligible)
+                  <span class="text-rose-600 text-[10px] block mt-1">
+                    Cần mua thêm {{ number_format($cp->min_order_value - $subtotal, 0, ',', '.') }}₫ để dùng mã này
+                  </span>
+                @endif
               </div>
-            @endforeach
-          @else
-            <div class="text-center py-4">
-              <i class="fa-regular fa-ticket text-muted fs-2 mb-2"></i>
-              <p class="small text-muted mb-0">Hiện tại chưa có mã giảm giá nào khả dụng.</p>
+
+              <div class="shrink-0">
+                @if($isCurrentlyUsing)
+                  <button type="button" onclick="removeCheckoutCoupon()" class="px-3 py-1.5 border border-rose-600 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-semibold">
+                    Đang Dùng (Bỏ)
+                  </button>
+                @elseif($isEligible)
+                  <button type="button" onclick="executeApplyCheckoutCoupon('{{ $cp->code }}')" class="px-3.5 py-1.5 bg-neutral-950 hover:bg-neutral-800 text-white rounded-lg text-xs font-semibold">
+                    Áp Dụng
+                  </button>
+                @else
+                  <button type="button" disabled class="px-3 py-1.5 bg-neutral-200 text-neutral-400 rounded-lg text-xs font-semibold cursor-not-allowed">
+                    Chưa Đủ ĐK
+                  </button>
+                @endif
+              </div>
             </div>
-          @endif
-        </div>
+          @endforeach
+        @else
+          <p class="text-center text-xs text-neutral-400 py-6">Hiện tại chưa có mã giảm giá nào khả dụng.</p>
+        @endif
       </div>
     </div>
   </div>
 </div>
+@endsection
 
 @push('scripts')
-<style>
-  .pay-option-card {
-    cursor: pointer;
-    border: 1.5px solid #e2e8f0 !important;
-    background: #ffffff;
-    transition: all 0.2s ease-in-out;
-  }
-  .pay-option-card:hover {
-    border-color: #94a3b8 !important;
-    background: #f8fafc;
-  }
-
-  .pay-option-card.active#card_pay_cod {
-    border-color: #f59e0b !important;
-    background: #fffbeb !important;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
-  }
-  .pay-option-card.active#card_pay_online {
-    border-color: #0284c7 !important;
-    background: #f0f9ff !important;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
-  }
-  .pay-option-card.active#card_pay_momo {
-    border-color: #d82d8b !important;
-    background: #fdf2f8 !important;
-    box-shadow: 0 4px 12px rgba(216, 45, 139, 0.12);
-  }
-  .pay-option-card.active#card_pay_zalopay {
-    border-color: #008fe5 !important;
-    background: #f0f9ff !important;
-    box-shadow: 0 4px 12px rgba(0, 143, 229, 0.15);
-  }
-</style>
-
 <script>
-  function applySavedAddress(el) {
-    if (!el) return;
-    const name = el.getAttribute('data-name');
-    const phone = el.getAttribute('data-phone');
-    const addr = el.getAttribute('data-address');
-    const city = el.getAttribute('data-city');
-    const district = el.getAttribute('data-district');
-    const notes = el.getAttribute('data-notes');
-
-    if (name) document.getElementById('input_customer_name').value = name;
-    if (phone) document.getElementById('input_customer_phone').value = phone;
-    if (addr) document.getElementById('input_shipping_address').value = addr;
-    if (city) document.getElementById('input_city').value = city;
-    if (district) document.getElementById('input_district').value = district;
-    if (notes) document.getElementById('input_notes').value = notes;
+  function fillSavedAddress(select) {
+    const opt = select.options[select.selectedIndex];
+    if (opt.value) {
+      document.getElementById('cust_name').value = opt.getAttribute('data-name') || '';
+      document.getElementById('cust_phone').value = opt.getAttribute('data-phone') || '';
+      document.getElementById('cust_address').value = opt.getAttribute('data-address') || '';
+      document.getElementById('cust_city').value = opt.getAttribute('data-city') || '';
+      document.getElementById('cust_district').value = opt.getAttribute('data-district') || '';
+      document.getElementById('cust_ward').value = opt.getAttribute('data-ward') || '';
+    }
   }
 
   function updatePayOptionCards() {
-    const cards = document.querySelectorAll('.pay-option-card');
-    cards.forEach(card => {
-      const radio = card.querySelector('.pay-radio');
-      const desc = card.querySelector('.pay-desc-box');
-      if (radio && radio.checked) {
-        card.classList.add('active');
-        if (desc) desc.classList.remove('d-none');
+    const radios = document.querySelectorAll('.pay-radio');
+    radios.forEach(radio => {
+      const card = document.getElementById('card_' + radio.id);
+      const desc = document.getElementById('desc_' + radio.id);
+
+      if (radio.checked) {
+        if (card) {
+          card.classList.add('border-neutral-950', 'bg-neutral-50');
+          card.classList.remove('border-neutral-200');
+        }
+        if (desc) desc.classList.remove('hidden');
       } else {
-        card.classList.remove('active');
-        if (desc) desc.classList.add('d-none');
+        if (card) {
+          card.classList.remove('border-neutral-950', 'bg-neutral-50');
+          card.classList.add('border-neutral-200');
+        }
+        if (desc) desc.classList.add('hidden');
       }
     });
   }
 
-  // --- XỬ LÝ ÁP DỤNG VÀ HỦY VOUCHER TẠI TRANG CHECKOUT ---
+  function openVoucherModal() {
+    const modal = document.getElementById('checkoutVoucherModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeVoucherModal() {
+    const modal = document.getElementById('checkoutVoucherModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
   function applyManualCheckoutCoupon() {
     const input = document.getElementById('manualCheckoutCouponInput');
     if (!input || !input.value.trim()) {
@@ -646,11 +603,7 @@
   }
 
   function executeApplyCheckoutCoupon(code) {
-    const modalEl = document.getElementById('checkoutVoucherModal');
-    if (modalEl) {
-      const modal = bootstrap.Modal.getInstance(modalEl);
-      if (modal) modal.hide();
-    }
+    closeVoucherModal();
 
     if (typeof Swal !== 'undefined') {
       Swal.fire({
@@ -660,14 +613,14 @@
       });
     }
 
-    fetch('{{ route("client.cart.applyCoupon") }}', {
+    fetch('{{ route("client.cart.apply-coupon") }}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'X-CSRF-TOKEN': '{{ csrf_token() }}'
       },
-      body: JSON.stringify({ code: code })
+      body: JSON.stringify({ coupon_code: code })
     })
     .then(res => res.json())
     .then(data => {
@@ -712,7 +665,7 @@
       });
     }
 
-    fetch('{{ route("client.cart.removeCoupon") }}', {
+    fetch('{{ route("client.cart.remove-coupon") }}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -743,14 +696,10 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    // Gắn sự kiện lắng nghe click/change trên toàn bộ các radio
-    document.querySelectorAll('.pay-radio').forEach(radio => {
-      radio.addEventListener('change', updatePayOptionCards);
-    });
-
     updatePayOptionCards();
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   });
 </script>
 @endpush
-
-@endsection
