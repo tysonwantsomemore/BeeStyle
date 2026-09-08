@@ -287,11 +287,34 @@ class ProductController extends Controller
         $userReview = null;
         if (\Illuminate\Support\Facades\Auth::check()) {
             $user = \Illuminate\Support\Facades\Auth::user();
-            $userHasPurchased = \App\Models\Order::where('user_id', $user->id)
-                ->whereHas('items', function ($q) use ($id) {
-                    $q->where('product_id', $id);
-                })
-                ->exists();
+            if ($user->role === 'admin' || $user->role === 'staff') {
+                $userHasPurchased = true;
+            } else {
+                $userHasPurchased = \App\Models\Order::where(function($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                        if ($user->phone) $q->orWhere('customer_phone', $user->phone);
+                        if ($user->email) $q->orWhere('customer_email', $user->email);
+                    })
+                    ->where('shipping_status', '!=', 'cancelled')
+                    ->whereHas('items', function ($q) use ($id, $product) {
+                        $q->where('product_id', $id)
+                          ->orWhere('product_name', 'LIKE', '%' . $product->name . '%');
+                    })
+                    ->exists();
+
+                if (!$userHasPurchased) {
+                    $userHasPurchased = \App\Models\OrderItem::whereHas('order', function($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                        if ($user->phone) $q->orWhere('customer_phone', $user->phone);
+                        $q->where('shipping_status', '!=', 'cancelled');
+                    })
+                    ->where(function($q) use ($id, $product) {
+                        $q->where('product_id', $id)
+                          ->orWhere('product_name', 'LIKE', '%' . $product->name . '%');
+                    })
+                    ->exists();
+                }
+            }
 
             $userReview = \App\Models\Review::where('product_id', $id)->where('user_id', $user->id)->first();
         }

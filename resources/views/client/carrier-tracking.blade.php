@@ -95,9 +95,23 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="small text-white text-opacity-75">Tiền thu người nhận (COD):</span>
               <strong class="fs-5 text-warning font-monospace">
-                {{ $order->payment_status === 'paid' ? '0₫ (Đã thanh toán)' : number_format($order->total_amount, 0, ',', '.') . '₫' }}
+                @if($order->payment_status === 'paid')
+                  0₫ (Đã thanh toán)
+                @elseif($order->is_deposit_required)
+                  {{ number_format($order->remaining_amount ?: ($order->total_amount - $order->deposit_amount), 0, ',', '.') }}₫ <small class="fw-normal" style="font-size: 0.72rem;">(Đã trừ cọc 50%)</small>
+                @else
+                  {{ number_format($order->total_amount, 0, ',', '.') . '₫' }}
+                @endif
               </strong>
             </div>
+            @if($order->is_deposit_required)
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small text-white text-opacity-75">Tiền đã đặt cọc (50%):</span>
+                <span class="badge bg-warning text-dark font-monospace fw-bold">
+                  {{ number_format($order->deposit_amount, 0, ',', '.') }}₫ ({{ $order->deposit_status === 'paid' ? 'Đã thu cọc' : 'Chờ cọc' }})
+                </span>
+              </div>
+            @endif
 
             <div class="d-flex gap-2 mt-3 pt-2 border-top border-white border-opacity-15 flex-wrap">
               <button type="button" class="btn btn-sm btn-light text-dark fw-bold flex-grow-1 shadow-xs" onclick="window.print()" title="In phiếu vận đơn bưu cục">
@@ -231,6 +245,8 @@
                 'time' => $delivered,
                 'status' => 'done',
                 'icon' => 'fa-handshake',
+                'pod_url' => $order->delivery_proof_url,
+                'pod_note' => $order->delivery_proof_note,
               ];
             }
 
@@ -266,26 +282,39 @@
                   <i class="fa-solid {{ $cp['icon'] }}"></i>
                 </div>
 
-                <div class="p-3 rounded-4 {{ $isLatest ? 'bg-light border shadow-2xs' : 'bg-white' }}" style="{{ $isLatest ? 'border-left: 4px solid ' . $brandColor . ' !important;' : '' }}">
-                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
-                    <h6 class="fw-bold mb-0 text-dark {{ $isLatest ? 'fs-6' : '' }}">
+                <div class="p-3 rounded-3 shadow-2xs" style="{{ $isLatest ? 'background: #f0fdf4; border: 1.5px solid ' . $brandColor . '; border-left: 5px solid ' . $brandColor . ' !important;' : 'background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #cbd5e1 !important;' }}">
+                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1.5">
+                    <h6 class="fw-bold mb-0 {{ $isLatest ? 'fs-6' : '' }}" style="color: {{ $isLatest ? $brandColor : '#0f172a' }};">
                       {{ $cp['title'] }}
                       @if($isLatest)
-                        <span class="badge text-white ms-1 fw-bold rounded-pill" style="background-color: {{ $brandColor }}; font-size: 0.68rem;">MỚI NHẤT</span>
+                        <span class="badge text-white ms-1.5 fw-bold rounded-pill" style="background-color: {{ $brandColor }}; font-size: 0.68rem; vertical-align: middle;">
+                          <i class="fa-solid fa-sparkles me-0.5"></i> MỚI NHẤT
+                        </span>
                       @endif
                     </h6>
-                    <span class="badge bg-light text-muted border font-monospace small">
-                      <i class="fa-regular fa-clock me-1"></i> {{ $cp['time'] ? $cp['time']->format('d/m/Y H:i') : '' }}
+                    <span class="badge {{ $isLatest ? 'bg-white text-success border border-success-subtle' : 'bg-white text-secondary border' }} font-monospace fw-bold px-2.5 py-1 shadow-2xs" style="font-size: 0.75rem;">
+                      <i class="fa-regular fa-clock me-1 {{ $isLatest ? 'text-success' : 'text-muted' }}"></i> {{ $cp['time'] ? $cp['time']->format('d/m/Y H:i') : '' }}
                     </span>
                   </div>
 
-                  <p class="mb-1 text-secondary small" style="line-height: 1.5;">
+                  <p class="mb-2 fw-medium" style="font-size: 0.88rem; color: #334155 !important; line-height: 1.55;">
                     {{ $cp['desc'] }}
                   </p>
 
-                  <div class="d-flex align-items-center gap-1.5 text-muted small mt-1" style="font-size: 0.76rem;">
-                    <i class="fa-solid fa-location-dot" style="color: {{ $brandColor }};"></i>
-                    <span>Trạm ghi nhận: <strong>{{ $cp['hub'] }}</strong></span>
+                  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="p-2 rounded-2 bg-white border d-inline-flex align-items-center gap-2 small shadow-2xs" style="font-size: 0.8rem;">
+                      <i class="fa-solid fa-location-dot text-danger"></i>
+                      <span class="text-muted fw-semibold">Địa chỉ / Trạm:</span>
+                      <strong class="text-dark">{{ $cp['hub'] }}</strong>
+                    </div>
+
+                    @if(!empty($cp['pod_url']))
+                      <button type="button" class="btn btn-sm btn-outline-success fw-bold rounded-pill px-3 py-1 shadow-2xs d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#carrierPodModal">
+                        <i class="fa-solid fa-camera text-success"></i>
+                        <span>Ảnh Bưu Tá Chụp (POD)</span>
+                        <i class="fa-solid fa-expand ms-1 text-muted" style="font-size: 0.7rem;"></i>
+                      </button>
+                    @endif
                   </div>
                 </div>
 
@@ -389,6 +418,45 @@
           </div>
         </div>
 
+        @if($step >= 5 || in_array($order->shipping_status, ['delivered', 'completed']))
+          <!-- 📸 BẰNG CHỨNG GIAO HÀNG BƯU TÁ (POD) -->
+          <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff; border-left: 5px solid #10b981 !important;">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+              <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
+                <i class="fa-solid fa-camera-retro text-success"></i>
+                <span>Ảnh Shipper Gửi Về Kho (POD)</span>
+              </h6>
+              <span class="badge bg-success shadow-2xs font-monospace px-2 py-1" style="font-size: 0.7rem;">
+                <i class="fa-solid fa-circle-check"></i> ĐÃ XÁC THỰC
+              </span>
+            </div>
+
+            <div class="position-relative rounded-3 overflow-hidden border mb-3 text-center bg-dark" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#carrierPodModal">
+              <img src="{{ $order->delivery_proof_url }}" alt="Bằng chứng giao hàng bưu tá" class="img-fluid w-100" style="max-height: 200px; object-fit: cover;">
+              <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75 d-flex justify-content-between align-items-center small">
+                <span class="font-monospace" style="font-size: 0.72rem;"><i class="fa-solid fa-shield-check text-success me-1"></i> Bưu tá xác nhận</span>
+                <span class="badge bg-light text-dark fw-bold" style="font-size: 0.68rem;"><i class="fa-solid fa-expand me-1"></i> Phóng to</span>
+              </div>
+            </div>
+
+            <div class="d-flex flex-column gap-2 small">
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">Giờ gửi về kho:</span>
+                <strong class="text-dark font-monospace">{{ $order->delivery_proof_at ? $order->delivery_proof_at->format('d/m/Y H:i') : ($order->delivered_at ? $order->delivered_at->format('d/m/Y H:i') : '08/09/2026 21:24') }}</strong>
+              </div>
+              <div>
+                <span class="text-muted d-block mb-1">Ghi chú bưu tá:</span>
+                <div class="p-2 bg-light rounded-2 text-dark fst-italic" style="font-size: 0.78rem; line-height: 1.4;">
+                  "{{ $order->delivery_proof_note ?: 'Khách hàng đã nhận đủ bưu phẩm, kiện hàng nguyên vẹn tem niêm phong và thanh toán hoàn tất.' }}"
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline-success btn-sm w-100 fw-bold mt-1 py-1.5 rounded-pill" data-bs-toggle="modal" data-bs-target="#carrierPodModal">
+                <i class="fa-solid fa-expand me-1"></i> Xem Ảnh Gốc Phóng To
+              </button>
+            </div>
+          </div>
+        @endif
+
         <!-- THÔNG TIN BÊN GỬI (SHOP) -->
         <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff;">
           <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">
@@ -435,9 +503,21 @@
             <div class="d-flex justify-content-between pt-2 border-top mt-2">
               <span class="fw-bold text-dark">Tiền thu người nhận (COD):</span>
               <strong class="text-danger font-monospace fs-6">
-                {{ $order->payment_status === 'paid' ? '0₫' : number_format($order->total_amount, 0, ',', '.') . '₫' }}
+                @if($order->payment_status === 'paid')
+                  0₫
+                @elseif($order->is_deposit_required)
+                  {{ number_format($order->remaining_amount ?: ($order->total_amount - $order->deposit_amount), 0, ',', '.') }}₫
+                @else
+                  {{ number_format($order->total_amount, 0, ',', '.') . '₫' }}
+                @endif
               </strong>
             </div>
+            @if($order->is_deposit_required)
+              <div class="d-flex justify-content-between small text-muted mt-1">
+                <span>Tiền cọc trước (50%):</span>
+                <span class="fw-bold text-warning-emphasis font-monospace">{{ number_format($order->deposit_amount, 0, ',', '.') }}₫</span>
+              </div>
+            @endif
           </div>
         </div>
 
@@ -518,6 +598,42 @@
       </div>
       <div class="modal-footer border-0 pt-0 pb-4 px-4">
         <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold w-100" data-bs-dismiss="modal">Đã hiểu &amp; Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PHÓNG TO ẢNH BẰNG CHỨNG GIAO HÀNG (POD) -->
+<div class="modal fade" id="carrierPodModal" tabindex="-1" aria-labelledby="carrierPodModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden">
+      <div class="modal-header border-0 pb-0 pt-3 px-4 bg-dark text-white">
+        <div>
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="carrierPodModalLabel">
+            <i class="fa-solid fa-camera-retro text-success"></i> Bằng Chứng Giao Hàng Bưu Tá Gửi Về Kho (POD)
+          </h5>
+          <span class="badge bg-success text-white font-monospace mt-1">
+            <i class="fa-solid fa-shield-halved me-1"></i> BƯU TÁ {{ $carrierShort }} ĐÃ XÁC NHẬN
+          </span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-0 bg-black text-center position-relative">
+        <img src="{{ $order->delivery_proof_url }}" alt="Bằng chứng bưu tá giao hàng #{{ $order->order_code }}" class="img-fluid w-100" style="max-height: 520px; object-fit: contain;">
+      </div>
+
+      <div class="modal-footer border-0 p-3 bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="text-start small">
+          <div class="text-dark"><strong>Mã vận đơn:</strong> <span class="font-monospace text-primary fw-bold">{{ $order->tracking_code }}</span> • <strong>Đơn hàng:</strong> #{{ $order->order_code }}</div>
+          <div class="text-muted"><strong>Mốc giờ gửi kho:</strong> {{ $order->delivery_proof_at ? $order->delivery_proof_at->format('d/m/Y H:i:s') : ($order->delivered_at ? $order->delivered_at->format('d/m/Y H:i:s') : '08/09/2026 21:24') }} • <strong>Ghi chú:</strong> {{ $order->delivery_proof_note ?: 'Khách hàng đã nhận đủ kiện hàng.' }}</div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ $order->delivery_proof_url }}" target="_blank" download="POD_{{ $order->tracking_code }}.jpg" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
+            <i class="fa-solid fa-download me-1"></i> Tải Ảnh Về
+          </a>
+          <button type="button" class="btn btn-dark btn-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Đóng</button>
+        </div>
       </div>
     </div>
   </div>

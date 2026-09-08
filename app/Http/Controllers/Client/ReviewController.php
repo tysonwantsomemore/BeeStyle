@@ -43,6 +43,7 @@ class ReviewController extends Controller
                         if ($user->phone) $q->orWhere('customer_phone', $user->phone);
                         if ($user->email) $q->orWhere('customer_email', $user->email);
                     })
+                    ->where('shipping_status', '!=', 'cancelled')
                     ->whereHas('items', function ($q) use ($product) {
                         $q->where('product_id', $product->id)
                           ->orWhere('product_name', 'LIKE', '%' . $product->name . '%');
@@ -53,6 +54,7 @@ class ReviewController extends Controller
                     $userHasPurchased = OrderItem::whereHas('order', function($q) use ($user) {
                         $q->where('user_id', $user->id);
                         if ($user->phone) $q->orWhere('customer_phone', $user->phone);
+                        $q->where('shipping_status', '!=', 'cancelled');
                     })
                     ->where(function($q) use ($product) {
                         $q->where('product_id', $product->id)
@@ -149,6 +151,7 @@ class ReviewController extends Controller
                     if ($user->phone) $q->orWhere('customer_phone', $user->phone);
                     if ($user->email) $q->orWhere('customer_email', $user->email);
                 })
+                ->where('shipping_status', '!=', 'cancelled')
                 ->whereHas('items', function ($q) use ($product) {
                     $q->where('product_id', $product->id)
                       ->orWhere('product_name', 'LIKE', '%' . $product->name . '%');
@@ -159,6 +162,7 @@ class ReviewController extends Controller
                 $hasPurchased = OrderItem::whereHas('order', function($q) use ($user) {
                     $q->where('user_id', $user->id);
                     if ($user->phone) $q->orWhere('customer_phone', $user->phone);
+                    $q->where('shipping_status', '!=', 'cancelled');
                 })
                 ->where(function($q) use ($product) {
                     $q->where('product_id', $product->id)
@@ -289,9 +293,15 @@ class ReviewController extends Controller
      */
     public function dismissNotification(Request $request)
     {
-        $orderIds = $request->input('order_ids', []);
-        if (Auth::check() && !empty($orderIds)) {
-            Auth::user()->markOrdersAsReviewNotified((array)$orderIds);
+        if (Auth::check()) {
+            $orderIds = $request->input('order_ids', []);
+            if (!empty($orderIds)) {
+                Auth::user()->markOrdersAsReviewNotified((array)$orderIds);
+            } else {
+                Order::where('user_id', Auth::id())
+                    ->whereIn('shipping_status', ['completed', 'delivered'])
+                    ->update(['review_notified' => true]);
+            }
         }
 
         return response()->json(['success' => true]);

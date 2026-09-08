@@ -5,6 +5,8 @@
 @section('content')
 @php
   $addresses = $addresses ?? ($user->addresses ?? collect());
+  $pendingReviewItems = $pendingReviewItems ?? collect();
+  $userReviews = $user->reviews ?? collect();
   
   $totalSpent = $orders->where('shipping_status', 'completed')->sum('total_amount');
   if ($totalSpent <= 0) {
@@ -13,32 +15,28 @@
   
   if ($totalSpent >= 10000000) {
     $tierName = 'VIP Kim Cương (Diamond)';
-    $tierBadgeClass = 'bg-dark text-warning border border-warning';
-    $tierIcon = 'fa-gem';
+    $tierBadgeClass = 'bg-neutral-900 text-amber-400 border border-amber-400/40';
     $nextTierName = 'Hạng Cao Nhất';
     $nextTierTarget = 10000000;
     $progressPercent = 100;
     $neededMore = 0;
   } elseif ($totalSpent >= 5000000) {
     $tierName = 'VIP Vàng (Gold)';
-    $tierBadgeClass = 'bg-warning text-dark';
-    $tierIcon = 'fa-crown';
+    $tierBadgeClass = 'bg-amber-100 text-amber-900 border border-amber-300';
     $nextTierName = 'VIP Kim Cương';
     $nextTierTarget = 10000000;
     $progressPercent = min(100, round(($totalSpent / 10000000) * 100));
     $neededMore = 10000000 - $totalSpent;
   } elseif ($totalSpent >= 2000000) {
     $tierName = 'Hội Viên Bạc (Silver)';
-    $tierBadgeClass = 'bg-secondary text-white';
-    $tierIcon = 'fa-medal';
+    $tierBadgeClass = 'bg-neutral-200 text-neutral-800';
     $nextTierName = 'VIP Vàng';
     $nextTierTarget = 5000000;
     $progressPercent = min(100, round(($totalSpent / 5000000) * 100));
     $neededMore = 5000000 - $totalSpent;
   } else {
     $tierName = 'Thành Viên Đồng (Bronze)';
-    $tierBadgeClass = 'bg-light text-dark border';
-    $tierIcon = 'fa-award';
+    $tierBadgeClass = 'bg-neutral-100 text-neutral-700 border border-neutral-200';
     $nextTierName = 'Hội Viên Bạc';
     $nextTierTarget = 2000000;
     $progressPercent = min(100, round(($totalSpent / 2000000) * 100));
@@ -87,9 +85,9 @@
       <h2 class="font-serif-luxury text-2xl font-bold text-neutral-900 mb-1">{{ $user->name }}</h2>
       <p class="text-xs text-neutral-500 mb-3">{{ $user->email }}</p>
       
-      <div class="flex justify-center items-center gap-2 mb-6">
-        <span class="px-2.5 py-1 bg-amber-100 text-amber-900 rounded-full text-[10px] font-bold tracking-wider uppercase">
-          {{ $user->rank ?? 'HỘI VIÊN BẠCH KIM' }}
+      <div class="flex justify-center items-center gap-2 mb-6 flex-wrap">
+        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase {{ $tierBadgeClass }}">
+          {{ $tierName }}
         </span>
         <span class="px-2.5 py-1 bg-neutral-100 text-neutral-700 rounded-full text-[10px] font-semibold">
           {{ number_format($user->points ?? 150) }} ĐIỂM THƯỞNG
@@ -105,6 +103,24 @@
             <span>Đơn Hàng Của Tôi</span>
           </div>
           <span class="px-2 py-0.5 bg-neutral-800 text-white rounded-full text-[10px] font-bold">{{ $orders->count() }}</span>
+        </button>
+
+        <button onclick="switchProfileTab('pending-reviews')" id="tab-btn-pending-reviews" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+            <span>Chờ Đánh Giá</span>
+          </div>
+          <span class="px-2 py-0.5 {{ $pendingReviewItems->count() > 0 ? 'bg-rose-100 text-rose-700 font-bold' : 'bg-neutral-100 text-neutral-600' }} rounded-full text-[10px]">
+            {{ $pendingReviewItems->count() }}
+          </span>
+        </button>
+
+        <button onclick="switchProfileTab('my-reviews')" id="tab-btn-my-reviews" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="star" class="w-4 h-4 text-amber-500"></i>
+            <span>Đánh Giá Của Tôi</span>
+          </div>
+          <span class="px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-full text-[10px]">{{ $userReviews->count() }}</span>
         </button>
 
         <button onclick="switchProfileTab('returns')" id="tab-btn-returns" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
@@ -160,14 +176,14 @@
     <div class="lg:col-span-8 space-y-6">
       
       <!-- ========================================================================= -->
-      <!-- TAB 1: ORDERS HISTORY & ACTIONS (Cancel / Return / Review) -->
+      <!-- TAB 1: ORDERS HISTORY & ACTIONS -->
       <!-- ========================================================================= -->
       <div id="tab-panel-orders" class="profile-panel space-y-4">
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
           <div class="flex justify-between items-center pb-4 mb-6 border-b border-neutral-100">
             <div>
               <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Lịch Sử Đơn Hàng</h3>
-              <p class="text-xs text-neutral-500 mt-0.5">Theo dõi chi tiết các đơn may đo, đánh giá sản phẩm và yêu cầu đổi trả</p>
+              <p class="text-xs text-neutral-500 mt-0.5">Theo dõi chi tiết các đơn may đo, đánh giá sản phẩm và đổi trả</p>
             </div>
             <a href="{{ route('client.products.index') }}" class="text-xs text-amber-800 font-semibold hover:underline flex items-center gap-1">
               <span>Mua thêm</span>
@@ -193,16 +209,65 @@
                       <span class="text-neutral-400 text-[11px] ml-2">{{ $order->created_at->format('d/m/Y H:i') }}</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <span class="px-2.5 py-0.5 bg-neutral-900 text-white rounded text-[10px] font-semibold uppercase">
-                        {{ $order->status_label ?? $order->status }}
-                      </span>
-                      <span class="font-serif-luxury text-base font-bold text-neutral-950">
+                      @if($order->shipping_status === 'completed')
+                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Hoàn tất</span>
+                      @elseif($order->shipping_status === 'delivered')
+                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Đã giao hàng</span>
+                      @elseif($order->shipping_status === 'shipping')
+                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">Đang giao hàng</span>
+                      @elseif($order->shipping_status === 'processing')
+                        <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded font-bold text-[10px]">Đang đóng gói</span>
+                      @elseif($order->shipping_status === 'cancelled')
+                        @if(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
+                          <span class="px-2.5 py-0.5 bg-rose-600 text-white rounded font-bold text-[10px]">Khách không nhận (Chuyển hoàn)</span>
+                        @else
+                          <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded font-bold text-[10px]">Đã hủy</span>
+                        @endif
+                      @else
+                        <span class="px-2.5 py-0.5 bg-neutral-200 text-neutral-800 rounded font-bold text-[10px]">Chờ xác nhận</span>
+                      @endif
+
+                      <span class="font-serif-luxury text-base font-bold text-neutral-950 ml-1">
                         {{ number_format($order->total_amount, 0, ',', '.') }}₫
                       </span>
                     </div>
                   </div>
 
-                  <!-- Order Items List with Review Buttons -->
+                  <!-- Banner cảnh báo Đơn hàng từ chối nhận / Đã hủy -->
+                  @if(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 flex items-start gap-2.5">
+                      <i data-lucide="truck" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                      <div class="text-[11px]">
+                        <strong>Đơn hàng đã từ chối nhận (Đang chuyển hoàn về kho):</strong>
+                        <span>{{ $order->cancel_reason ?: 'Khách hàng từ chối nhận bưu phẩm' }}</span>
+                        <span class="block text-neutral-400 text-[10px] mt-0.5">Thời gian ghi nhận: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i') : '' }}</span>
+                      </div>
+                    </div>
+                  @elseif($order->shipping_status === 'cancelled')
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 flex items-start gap-2.5">
+                      <i data-lucide="x-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                      <div class="text-[11px]">
+                        <strong>Đơn hàng đã hủy:</strong> <span>{{ $order->cancel_reason ?: 'Hủy theo yêu cầu' }}</span>
+                        <span class="block text-neutral-400 text-[10px] mt-0.5">Thời gian: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i') : '' }}</span>
+                      </div>
+                    </div>
+                  @endif
+
+                  <!-- Banner Đổi Trả RMA Active -->
+                  @if($order->latestReturn)
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-950 flex items-center justify-between flex-wrap gap-2">
+                      <div class="text-[11px]">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline text-amber-700 mr-1"></i>
+                        <strong>Yêu Cầu Đổi Trả #RMA-{{ str_pad($order->latestReturn->id, 5, '0', STR_PAD_LEFT) }}:</strong>
+                        <span>{{ $order->latestReturn->type_label ?? 'Đổi trả hàng' }}</span>
+                      </div>
+                      <button type="button" onclick="switchProfileTab('returns')" class="px-2.5 py-1 bg-white border border-neutral-300 rounded font-semibold text-[10px] hover:bg-neutral-50">
+                        Xem Tiến Trình
+                      </button>
+                    </div>
+                  @endif
+
+                  <!-- Order Items List -->
                   <div class="space-y-3">
                     @foreach($order->items as $item)
                       <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-neutral-200/80">
@@ -223,10 +288,10 @@
                             {{ number_format($item->price * $item->quantity, 0, ',', '.') }}₫
                           </span>
                           
-                          <!-- Nút Đánh Giá Cho Đơn Đã Giao -->
+                          <!-- Nút Đánh Giá Nhanh -->
                           @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
-                            <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: 1 }}, '{{ addslashes($item->product_name) }}')" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 rounded-md font-semibold text-[11px] flex items-center gap-1 transition-colors">
-                              <i data-lucide="star" class="w-3 h-3 text-amber-600"></i> Đánh giá ngay
+                            <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: 1 }}, '{{ addslashes($item->product_name) }}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 rounded font-semibold text-[10px] flex items-center gap-1 transition-colors">
+                              <i data-lucide="star" class="w-3 h-3 text-amber-600"></i> Đánh giá
                             </button>
                           @endif
                         </div>
@@ -234,13 +299,16 @@
                     @endforeach
                   </div>
 
-                  <!-- Order Footer Actions (Cancel, Return RMA, Tracking) -->
-                  <div class="pt-3 border-t border-neutral-200 flex flex-wrap justify-between items-center gap-2">
-                    <span class="text-neutral-500 text-[11px]">
+                  <!-- Order Footer Actions -->
+                  <div class="pt-3 border-t border-neutral-200 flex flex-wrap justify-between items-center gap-3">
+                    <div class="text-neutral-500 text-[11px]">
                       Hình thức: <strong>{{ $order->payment_method_name ?? $order->payment_method }}</strong>
-                    </span>
+                      @if($order->is_deposit_required)
+                        <span class="ml-1.5 px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">Cọc 50%: {{ number_format($order->deposit_amount, 0, ',', '.') }}₫</span>
+                      @endif
+                    </div>
                     
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                       <!-- Hủy đơn hàng -->
                       @if(method_exists($order, 'canBeCancelledByCustomer') ? $order->canBeCancelledByCustomer() : in_array($order->shipping_status, ['pending', 'processing']))
                         <button type="button" onclick="openCancelModal({{ $order->id }}, '{{ $order->order_code }}')" class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors">
@@ -248,10 +316,23 @@
                         </button>
                       @endif
 
+                      <!-- Xác nhận đã nhận / Không nhận hàng cho đơn đang giao -->
+                      @if(in_array($order->shipping_status, ['shipping', 'delivered']) || (isset($order->status_step) && in_array($order->status_step, [4, 5])))
+                        <form action="{{ route('client.order-tracking.confirm-delivered', $order->order_code) }}" method="POST" class="inline" onsubmit="return confirm('Bạn xác nhận đã nhận được kiện hàng và muốn hoàn tất đơn #{{ $order->order_code }}?');">
+                          @csrf
+                          <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors">
+                            Đã Nhận Hàng
+                          </button>
+                        </form>
+                        <button type="button" onclick="openProfileRejectModal('{{ $order->order_code }}')" class="px-3 py-1.5 border border-rose-300 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-semibold transition-colors">
+                          Không Nhận
+                        </button>
+                      @endif
+
                       <!-- Yêu cầu đổi trả RMA 30 ngày -->
                       @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
-                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Trả / Hoàn Tiền (30 Ngày)
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Trả / Hoàn Tiền
                         </button>
                       @endif
 
@@ -270,7 +351,89 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 2: RETURNS & REFUNDS (RMA) WITH PROGRESS TIMELINE -->
+      <!-- TAB 2: PENDING REVIEWS (CHỜ ĐÁNH GIÁ) -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-pending-reviews" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100 flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Sản Phẩm Chờ Đánh Giá</h3>
+              <p class="text-neutral-500 mt-0.5">Chia sẻ cảm nhận thực tế sau khi nhận đồ may đo để nhận điểm thưởng Atelier</p>
+            </div>
+            <span class="px-3 py-1 bg-amber-100 text-amber-900 rounded-full font-bold uppercase text-[10px]">
+              +50 ĐIỂM THƯỞNG / ĐÁNH GIÁ
+            </span>
+          </div>
+
+          <div class="space-y-3">
+            @forelse($pendingReviewItems as $pItem)
+              <div class="p-4 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                  <img src="{{ asset($pItem->image ?? ($pItem->product->thumbnail ?? 'assets/img/products/1.png')) }}" alt="{{ $pItem->product_name }}" class="w-14 h-16 rounded-lg border border-neutral-200 object-cover bg-white shrink-0">
+                  <div>
+                    <h4 class="font-semibold text-neutral-900 text-sm line-clamp-1">{{ $pItem->product_name }}</h4>
+                    <p class="text-neutral-500 text-[11px] mt-0.5">
+                      Đơn hàng: <strong class="font-mono text-neutral-800">{{ $pItem->order->order_code ?? '' }}</strong>
+                      @if($pItem->color || $pItem->size)
+                        | Phân loại: {{ $pItem->color ?? '' }} / {{ $pItem->size ?? '' }}
+                      @endif
+                    </p>
+                    <span class="text-neutral-950 font-bold mt-1 block">{{ number_format($pItem->price, 0, ',', '.') }}₫</span>
+                  </div>
+                </div>
+                <button type="button" onclick="openQuickReviewModal({{ $pItem->product_id }}, '{{ addslashes($pItem->product_name) }}')" class="px-4 py-2 bg-neutral-950 hover:bg-neutral-800 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5">
+                  <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i> Viết Đánh Giá
+                </button>
+              </div>
+            @empty
+              <div class="text-center py-12 text-neutral-500">
+                <i data-lucide="check-circle" class="w-12 h-12 mx-auto text-emerald-500 mb-2 stroke-1"></i>
+                <p class="font-medium text-neutral-800 text-sm">Tuyệt vời! Bạn đã đánh giá tất cả sản phẩm đã nhận</p>
+                <p class="text-neutral-400 mt-1">Cảm ơn bạn đã luôn đóng góp nhận xét chân thực cho BeeStyle Atelier.</p>
+              </div>
+            @endforelse
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 3: MY REVIEWS (ĐÁNH GIÁ CỦA TÔI) -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-my-reviews" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Đánh Giá Của Tôi ({{ $userReviews->count() }})</h3>
+            <p class="text-neutral-500 mt-0.5">Xem lại những nhận xét và góp ý bạn đã gửi tới các nghệ nhân xưởng may</p>
+          </div>
+
+          <div class="space-y-4">
+            @forelse($userReviews as $myRev)
+              <div class="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-semibold text-neutral-900 text-sm">{{ $myRev->product->name ?? 'Sản phẩm Atelier' }}</h4>
+                    <span class="text-neutral-400 text-[10px]">{{ $myRev->created_at ? $myRev->created_at->format('d/m/Y H:i') : '' }}</span>
+                  </div>
+                  <div class="flex items-center gap-0.5 text-amber-400 text-sm">
+                    @for($i = 1; $i <= 5; $i++)
+                      <span>{{ $i <= $myRev->rating ? '★' : '☆' }}</span>
+                    @endfor
+                  </div>
+                </div>
+                <p class="text-neutral-700 text-xs leading-relaxed italic">"{{ $myRev->comment }}"</p>
+              </div>
+            @empty
+              <div class="text-center py-12 text-neutral-500">
+                <i data-lucide="message-square" class="w-12 h-12 mx-auto text-neutral-300 mb-2 stroke-1"></i>
+                <p class="font-medium text-neutral-800">Bạn chưa gửi đánh giá nào</p>
+              </div>
+            @endforelse
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 4: RETURNS & REFUNDS (RMA) -->
       <!-- ========================================================================= -->
       <div id="tab-panel-returns" class="profile-panel hidden space-y-4">
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
@@ -296,8 +459,6 @@
             <div class="space-y-6">
               @foreach($returns as $ret)
                 <div class="p-6 rounded-2xl border border-neutral-200 bg-neutral-50/70 space-y-4">
-                  
-                  <!-- Return Header -->
                   <div class="flex flex-wrap justify-between items-center gap-2 pb-3 border-b border-neutral-200">
                     <div>
                       <span class="font-bold text-neutral-950 text-sm">Yêu cầu #RMA-{{ str_pad($ret->id, 5, '0', STR_PAD_LEFT) }}</span>
@@ -308,7 +469,7 @@
                     </span>
                   </div>
 
-                  <!-- 5-Step Refund Progress Tracker -->
+                  <!-- 4-Step Refund Progress Tracker -->
                   <div class="p-4 bg-white rounded-xl border border-neutral-200">
                     <span class="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-3">TIẾN TRÌNH XỬ LÝ:</span>
                     <div class="grid grid-cols-4 gap-2 text-center text-[11px]">
@@ -326,19 +487,18 @@
                       </div>
                       <div class="space-y-1">
                         <div class="w-7 h-7 mx-auto rounded-full {{ in_array($ret->status, ['completed', 'refunded']) ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600' }} flex items-center justify-center font-bold text-xs">4</div>
-                        <span class="font-semibold text-neutral-800 block">4. Hoàn Tiền Xong</span>
+                        <span class="font-semibold text-neutral-800 block">4. Hoàn Tất</span>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Details -->
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-neutral-700">
                     <div>
                       <p><strong>Hình thức:</strong> {{ $ret->type === 'exchange' ? 'Đổi Size / Đổi Màu' : 'Trả Hàng & Hoàn Tiền' }}</p>
                       <p class="mt-1"><strong>Lý do:</strong> {{ $ret->reason }}</p>
                       @if($ret->admin_notes)
                         <div class="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-900">
-                          <strong>Ghi chú từ Xưởng may:</strong> {{ $ret->admin_notes }}
+                          <strong>Ghi chú từ Xưởng:</strong> {{ $ret->admin_notes }}
                         </div>
                       @endif
                     </div>
@@ -360,7 +520,7 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 3: PROFILE INFO & 2-STEP CONTACT CHANGE -->
+      <!-- TAB 5: PROFILE INFO & 2-STEP CONTACT CHANGE -->
       <!-- ========================================================================= -->
       <div id="tab-panel-profile" class="profile-panel hidden space-y-6">
         
@@ -389,7 +549,7 @@
 
             <!-- Full Name -->
             <div>
-              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Họ và Tên (2-50 ký tự tiếng Việt) *</label>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Họ và Tên *</label>
               <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
             </div>
 
@@ -404,7 +564,7 @@
                 </select>
               </div>
               <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ngày Sinh (Độ tuổi 10 - 100)</label>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ngày Sinh</label>
                 <input type="date" name="dob" value="{{ old('dob', $user->dob ? \Carbon\Carbon::parse($user->dob)->format('Y-m-d') : '') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
               </div>
             </div>
@@ -415,32 +575,30 @@
           </form>
         </div>
 
-        <!-- 2-Step Contact Change (Email / Phone) with OTP -->
+        <!-- 2-Step Contact Change with OTP -->
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
           <div class="pb-4 mb-6 border-b border-neutral-100 flex items-center justify-between">
             <div>
               <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Thay Đổi Email &amp; Số Điện Thoại (2-Bước OTP)</h3>
-              <p class="text-neutral-500 mt-0.5">Bảo vệ tài khoản an toàn tuyệt đối với mã xác thực OTP 6 chữ số</p>
+              <p class="text-neutral-500 mt-0.5">Bảo vệ tài khoản an toàn với mã xác thực OTP 6 chữ số</p>
             </div>
             <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded font-bold uppercase text-[10px]">BẢO MẬT CAO</span>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <!-- Email Box -->
             <div class="p-4 bg-brand-50 rounded-xl border border-brand-200 space-y-3">
-              <span class="text-neutral-400 font-semibold uppercase text-[10px]">Địa chỉ Email hiện tại:</span>
+              <span class="text-neutral-400 font-semibold uppercase text-[10px]">Email hiện tại:</span>
               <p class="font-bold text-neutral-900 text-sm truncate">{{ $user->email ?? 'Chưa liên kết' }}</p>
               <button type="button" onclick="openContactModal('email')" class="w-full py-2 bg-white border border-neutral-300 hover:border-neutral-900 text-neutral-800 font-semibold rounded-lg transition-colors">
                 Yêu Cầu Đổi Email Mới
               </button>
             </div>
 
-            <!-- Phone Box -->
             <div class="p-4 bg-brand-50 rounded-xl border border-brand-200 space-y-3">
               <span class="text-neutral-400 font-semibold uppercase text-[10px]">Số điện thoại hiện tại:</span>
               <p class="font-bold text-neutral-900 text-sm">{{ $user->phone ?? 'Chưa liên kết' }}</p>
               <button type="button" onclick="openContactModal('phone')" class="w-full py-2 bg-white border border-neutral-300 hover:border-neutral-900 text-neutral-800 font-semibold rounded-lg transition-colors">
-                Yêu Cầu Đổi Số Điện Thoại Mới
+                Yêu Cầu Đổi Số Điện Thoại
               </button>
             </div>
           </div>
@@ -449,7 +607,7 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 4: BANK ACCOUNT -->
+      <!-- TAB 6: BANK ACCOUNT -->
       <!-- ========================================================================= -->
       <div id="tab-panel-bank" class="profile-panel hidden space-y-4">
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
@@ -466,9 +624,9 @@
               <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ngân Hàng (NAPAS / VietQR) *</label>
               <select name="bank_name" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
                 <option value="" disabled selected>-- Chọn ngân hàng --</option>
+                <option value="Techcombank" {{ old('bank_name', $user->bank_name) === 'Techcombank' ? 'selected' : '' }}>Techcombank (Ngân hàng Kỹ Thương)</option>
                 <option value="Vietcombank" {{ old('bank_name', $user->bank_name) === 'Vietcombank' ? 'selected' : '' }}>Vietcombank (Ngân hàng TMCP Ngoại Thương)</option>
                 <option value="MB Bank" {{ old('bank_name', $user->bank_name) === 'MB Bank' ? 'selected' : '' }}>MB Bank (Ngân hàng Quân Đội)</option>
-                <option value="Techcombank" {{ old('bank_name', $user->bank_name) === 'Techcombank' ? 'selected' : '' }}>Techcombank (Ngân hàng Kỹ Thương)</option>
                 <option value="ACB" {{ old('bank_name', $user->bank_name) === 'ACB' ? 'selected' : '' }}>ACB (Ngân hàng Á Châu)</option>
                 <option value="VPBank" {{ old('bank_name', $user->bank_name) === 'VPBank' ? 'selected' : '' }}>VPBank (Ngân hàng Việt Nam Thịnh Vượng)</option>
                 <option value="BIDV" {{ old('bank_name', $user->bank_name) === 'BIDV' ? 'selected' : '' }}>BIDV (Ngân hàng Đầu tư & Phát triển)</option>
@@ -483,8 +641,8 @@
                 <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $user->bank_account_number) }}" required placeholder="Ví dụ: 0987654321..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
               </div>
               <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Tên Chủ Tài Khoản (IN HOA KHÔNG DẤU) *</label>
-                <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $user->bank_account_name) }}" required placeholder="NGUYEN VAN AN" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs uppercase font-mono text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Tên Chủ Tài Khoản (IN HOA) *</label>
+                <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $user->bank_account_name) }}" required placeholder="NGUYEN XUAN BAC" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs uppercase font-mono text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
               </div>
             </div>
 
@@ -496,13 +654,13 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 5: PASSWORD & REVOKE SESSIONS -->
+      <!-- TAB 7: PASSWORD -->
       <!-- ========================================================================= -->
       <div id="tab-panel-password" class="profile-panel hidden space-y-4">
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
           <div class="pb-4 mb-6 border-b border-neutral-100">
             <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Bảo Mật &amp; Đổi Mật Khẩu</h3>
-            <p class="text-neutral-500 mt-0.5">Yêu cầu tối thiểu 8 ký tự, gồm chữ in hoa, in thường, chữ số và ký tự đặc biệt</p>
+            <p class="text-neutral-500 mt-0.5">Yêu cầu tối thiểu 8 ký tự để bảo vệ tài khoản an toàn</p>
           </div>
 
           <form action="{{ route('client.profile.password') }}" method="POST" class="space-y-4 max-w-lg">
@@ -515,7 +673,7 @@
             </div>
 
             <div>
-              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Mật Khẩu Mới (Mạnh) *</label>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Mật Khẩu Mới *</label>
               <input type="password" name="password" id="new_profile_pass" required placeholder="Tối thiểu 8 ký tự..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
             </div>
 
@@ -524,11 +682,10 @@
               <input type="password" name="password_confirmation" required placeholder="Nhập lại mật khẩu mới..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
             </div>
 
-            <!-- Revoke Other Sessions Option -->
             <div class="pt-2">
               <label class="flex items-start gap-2.5 cursor-pointer text-neutral-700">
                 <input type="checkbox" name="revoke_other_sessions" value="1" checked class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900">
-                <span><strong>Đăng xuất khỏi tất cả thiết bị khác</strong> (Khuyên dùng khi đổi mật khẩu để bảo vệ an toàn tài khoản).</span>
+                <span><strong>Đăng xuất khỏi tất cả thiết bị khác</strong></span>
               </label>
             </div>
 
@@ -540,21 +697,21 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 6: ADDRESS BOOK -->
+      <!-- TAB 8: ADDRESS BOOK -->
       <!-- ========================================================================= -->
       <div id="tab-panel-addresses" class="profile-panel hidden space-y-6">
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
           <div class="flex justify-between items-center pb-4 mb-6 border-b border-neutral-100">
             <div>
               <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Sổ Địa Chỉ Giao Hàng</h3>
-              <p class="text-neutral-500 mt-0.5">Quản lý các địa chỉ nhận hàng để thanh toán nhanh chóng</p>
+              <p class="text-neutral-500 mt-0.5">Quản lý các địa chỉ nhận hàng để thanh toán thuận tiện</p>
             </div>
             <button type="button" onclick="toggleAddAddressForm()" class="px-4 py-2 bg-neutral-950 text-white font-semibold rounded-lg hover:bg-neutral-800 transition-colors flex items-center gap-1.5">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i> Thêm Địa Chỉ
             </button>
           </div>
 
-          <!-- Add Address Accordion Form -->
+          <!-- Add Address Form -->
           <div id="addAddressFormBox" class="hidden p-5 bg-brand-50 rounded-xl border border-brand-200 mb-6 animate-fade-in">
             <h4 class="font-bold text-neutral-900 uppercase tracking-wider text-[11px] mb-4">Thêm Địa Chỉ Nhận Hàng Mới</h4>
             <form action="{{ route('client.profile.address.store') }}" method="POST" class="space-y-4">
@@ -577,16 +734,16 @@
 
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Mã Tỉnh/Thành</label>
-                  <input type="number" name="province_id" value="1" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Tỉnh/Thành Phố</label>
+                  <input type="text" name="province_name" value="Hà Nội" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
                 </div>
                 <div>
-                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Mã Quận/Huyện</label>
-                  <input type="number" name="district_id" value="1" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Quận/Huyện</label>
+                  <input type="text" name="district_name" value="Cầu Giấy" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
                 </div>
                 <div>
-                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Mã Phường/Xã</label>
-                  <input type="number" name="ward_id" value="1" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Phường/Xã</label>
+                  <input type="text" name="ward_name" value="Dịch Vọng" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
                 </div>
               </div>
 
@@ -643,7 +800,7 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 7: VIP & PRIVILEGES -->
+      <!-- TAB 9: VIP & PRIVILEGES -->
       <!-- ========================================================================= -->
       <div id="tab-panel-vip" class="profile-panel hidden space-y-4">
         <div class="bg-neutral-950 text-white p-8 rounded-2xl shadow-xl relative overflow-hidden">
@@ -652,6 +809,26 @@
           <p class="text-xs text-neutral-400 font-light leading-relaxed max-w-xl mb-6">
             Với mỗi 100.000₫ mua sắm tại BeeStyle, bạn tích lũy được 10 điểm thưởng. Điểm thưởng có thể quy đổi trực tiếp thành mã giảm giá hoặc nhận vé mời riêng tại các sự kiện Haute Couture.
           </p>
+
+          <!-- VIP Progress Bar -->
+          <div class="p-4 bg-neutral-900 rounded-xl border border-neutral-800 mb-6 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-neutral-300">Cấp bậc hiện tại: <strong class="text-amber-400">{{ $tierName }}</strong></span>
+              <span class="text-neutral-400 text-[11px]">Mục tiêu tiếp theo: <strong class="text-white">{{ $nextTierName }}</strong></span>
+            </div>
+            <div class="w-full bg-neutral-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%;"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-neutral-400">
+              <span>Đã chi tiêu: {{ number_format($totalSpent, 0, ',', '.') }}₫</span>
+              @if($neededMore > 0)
+                <span>Cần thêm: {{ number_format($neededMore, 0, ',', '.') }}₫</span>
+              @else
+                <span class="text-amber-400 font-semibold">Đã đạt hạng cao nhất</span>
+              @endif
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
             <div class="p-4 bg-neutral-900 rounded-xl border border-neutral-800">
               <span class="font-serif-luxury text-2xl text-amber-400 font-bold block">{{ number_format($user->points ?? 150) }}</span>
@@ -675,10 +852,10 @@
 </main>
 
 <!-- ========================================================================= -->
-<!-- MODALS: RMA Return, Cancel Order, Quick Review, Contact OTP -->
+<!-- MODALS -->
 <!-- ========================================================================= -->
 
-<!-- 1. MODAL YÊU CẦU ĐỔI TRẢ & HOÀN TIỀN (RMA) -->
+<!-- 1. MODAL ĐỔI TRẢ (RMA) -->
 <div id="returnOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-white max-w-lg w-full rounded-2xl p-6 sm:p-8 shadow-2xl border border-neutral-200 animate-fade-in text-xs max-h-[90vh] overflow-y-auto">
     <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
@@ -691,8 +868,6 @@
 
     <form id="returnOrderForm" method="POST" enctype="multipart/form-data" class="space-y-4">
       @csrf
-      
-      <!-- Hình thức mong muốn -->
       <div>
         <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Hình Thức Mong Muốn *</label>
         <div class="grid grid-cols-2 gap-2">
@@ -707,7 +882,6 @@
         </div>
       </div>
 
-      <!-- Lý do đổi trả -->
       <div>
         <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Cụ Thể *</label>
         <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
@@ -720,15 +894,14 @@
         </select>
       </div>
 
-      <!-- Thông tin ngân hàng nhận tiền hoàn -->
       <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 space-y-2">
         <span class="font-bold text-neutral-900 uppercase text-[10px] block">Thông Tin Nhận Tiền Hoàn:</span>
-        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Vietcombank' }}" placeholder="Tên Ngân Hàng (VD: Vietcombank, MB Bank...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
-        <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" placeholder="Số Tài Khoản Ngân Hàng" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Techcombank' }}" placeholder="Tên Ngân Hàng" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+        <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" placeholder="Số Tài Khoản" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
         <input type="text" name="bank_account_name" value="{{ $user->bank_account_name ?? $user->name }}" placeholder="Tên Chủ Tài Khoản (IN HOA)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs uppercase">
       </div>
 
-      <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow">
+      <button type="submit" class="w-full py-3 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow">
         Gửi Yêu Cầu Hoàn Tiền / Đổi Trả
       </button>
     </form>
@@ -746,7 +919,7 @@
     <form id="cancelOrderForm" method="POST" class="space-y-4">
       @csrf
       <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px]">
-        Khi xác nhận hủy đơn, hệ thống sẽ tự động hoàn lại số lượng tồn kho sản phẩm và khôi phục mã giảm giá cho bạn.
+        Khi xác nhận hủy đơn, hệ thống sẽ tự động hoàn lại số lượng tồn kho và mã giảm giá cho bạn.
       </div>
       <div>
         <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Hủy Đơn *</label>
@@ -764,7 +937,7 @@
   </div>
 </div>
 
-<!-- 3. MODAL ĐÁNH GIÁ SẢN PHẨM NHANH (QUICK REVIEW) -->
+<!-- 3. MODAL ĐÁNH GIÁ NHANH -->
 <div id="quickReviewModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-white max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
     <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
@@ -777,8 +950,6 @@
 
     <form id="quickReviewForm" method="POST" enctype="multipart/form-data" class="space-y-4">
       @csrf
-      
-      <!-- Rating Stars -->
       <div>
         <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Số Sao Đánh Giá *</label>
         <div class="flex items-center gap-2 text-2xl text-neutral-300">
@@ -792,15 +963,13 @@
         </div>
       </div>
 
-      <!-- Comment -->
       <div>
         <label class="block font-semibold uppercase text-neutral-700 mb-1">Nội Dung Nhận Xét *</label>
-        <textarea name="comment" rows="4" required placeholder="Chia sẻ cảm nhận về form áo, chất liệu vải, độ vừa vặn..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-xs focus:outline-none focus:border-neutral-950"></textarea>
+        <textarea name="comment" rows="4" required placeholder="Chia sẻ cảm nhận về form áo, chất liệu vải..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-xs focus:outline-none focus:border-neutral-950"></textarea>
       </div>
 
-      <!-- Upload Photo -->
       <div>
-        <label class="block font-semibold uppercase text-neutral-700 mb-1">Ảnh Chụp Thực Tế (Không bắt buộc)</label>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Ảnh Chụp Thực Tế</label>
         <input type="file" name="images[]" multiple accept="image/*" class="text-xs text-neutral-500 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-neutral-200">
       </div>
 
@@ -811,7 +980,43 @@
   </div>
 </div>
 
-<!-- 4. MODAL YÊU CẦU ĐỔI EMAIL / SĐT (2-STEP CONTACT OTP) -->
+<!-- 4. MODAL TỪ CHỐI NHẬN HÀNG (CHUYỂN HOÀN) -->
+<div id="profileRejectOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
+    <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
+      <h3 class="font-serif-luxury text-xl font-bold text-rose-600" id="rejectModalOrderTitle">Từ Chối Nhận Hàng</h3>
+      <button onclick="closeProfileRejectModal()" class="text-neutral-400 hover:text-black">&times;</button>
+    </div>
+
+    <form id="profileRejectOrderForm" method="POST" enctype="multipart/form-data" class="space-y-4">
+      @csrf
+      <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px]">
+        Bưu tá sẽ lập biên bản và chuyển hoàn kiện hàng về kho tổng BeeStyle. Tồn kho và voucher sẽ được tự động hoàn lại.
+      </div>
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Không Nhận *</label>
+        <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5">
+          <option value="" disabled selected>-- Chọn lý do từ chối --</option>
+          <option value="Hộp/Thùng hàng bị móp méo, rách vỡ">Hộp/Thùng hàng bị móp méo, rách vỡ</option>
+          <option value="Bưu tá không hỗ trợ đồng kiểm tra hàng">Bưu tá không hỗ trợ đồng kiểm</option>
+          <option value="Giao sai mẫu mã, sai màu sắc hoặc kích cỡ">Giao sai mẫu mã hoặc kích cỡ</option>
+          <option value="Sản phẩm bị lỗi may mặc hoặc hư hỏng">Sản phẩm bị lỗi vải/may mặc</option>
+          <option value="Thời gian giao quá trễ, không còn nhu cầu">Giao quá trễ so với dự kiến</option>
+          <option value="Lý do khác">Lý do khác</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Ghi chú cụ thể</label>
+        <textarea name="notes" rows="2" placeholder="Ghi chú chi tiết..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2"></textarea>
+      </div>
+      <button type="submit" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-wider rounded-xl transition-colors shadow">
+        Xác Nhận Không Nhận (Chuyển Hoàn)
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 5. MODAL OTP 2-BƯỚC THAY ĐỔI EMAIL / SĐT -->
 <div id="contactOtpModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-white max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
     <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
@@ -819,9 +1024,9 @@
       <button onclick="closeContactModal()" class="text-neutral-400 hover:text-black">&times;</button>
     </div>
 
-    <!-- Step 1: Request OTP Form -->
+    <!-- Step 1 -->
     <div id="contactStep1">
-      <p class="text-neutral-600 mb-4" id="contactStep1Desc">Vui lòng nhập địa chỉ mới để nhận mã xác thực OTP gồm 6 chữ số.</p>
+      <p class="text-neutral-600 mb-4" id="contactStep1Desc">Vui lòng nhập địa chỉ mới để nhận mã xác thực OTP 6 chữ số.</p>
       <form onsubmit="handleRequestContactOtp(event)" class="space-y-4">
         <input type="hidden" id="contactType" value="email">
         <div>
@@ -834,7 +1039,7 @@
       </form>
     </div>
 
-    <!-- Step 2: Confirm OTP Form -->
+    <!-- Step 2 -->
     <div id="contactStep2" class="hidden">
       <p class="text-neutral-600 mb-4">Mã OTP đã được gửi. Vui lòng nhập đúng 6 chữ số để hoàn tất:</p>
       <form onsubmit="handleConfirmContactOtp(event)" class="space-y-4">
@@ -849,6 +1054,7 @@
     </div>
   </div>
 </div>
+
 @endsection
 
 @push('scripts')
@@ -856,9 +1062,10 @@
   function switchProfileTab(tabName) {
     document.querySelectorAll('.profile-panel').forEach(p => p.classList.add('hidden'));
     document.querySelectorAll('.profile-tab-btn').forEach(b => {
-      b.className = b.className.replace('bg-neutral-950 text-white font-semibold', 'text-neutral-700 hover:bg-neutral-50 font-medium');
+      b.classList.remove('bg-neutral-950', 'text-white', 'font-semibold');
+      b.classList.add('text-neutral-700', 'hover:bg-neutral-50', 'font-medium');
       const badge = b.querySelector('.rounded-full');
-      if (badge && !badge.classList.contains('bg-amber-100')) {
+      if (badge && !badge.classList.contains('bg-rose-100')) {
         badge.className = 'px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-full text-[10px]';
       }
     });
@@ -867,7 +1074,8 @@
     const targetBtn = document.getElementById(`tab-btn-${tabName}`);
     if (targetPanel) targetPanel.classList.remove('hidden');
     if (targetBtn) {
-      targetBtn.className = targetBtn.className.replace('text-neutral-700 hover:bg-neutral-50 font-medium', 'bg-neutral-950 text-white font-semibold');
+      targetBtn.classList.remove('text-neutral-700', 'hover:bg-neutral-50', 'font-medium');
+      targetBtn.classList.add('bg-neutral-950', 'text-white', 'font-semibold');
       const badge = targetBtn.querySelector('.rounded-full');
       if (badge) {
         badge.className = 'px-2 py-0.5 bg-neutral-800 text-white rounded-full text-[10px] font-bold';
@@ -882,6 +1090,7 @@
     if (tab) {
       switchProfileTab(tab);
     }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   });
 
   function toggleAddAddressForm() {
@@ -905,7 +1114,6 @@
     document.getElementById('returnOrderForm').action = `/don-hang/${orderId}/yeu-cau-doi-tra`;
     document.getElementById('returnOrderModal').classList.remove('hidden');
   }
-
   function closeReturnModal() {
     document.getElementById('returnOrderModal').classList.add('hidden');
   }
@@ -916,7 +1124,6 @@
     document.getElementById('cancelOrderForm').action = `/don-hang/${orderId}/huy`;
     document.getElementById('cancelOrderModal').classList.remove('hidden');
   }
-
   function closeCancelModal() {
     document.getElementById('cancelOrderModal').classList.add('hidden');
   }
@@ -927,7 +1134,6 @@
     document.getElementById('quickReviewForm').action = `/san-pham/${productId}/danh-gia`;
     document.getElementById('quickReviewModal').classList.remove('hidden');
   }
-
   function closeQuickReviewModal() {
     document.getElementById('quickReviewModal').classList.add('hidden');
   }
@@ -954,6 +1160,16 @@
     });
   }
 
+  // Reject Order from Profile
+  function openProfileRejectModal(orderCode) {
+    document.getElementById('rejectModalOrderTitle').textContent = `Từ Chối Nhận Hàng #${orderCode}`;
+    document.getElementById('profileRejectOrderForm').action = `{{ url('/don-hang/tra-cuu') }}/${orderCode}/tu-choi-nhan`;
+    document.getElementById('profileRejectOrderModal').classList.remove('hidden');
+  }
+  function closeProfileRejectModal() {
+    document.getElementById('profileRejectOrderModal').classList.add('hidden');
+  }
+
   // 2-Step Contact Change Modals
   function openContactModal(type) {
     document.getElementById('contactType').value = type;
@@ -964,7 +1180,6 @@
     document.getElementById('contactStep2').classList.add('hidden');
     document.getElementById('contactOtpModal').classList.remove('hidden');
   }
-
   function closeContactModal() {
     document.getElementById('contactOtpModal').classList.add('hidden');
   }
@@ -990,14 +1205,14 @@
       btn.disabled = false;
       btn.textContent = 'Gửi Mã Xác Thực OTP';
       if (data.success) {
-        alert(data.message || 'Mã OTP đã được tạo thành công! (Mã thử nghiệm: ' + (data.otp_demo || '123456') + ')');
+        alert(data.message || 'Mã OTP đã được gửi!');
         document.getElementById('contactStep1').classList.add('hidden');
         document.getElementById('contactStep2').classList.remove('hidden');
       } else {
         alert(data.message || 'Có lỗi xảy ra.');
       }
     })
-    .catch(err => {
+    .catch(() => {
       btn.disabled = false;
       btn.textContent = 'Gửi Mã Xác Thực OTP';
       alert('Không thể kết nối máy chủ.');
@@ -1025,13 +1240,13 @@
       btn.disabled = false;
       btn.textContent = 'Xác Nhận Thay Đổi';
       if (data.success) {
-        alert(data.message || 'Đã cập nhật liên hệ thành công!');
+        alert(data.message || 'Đã cập nhật thông tin thành công!');
         window.location.reload();
       } else {
         alert(data.message || 'Mã OTP không chính xác.');
       }
     })
-    .catch(err => {
+    .catch(() => {
       btn.disabled = false;
       btn.textContent = 'Xác Nhận Thay Đổi';
       alert('Không thể kết nối máy chủ.');

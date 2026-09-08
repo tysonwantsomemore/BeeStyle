@@ -38,9 +38,12 @@ class MomoService
             // Tạo unique orderId cho MoMo để tránh lỗi trùng lặp mã đơn khi khách thử thanh toán lại
             $orderId = $order->order_code . '_' . time();
             $requestId = (string) Str::uuid();
-            $amount = (int) round($order->total_amount);
-            $orderInfo = "Thanh toan don hang #" . $order->order_code . " tai BeeStyle";
-            $extraData = base64_encode(json_encode(['order_code' => $order->order_code]));
+            $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+            $amount = $isDeposit ? (int) round($order->deposit_amount) : (int) round($order->total_amount);
+            $orderInfo = $isDeposit
+                ? "Dat coc 50% don hang #" . $order->order_code . " tai BeeStyle"
+                : "Thanh toan don hang #" . $order->order_code . " tai BeeStyle";
+            $extraData = base64_encode(json_encode(['order_code' => $order->order_code, 'is_deposit' => $isDeposit]));
             $requestType = "captureWallet";
 
             $rawHash = "accessKey=" . $this->accessKey .
