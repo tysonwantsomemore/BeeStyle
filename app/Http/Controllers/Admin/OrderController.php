@@ -493,6 +493,9 @@ class OrderController extends Controller
             'tracking_code' => 'nullable|string|max:100',
             'admin_notes' => 'nullable|string|max:1000',
             'cancel_reason' => 'nullable|string|max:500',
+            'delivery_proof_file' => 'nullable|file|image|max:10240',
+            'delivery_proof_image' => 'nullable|string|max:255',
+            'delivery_proof_note' => 'nullable|string|max:1000',
         ]);
 
         $stepMap = [
@@ -639,6 +642,25 @@ class OrderController extends Controller
 
         if ($paymentStatus === 'paid' && !$order->paid_at) {
             $updateData['paid_at'] = $now;
+        }
+
+        // Xử lý ảnh bằng chứng giao hàng bưu tá gửi về kho (Proof of Delivery - POD)
+        if ($request->hasFile('delivery_proof_file')) {
+            $proofPath = $request->file('delivery_proof_file')->store('delivery_proofs', 'public');
+            $updateData['delivery_proof_image'] = $proofPath;
+            $updateData['delivery_proof_at'] = $now;
+        } elseif ($request->filled('delivery_proof_image')) {
+            $updateData['delivery_proof_image'] = $request->input('delivery_proof_image');
+            $updateData['delivery_proof_at'] = $now;
+        } elseif (in_array($validated['shipping_status'], ['delivered', 'completed']) && empty($order->delivery_proof_image)) {
+            $updateData['delivery_proof_image'] = 'assets/img/delivery-proofs/sample_pod_1.jpg';
+            $updateData['delivery_proof_at'] = $now;
+        }
+
+        if ($request->filled('delivery_proof_note')) {
+            $updateData['delivery_proof_note'] = $request->input('delivery_proof_note');
+        } elseif (in_array($validated['shipping_status'], ['delivered', 'completed']) && empty($order->delivery_proof_note)) {
+            $updateData['delivery_proof_note'] = 'Bưu tá xác nhận đã trao kiện hàng tận tay khách hàng thành công và kiểm tra niêm phong nguyên vẹn.';
         }
 
         // Khi đơn hàng được chuyển sang "Đã giao hàng" hoặc "Hoàn tất", kích hoạt thông báo mời khách hàng tự đánh giá

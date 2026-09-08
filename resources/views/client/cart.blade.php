@@ -441,7 +441,6 @@
   // 1. CẬP NHẬT SỐ LƯỢNG MẶT HÀNG TRONG GIỎ QUA AJAX
   function updateCartItemQty(key, newQty, triggerEl) {
     if (newQty < 1) newQty = 1;
-    if (newQty > 10) newQty = 10;
 
     const row = document.getElementById('cartRow_' + key);
     if (!row) return;
@@ -471,7 +470,7 @@
         const minusBtn = row.querySelector('.btn-step-minus');
         const plusBtn = row.querySelector('.btn-step-plus');
         if (minusBtn) minusBtn.disabled = (newQty <= 1);
-        if (plusBtn) plusBtn.disabled = (newQty >= 10);
+        if (plusBtn) plusBtn.disabled = false;
 
         renderCartSummary(data.cart);
       } else {

@@ -148,6 +148,8 @@ Route::name('client.')->group(function () {
     */
     Route::get('/tra-cuu-don-hang', [OrderTrackingController::class, 'index'])->name('order-tracking');
     Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
+    Route::post('/tra-cuu-don-hang/{code}/da-nhan-hang', [OrderTrackingController::class, 'confirmDelivered'])->name('order-tracking.confirm-delivered');
+    Route::post('/tra-cuu-don-hang/{code}/khong-nhan-hang', [OrderTrackingController::class, 'rejectDelivery'])->name('order-tracking.reject-delivery');
 
     // Cổng Tra Cứu Vận Đơn Bưu Tá Trực Tuyến (GHTK, GHN, Viettel Post...)
     Route::get('/tra-cuu-van-don/{code?}', [OrderTrackingController::class, 'carrierTracking'])->name('carrier-tracking');

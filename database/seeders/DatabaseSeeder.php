@@ -569,11 +569,11 @@ class DatabaseSeeder extends Seeder
             'size' => 'M',
         ]);
 
-        // 7. ĐÁNH GIÁ MẪU CỦA KHÁCH HÀNG
+        // 7. ĐÁNH GIÁ MẪU CỦA KHÁCH HÀNG (DỮ LIỆU HIỂN THỊ MẪU CHO WEBSITE, KHÔNG GÁN VÀO TÀI KHOẢN KHÁCH ĐỂ KHÁCH TỰ ĐÁNH GIÁ)
         Review::create([
             'product_id' => $firstProd->id,
-            'user_id' => $customer1->id,
-            'user_name' => $customer1->name,
+            'user_id' => null,
+            'user_name' => 'Nguyễn Minh Tuấn',
             'rating' => 5,
             'comment' => 'Áo polo mặc cực kỳ êm và đứng phom, vải dệt tổ ong thoáng mát không bị nhăn sau khi giặt máy. Rất đáng tiền!',
             'status' => 'approved',
@@ -582,8 +582,8 @@ class DatabaseSeeder extends Seeder
 
         Review::create([
             'product_id' => $secondProd->id,
-            'user_id' => $customer1->id,
-            'user_name' => $customer1->name,
+            'user_id' => null,
+            'user_name' => 'Trần Văn Hoàng',
             'rating' => 5,
             'comment' => 'Sơ mi lụa trắng rất đẹp và sáng màu, mặc đi họp đối tác cực kỳ tự tin và lịch thiệp.',
             'status' => 'approved',

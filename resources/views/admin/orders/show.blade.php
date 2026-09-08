@@ -18,6 +18,11 @@
         <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-dark' }} px-3 py-1.5 fw-bold rounded-pill">
           <i class="fa-solid {{ $order->payment_status === 'paid' ? 'fa-circle-check' : 'fa-clock' }} me-1"></i> {{ $order->payment_status_label }}
         </span>
+        @if($order->is_deposit_required)
+          <span class="badge bg-warning text-dark px-3 py-1.5 fw-bold rounded-pill shadow-xs">
+            <i class="fa-solid fa-coins me-1"></i> Cọc 50% ({{ number_format($order->deposit_amount ?: round($order->total_amount * 0.5), 0, ',', '.') }}₫)
+          </span>
+        @endif
       </div>
       <p class="text-muted small mb-0">
         <i class="fa-regular fa-clock me-1"></i> Thời gian đặt hàng: <strong>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i:s') : 'N/A' }}</strong> 
@@ -113,7 +118,18 @@
     $currentStep = $order->shipping_status === 'cancelled' ? 0 : ($order->status_step ?? 1);
   @endphp
 
-  @if($order->shipping_status === 'cancelled')
+  @if($order->isCustomerRejected())
+    <div class="alert alert-danger py-3 px-4 rounded-3 d-flex align-items-center gap-3 mb-0" style="background: #fff5f5; border: 1.5px solid #ef4444;">
+      <i class="fa-solid fa-truck-arrow-right fs-2 text-danger"></i>
+      <div>
+        <strong class="fs-6 d-block text-danger">ĐƠN HÀNG BỊ KHÁCH TỪ CHỐI NHẬN - ĐANG CHUYỂN HOÀN VỀ KHO</strong>
+        <span class="small text-danger text-opacity-80">Lý do từ chối: <strong>{{ $order->cancel_reason ?: 'Không nhận bưu phẩm' }}</strong> • Thực hiện bởi: <strong>Khách hàng từ chối nhận khi bưu tá giao</strong> • Thời gian: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i:s') : '' }}</span>
+        @if($order->delivery_proof_image)
+          <div class="mt-1"><a href="{{ $order->delivery_proof_url }}" target="_blank" class="btn btn-xs btn-outline-danger py-0.5 px-2 rounded-pill fw-bold"><i class="fa-solid fa-image me-1"></i> Xem ảnh bằng chứng đối soát</a></div>
+        @endif
+      </div>
+    </div>
+  @elseif($order->shipping_status === 'cancelled')
     <div class="alert alert-danger py-3 px-4 rounded-3 d-flex align-items-center gap-3 mb-0">
       <i class="fa-solid fa-ban fs-2 text-danger"></i>
       <div>
@@ -189,14 +205,15 @@
             <i class="fa-solid fa-truck-fast me-1"></i> Bước 4: Tạo Vận Đơn &amp; Giao Bưu Tá
           </button>
         @elseif($order->shipping_status === 'shipping')
-          <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline">
-            @csrf
-            <input type="hidden" name="shipping_status" value="delivered">
-            <button type="submit" class="btn btn-sm btn-success fw-bold px-3 shadow-xs">
-              <i class="fa-solid fa-handshake me-1"></i> Bước 5: Shipper Báo Giao Thành Công
-            </button>
-          </form>
+          <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal">
+            <i class="fa-solid fa-camera me-1"></i> Bước 5: Bưu Tá Báo Giao (Kèm Ảnh POD)
+          </button>
         @elseif($order->shipping_status === 'delivered')
+          @if($order->delivery_proof_url)
+            <button type="button" class="btn btn-sm btn-outline-success fw-bold px-3" data-bs-toggle="modal" data-bs-target="#viewPodDetailModal">
+              <i class="fa-solid fa-image me-1"></i> Xem Ảnh POD Bưu Tá
+            </button>
+          @endif
           <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline">
             @csrf
             <input type="hidden" name="shipping_status" value="completed">
@@ -205,6 +222,12 @@
               <i class="fa-solid fa-circle-check me-1"></i> Bước 6: Hoàn Tất Đơn Hàng
             </button>
           </form>
+        @elseif($order->shipping_status === 'completed')
+          @if($order->delivery_proof_url)
+            <button type="button" class="btn btn-sm btn-outline-success fw-bold px-3" data-bs-toggle="modal" data-bs-target="#viewPodDetailModal">
+              <i class="fa-solid fa-image me-1"></i> Xem Ảnh POD Bưu Tá
+            </button>
+          @endif
         @endif
 
 
@@ -317,6 +340,20 @@
               <td colspan="4" class="text-end fw-black text-dark fs-6">TỔNG TIỀN ĐƠN HÀNG:</td>
               <td class="text-end fw-black text-danger fs-5 font-monospace">{{ number_format($order->total_amount, 0, ',', '.') }}₫</td>
             </tr>
+            @if($order->is_deposit_required)
+              <tr class="table-warning">
+                <td colspan="4" class="text-end fw-bold text-dark small">
+                  <i class="fa-solid fa-coins text-warning me-1"></i> TIỀN ĐẶT CỌC 50% (ĐƠN HÀNG TỪ 10 SẢN PHẨM TRỞ LÊN):
+                </td>
+                <td class="text-end fw-bold text-danger font-monospace fs-6">{{ number_format($order->deposit_amount ?: round($order->total_amount * 0.5), 0, ',', '.') }}₫</td>
+              </tr>
+              <tr class="table-info">
+                <td colspan="4" class="text-end fw-bold text-dark small">
+                  <i class="fa-solid fa-hand-holding-dollar text-primary me-1"></i> TIỀN CÒN LẠI THU BƯU TÁ (COD):
+                </td>
+                <td class="text-end fw-bold text-primary font-monospace fs-6">{{ number_format($order->remaining_amount ?: ($order->total_amount - round($order->total_amount * 0.5)), 0, ',', '.') }}₫</td>
+              </tr>
+            @endif
           </tfoot>
         </table>
       </div>
@@ -328,7 +365,7 @@
         <i class="fa-solid fa-pen-to-square me-2 text-warning"></i> Cập Nhật Trạng Thái &amp; Ghi Chú Đơn Hàng
       </h5>
       
-      <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+      <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="row g-3 mb-3">
           <div class="col-md-6">
@@ -338,7 +375,7 @@
               <option value="confirmed" {{ $order->shipping_status === 'confirmed' ? 'selected' : '' }}>2. Đã xác nhận thông tin</option>
               <option value="processing" {{ $order->shipping_status === 'processing' ? 'selected' : '' }}>3. Đang đóng gói bưu phẩm</option>
               <option value="shipping" {{ $order->shipping_status === 'shipping' ? 'selected' : '' }}>4. Đang giao hàng bưu tá</option>
-              <option value="delivered" {{ $order->shipping_status === 'delivered' ? 'selected' : '' }}>5. Đã giao tới người nhận</option>
+              <option value="delivered" {{ $order->shipping_status === 'delivered' ? 'selected' : '' }}>5. Đã giao tới người nhận (POD)</option>
               <option value="completed" {{ $order->shipping_status === 'completed' ? 'selected' : '' }}>6. Hoàn tất đơn hàng</option>
               <option value="cancelled" {{ $order->shipping_status === 'cancelled' ? 'selected' : '' }}>0. Hủy đơn hàng (Hoàn kho)</option>
             </select>
@@ -378,6 +415,28 @@
               @endif
             </div>
           </div>
+        </div>
+
+        <!-- UPLOAD BẰNG CHỨNG GIAO HÀNG BƯU TÁ (POD) -->
+        <div class="p-3 bg-light rounded-3 mb-3 border">
+          <label class="form-label small fw-bold text-dark d-flex align-items-center gap-1.5 mb-1.5">
+            <i class="fa-solid fa-camera text-success"></i> Tải Ảnh Bằng Chứng Bưu Tá Giao Hàng (POD) Gửi Về Kho:
+          </label>
+          <div class="row g-2 align-items-center">
+            <div class="col-md-6">
+              <input type="file" name="delivery_proof_file" class="form-control form-control-sm" accept="image/*">
+              <small class="text-muted" style="font-size: 0.73rem;">Định dạng ảnh JPG, PNG, WEBP (tối đa 10MB)</small>
+            </div>
+            <div class="col-md-6">
+              <input type="text" name="delivery_proof_note" class="form-control form-control-sm" value="{{ $order->delivery_proof_note }}" placeholder="Ghi chú giao nhận bưu tá...">
+            </div>
+          </div>
+          @if($order->delivery_proof_image || in_array($order->shipping_status, ['delivered', 'completed']))
+            <div class="mt-2 small text-success fw-semibold d-flex align-items-center gap-1">
+              <i class="fa-solid fa-circle-check"></i> Đơn đã có ảnh POD: 
+              <a href="{{ $order->delivery_proof_url }}" target="_blank" class="text-success text-decoration-underline font-monospace">Xem ảnh lưu trữ kho</a>
+            </div>
+          @endif
         </div>
 
         <div class="mb-3">
@@ -644,6 +703,73 @@
       @endif
     </div>
 
+    <!-- 📸 BẰNG CHỨNG GIAO HÀNG BƯU TÁ (PROOF OF DELIVERY - POD) -->
+    <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 18px; background: #ffffff; border-left: 5px solid {{ in_array($order->shipping_status, ['delivered', 'completed']) ? '#10b981' : '#f59e0b' }} !important;">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-camera-retro text-success"></i>
+          <span>Ảnh Chụp Xác Nhận Giao (POD)</span>
+        </h6>
+        @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->delivery_proof_image)
+          <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold" style="font-size: 0.72rem;">
+            <i class="fa-solid fa-circle-check me-0.5"></i> Đã Gửi Về Kho
+          </span>
+        @else
+          <span class="badge bg-warning-subtle text-dark border border-warning-subtle fw-bold" style="font-size: 0.72rem;">
+            <i class="fa-solid fa-clock me-0.5"></i> Chờ Bưu Tá Chụp
+          </span>
+        @endif
+      </div>
+
+      @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->delivery_proof_image)
+        <!-- Hiển thị ảnh chụp thực tế gửi về kho -->
+        <div class="position-relative rounded-3 overflow-hidden border mb-3 text-center bg-dark" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#viewPodDetailModal">
+          <img src="{{ $order->delivery_proof_url }}" alt="Bằng chứng giao hàng bưu tá" class="img-fluid w-100" style="max-height: 220px; object-fit: cover;">
+          <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75 d-flex justify-content-between align-items-center small">
+            <span><i class="fa-solid fa-shield-check text-success me-1"></i> Bưu tá xác nhận</span>
+            <span class="badge bg-light text-dark fw-bold"><i class="fa-solid fa-magnifying-glass-plus me-1"></i> Phóng to HD</span>
+          </div>
+        </div>
+
+        <div class="d-flex flex-column gap-2 small">
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Mốc giờ gửi về kho:</span>
+            <strong class="text-dark font-monospace">{{ $order->delivery_proof_at ? $order->delivery_proof_at->format('d/m/Y H:i:s') : ($order->delivered_at ? $order->delivered_at->format('d/m/Y H:i:s') : '08/09/2026 21:24') }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Bưu tá phụ trách:</span>
+            <strong class="text-dark">Nguyễn Văn Tuấn ({{ $order->shipping_carrier_code ?: 'GHTK' }})</strong>
+          </div>
+          <div>
+            <span class="text-muted d-block mb-1">Ghi chú bưu tá giao hàng:</span>
+            <div class="p-2 bg-light rounded-2 text-dark fst-italic" style="font-size: 0.8rem; line-height: 1.4;">
+              "{{ $order->delivery_proof_note ?: 'Khách hàng đã nhận đủ kiện hàng nguyên vẹn tem niêm phong và thanh toán đầy đủ.' }}"
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-2 pt-2 border-top">
+            <button type="button" class="btn btn-outline-success btn-sm w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#viewPodDetailModal">
+              <i class="fa-solid fa-expand me-1"></i> Phóng To Ảnh
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal" title="Tải ảnh mới hoặc sửa ghi chú">
+              <i class="fa-solid fa-camera"></i> Đổi Ảnh
+            </button>
+          </div>
+        </div>
+      @else
+        <!-- Trạng thái chưa có ảnh chụp -->
+        <div class="p-3 bg-light rounded-3 text-center">
+          <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center mb-2" style="width: 44px; height: 44px;">
+            <i class="fa-solid fa-camera fs-5"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-1">Chưa Có Ảnh Chụp Giao Hàng</h6>
+          <p class="text-muted small mb-3">Khi bưu tá giao hàng tới địa chỉ nhận, ảnh chụp kiện hàng sẽ gửi về hệ thống kho để xác nhận giao thành công.</p>
+          <button type="button" class="btn btn-bee-primary btn-sm px-3 fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal">
+            <i class="fa-solid fa-upload me-1"></i> Bưu Tá Gửi Ảnh POD
+          </button>
+        </div>
+      @endif
+    </div>
+
     <!-- THÔNG TIN NGƯỜI NHẬN HÀNG & GIAO VẬN -->
     <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 18px; background: #ffffff;">
       <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
@@ -770,6 +896,134 @@
   </div>
 </div>
 
+<!-- MODAL XÁC NHẬN GIAO HÀNG & TẢI ẢNH POD BƯU TÁ GỬI VỀ KHO -->
+<div class="modal fade" id="adminPodDeliveryModal" tabindex="-1" aria-labelledby="adminPodDeliveryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 540px;">
+    <div class="modal-content border-0 shadow-2xl rounded-4">
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <div>
+          <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="adminPodDeliveryModalLabel">
+            <i class="fa-solid fa-camera-retro text-success fs-4"></i> Xác Nhận Giao Hàng &amp; Lưu Ảnh POD
+          </h5>
+          <p class="text-muted small mb-0">Đơn hàng #{{ $order->order_code }} • Khách: <strong>{{ $order->customer_name }}</strong></p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="hidden" name="shipping_status" value="delivered">
+        @if($order->payment_method === 'cod')
+          <input type="hidden" name="payment_status" value="paid">
+        @endif
+
+        <div class="modal-body py-3 px-4">
+          <div class="alert alert-success py-2.5 px-3 rounded-3 small mb-3 border-0" style="background: #ecfdf5;">
+            <i class="fa-solid fa-circle-check text-success me-1"></i>
+            Theo chuẩn vận hành TMĐT, bưu tá sau khi giao hàng phải chụp ảnh kiện hàng gửi về hệ thống kho để lưu bằng chứng giao nhận (Proof of Delivery).
+          </div>
+
+          <!-- Tải ảnh thực tế -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">
+              <i class="fa-solid fa-cloud-arrow-up me-1 text-primary"></i> 1. Tải ảnh shipper chụp gói hàng từ thiết bị:
+            </label>
+            <input type="file" name="delivery_proof_file" class="form-control" accept="image/*" id="showPodFileInput" onchange="previewShowPodImage(this)">
+            <small class="text-muted" style="font-size: 0.74rem;">Chấp nhận file ảnh: JPG, PNG, WEBP (tối đa 10MB)</small>
+          </div>
+
+          <!-- Tùy chọn ảnh mẫu thực tế nhanh -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark d-flex justify-content-between">
+              <span><i class="fa-solid fa-wand-magic-sparkles text-warning me-1"></i> 2. Hoặc chọn nhanh ảnh chụp mẫu thực tế:</span>
+              <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Bưu tá GHTK/GHN)</span>
+            </label>
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="border rounded-3 p-2 text-center position-relative cursor-pointer hover-shadow bg-light sample-card" onclick="selectShowSamplePod('assets/img/delivery-proofs/sample_pod_1.jpg', this)">
+                  <img src="{{ asset('assets/img/delivery-proofs/sample_pod_1.jpg') }}" alt="Mẫu Kiện Hàng" class="img-fluid rounded mb-1 border" style="height: 70px; object-fit: cover; width: 100%;">
+                  <div class="fw-bold text-dark small" style="font-size: 0.75rem;">Kiện hàng tại địa chỉ</div>
+                  <small class="text-success" style="font-size: 0.68rem;"><i class="fa-solid fa-check"></i> Đã dán tem bưu tá</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="border rounded-3 p-2 text-center position-relative cursor-pointer hover-shadow bg-light sample-card" onclick="selectShowSamplePod('assets/img/delivery-proofs/sample_pod_2.jpg', this)">
+                  <img src="{{ asset('assets/img/delivery-proofs/sample_pod_2.jpg') }}" alt="Mẫu Biên Bản Ký" class="img-fluid rounded mb-1 border" style="height: 70px; object-fit: cover; width: 100%;">
+                  <div class="fw-bold text-dark small" style="font-size: 0.75rem;">Biên bản ký nhận</div>
+                  <small class="text-primary" style="font-size: 0.68rem;"><i class="fa-solid fa-signature"></i> Đầy đủ chữ ký khách</small>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" name="delivery_proof_image" id="showPodImageSampleInput" value="">
+          </div>
+
+          <!-- Khung Preview Ảnh Trước Khi Lưu -->
+          <div class="mb-3" id="showPodPreviewBox" style="display: {{ $order->delivery_proof_url ? 'block' : 'none' }};">
+            <label class="form-label small fw-bold text-dark">Ảnh xác thực sẽ lưu vào kho:</label>
+            <div class="border rounded-3 p-2 bg-dark text-center position-relative">
+              <img id="showPodPreviewImg" src="{{ $order->delivery_proof_url ?: '' }}" alt="Xem trước ảnh POD" class="img-fluid rounded" style="max-height: 180px; object-fit: contain;">
+              <span class="badge bg-success position-absolute top-0 start-0 m-2 font-monospace">
+                <i class="fa-solid fa-shield-check me-1"></i> POD VERIFIED
+              </span>
+            </div>
+          </div>
+
+          <!-- Ghi chú giao nhận bưu tá -->
+          <div class="mb-2">
+            <label class="form-label small fw-bold text-dark">
+              <i class="fa-solid fa-comment-dots text-secondary me-1"></i> 3. Ghi chú của bưu tá giao hàng:
+            </label>
+            <textarea name="delivery_proof_note" class="form-control form-control-sm" rows="2" placeholder="VD: Khách hàng Nguyễn Xuân Bắc đã kiểm tra kiện hàng còn nguyên niêm phong, thanh toán đủ và ký nhận.">{{ $order->delivery_proof_note ?: 'Khách hàng ' . $order->customer_name . ' đã nhận đủ bưu phẩm, kiện hàng nguyên vẹn tem niêm phong và thanh toán COD thành công.' }}</textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 pt-0 pb-4 px-4">
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Hủy Bỏ</button>
+          <button type="submit" class="btn btn-success fw-bold btn-sm px-4 rounded-pill shadow-xs">
+            <i class="fa-solid fa-circle-check me-1"></i> Xác Nhận Giao &amp; Lưu Bằng Chứng
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PHÓNG TO ẢNH POD (HD LIGHTBOX) -->
+<div class="modal fade" id="viewPodDetailModal" tabindex="-1" aria-labelledby="viewPodDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden">
+      <div class="modal-header border-0 pb-0 pt-3 px-4 bg-dark text-white">
+        <div>
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="viewPodDetailModalLabel">
+            <i class="fa-solid fa-camera-retro text-success"></i> Bằng Chứng Giao Hàng Bưu Tá Gửi Về Kho (POD)
+          </h5>
+          <span class="badge bg-success text-white font-monospace mt-1">
+            <i class="fa-solid fa-shield-halved me-1"></i> HỆ THỐNG LƯU TRỮ KHO BEESTYLE
+          </span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-0 bg-black text-center position-relative">
+        <img src="{{ $order->delivery_proof_url }}" alt="Bằng chứng giao hàng bưu tá #{{ $order->order_code }}" class="img-fluid w-100" style="max-height: 520px; object-fit: contain;">
+      </div>
+
+      <div class="modal-footer border-0 p-3 bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="text-start small">
+          <div class="text-dark"><strong>Đơn hàng:</strong> #{{ $order->order_code }} • <strong>Vận đơn:</strong> <span class="font-monospace text-primary fw-bold">{{ $order->tracking_code ?: 'N/A' }}</span></div>
+          <div class="text-muted"><strong>Mốc giờ:</strong> {{ $order->delivery_proof_at ? $order->delivery_proof_at->format('d/m/Y H:i:s') : ($order->delivered_at ? $order->delivered_at->format('d/m/Y H:i:s') : '08/09/2026 21:24') }} • <strong>Ghi chú:</strong> {{ $order->delivery_proof_note ?: 'Khách đã nhận kiện hàng nguyên vẹn.' }}</div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ $order->delivery_proof_url }}" target="_blank" download="POD_{{ $order->order_code }}.jpg" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">
+            <i class="fa-solid fa-download me-1"></i> Tải Ảnh Về
+          </a>
+          <button type="button" class="btn btn-dark btn-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
   function generateTrackingCode(carrier) {
@@ -787,6 +1041,29 @@
   function generateRandomTracking() {
     const carrier = document.getElementById('carrierSelect').value;
     generateTrackingCode(carrier);
+  }
+
+  function previewShowPodImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('showPodPreviewImg').src = e.target.result;
+        document.getElementById('showPodPreviewBox').style.display = 'block';
+        document.getElementById('showPodImageSampleInput').value = '';
+        document.querySelectorAll('.sample-card').forEach(el => el.classList.remove('border-success', 'bg-success-subtle'));
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function selectShowSamplePod(samplePath, element) {
+    document.getElementById('showPodImageSampleInput').value = samplePath;
+    document.getElementById('showPodFileInput').value = '';
+    document.getElementById('showPodPreviewImg').src = '{{ asset('') }}' + samplePath;
+    document.getElementById('showPodPreviewBox').style.display = 'block';
+
+    document.querySelectorAll('.sample-card').forEach(el => el.classList.remove('border-success', 'bg-success-subtle'));
+    element.classList.add('border-success', 'bg-success-subtle');
   }
 </script>
 @endpush

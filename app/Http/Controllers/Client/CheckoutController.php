@@ -31,6 +31,19 @@ class CheckoutController extends Controller
         $user = Auth::user();
         $addresses = $user ? $user->addresses : collect();
         $defaultAddress = $user ? ($user->defaultAddress ?? $addresses->first()) : null;
+        $depositInfo = CartService::checkDepositPolicy($cartData['items'], $cartData['total'], $user);
+
+        $coupons = Coupon::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('start_date')
+                  ->orWhere('start_date', '<=', now());
+            })
+            ->orderBy('min_order_value', 'asc')
+            ->get();
 
         return view('client.checkout', [
             'cartItems' => $cartData['items'],
@@ -40,6 +53,8 @@ class CheckoutController extends Controller
             'shipping' => $cartData['shipping'],
             'total' => $cartData['total'],
             'appliedCoupon' => $cartData['coupon'],
+            'coupons' => $coupons,
+            'depositInfo' => $depositInfo,
             'user' => $user,
             'addresses' => $addresses,
             'defaultAddress' => $defaultAddress,
@@ -135,6 +150,19 @@ class CheckoutController extends Controller
                 default => 'unpaid',
             };
 
+            $depositPolicy = CartService::checkDepositPolicy($cartData['items'], $verifiedTotal, $user);
+            $isDepositRequired = $depositPolicy['is_required'];
+            $depositAmount = $depositPolicy['deposit_amount'];
+            $remainingAmount = $depositPolicy['remaining_amount'];
+
+            $orderNotes = $validated['notes'] ?? null;
+            $adminNotes = null;
+            if ($isDepositRequired) {
+                $depositNotice = "[CHÍNH SÁCH ĐẶT CỌC 50%: {$depositPolicy['reason']} - Tiền cọc: " . number_format($depositAmount, 0, ',', '.') . "₫, Còn lại thu COD: " . number_format($remainingAmount, 0, ',', '.') . "₫]";
+                $adminNotes = $depositNotice;
+                $orderNotes = $orderNotes ? "{$orderNotes} | {$depositNotice}" : $depositNotice;
+            }
+
             $order = Order::create([
                 'order_code' => $orderCode,
                 'user_id' => $user ? $user->id : null,
@@ -144,15 +172,22 @@ class CheckoutController extends Controller
                 'shipping_address' => $validated['shipping_address'],
                 'city' => $validated['city'] ?? 'Hồ Chí Minh',
                 'district' => $validated['district'] ?? '',
-                'notes' => $validated['notes'] ?? null,
+                'notes' => $orderNotes,
+                'admin_notes' => $adminNotes,
                 'payment_method' => $validated['payment_method'],
                 'payment_status' => $paymentStatus,
                 'shipping_status' => 'pending',
+                'shipping_carrier' => 'Giao Hàng Tiết Kiệm (GHTK)',
+                'tracking_code' => 'GHTK-' . strtoupper(\Illuminate\Support\Str::random(8)),
                 'status_step' => 1,
                 'subtotal' => $verifiedSubtotal,
                 'discount_amount' => $verifiedDiscount,
                 'shipping_fee' => $verifiedShipping,
                 'total_amount' => $verifiedTotal,
+                'is_deposit_required' => $isDepositRequired,
+                'deposit_amount' => $depositAmount,
+                'remaining_amount' => $remainingAmount,
+                'deposit_status' => $isDepositRequired ? 'unpaid' : 'none',
                 'coupon_code' => $cartData['coupon'] ? $cartData['coupon']->code : null,
             ]);
 
@@ -295,21 +330,39 @@ class CheckoutController extends Controller
     public function onlineSuccess($code)
     {
         $order = Order::where('order_code', $code)->firstOrFail();
-        $order->update([
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 3,
-            'paid_at' => now(),
-            'confirmed_at' => $order->confirmed_at ?: now(),
-            'processing_at' => now(),
-        ]);
+        
+        $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+        if ($isDeposit) {
+            $order->update([
+                'deposit_status' => 'paid',
+                'deposit_paid_at' => now(),
+                'payment_status' => 'deposit_paid',
+                'shipping_status' => 'processing',
+                'status_step' => 3,
+                'confirmed_at' => $order->confirmed_at ?: now(),
+                'processing_at' => now(),
+            ]);
+            $successAmount = $order->deposit_amount;
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$code}! Số tiền 50% còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
+        } else {
+            $order->update([
+                'payment_status' => 'paid',
+                'shipping_status' => 'processing',
+                'status_step' => 3,
+                'paid_at' => now(),
+                'confirmed_at' => $order->confirmed_at ?: now(),
+                'processing_at' => now(),
+            ]);
+            $successAmount = $order->total_amount;
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.";
+        }
         $this->sendOrderInvoiceEmail($order);
 
         return redirect()->route('client.home')
             ->with('payment_success_order', $code)
-            ->with('payment_success_amount', $order->total_amount)
-            ->with('payment_success_method', 'Thanh toán Online (Techcombank Napas 247)')
-            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+            ->with('payment_success_amount', $successAmount)
+            ->with('payment_success_method', 'Chuyển khoản VietQR 24/7 (Techcombank)')
+            ->with('success', $successMsg);
     }
 
     /**
@@ -456,23 +509,41 @@ class CheckoutController extends Controller
 
         // MoMo resultCode 0 = Thành công
         if ($resultCode === 0) {
-            if ($order->payment_status !== 'paid') {
+            $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+            if ($isDeposit) {
                 $order->update([
-                    'payment_status' => 'paid',
+                    'deposit_status' => 'paid',
+                    'deposit_paid_at' => now(),
+                    'payment_status' => 'deposit_paid',
                     'shipping_status' => 'processing',
                     'status_step' => 3,
-                    'paid_at' => now(),
                     'confirmed_at' => $order->confirmed_at ?: now(),
                     'processing_at' => now(),
                 ]);
                 $this->sendOrderInvoiceEmail($order);
+                $successAmount = $order->deposit_amount;
+                $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$order->order_code} qua Cổng MoMo Sandbox! Số tiền 50% còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
+            } else {
+                if ($order->payment_status !== 'paid') {
+                    $order->update([
+                        'payment_status' => 'paid',
+                        'shipping_status' => 'processing',
+                        'status_step' => 3,
+                        'paid_at' => now(),
+                        'confirmed_at' => $order->confirmed_at ?: now(),
+                        'processing_at' => now(),
+                    ]);
+                    $this->sendOrderInvoiceEmail($order);
+                }
+                $successAmount = $order->total_amount;
+                $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$order->order_code} qua Cổng MoMo Sandbox! Kho hàng BeeStyle đã tiếp nhận và đang xử lý đóng gói sản phẩm.";
             }
 
             return redirect()->route('client.home')
                 ->with('payment_success_order', $order->order_code)
-                ->with('payment_success_amount', $order->total_amount)
+                ->with('payment_success_amount', $successAmount)
                 ->with('payment_success_method', 'Cổng Thanh Toán MoMo Sandbox')
-                ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$order->order_code} qua Cổng MoMo Sandbox! Kho hàng BeeStyle đã tiếp nhận và đang xử lý đóng gói sản phẩm.");
+                ->with('success', $successMsg);
         }
 
         // Khách hàng hủy giao dịch trên MoMo hoặc giao dịch thất bại
@@ -505,16 +576,30 @@ class CheckoutController extends Controller
 
         $resultCode = (int)($data['resultCode'] ?? -1);
         if ($resultCode === 0) {
-            if ($order->payment_status !== 'paid') {
+            $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+            if ($isDeposit) {
                 $order->update([
-                    'payment_status' => 'paid',
+                    'deposit_status' => 'paid',
+                    'deposit_paid_at' => now(),
+                    'payment_status' => 'deposit_paid',
                     'shipping_status' => 'processing',
                     'status_step' => 3,
-                    'paid_at' => now(),
                     'confirmed_at' => $order->confirmed_at ?: now(),
                     'processing_at' => now(),
                 ]);
                 $this->sendOrderInvoiceEmail($order);
+            } else {
+                if ($order->payment_status !== 'paid') {
+                    $order->update([
+                        'payment_status' => 'paid',
+                        'shipping_status' => 'processing',
+                        'status_step' => 3,
+                        'paid_at' => now(),
+                        'confirmed_at' => $order->confirmed_at ?: now(),
+                        'processing_at' => now(),
+                    ]);
+                    $this->sendOrderInvoiceEmail($order);
+                }
             }
         }
 
@@ -547,21 +632,39 @@ class CheckoutController extends Controller
     public function zalopaySuccess($code)
     {
         $order = Order::where('order_code', $code)->firstOrFail();
-        $order->update([
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 3,
-            'paid_at' => now(),
-            'confirmed_at' => $order->confirmed_at ?: now(),
-            'processing_at' => now(),
-        ]);
+        
+        $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+        if ($isDeposit) {
+            $order->update([
+                'deposit_status' => 'paid',
+                'deposit_paid_at' => now(),
+                'payment_status' => 'deposit_paid',
+                'shipping_status' => 'processing',
+                'status_step' => 3,
+                'confirmed_at' => $order->confirmed_at ?: now(),
+                'processing_at' => now(),
+            ]);
+            $successAmount = $order->deposit_amount;
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$code} qua ZaloPay! Số tiền còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
+        } else {
+            $order->update([
+                'payment_status' => 'paid',
+                'shipping_status' => 'processing',
+                'status_step' => 3,
+                'paid_at' => now(),
+                'confirmed_at' => $order->confirmed_at ?: now(),
+                'processing_at' => now(),
+            ]);
+            $successAmount = $order->total_amount;
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví ZaloPay! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.";
+        }
         $this->sendOrderInvoiceEmail($order);
 
         return redirect()->route('client.home')
             ->with('payment_success_order', $code)
-            ->with('payment_success_amount', $order->total_amount)
+            ->with('payment_success_amount', $successAmount)
             ->with('payment_success_method', 'Ví Điện Tử ZaloPay')
-            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví ZaloPay! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+            ->with('success', $successMsg);
     }
 
     /**

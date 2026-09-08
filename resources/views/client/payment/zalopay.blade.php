@@ -82,12 +82,31 @@
             </div>
 
             <!-- TỔNG TIỀN NỔI BẬT -->
-            <div class="p-3 rounded-3 text-center my-3" style="background: #f0f9ff; border: 1.5px dashed #008fe5;">
-              <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Số tiền thanh toán</span>
-              <h2 class="fw-black mb-0 font-monospace" style="color: #0056b3;">
-                {{ number_format($order->total_amount, 0, ',', '.') }}₫
-              </h2>
-            </div>
+            @php
+              $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+              $payAmount = $isDeposit ? $order->deposit_amount : $order->total_amount;
+            @endphp
+            @if($isDeposit)
+              <div class="p-3 rounded-3 text-center my-3" style="background: #fffbeb; border: 1.5px dashed #f59e0b;">
+                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill mb-1">
+                  <i class="fa-solid fa-shield-halved me-1"></i> ĐẶT CỌC 50%
+                </span>
+                <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Số tiền cọc cần chuyển (50%)</span>
+                <h2 class="fw-black mb-1 font-monospace text-danger">
+                  {{ number_format($order->deposit_amount, 0, ',', '.') }}₫
+                </h2>
+                <div class="small text-muted border-top pt-1 mt-1">
+                  Còn lại thu COD khi nhận hàng: <strong class="text-dark">{{ number_format($order->remaining_amount, 0, ',', '.') }}₫</strong>
+                </div>
+              </div>
+            @else
+              <div class="p-3 rounded-3 text-center my-3" style="background: #f0f9ff; border: 1.5px dashed #008fe5;">
+                <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Số tiền thanh toán</span>
+                <h2 class="fw-black mb-0 font-monospace" style="color: #0056b3;">
+                  {{ number_format($order->total_amount, 0, ',', '.') }}₫
+                </h2>
+              </div>
+            @endif
 
             <!-- DANH SÁCH SẢN PHẨM THU GỌN -->
             <div class="pt-2">
@@ -124,7 +143,7 @@
 
             <!-- DYNAMIC QR CODE TECHCOMBANK -->
             @php
-              $zaloQrUrl = "https://img.vietqr.io/image/TCB-77427842310105-compact2.png?amount=" . $order->total_amount . "&addInfo=" . urlencode($order->order_code) . "&accountName=" . urlencode("NGUYEN XUAN BAC");
+              $zaloQrUrl = "https://img.vietqr.io/image/TCB-77427842310105-compact2.png?amount=" . $payAmount . "&addInfo=" . urlencode($order->order_code) . "&accountName=" . urlencode("NGUYEN XUAN BAC");
             @endphp
             <div class="p-2.5 rounded-3 border position-relative my-2 shadow-xs" style="background: #f0f9ff;">
               <img src="{{ $zaloQrUrl }}" alt="ZaloPay QR Code" style="max-width: 240px; width: 100%; height: auto;" class="rounded mx-auto d-block">
@@ -136,6 +155,7 @@
             <div class="text-start bg-light p-2.5 rounded-3 small text-muted my-2.5" style="font-size: 0.76rem;">
               <div><strong class="text-dark">Chủ TK:</strong> <span class="text-dark fw-bold">NGUYEN XUAN BAC</span></div>
               <div><strong class="text-dark">Ngân Hàng:</strong> Techcombank - STK: <strong class="text-primary font-monospace">77427842310105</strong></div>
+              <div><strong class="text-dark">Số tiền cần chuyển:</strong> <strong class="text-danger font-monospace fs-6">{{ number_format($payAmount, 0, ',', '.') }}₫</strong> @if($isDeposit)<span class="badge bg-warning text-dark ms-1">Cọc 50%</span>@endif</div>
               <div><strong class="text-dark">Nội Dung:</strong> <span class="text-primary fw-bold font-monospace">{{ $order->order_code }}</span></div>
             </div>
 
@@ -143,7 +163,7 @@
             <div class="text-start bg-light p-2.5 rounded-3 small text-muted my-2" style="font-size: 0.76rem;">
               <div class="mb-1"><strong class="text-dark">Bước 1:</strong> Mở ứng dụng <strong>ZaloPay</strong>, <strong>Zalo</strong> hoặc App Bank.</div>
               <div class="mb-1"><strong class="text-dark">Bước 2:</strong> Quét mã QR và kiểm tra số tiền.</div>
-              <div><strong class="text-dark">Bước 3:</strong> Chuyển tiền $\rightarrow$ Hệ thống tự động xác nhận ngay!</div>
+              <div><strong class="text-dark">Bước 3:</strong> Chuyển tiền &rarr; Hệ thống tự động xác nhận ngay!</div>
             </div>
 
             <!-- NÚT THAO TÁC & HỦY ĐƠN -->
@@ -151,7 +171,7 @@
               @csrf
               <button type="submit" class="btn text-white w-100 py-2.5 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
                       style="background: linear-gradient(135deg, #008fe5, #0056b3);">
-                <i class="fa-solid fa-circle-check"></i> Tôi Đã Chuyển Khoản Xong (Xác Nhận Ngay)
+                <i class="fa-solid fa-circle-check"></i> {{ $isDeposit ? 'Tôi Đã Chuyển Khoản 50% Tiền Cọc Xong (Xác Nhận Ngay)' : 'Tôi Đã Chuyển Khoản Xong (Xác Nhận Ngay)' }}
               </button>
             </form>
 

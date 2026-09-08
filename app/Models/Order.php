@@ -32,6 +32,14 @@ class Order extends Model
         'total_amount',
         'coupon_code',
         'admin_notes',
+        'delivery_proof_image',
+        'delivery_proof_note',
+        'delivery_proof_at',
+        'is_deposit_required',
+        'deposit_amount',
+        'remaining_amount',
+        'deposit_status',
+        'deposit_paid_at',
         'review_notified',
         'cancel_reason',
         'cancelled_by',
@@ -50,6 +58,10 @@ class Order extends Model
         'discount_amount' => 'integer',
         'shipping_fee' => 'integer',
         'total_amount' => 'integer',
+        'is_deposit_required' => 'boolean',
+        'deposit_amount' => 'integer',
+        'remaining_amount' => 'integer',
+        'deposit_paid_at' => 'datetime',
         'review_notified' => 'boolean',
         'cancelled_at' => 'datetime',
         'confirmed_at' => 'datetime',
@@ -58,6 +70,7 @@ class Order extends Model
         'delivered_at' => 'datetime',
         'completed_at' => 'datetime',
         'paid_at' => 'datetime',
+        'delivery_proof_at' => 'datetime',
     ];
 
     protected static function booted()
@@ -132,8 +145,17 @@ class Order extends Model
         return !$hasPendingReturn;
     }
 
+    public function isCustomerRejected(): bool
+    {
+        return $this->shipping_status === 'cancelled' && $this->cancelled_by === 'customer_rejected';
+    }
+
     public function getStatusLabelAttribute(): string
     {
+        if ($this->isCustomerRejected()) {
+            return 'Khách không nhận (Chuyển hoàn)';
+        }
+
         return match ($this->shipping_status) {
             'pending' => 'Chờ xác nhận',
             'confirmed' => 'Đã xác nhận',
@@ -150,8 +172,9 @@ class Order extends Model
     {
         return match (strtoupper((string)$this->payment_status)) {
             'PAID' => 'Đã thanh toán',
+            'DEPOSIT_PAID' => 'Đã đặt cọc 50%',
             'REFUNDED' => 'Đã hoàn tiền',
-            'PENDING_PAYMENT', 'UNPAID' => 'Chờ thanh toán',
+            'PENDING_PAYMENT', 'UNPAID' => ($this->is_deposit_required ? 'Chờ cọc 50%' : 'Chờ thanh toán'),
             'PAYMENT_FAILED' => 'Thanh toán thất bại',
             'CANCELLED' => 'Đã hủy',
             'EXPIRED' => 'Hết hạn',
@@ -162,10 +185,10 @@ class Order extends Model
     public function getPaymentMethodNameAttribute(): string
     {
         return match ($this->payment_method) {
-            'online' => 'Thanh toán Online (ATM/Banking/Visa)',
+            'online' => 'Chuyển khoản VietQR 24/7 (Techcombank)',
             'momo' => 'Thanh toán trực tuyến qua ví MoMo (Redirect/Deep Link)',
             'zalopay' => 'Ví Điện Tử ZaloPay',
-            'vietqr' => 'Chuyển khoản VietQR',
+            'vietqr' => 'Chuyển khoản VietQR 24/7 (Techcombank)',
             'vnpay' => 'Cổng VNPAY',
             'exchange' => 'Đơn Đổi Hàng (0₫ - Bảo hành RMA)',
             default => 'Thanh toán khi nhận hàng (COD)',
@@ -228,5 +251,27 @@ class Order extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Ảnh bằng chứng giao hàng bưu tá gửi về kho (Proof of Delivery - POD)
+     */
+    public function getDeliveryProofUrlAttribute(): ?string
+    {
+        if (empty($this->delivery_proof_image)) {
+            // Mặc định trả về ảnh mẫu bưu tá đã giao hàng nếu đơn đã giao hoặc hoàn tất
+            if (in_array($this->shipping_status, ['delivered', 'completed']) || ($this->status_step ?? 0) >= 5) {
+                return asset('assets/img/delivery-proofs/sample_pod_1.jpg');
+            }
+            return null;
+        }
+
+        if (str_starts_with($this->delivery_proof_image, 'http') 
+            || str_starts_with($this->delivery_proof_image, '/') 
+            || str_starts_with($this->delivery_proof_image, 'assets/')) {
+            return asset($this->delivery_proof_image);
+        }
+
+        return asset('storage/' . $this->delivery_proof_image);
     }
 }
