@@ -74,6 +74,7 @@ class Order extends Model
         'completed_at'              => 'datetime',
         'paid_at'                   => 'datetime',
         'delivery_proof_at'         => 'datetime',
+        'shipping_address_snapshot' => 'array',
     ];
 
     protected static function booted()
@@ -92,11 +93,13 @@ class Order extends Model
                 $order->status_step = $stepMap[$order->shipping_status];
             }
 
-            // Tự động chuyển payment_status = paid cho đơn COD khi giao hàng thành công hoặc hoàn tất
+            // Tự động chuyển payment_status = paid cho đơn COD khi giao hàng thành công hoặc hoàn tất (trừ khi đã hoàn tiền - refunded)
             if (in_array($order->shipping_status, ['delivered', 'completed']) && $order->payment_method === 'cod') {
-                $order->payment_status = 'paid';
-                if (!$order->paid_at) {
-                    $order->paid_at = now();
+                if ($order->payment_status !== 'refunded') {
+                    $order->payment_status = 'paid';
+                    if (!$order->paid_at) {
+                        $order->paid_at = now();
+                    }
                 }
             }
         });
@@ -152,6 +155,44 @@ class Order extends Model
     public function isCustomerRejected(): bool
     {
         return $this->shipping_status === 'cancelled' && $this->cancelled_by === 'customer_rejected';
+    }
+
+    /**
+     * Danh sách ma trận các trạng thái hợp lệ tiếp theo được phép chuyển từ trạng thái hiện tại (State Machine)
+     */
+    public function getAllowedNextStatuses(): array
+    {
+        $transitions = [
+            'pending'    => ['confirmed', 'cancelled'],
+            'confirmed'  => ['processing', 'cancelled'],
+            'processing' => ['shipping', 'cancelled'],
+            'shipping'   => ['delivered', 'cancelled'],
+            'delivered'  => ['completed'],
+            'completed'  => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái
+            'cancelled'  => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái
+        ];
+
+        return $transitions[$this->shipping_status] ?? [];
+    }
+
+    /**
+     * Kiểm tra xem đơn hàng có được phép chuyển sang trạng thái mới hay không
+     */
+    public function canTransitionTo(string $newStatus): bool
+    {
+        if ($this->shipping_status === $newStatus) {
+            return true; // Giữ nguyên trạng thái hiện tại (cho phép update ghi chú hoặc payment_status)
+        }
+
+        return in_array($newStatus, $this->getAllowedNextStatuses(), true);
+    }
+
+    /**
+     * Kiểm tra xem đơn hàng có đang ở trạng thái đóng (hoàn tất hoặc đã hủy) hay không
+     */
+    public function isFinalStatus(): bool
+    {
+        return in_array($this->shipping_status, ['completed', 'cancelled'], true);
     }
 
     public function getStatusLabelAttribute(): string

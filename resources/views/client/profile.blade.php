@@ -267,32 +267,37 @@
                     </div>
                   @endif
 
-                  <!-- Order Items List -->
+                  <!-- Order Items List with Review & Return Buttons -->
                   <div class="space-y-3">
                     @foreach($order->items as $item)
-                      <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-neutral-200/80">
-                        <div class="flex items-center gap-3">
+                      <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-neutral-200/80 hover:border-neutral-300 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0 pr-2">
                           <div class="w-12 h-14 bg-neutral-100 rounded-lg border border-neutral-200 overflow-hidden shrink-0">
                             <img src="{{ asset($item->product->primaryImage->image_path ?? $item->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop') }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover">
                           </div>
-                          <div>
-                            <a href="{{ route('client.products.show', $item->product_id ?: 1) }}" class="font-semibold text-neutral-900 hover:text-amber-800 transition-colors block line-clamp-1">
+                          <div class="min-w-0">
+                            <a href="{{ route('client.products.show', $item->product_id ?: 1) }}" class="font-semibold text-neutral-900 hover:text-amber-800 transition-colors block line-clamp-1 text-xs">
                               {{ $item->product_name }}
                             </a>
                             <span class="text-[11px] text-neutral-500">Màu: {{ $item->color ?? 'Chuẩn' }} | Size: {{ $item->size ?? 'M' }} • SL: x{{ $item->quantity }}</span>
                           </div>
                         </div>
 
-                        <div class="text-right flex flex-col items-end gap-1.5">
+                        <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
                           <span class="font-serif-luxury font-bold text-neutral-950">
                             {{ number_format($item->price * $item->quantity, 0, ',', '.') }}₫
                           </span>
                           
-                          <!-- Nút Đánh Giá Nhanh -->
+                          <!-- Nút Đổi Trả & Đánh Giá Cho Đơn Đã Giao -->
                           @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
-                            <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: 1 }}, '{{ addslashes($item->product_name) }}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 rounded font-semibold text-[10px] flex items-center gap-1 transition-colors">
-                              <i data-lucide="star" class="w-3 h-3 text-amber-600"></i> Đánh giá
-                            </button>
+                            <div class="flex items-center gap-1.5">
+                              <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, {{ $item->id }})" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-md font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-sm" title="Yêu cầu đổi trả riêng cho sản phẩm này">
+                                <i data-lucide="rotate-ccw" class="w-3 h-3 text-amber-700"></i> Đổi trả
+                              </button>
+                              <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: 1 }}, '{{ addslashes($item->product_name) }}')" class="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-md font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-sm">
+                                <i data-lucide="star" class="w-3 h-3 text-amber-400"></i> Đánh giá
+                              </button>
+                            </div>
                           @endif
                         </div>
                       </div>
@@ -329,10 +334,10 @@
                         </button>
                       @endif
 
-                      <!-- Yêu cầu đổi trả RMA 30 ngày -->
+                      <!-- Yêu cầu đổi trả RMA 30 ngày (Toàn bộ đơn hàng) -->
                       @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
-                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Trả / Hoàn Tiền
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Trả / Hoàn Tiền (30 Ngày)
                         </button>
                       @endif
 
@@ -452,7 +457,7 @@
               <i data-lucide="rotate-ccw" class="w-12 h-12 mx-auto text-neutral-300 mb-3 stroke-1"></i>
               <p class="font-medium text-neutral-800 text-sm">Bạn chưa có yêu cầu đổi trả hoặc hoàn tiền nào</p>
               <p class="text-neutral-400 mt-1 max-w-md mx-auto">
-                Khi nhận được hàng, nếu không vừa size hoặc không ưng ý, bạn có thể bấm nút <strong>"Đổi Trả / Hoàn Tiền"</strong> trong mục <strong>Đơn Hàng Của Tôi</strong> để được hỗ trợ 100% miễn phí.
+                Khi nhận được hàng, nếu không vừa size hoặc không ưng ý, bạn có thể bấm nút <strong>"Đổi Trả"</strong> tại từng sản phẩm hoặc <strong>"Đổi Trả / Hoàn Tiền"</strong> của đơn hàng để được hỗ trợ 100% miễn phí.
               </p>
             </div>
           @else
@@ -493,21 +498,63 @@
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-neutral-700">
-                    <div>
+                    <div class="space-y-2">
                       <p><strong>Hình thức:</strong> {{ $ret->type === 'exchange' ? 'Đổi Size / Đổi Màu' : 'Trả Hàng & Hoàn Tiền' }}</p>
-                      <p class="mt-1"><strong>Lý do:</strong> {{ $ret->reason }}</p>
+                      <p><strong>Lý do:</strong> {{ $ret->reason }}</p>
+                      
+                      @if($ret->exchange_size || $ret->exchange_color)
+                        <p class="text-amber-800 font-semibold bg-amber-50 p-2 rounded border border-amber-200">
+                          Yêu cầu đổi sang: {{ $ret->exchange_size ? 'Size ' . $ret->exchange_size : '' }} {{ $ret->exchange_color ? 'Màu ' . $ret->exchange_color : '' }}
+                        </p>
+                      @endif
+
+                      <!-- Sản phẩm đổi trả cụ thể -->
+                      @if($ret->orderItem)
+                        <div class="p-2.5 bg-white rounded-xl border border-neutral-200 flex items-center gap-3">
+                          <img src="{{ asset($ret->orderItem->product->primaryImage->image_path ?? $ret->orderItem->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop') }}" class="w-12 h-14 rounded-lg object-cover border border-neutral-200 shrink-0">
+                          <div class="min-w-0 text-xs">
+                            <span class="text-[10px] font-bold uppercase text-amber-800 block">Sản phẩm đổi trả:</span>
+                            <strong class="text-neutral-900 block truncate">{{ $ret->orderItem->product_name }}</strong>
+                            <span class="text-[11px] text-neutral-500">Màu: {{ $ret->orderItem->color ?? 'Chuẩn' }} | Size: {{ $ret->orderItem->size ?? 'M' }} • SL: x{{ $ret->orderItem->quantity }}</span>
+                          </div>
+                        </div>
+                      @else
+                        <div class="p-2 bg-neutral-100 rounded-lg text-[11px] text-neutral-600">
+                          <strong>Phạm vi:</strong> Toàn bộ sản phẩm trong đơn hàng
+                        </div>
+                      @endif
+
+                      @if($ret->customer_notes)
+                        <p class="text-[11px] text-neutral-600 bg-white p-2 rounded-lg border border-neutral-200"><strong>Ghi chú:</strong> {{ $ret->customer_notes }}</p>
+                      @endif
+
                       @if($ret->admin_notes)
-                        <div class="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-900">
-                          <strong>Ghi chú từ Xưởng:</strong> {{ $ret->admin_notes }}
+                        <div class="p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-[11px]">
+                          <strong>Ghi chú từ Xưởng may:</strong> {{ $ret->admin_notes }}
                         </div>
                       @endif
                     </div>
-                    <div class="bg-white p-3 rounded-xl border border-neutral-200">
-                      <span class="font-semibold block mb-1">Tài khoản nhận tiền hoàn:</span>
-                      <p class="font-mono text-neutral-900">{{ $ret->bank_name ?? $user->bank_name ?? 'Chưa cung cấp' }} — {{ $ret->bank_account_number ?? $user->bank_account_number ?? '' }}</p>
-                      <p class="text-neutral-500 font-mono text-[11px]">{{ $ret->bank_account_name ?? $user->bank_account_name ?? '' }}</p>
-                      @if($ret->refund_amount)
-                        <p class="mt-2 text-rose-700 font-bold">Số tiền hoàn trả: {{ number_format($ret->refund_amount, 0, ',', '.') }}₫</p>
+
+                    <div class="space-y-3">
+                      <div class="bg-white p-3.5 rounded-xl border border-neutral-200 space-y-1">
+                        <span class="font-semibold block text-neutral-900">Tài khoản nhận tiền hoàn:</span>
+                        <p class="font-mono text-neutral-900">{{ $ret->bank_name ?? $user->bank_name ?? 'Chưa cung cấp' }} — {{ $ret->bank_account_number ?? $user->bank_account_number ?? '' }}</p>
+                        <p class="text-neutral-500 font-mono text-[11px]">{{ $ret->bank_account_name ?? $user->bank_account_name ?? '' }}</p>
+                        @if($ret->refund_amount)
+                          <p class="mt-2 text-rose-700 font-bold font-serif-luxury text-sm">Số tiền hoàn trả: {{ number_format($ret->refund_amount, 0, ',', '.') }}₫</p>
+                        @endif
+                      </div>
+
+                      <!-- Ảnh minh chứng đã tải lên -->
+                      @if(!empty($ret->image_proofs) && is_array($ret->image_proofs) && count($ret->image_proofs) > 0)
+                        <div class="space-y-1 bg-white p-3 rounded-xl border border-neutral-200">
+                          <span class="text-[10px] uppercase font-bold text-neutral-600 block">Ảnh minh chứng đã gửi ({{ count($ret->image_proofs) }}):</span>
+                          <div class="flex gap-2 overflow-x-auto py-1">
+                            @foreach($ret->image_proofs as $img)
+                              <img src="{{ asset($img) }}" class="w-12 h-14 rounded-lg object-cover border border-neutral-200 shrink-0 cursor-pointer hover:opacity-80 transition-opacity" onclick="window.open('{{ asset($img) }}', '_blank')">
+                            @endforeach
+                          </div>
+                        </div>
                       @endif
                     </div>
                   </div>
@@ -863,27 +910,50 @@
         <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Yêu Cầu Đổi Trả / Hoàn Tiền (RMA)</h3>
         <p class="text-[11px] text-neutral-500" id="returnModalOrderCode">Đơn hàng #BS-000</p>
       </div>
-      <button onclick="closeReturnModal()" class="text-neutral-400 hover:text-black">&times;</button>
+      <button onclick="closeReturnModal()" class="text-neutral-400 hover:text-black text-lg">&times;</button>
     </div>
 
     <form id="returnOrderForm" method="POST" enctype="multipart/form-data" class="space-y-4">
       @csrf
+
+      <!-- Khối Chọn Sản Phẩm Cần Đổi Trả (Kèm Ảnh Minh Họa, Tên, Phân Loại, Giá) -->
       <div>
-        <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Hình Thức Mong Muốn *</label>
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="block font-semibold uppercase text-neutral-700">1. Chọn Sản Phẩm Cần Đổi Trả / Hoàn Tiền *</label>
+          <span id="returnSelectedItemBadge" class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">Toàn bộ đơn hàng</span>
+        </div>
+        <div id="returnOrderItemsList" class="space-y-2 max-h-52 overflow-y-auto pr-1 border border-neutral-200 rounded-xl p-2 bg-neutral-50/60">
+          <!-- Populated dynamically by JS with thumbnail images, names, colors, sizes, prices -->
+        </div>
+      </div>
+      
+      <!-- Hình thức mong muốn -->
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1.5">2. Hình Thức Mong Muốn *</label>
         <div class="grid grid-cols-2 gap-2">
-          <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100">
-            <input type="radio" name="type" value="return_refund" checked class="text-neutral-900">
+          <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
+            <input type="radio" name="type" value="return_refund" checked onchange="toggleReturnTypeFields('return_refund')" class="text-neutral-900">
             <span><strong>Trả Hàng &amp; Hoàn Tiền</strong></span>
           </label>
-          <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100">
-            <input type="radio" name="type" value="exchange" class="text-neutral-900">
+          <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
+            <input type="radio" name="type" value="exchange" onchange="toggleReturnTypeFields('exchange')" class="text-neutral-900">
             <span><strong>Đổi Size / Đổi Màu</strong></span>
           </label>
         </div>
       </div>
 
+      <!-- Tùy chọn đổi size / màu nếu chọn Đổi hàng -->
+      <div id="exchangeFieldsBox" class="hidden p-3 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
+        <span class="font-bold text-amber-900 uppercase text-[10px] block">Yêu Cầu Đổi Size / Đổi Màu Cụ Thể:</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" name="exchange_size" placeholder="Size mong muốn (VD: L, XL, 41...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+          <input type="text" name="exchange_color" placeholder="Màu mong muốn (VD: Đen, Trắng...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+        </div>
+      </div>
+
+      <!-- Lý do đổi trả -->
       <div>
-        <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Cụ Thể *</label>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">3. Lý Do Đổi Trả *</label>
         <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
           <option value="" disabled selected>-- Chọn lý do đổi trả --</option>
           <option value="Mặc không vừa kích cỡ (Yêu cầu đổi sang size khác)">Mặc không vừa kích cỡ (Yêu cầu đổi size)</option>
@@ -894,15 +964,55 @@
         </select>
       </div>
 
-      <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 space-y-2">
-        <span class="font-bold text-neutral-900 uppercase text-[10px] block">Thông Tin Nhận Tiền Hoàn:</span>
-        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Techcombank' }}" placeholder="Tên Ngân Hàng" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
-        <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" placeholder="Số Tài Khoản" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+      <!-- Mô tả chi tiết -->
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">4. Mô Tả Chi Tiết Vấn Đề (Tùy chọn)</label>
+        <textarea name="customer_notes" rows="2" placeholder="Ghi chú chi tiết về tình trạng sản phẩm, yêu cầu đổi size/màu mong muốn..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950"></textarea>
+      </div>
+
+      <!-- BẮT BUỘC: Upload Hình Ảnh Minh Chứng -->
+      <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
+            <i data-lucide="camera" class="w-4 h-4 text-amber-700"></i>
+            <span>5. Ảnh Minh Chứng Sản Phẩm / Tem Mác <span class="text-rose-600">* (Bắt buộc)</span></span>
+          </label>
+          <span class="text-[10px] text-amber-800 font-semibold">1 - 5 ảnh (Tối đa 8MB/ảnh)</span>
+        </div>
+        <p class="text-[11px] text-neutral-500 leading-tight">
+          Vui lòng chụp rõ tem mác Atelier, toàn cảnh sản phẩm và vị trí lỗi (nếu có).
+        </p>
+        <input type="file" id="returnImageProofsInput" name="image_proofs[]" multiple accept="image/jpeg,image/png,image/jpg,image/webp" required onchange="handleReturnImagesPreview(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-neutral-800 cursor-pointer">
+        <div id="returnImagesPreviewList" class="flex gap-2 flex-wrap empty:hidden pt-1"></div>
+      </div>
+
+      <!-- TÙY CHỌN: Upload Video Clip Unbox -->
+      <div class="p-3 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
+            <i data-lucide="video" class="w-4 h-4 text-neutral-700"></i>
+            <span>6. Video Clip Unbox Mở Hộp (Tùy chọn)</span>
+          </label>
+          <span class="text-[10px] text-neutral-500">Tối đa 50MB (MP4, MOV)</span>
+        </div>
+        <input type="file" id="returnVideoUnboxInput" name="video_unbox" accept="video/mp4,video/mov,video/avi,video/webm" onchange="handleReturnVideoPreview(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-800 file:text-white hover:file:bg-neutral-700 cursor-pointer">
+        <div id="returnVideoPreviewBox" class="hidden p-2 bg-neutral-900 text-white rounded-lg flex items-center justify-between text-xs">
+          <span id="returnVideoPreviewName" class="truncate max-w-[260px] font-mono text-[11px]">video.mp4</span>
+          <button type="button" onclick="removeReturnVideo()" class="text-rose-400 hover:text-white font-bold ml-2">Xóa ✕</button>
+        </div>
+      </div>
+
+      <!-- Thông tin ngân hàng nhận tiền hoàn -->
+      <div id="returnBankInfoBox" class="p-3 bg-brand-50 rounded-xl border border-brand-200 space-y-2">
+        <span class="font-bold text-neutral-900 uppercase text-[10px] block">7. Thông Tin Nhận Tiền Hoàn:</span>
+        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Vietcombank' }}" placeholder="Tên Ngân Hàng (VD: Vietcombank, MB Bank...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+        <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" placeholder="Số Tài Khoản Ngân Hàng" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs font-mono">
         <input type="text" name="bank_account_name" value="{{ $user->bank_account_name ?? $user->name }}" placeholder="Tên Chủ Tài Khoản (IN HOA)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs uppercase">
       </div>
 
-      <button type="submit" class="w-full py-3 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow">
-        Gửi Yêu Cầu Hoàn Tiền / Đổi Trả
+      <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2">
+        <i data-lucide="check-circle" class="w-4 h-4"></i>
+        <span>Gửi Yêu Cầu Hoàn Tiền / Đổi Trả</span>
       </button>
     </form>
   </div>
@@ -1058,7 +1168,31 @@
 @endsection
 
 @push('scripts')
+@php
+  $ordersJsonData = $orders->map(function($o) {
+    return [
+      'id' => $o->id,
+      'code' => $o->order_code,
+      'total_amount' => $o->total_amount,
+      'items' => $o->items->map(function($it) {
+        return [
+          'id' => $it->id,
+          'product_id' => $it->product_id,
+          'name' => $it->product_name,
+          'color' => $it->color,
+          'size' => $it->size,
+          'quantity' => $it->quantity,
+          'price' => $it->price,
+          'subtotal' => $it->price * $it->quantity,
+          'thumbnail' => asset($it->product->primaryImage->image_path ?? $it->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop'),
+        ];
+      })
+    ];
+  });
+@endphp
 <script>
+  const userOrdersData = @json($ordersJsonData);
+
   function switchProfileTab(tabName) {
     document.querySelectorAll('.profile-panel').forEach(p => p.classList.add('hidden'));
     document.querySelectorAll('.profile-tab-btn').forEach(b => {
@@ -1109,13 +1243,178 @@
   }
 
   // RMA Return Modal
-  function openReturnModal(orderId, orderCode, totalAmount) {
+  let selectedReturnFiles = [];
+
+  function openReturnModal(orderId, orderCode, totalAmount, preselectedItemId = null) {
     document.getElementById('returnModalOrderCode').textContent = `Đơn hàng #${orderCode} (Tổng: ${Number(totalAmount).toLocaleString('vi-VN')}₫)`;
     document.getElementById('returnOrderForm').action = `/don-hang/${orderId}/yeu-cau-doi-tra`;
+
+    // Find order in JSON
+    const order = userOrdersData.find(o => o.id === orderId);
+    const itemsListContainer = document.getElementById('returnOrderItemsList');
+    const badge = document.getElementById('returnSelectedItemBadge');
+
+    if (order && itemsListContainer) {
+      itemsListContainer.innerHTML = '';
+
+      // Option 0: Toàn bộ đơn hàng (if multiple items)
+      if (order.items && order.items.length > 1) {
+        const isAllChecked = !preselectedItemId;
+        const allCard = document.createElement('label');
+        allCard.className = `p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${isAllChecked ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-neutral-200 hover:border-neutral-300'}`;
+        allCard.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <input type="radio" name="order_item_id" value="" ${isAllChecked ? 'checked' : ''} onchange="handleReturnItemSelected(this, 'Toàn bộ đơn hàng', ${order.total_amount})" class="text-neutral-900">
+            <div class="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-700 shrink-0">
+              <i data-lucide="package" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <strong class="text-xs text-neutral-900 block">Toàn bộ đơn hàng (${order.items.length} sản phẩm)</strong>
+              <span class="text-[10px] text-neutral-400">Yêu cầu đổi trả cho tất cả các món trong đơn #${order.code}</span>
+            </div>
+          </div>
+          <span class="font-serif-luxury font-bold text-neutral-900 text-xs">${Number(order.total_amount).toLocaleString('vi-VN')}₫</span>
+        `;
+        itemsListContainer.appendChild(allCard);
+      }
+
+      // Each product item
+      (order.items || []).forEach(it => {
+        const isChecked = (preselectedItemId && it.id === preselectedItemId) || (order.items.length === 1);
+        const itemCard = document.createElement('label');
+        itemCard.className = `p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${isChecked ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-neutral-200 hover:border-neutral-300'}`;
+        itemCard.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0 pr-2">
+            <input type="radio" name="order_item_id" value="${it.id}" ${isChecked ? 'checked' : ''} onchange="handleReturnItemSelected(this, '${it.name.replace(/'/g, "\\'")}', ${it.subtotal})" class="text-neutral-900 shrink-0">
+            <img src="${it.thumbnail}" class="w-10 h-12 rounded object-cover border border-neutral-200 shrink-0">
+            <div class="min-w-0">
+              <strong class="text-xs text-neutral-900 block truncate">${it.name}</strong>
+              <span class="text-[11px] text-neutral-500">Màu: ${it.color || 'Chuẩn'} | Size: ${it.size || 'M'} • SL: x${it.quantity}</span>
+            </div>
+          </div>
+          <span class="font-serif-luxury font-bold text-neutral-900 text-xs shrink-0">${Number(it.subtotal).toLocaleString('vi-VN')}₫</span>
+        `;
+        itemsListContainer.appendChild(itemCard);
+      });
+
+      // Update badge text
+      if (preselectedItemId) {
+        const selItem = order.items.find(it => it.id === preselectedItemId);
+        if (badge && selItem) {
+          badge.textContent = `${selItem.name} (${Number(selItem.subtotal).toLocaleString('vi-VN')}₫)`;
+        }
+      } else {
+        if (badge) {
+          badge.textContent = (order.items && order.items.length > 1) ? `Toàn bộ đơn hàng (${Number(order.total_amount).toLocaleString('vi-VN')}₫)` : `${order.items[0]?.name} (${Number(order.items[0]?.subtotal).toLocaleString('vi-VN')}₫)`;
+        }
+      }
+    }
+
+    // Reset uploads
+    selectedReturnFiles = [];
+    const previewContainer = document.getElementById('returnImagesPreviewList');
+    if (previewContainer) previewContainer.innerHTML = '';
+    const imgInput = document.getElementById('returnImageProofsInput');
+    if (imgInput) imgInput.value = '';
+    removeReturnVideo();
+    toggleReturnTypeFields('return_refund');
+
     document.getElementById('returnOrderModal').classList.remove('hidden');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  function handleReturnItemSelected(radio, label, amount) {
+    const badge = document.getElementById('returnSelectedItemBadge');
+    if (badge) {
+      badge.textContent = `${label} (${Number(amount).toLocaleString('vi-VN')}₫)`;
+    }
+    // Update active highlight on all item cards in the container
+    document.querySelectorAll('#returnOrderItemsList label').forEach(lbl => {
+      const r = lbl.querySelector('input[type="radio"]');
+      if (r && r.checked) {
+        lbl.className = 'p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-amber-50/80 border-amber-300 ring-1 ring-amber-300';
+      } else {
+        lbl.className = 'p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-white border-neutral-200 hover:border-neutral-300';
+      }
+    });
   }
   function closeReturnModal() {
     document.getElementById('returnOrderModal').classList.add('hidden');
+  }
+
+  function toggleReturnTypeFields(type) {
+    const exchangeBox = document.getElementById('exchangeFieldsBox');
+    if (exchangeBox) {
+      if (type === 'exchange') {
+        exchangeBox.classList.remove('hidden');
+      } else {
+        exchangeBox.classList.add('hidden');
+      }
+    }
+  }
+
+  function handleReturnImagesPreview(input) {
+    if (!input.files || input.files.length === 0) return;
+
+    Array.from(input.files).forEach(f => {
+      if (selectedReturnFiles.length < 5) {
+        selectedReturnFiles.push(f);
+      }
+    });
+
+    renderReturnImagesList();
+  }
+
+  function renderReturnImagesList() {
+    const container = document.getElementById('returnImagesPreviewList');
+    const input = document.getElementById('returnImageProofsInput');
+    if (!container || !input) return;
+
+    // Sync input files with DataTransfer
+    try {
+      const dt = new DataTransfer();
+      selectedReturnFiles.forEach(f => dt.items.add(f));
+      input.files = dt.files;
+    } catch(e) {}
+
+    container.innerHTML = '';
+    selectedReturnFiles.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const wrap = document.createElement('div');
+        wrap.className = 'relative w-16 h-20 rounded-lg border border-neutral-300 overflow-hidden shrink-0 group shadow-sm bg-neutral-100';
+        wrap.innerHTML = `
+          <img src="${e.target.result}" class="w-full h-full object-cover">
+          <button type="button" onclick="removeReturnImage(${idx})" class="absolute top-1 right-1 bg-neutral-900/80 hover:bg-neutral-950 text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full opacity-90 transition-opacity">✕</button>
+        `;
+        container.appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removeReturnImage(index) {
+    selectedReturnFiles.splice(index, 1);
+    renderReturnImagesList();
+  }
+
+  function handleReturnVideoPreview(input) {
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const previewBox = document.getElementById('returnVideoPreviewBox');
+    const nameEl = document.getElementById('returnVideoPreviewName');
+    if (!previewBox || !nameEl) return;
+
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    nameEl.textContent = `${file.name} (${sizeMB} MB)`;
+    previewBox.classList.remove('hidden');
+  }
+
+  function removeReturnVideo() {
+    const input = document.getElementById('returnVideoUnboxInput');
+    const previewBox = document.getElementById('returnVideoPreviewBox');
+    if (input) input.value = '';
+    if (previewBox) previewBox.classList.add('hidden');
   }
 
   // Cancel Order Modal

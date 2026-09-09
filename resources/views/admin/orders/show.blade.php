@@ -221,13 +221,15 @@
             </form>
           @endif
 
-          <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn HỦY đơn hàng #{{ $order->order_code }}? Toàn bộ sản phẩm sẽ được tự động hoàn lại vào kho hàng!')">
-            @csrf
-            <input type="hidden" name="shipping_status" value="cancelled">
-            <button type="submit" class="btn btn-sm btn-phoenix-danger">
-              <i class="fa-solid fa-xmark me-1"></i> Hủy Đơn
-            </button>
-          </form>
+          @if($order->canTransitionTo('cancelled'))
+            <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn HỦY đơn hàng #{{ $order->order_code }}? Toàn bộ sản phẩm sẽ được tự động hoàn lại vào kho hàng!')">
+              @csrf
+              <input type="hidden" name="shipping_status" value="cancelled">
+              <button type="submit" class="btn btn-sm btn-phoenix-danger">
+                <i class="fa-solid fa-xmark me-1"></i> Hủy Đơn
+              </button>
+            </form>
+          @endif
         </div>
       </div>
     @endif
@@ -348,18 +350,47 @@
       <div class="card-body">
         <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" enctype="multipart/form-data">
           @csrf
+          @if($order->isFinalStatus())
+            <div class="alert alert-subtle-success d-flex align-items-center gap-2 py-2 px-3 mb-3 fs-10 rounded">
+              <i class="fa-solid fa-lock text-success fs-9"></i>
+              <div>
+                <strong>Tiến trình đơn hàng đã kết thúc ({{ $order->status_label }}):</strong> 
+                Trạng thái vận chuyển đã được khóa an toàn để bảo vệ số liệu kế toán, đối soát bưu tá và điểm thưởng tích lũy của khách hàng.
+              </div>
+            </div>
+          @endif
+
           <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label fs-9 fw-semibold">Trạng thái vận chuyển:</label>
-              <select name="shipping_status" class="form-select">
-                <option value="pending" {{ $order->shipping_status === 'pending' ? 'selected' : '' }}>1. Chờ xác nhận đơn hàng</option>
-                <option value="confirmed" {{ $order->shipping_status === 'confirmed' ? 'selected' : '' }}>2. Đã xác nhận thông tin</option>
-                <option value="processing" {{ $order->shipping_status === 'processing' ? 'selected' : '' }}>3. Đang đóng gói bưu phẩm</option>
-                <option value="shipping" {{ $order->shipping_status === 'shipping' ? 'selected' : '' }}>4. Đang giao hàng bưu tá</option>
-                <option value="delivered" {{ $order->shipping_status === 'delivered' ? 'selected' : '' }}>5. Đã giao tới người nhận (POD)</option>
-                <option value="completed" {{ $order->shipping_status === 'completed' ? 'selected' : '' }}>6. Hoàn tất đơn hàng</option>
-                <option value="cancelled" {{ $order->shipping_status === 'cancelled' ? 'selected' : '' }}>0. Hủy đơn hàng (Hoàn kho)</option>
+              @php
+                $allStatusOptions = [
+                  'pending'    => '1. Chờ xác nhận đơn hàng',
+                  'confirmed'  => '2. Đã xác nhận thông tin',
+                  'processing' => '3. Đang đóng gói bưu phẩm',
+                  'shipping'   => '4. Đang giao hàng bưu tá',
+                  'delivered'  => '5. Đã giao tới người nhận (POD)',
+                  'completed'  => '6. Hoàn tất đơn hàng',
+                  'cancelled'  => '0. Hủy đơn hàng (Hoàn kho)',
+                ];
+              @endphp
+              <select name="shipping_status" class="form-select" {{ $order->isFinalStatus() ? 'disabled' : '' }}>
+                @foreach($allStatusOptions as $optKey => $optLabel)
+                  @php
+                    $isCurrent = $order->shipping_status === $optKey;
+                    $canSelect = $isCurrent || $order->canTransitionTo($optKey);
+                  @endphp
+                  <option value="{{ $optKey }}" {{ $isCurrent ? 'selected' : '' }} {{ !$canSelect ? 'disabled class=text-muted' : '' }}>
+                    {{ $optLabel }} {{ !$canSelect ? '(Đã qua bước này)' : ($isCurrent ? '— [Hiện tại]' : '') }}
+                  </option>
+                @endforeach
               </select>
+              @if($order->isFinalStatus())
+                <input type="hidden" name="shipping_status" value="{{ $order->shipping_status }}">
+              @endif
+              <small class="text-body-tertiary fs-11 mt-1 d-block">
+                <i class="fa-solid fa-shield-halved text-primary me-1"></i> Hệ thống tự động khóa các bước trước đó theo quy tắc vận hành TMĐT 1 chiều.
+              </small>
             </div>
 
             <div class="col-md-6">
@@ -367,7 +398,7 @@
               <select name="payment_status" class="form-select">
                 <option value="unpaid" {{ $order->payment_status === 'unpaid' ? 'selected' : '' }}>Chưa thanh toán</option>
                 <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Đã thanh toán</option>
-                <option value="refunded" {{ $order->payment_status === 'refunded' ? 'selected' : '' }}>Đã hoàn tiền</option>
+                <option value="refunded" {{ $order->payment_status === 'refunded' ? 'selected' : '' }}>Đã hoàn tiền (RMA)</option>
               </select>
             </div>
           </div>

@@ -135,7 +135,25 @@ class ReviewController extends Controller
             }
         }
     }
+
+    /**
+     * Cập nhật trạng thái duyệt/ẩn đánh giá
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $review = Review::findOrFail($id);
+        $status = $request->input('status', 'approved');
+        $review->update(['status' => $status]);
+        return back()->with('success', 'Trạng thái đánh giá đã được cập nhật thành công!');
+    }
+
+    /**
+     * Xóa đánh giá khỏi hệ thống
+     */
+    public function destroy($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->delete();
+        return back()->with('success', 'Đánh giá đã được xóa thành công!');
+    }
 }
-
-
-

@@ -51,11 +51,11 @@ class ProfileController extends Controller
         }
 
         $orders = Order::with(['items.product', 'returns'])->where('user_id', $user->id)->latest()->get();
-        $returns = \App\Models\OrderReturn::with(['order.items.product'])->where('user_id', $user->id)->latest()->get();
+        $returns = \App\Models\OrderReturn::with(['order.items.product', 'orderItem.product'])->where('user_id', $user->id)->latest()->get();
         $addresses = UserAddress::where('user_id', $user->id)->orderBy('is_default', 'desc')->latest()->get();
         $pendingReviewItems = method_exists($user, 'getPendingReviewItems') ? $user->getPendingReviewItems() : collect();
 
-        return view('client.profile', compact('user', 'orders', 'addresses', 'pendingReviewItems'));
+        return view('client.profile', compact('user', 'orders', 'addresses', 'pendingReviewItems', 'returns'));
     }
 
     /**
