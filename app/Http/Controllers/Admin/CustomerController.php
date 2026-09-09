@@ -75,6 +75,7 @@ class CustomerController extends Controller
 
         // Danh sách tất cả các tài khoản khách hàng đã từng mua hàng từ trước đến nay
         $allPurchasingCustomers = User::where('role', 'customer')
+            ->whereHas('orders', fn($q) => $q->where('shipping_status', '!=', 'cancelled'))
             ->withCount([
                 'orders' => fn($q) => $q->where('shipping_status', '!=', 'cancelled'),
                 'reviews'
@@ -82,7 +83,6 @@ class CustomerController extends Controller
             ->withSum([
                 'orders as total_spent' => fn($q) => $q->where('shipping_status', '!=', 'cancelled')
             ], 'total_amount')
-            ->having('orders_count', '>', 0)
             ->orderByDesc('total_spent')
             ->get();
 
