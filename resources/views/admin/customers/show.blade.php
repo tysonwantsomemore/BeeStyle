@@ -281,7 +281,10 @@
                   </div>
                   <p class="text-body-secondary fs-10 mb-0">
                     <i class="fa-solid fa-location-dot text-danger me-1"></i>
-                    <span>{{ $cAddr->address }}</span>@if($cAddr->ward)<span>, {{ $cAddr->ward }}</span>@endif@if($cAddr->district)<span>, {{ $cAddr->district }}</span>@endif@if($cAddr->city)<span>, {{ $cAddr->city }}</span>@endif
+                    <span>{{ $cAddr->address }}</span>
+                    @if($cAddr->ward)<span>, {{ $cAddr->ward }}</span>@endif
+                    @if($cAddr->district)<span>, {{ $cAddr->district }}</span>@endif
+                    @if($cAddr->city)<span>, {{ $cAddr->city }}</span>@endif
                   </p>
                 </div>
               @empty
