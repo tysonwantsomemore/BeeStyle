@@ -86,6 +86,19 @@ class User extends Authenticatable
         ];
     }
 
+    public function getActualTotalSpentAttribute(): int
+    {
+        if (array_key_exists('actual_total_spent', $this->attributes) && !is_null($this->attributes['actual_total_spent'])) {
+            return (int) $this->attributes['actual_total_spent'];
+        }
+
+        if ($this->relationLoaded('orders')) {
+            return (int) $this->orders->where('shipping_status', '!=', 'cancelled')->sum('total_amount');
+        }
+
+        return (int) ($this->total_spent ?? 0);
+    }
+
     public function getIsVerifiedAttribute(): bool
     {
         return $this->isVerified();
