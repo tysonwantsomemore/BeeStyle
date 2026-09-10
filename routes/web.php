@@ -148,11 +148,16 @@ Route::name('client.')->group(function () {
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
     Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
     Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-    Route::match(['delete', 'post'], '/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+
+    // FIX: bỏ {key} khỏi URI vì blade/JS gửi "cart_key" trong body, không trong URL.
+    Route::post('/gio-hang/xoa', [CartController::class, 'remove'])->name('cart.remove');
+
     Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
     Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
-    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-    Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
+
+    // FIX: đổi tên route để khớp với route("client.cart.apply-coupon") / route("client.cart.remove-coupon") trong blade JS.
+    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.apply-coupon');
+    Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.remove-coupon');
 
     /*
     |--------------------------------------------------------------------------
@@ -203,7 +208,7 @@ Route::name('client.')->group(function () {
         */
         Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
         Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
-        
+
         // Cổng Thanh Toán MoMo Gateway
         Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
         Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');

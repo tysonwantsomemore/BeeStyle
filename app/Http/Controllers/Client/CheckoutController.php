@@ -1,3 +1,51 @@
+<?php
+
+namespace App\Http\Controllers\Client;
+
+use App\Http\Controllers\Controller;
+use App\Models\Coupon;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Services\CartService;
+use App\Services\MomoService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class CheckoutController extends Controller
+{
+    public function index()
+    {
+        $cartData = CartService::getCart();
+
+        if (empty($cartData['items'])) {
+            return redirect()->route('client.cart')
+                ->with('error', 'Giỏ hàng của bạn đang trống.');
+        }
+
+        $user = Auth::user();
+        $addresses = $user ? $user->addresses()->get() : collect();
+        $defaultAddress = $addresses->firstWhere('is_default', true) ?? $addresses->first();
+        $depositInfo = CartService::checkDepositPolicy($cartData['items'], $cartData['total'], $user);
+        $coupons = Coupon::query()->where('is_active', true)->get();
+
+        return view('client.checkout', [
+            'user' => $user,
+            'addresses' => $addresses,
+            'defaultAddress' => $defaultAddress,
+            'cartItems' => $cartData['items'],
+            'cartCount' => $cartData['count'],
+            'subtotal' => $cartData['subtotal'],
+            'discount' => $cartData['discount'],
+            'shipping' => $cartData['shipping'],
+            'total' => $cartData['total'],
+            'appliedCoupon' => $cartData['coupon'],
+            'coupons' => $coupons,
+            'depositInfo' => $depositInfo,
+        ]);
+    }
 public function process(Request $request)
     {
         $cartData = CartService::getCart();
@@ -248,3 +296,10 @@ public function process(Request $request)
             return back()->withInput()->with('error', 'Đã xảy ra lỗi khi tạo đơn hàng: ' . $e->getMessage());
         }
     }
+    /**
+     * Invoice delivery is handled by the payment callback when configured.
+     */
+    protected function sendOrderInvoiceEmail(Order $order): void
+    {
+    }
+}
