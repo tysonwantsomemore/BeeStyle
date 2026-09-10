@@ -91,6 +91,23 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class)->where('status', 'active')->orderBy('id', 'asc');
     }
 
+    public function primaryImage()
+    {
+        return $this->hasOne(ProductImage::class)->orderBy('sort_order', 'asc');
+    }
+
+    public function getThumbnailAttribute()
+    {
+        if (!empty($this->attributes['image'] ?? null)) {
+            return $this->attributes['image'];
+        }
+        $first = $this->images->first();
+        if ($first && !empty($first->image_path)) {
+            return $first->image_path;
+        }
+        return 'assets/img/products/1.png';
+    }
+
     public function images()
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order', 'asc');
@@ -114,6 +131,19 @@ class Product extends Model
     public function hasVariants(): bool
     {
         return $this->product_type === 'variant' && $this->variants()->exists();
+    }
+
+    /**
+     * Đồng bộ tổng tồn kho sản phẩm từ các biến thể con
+     */
+    public function syncStockFromVariants(): int
+    {
+        if ($this->variants()->exists()) {
+            $totalStock = (int) $this->variants()->where('status', 'active')->sum('stock');
+            $this->update(['stock' => $totalStock]);
+            return $totalStock;
+        }
+        return (int) $this->stock;
     }
 
     /**

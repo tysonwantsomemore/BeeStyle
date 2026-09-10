@@ -186,7 +186,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'short_description' => 'nullable|string',
+            'short_description' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
             'colors' => 'nullable|array',
             'colors.*' => 'string',
@@ -209,26 +209,29 @@ class ProductController extends Controller
             'image.image' => 'File ảnh đại diện không đúng định dạng hình ảnh.',
         ]);
 
-        // Xử lý ảnh đại diện
-        $imagePath = '/assets/img/products/polo_01.jpg'; // Ảnh mặc định
+        // Xử lý ảnh đại diện chính
+        $imagePath = '/assets/img/products/polo_01.jpg';
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $imagePath = '/storage/' . $path;
         } elseif ($request->filled('image_url')) {
-            $imagePath = trim($request->image_url, " \t\n\r\0\x0B'\"");
+            $imagePath = trim($request->input('image_url'), " \t\n\r\0\x0B'\"");
         }
 
-        // Tự sinh SKU nếu không nhập
-        $sku = $request->filled('sku') ? strtoupper(trim($request->sku)) : ('BEE-' . strtoupper(Str::random(6)));
+        $sku = $request->filled('sku') 
+            ? strtoupper(trim($request->input('sku'))) 
+            : ('BS-' . strtoupper(Str::random(6)));
 
-        // Tính toán discount percent
-        $discountPercent = 0;
         $price = (float)$validated['price'];
         $originalPrice = isset($validated['original_price']) ? (float)$validated['original_price'] : null;
+        $discountPercent = 0;
         if ($originalPrice && $originalPrice > $price) {
             $discountPercent = round((($originalPrice - $price) / $originalPrice) * 100);
         }
 
+        $colors = $request->input('colors', ['Đen', 'Trắng']);
+        $sizes = $request->input('sizes', ['S', 'M', 'L', 'XL']);
+        $stock = (int)$validated['stock'];
         $status = $validated['status'] ?? 'active';
 
         $product = Product::create([
@@ -241,27 +244,31 @@ class ProductController extends Controller
             'price' => $price,
             'original_price' => $originalPrice,
             'discount_percent' => $discountPercent,
-            'stock' => (int)$validated['stock'],
+            'stock' => $stock,
+            'sold_count' => 0,
+            'views' => 0,
+            'rating' => 5.0,
+            'reviews_count' => 0,
             'short_description' => $validated['short_description'] ?? null,
             'description' => $validated['description'] ?? null,
-            'colors' => $request->input('colors', []),
-            'sizes' => $request->input('sizes', []),
-            'is_featured' => $request->has('is_featured'),
-            'is_best_seller' => $request->has('is_best_seller'),
-            'is_new' => $request->has('is_new'),
+            'colors' => $colors,
+            'sizes' => $sizes,
+            'is_featured' => $request->boolean('is_featured'),
+            'is_best_seller' => $request->boolean('is_best_seller'),
+            'is_new' => $request->boolean('is_new', true),
             'status' => $status,
             'is_active' => ($status === 'active'),
             'image' => $imagePath,
         ]);
 
-        // Lưu ảnh đại diện vào ProductImage
+        // Lưu ảnh chính vào bảng product_images
         ProductImage::create([
             'product_id' => $product->id,
             'image_path' => $imagePath,
             'sort_order' => 1,
         ]);
 
-        // Lưu các ảnh phụ trong thư viện gallery
+        // Lưu gallery ảnh phụ nếu có
         if ($request->hasFile('gallery_images')) {
             $sortOrder = 2;
             foreach ($request->file('gallery_images') as $gFile) {
@@ -276,7 +283,27 @@ class ProductController extends Controller
             }
         }
 
-        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm thành công!');
+        // Tự động tạo các biến thể tương ứng cho màu và size
+        $totalVariants = max(1, count($colors) * count($sizes));
+        $variantStock = max(1, (int)floor($stock / $totalVariants));
+
+        foreach ($colors as $color) {
+            foreach ($sizes as $size) {
+                ProductVariant::create([
+                    'product_id' => $product->id,
+                    'sku' => $product->sku . '-' . Str::slug($color) . '-' . $size,
+                    'color' => $color,
+                    'size' => $size,
+                    'price' => $product->price,
+                    'original_price' => $product->original_price,
+                    'stock' => $variantStock,
+                    'image' => $imagePath,
+                    'status' => 'active',
+                ]);
+            }
+        }
+
+        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm và sinh các biến thể thành công!');
     }
 
     public function edit($id)
@@ -299,7 +326,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'short_description' => 'nullable|string',
+            'short_description' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
             'colors' => 'nullable|array',
             'colors.*' => 'string',
@@ -323,26 +350,28 @@ class ProductController extends Controller
             'sku.unique' => 'Mã SKU này đã tồn tại trên hệ thống.',
         ]);
 
-        // Xử lý ảnh đại diện
         $imagePath = $product->image;
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $imagePath = '/storage/' . $path;
-        } elseif ($request->filled('image_url') && $request->image_url !== $product->image) {
-            $imagePath = trim($request->image_url, " \t\n\r\0\x0B'\"");
+        } elseif ($request->filled('image_url') && $request->input('image_url') !== $product->image) {
+            $imagePath = trim($request->input('image_url'), " \t\n\r\0\x0B'\"");
         }
 
-        $sku = $request->filled('sku') ? strtoupper(trim($request->sku)) : $product->sku;
+        $sku = $request->filled('sku') 
+            ? strtoupper(trim($request->input('sku'))) 
+            : $product->sku;
 
-        // Tính toán discount percent
-        $discountPercent = 0;
         $price = (float)$validated['price'];
         $originalPrice = isset($validated['original_price']) ? (float)$validated['original_price'] : null;
+        $discountPercent = 0;
         if ($originalPrice && $originalPrice > $price) {
             $discountPercent = round((($originalPrice - $price) / $originalPrice) * 100);
         }
 
         $status = $validated['status'] ?? $product->status;
+        $colors = $request->input('colors', $product->colors ?: ['Đen', 'Trắng']);
+        $sizes = $request->input('sizes', $product->sizes ?: ['S', 'M', 'L', 'XL']);
 
         $product->update([
             'name' => $validated['name'],
@@ -354,24 +383,26 @@ class ProductController extends Controller
             'original_price' => $originalPrice,
             'discount_percent' => $discountPercent,
             'stock' => (int)$validated['stock'],
-            'short_description' => $validated['short_description'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'colors' => $request->input('colors', []),
-            'sizes' => $request->input('sizes', []),
-            'is_featured' => $request->has('is_featured'),
-            'is_best_seller' => $request->has('is_best_seller'),
-            'is_new' => $request->has('is_new'),
+            'short_description' => $validated['short_description'] ?? $product->short_description,
+            'description' => $validated['description'] ?? $product->description,
+            'colors' => $colors,
+            'sizes' => $sizes,
+            'is_featured' => $request->boolean('is_featured'),
+            'is_best_seller' => $request->boolean('is_best_seller'),
+            'is_new' => $request->boolean('is_new'),
             'status' => $status,
             'is_active' => ($status === 'active'),
             'image' => $imagePath,
         ]);
 
-        // Xóa ảnh phụ nếu người dùng chọn xóa
+        // Xóa ảnh phụ được chọn
         if ($request->filled('delete_gallery_ids')) {
-            ProductImage::whereIn('id', $request->delete_gallery_ids)->where('product_id', $product->id)->delete();
+            ProductImage::whereIn('id', $request->delete_gallery_ids)
+                ->where('product_id', $product->id)
+                ->delete();
         }
 
-        // Lưu các ảnh phụ tải thêm
+        // Tải thêm ảnh phụ mới
         if ($request->hasFile('gallery_images')) {
             $maxSort = ProductImage::where('product_id', $product->id)->max('sort_order') ?: 1;
             foreach ($request->file('gallery_images') as $gFile) {
@@ -387,7 +418,31 @@ class ProductController extends Controller
             }
         }
 
-        return redirect()->route('admin.products.index')->with('success', 'Cập nhật sản phẩm thành công!');
+        // Bổ sung hoặc cập nhật các biến thể theo màu & size
+        if (!empty($colors) && !empty($sizes)) {
+            $variantStock = max(1, (int)floor($product->stock / (count($colors) * count($sizes))));
+            foreach ($colors as $color) {
+                foreach ($sizes as $size) {
+                    ProductVariant::firstOrCreate(
+                        [
+                            'product_id' => $product->id,
+                            'color' => $color,
+                            'size' => $size,
+                        ],
+                        [
+                            'sku' => $product->sku . '-' . Str::slug($color) . '-' . $size,
+                            'price' => $product->price,
+                            'original_price' => $product->original_price,
+                            'stock' => $variantStock,
+                            'image' => $imagePath,
+                            'status' => 'active',
+                        ]
+                    );
+                }
+            }
+        }
+
+        return redirect()->route('admin.products.index')->with('success', 'Cập nhật thông tin sản phẩm và biến thể thành công!');
     }
 
     public function destroy($id)

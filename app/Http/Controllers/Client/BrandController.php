@@ -25,8 +25,14 @@ class BrandController extends Controller
     /**
      * Hiển thị trang chi tiết thương hiệu cùng danh mục và sản phẩm thuộc thương hiệu
      */
-    public function show(Request $request, $slug)
+    public function show($request, $slug = null)
     {
+        if (is_string($request) && $slug === null) {
+            $slug = $request;
+            $request = request();
+        } elseif (!$request instanceof Request) {
+            $request = request();
+        }
         $brand = Brand::where('slug', $slug)->where('is_active', true)->firstOrFail();
 
         $query = Product::with(['category', 'brand', 'variants'])
