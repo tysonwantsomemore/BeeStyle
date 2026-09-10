@@ -779,7 +779,88 @@
           <th>Mức Ưu Đãi</th>
           <th>Đơn Tối Thiểu</th>
           <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
           <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>  <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Mã Voucher</th>
+          <th>Tên Chương Trình</th>
+          <th>Mức Ưu Đãi</th>
+          <th>Đơn Tối Thiểu</th>
+          <th>Lượt Đã Dùng</th>
+          <th>Hạn Sử Dụng</th>
+          <th>Trạng Thái</th>
           <th>Trạng Thái</th>
   </div>
   @if($coupons->hasPages())
