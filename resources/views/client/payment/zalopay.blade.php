@@ -1,303 +1,253 @@
 @extends('layouts.client')
 
-@section('title', 'Cổng Thanh Toán ZaloPay | Đơn Hàng #' . $order->order_code)
+@section('title', 'Thanh Toán Ví ZaloPay — Đơn Hàng #' . $order->order_code)
 
 @section('content')
-<div class="container py-5" style="max-width: 1000px;">
+<main class="w-full flex-grow py-12 px-6 max-w-4xl mx-auto">
   
-  <!-- BREADCRUMB / TOP NOTIFICATION -->
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <div class="d-flex align-items-center gap-2">
-      <span class="badge px-3 py-1.5 rounded-pill text-white fw-bold shadow-xs" style="background-color: #008fe5; font-size: 0.85rem;">
-        <i class="fa-solid fa-wallet me-1.5"></i> CỔNG THANH TOÁN ZALOPAY
-      </span>
-      <span class="text-muted small">Mã đơn hàng: <strong class="text-dark font-monospace">{{ $order->order_code }}</strong></span>
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-200">
+    <div>
+      <span class="text-xs tracking-widest uppercase text-sky-700 font-semibold block mb-1">CỔNG THANH TOÁN VÍ ZALOPAY</span>
+      <h1 class="font-serif-luxury text-2xl md:text-3xl font-bold text-neutral-900">Đơn Hàng #{{ $order->order_code }}</h1>
     </div>
-    <div class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1.5 rounded-pill small fw-semibold">
-      <i class="fa-solid fa-clock me-1"></i> Giao dịch hết hạn sau: <span id="zaloCountdown" class="font-monospace fw-bold">09:59</span>
+    <div class="px-3.5 py-1.5 bg-sky-50 border border-sky-200 text-sky-800 rounded-full text-xs font-semibold flex items-center gap-1.5">
+      <i data-lucide="clock" class="w-3.5 h-3.5 text-sky-600"></i>
+      <span>Hết hạn sau: <strong id="zaloCountdown" class="font-mono">14:59</strong></span>
     </div>
   </div>
 
-  <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 24px; background: #ffffff;">
-    
-    <!-- ZALOPAY BRAND HEADER -->
-    <div class="p-4 text-white d-flex justify-content-between align-items-center flex-wrap gap-3" 
-         style="background: linear-gradient(135deg, #0056b3 0%, #008fe5 100%);">
-      <div class="d-flex align-items-center gap-3">
-        <div class="bg-white rounded-3 p-2 shadow-sm d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
-          <span class="fw-black" style="color: #008fe5; font-size: 1rem; letter-spacing: -0.5px;">ZaloPay</span>
+  <div class="bg-white rounded-2xl border border-neutral-200 shadow-xl overflow-hidden">
+    <!-- Header banner -->
+    <div class="bg-sky-900 text-white p-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-sky-800 flex items-center justify-center font-bold text-white shadow-inner">
+          Z
         </div>
         <div>
-          <h4 class="fw-bold mb-0 text-white">Thanh Toán Qua Ví ZaloPay Tự Động Khớp Lệnh</h4>
-          <small class="text-white text-opacity-90">Cổng thanh toán chính thức qua ứng dụng Zalo &amp; Ví ZaloPay</small>
+          <h2 class="font-serif-luxury text-xl font-semibold">Thanh Toán Ví Điện Tử ZaloPay Gateway</h2>
+          <p class="text-xs text-sky-200 font-light">Quét mã QR bằng ứng dụng Zalo, ZaloPay hoặc App Ngân Hàng để thanh toán tức thì</p>
         </div>
       </div>
-      <div class="d-flex align-items-center gap-2 text-white small">
-        <i class="fa-solid fa-shield-halved text-warning fs-5"></i>
-        <span>Chứng nhận <strong>PCI DSS Level 1</strong></span>
-      </div>
+      <span class="text-xs text-sky-200 font-semibold flex items-center gap-1">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Bảo mật ZaloPay
+      </span>
     </div>
 
-    <!-- MAIN BODY -->
-    <div class="card-body p-4 p-lg-5">
+    @php
+      $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+      $payAmount = $isDeposit ? $order->deposit_amount : $order->total_amount;
+      $zaloQrUrl = "https://img.vietqr.io/image/TCB-77427842310105-compact2.png?amount=" . $payAmount . "&addInfo=" . urlencode($order->order_code) . "&accountName=" . urlencode("NGUYEN XUAN BAC");
+    @endphp
+
+    <div class="p-6 md:p-10 space-y-6">
       
-      <!-- LIVE RADAR STATUS BOX (CHỜ THANH TOÁN THẬT) -->
-      <div class="p-3 rounded-4 mb-4 border text-center shadow-xs" style="background: #f0f9ff; border-color: #bae6fd !important;">
-        <div class="d-flex align-items-center justify-content-center gap-2 font-bold" style="color: #0056b3;">
-          <div class="spinner-grow spinner-grow-sm text-info" role="status"></div>
-          <span class="fw-bold">HỆ THỐNG ĐANG LẮNG NGHE CHUYỂN TIỀN TỪ VÍ ZALOPAY...</span>
+      <!-- Live Radar Status Box -->
+      <div class="p-3.5 rounded-xl border border-sky-200 bg-sky-50 text-center text-xs text-sky-900">
+        <div class="flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-[11px]">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-600"></span>
+          </span>
+          <span>Hệ thống đang tự động lắng nghe giao dịch từ ví ZaloPay...</span>
         </div>
-        <small class="text-muted d-block mt-1" style="font-size: 0.78rem;">
-          <i class="fa-solid fa-circle-check text-success me-1"></i> Quét mã QR bằng App ZaloPay / Zalo hoặc Ngân Hàng. <strong>Khi chuyển khoản thành công</strong>, hệ thống sẽ tự động nhận diện &amp; đưa bạn về Trang Chủ!
-        </small>
+        <p class="text-[11px] text-neutral-600 mt-1">
+          Quét mã QR bên dưới. Sau khi hệ thống nhận được tiền, giao dịch sẽ được kích hoạt tức thì.
+        </p>
       </div>
 
-      <div class="row g-4 g-lg-5 align-items-center">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-xs">
         
-        <!-- CỘT 1: THÔNG TIN ĐƠN HÀNG & SỐ TIỀN -->
-        <div class="col-lg-6">
-          <div class="p-4 bg-light rounded-4 border">
-            <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
-              <span><i class="fa-solid fa-receipt me-2 text-secondary"></i> Thông Tin Đơn Hàng</span>
-              <span class="badge bg-secondary-subtle text-secondary small">BeeStyle Store</span>
-            </h6>
-
-            <div class="d-flex flex-column gap-2.5 small mb-3">
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Nhà bán hàng:</span>
-                <strong class="text-dark">BeeStyle Menswear</strong>
-              </div>
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Khách hàng:</span>
-                <strong class="text-dark">{{ $order->customer_name }}</strong>
-              </div>
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Số điện thoại:</span>
-                <span class="text-dark fw-semibold">{{ $order->customer_phone }}</span>
-              </div>
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Mã giao dịch:</span>
-                <span class="font-monospace text-primary fw-bold">{{ $order->order_code }}</span>
-              </div>
+        <!-- Cột 1: Thông tin đơn hàng & Số tiền (5 cols) -->
+        <div class="md:col-span-5 space-y-4">
+          <div class="p-5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2.5">
+            <div class="flex justify-between pb-2 border-b border-neutral-200/70 font-semibold text-neutral-900">
+              <span>Thông Tin Đơn Hàng</span>
+              <span class="text-sky-800 text-[10px] uppercase font-mono">BeeStyle Menswear</span>
             </div>
-
-            <!-- TỔNG TIỀN NỔI BẬT -->
-            @php
-              $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
-              $payAmount = $isDeposit ? $order->deposit_amount : $order->total_amount;
-            @endphp
-            @if($isDeposit)
-              <div class="p-3 rounded-3 text-center my-3" style="background: #fffbeb; border: 1.5px dashed #f59e0b;">
-                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill mb-1">
-                  <i class="fa-solid fa-shield-halved me-1"></i> ĐẶT CỌC 50%
-                </span>
-                <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Số tiền cọc cần chuyển (50%)</span>
-                <h2 class="fw-black mb-1 font-monospace text-danger">
-                  {{ number_format($order->deposit_amount, 0, ',', '.') }}₫
-                </h2>
-                <div class="small text-muted border-top pt-1 mt-1">
-                  Còn lại thu COD khi nhận hàng: <strong class="text-dark">{{ number_format($order->remaining_amount, 0, ',', '.') }}₫</strong>
-                </div>
-              </div>
-            @else
-              <div class="p-3 rounded-3 text-center my-3" style="background: #f0f9ff; border: 1.5px dashed #008fe5;">
-                <span class="text-muted small fw-semibold text-uppercase d-block mb-1">Số tiền thanh toán</span>
-                <h2 class="fw-black mb-0 font-monospace" style="color: #0056b3;">
-                  {{ number_format($order->total_amount, 0, ',', '.') }}₫
-                </h2>
-              </div>
-            @endif
-
-            <!-- DANH SÁCH SẢN PHẨM THU GỌN -->
-            <div class="pt-2">
-              <span class="text-muted small fw-bold text-uppercase d-block mb-2" style="font-size: 0.72rem;">Sản phẩm đặt mua ({{ $order->items->count() }})</span>
-              <div class="d-flex flex-column gap-2" style="max-height: 140px; overflow-y: auto;">
-                @foreach($order->items as $it)
-                  <div class="d-flex align-items-center justify-content-between gap-2 text-muted small">
-                    <div class="d-flex align-items-center gap-2 text-truncate">
-                      <img src="{{ asset($it->image) }}" alt="{{ $it->product_name }}" style="width: 28px; height: 28px; object-fit: contain;" class="rounded border bg-white">
-                      <span class="text-truncate" style="max-width: 180px;">{{ $it->product_name }} (x{{ $it->quantity }})</span>
-                    </div>
-                    <span class="text-dark fw-semibold">{{ number_format($it->subtotal, 0, ',', '.') }}₫</span>
-                  </div>
-                @endforeach
-              </div>
+            <div class="flex justify-between">
+              <span class="text-neutral-500">Khách hàng:</span>
+              <strong class="text-neutral-900">{{ $order->customer_name }}</strong>
             </div>
-
+            <div class="flex justify-between">
+              <span class="text-neutral-500">Số điện thoại:</span>
+              <strong class="text-neutral-900">{{ $order->customer_phone }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-neutral-500">Mã giao dịch:</span>
+              <strong class="font-mono text-neutral-950">{{ $order->order_code }}</strong>
+            </div>
           </div>
-        </div>
 
-        <!-- CỘT 2: MÃ QR ZALOPAY & HƯỚNG DẪN THANH TOÁN -->
-        <div class="col-lg-6 text-center">
-          
-          <div class="p-4 bg-white rounded-4 border shadow-sm d-inline-block w-100" style="max-width: 360px;">
-            
-            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-              <span class="badge text-white fw-bold px-2 py-0.5" style="background-color: #008fe5; font-size: 0.7rem;">
-                ZALOPAY QR 24/7
+          <!-- Box Số tiền cần thanh toán -->
+          @if($isDeposit)
+            <div class="p-4 rounded-xl text-center bg-amber-50 border-2 border-dashed border-amber-300 space-y-1">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-200 text-amber-900 font-bold rounded-full text-[10px]">
+                <i data-lucide="shield-alert" class="w-3 h-3"></i> CHÍNH SÁCH ĐẶT CỌC 50%
               </span>
-              <span class="text-muted small" style="font-size: 0.72rem;">
-                <i class="fa-solid fa-satellite-dish text-success me-0.5 fa-fade"></i> Tự động khớp lệnh
-              </span>
+              <span class="text-neutral-500 uppercase font-semibold text-[10px] block pt-1">Số tiền cọc cần chuyển (50%)</span>
+              <h2 class="font-serif-luxury text-2xl md:text-3xl font-bold text-rose-600 font-mono">
+                {{ number_format($order->deposit_amount, 0, ',', '.') }}₫
+              </h2>
+              <p class="text-[11px] text-neutral-600 pt-1 border-t border-amber-200">
+                Còn lại thu COD khi nhận hàng: <strong class="text-neutral-900 font-mono">{{ number_format($order->remaining_amount, 0, ',', '.') }}₫</strong>
+              </p>
             </div>
-
-            <!-- DYNAMIC QR CODE TECHCOMBANK -->
-            @php
-              $zaloQrUrl = "https://img.vietqr.io/image/TCB-77427842310105-compact2.png?amount=" . $payAmount . "&addInfo=" . urlencode($order->order_code) . "&accountName=" . urlencode("NGUYEN XUAN BAC");
-            @endphp
-            <div class="p-2.5 rounded-3 border position-relative my-2 shadow-xs" style="background: #f0f9ff;">
-              <img src="{{ $zaloQrUrl }}" alt="ZaloPay QR Code" style="max-width: 240px; width: 100%; height: auto;" class="rounded mx-auto d-block">
-              <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
-                Quét mã bằng ứng dụng <strong>ZaloPay</strong>, <strong>Zalo</strong> hoặc App Ngân Hàng
-              </div>
+          @else
+            <div class="p-4 rounded-xl text-center bg-sky-50 border-2 border-dashed border-sky-300 space-y-1">
+              <span class="text-neutral-500 uppercase font-semibold text-[10px] block">Số tiền cần thanh toán</span>
+              <h2 class="font-serif-luxury text-2xl md:text-3xl font-bold text-sky-900 font-mono">
+                {{ number_format($order->total_amount, 0, ',', '.') }}₫
+              </h2>
+              <span class="text-[10px] text-emerald-700 font-semibold block">Đã bao gồm VAT &amp; Phí vận chuyển</span>
             </div>
+          @endif
 
-            <div class="text-start bg-light p-2.5 rounded-3 small text-muted my-2.5" style="font-size: 0.76rem;">
-              <div><strong class="text-dark">Chủ TK:</strong> <span class="text-dark fw-bold">NGUYEN XUAN BAC</span></div>
-              <div><strong class="text-dark">Ngân Hàng:</strong> Techcombank - STK: <strong class="text-primary font-monospace">77427842310105</strong></div>
-              <div><strong class="text-dark">Số tiền cần chuyển:</strong> <strong class="text-danger font-monospace fs-6">{{ number_format($payAmount, 0, ',', '.') }}₫</strong> @if($isDeposit)<span class="badge bg-warning text-dark ms-1">Cọc 50%</span>@endif</div>
-              <div><strong class="text-dark">Nội Dung:</strong> <span class="text-primary fw-bold font-monospace">{{ $order->order_code }}</span></div>
+          <!-- Danh sách tóm tắt tác phẩm -->
+          <div class="p-4 bg-white rounded-xl border border-neutral-200">
+            <span class="text-neutral-400 uppercase font-semibold text-[10px] tracking-wider block mb-2">Sản phẩm đặt mua ({{ $order->items->count() }})</span>
+            <div class="space-y-2 max-h-36 overflow-y-auto pr-1">
+              @foreach($order->items as $it)
+                <div class="flex items-center justify-between gap-2 text-[11px] text-neutral-600 pb-1.5 border-b border-neutral-100 last:border-0 last:pb-0">
+                  <span class="truncate max-w-[180px] font-medium text-neutral-800">{{ $it->product_name }} <span class="text-neutral-400">×{{ $it->quantity }}</span></span>
+                  <span class="font-semibold text-neutral-900 shrink-0">{{ number_format($it->subtotal ?? ($it->price * $it->quantity), 0, ',', '.') }}₫</span>
+                </div>
+              @endforeach
             </div>
+          </div>
 
-            <!-- 3 BƯỚC THANH TOÁN -->
-            <div class="text-start bg-light p-2.5 rounded-3 small text-muted my-2" style="font-size: 0.76rem;">
-              <div class="mb-1"><strong class="text-dark">Bước 1:</strong> Mở ứng dụng <strong>ZaloPay</strong>, <strong>Zalo</strong> hoặc App Bank.</div>
-              <div class="mb-1"><strong class="text-dark">Bước 2:</strong> Quét mã QR và kiểm tra số tiền.</div>
-              <div><strong class="text-dark">Bước 3:</strong> Chuyển tiền &rarr; Hệ thống tự động xác nhận ngay!</div>
-            </div>
-
-            <!-- NÚT THAO TÁC & HỦY ĐƠN -->
-            <form action="{{ route('client.checkout.zalopay.success', $order->order_code) }}" method="POST" id="zaloSuccessForm" class="mb-2">
+          <!-- Hủy đơn & hoàn kho -->
+          <div class="pt-1 text-center">
+            <form action="{{ route('client.checkout.expire', $order->order_code) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này để hoàn trả số lượng sản phẩm về kho?')">
               @csrf
-              <button type="submit" class="btn text-white w-100 py-2.5 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                      style="background: linear-gradient(135deg, #008fe5, #0056b3);">
-                <i class="fa-solid fa-circle-check"></i> {{ $isDeposit ? 'Tôi Đã Chuyển Khoản 50% Tiền Cọc Xong (Xác Nhận Ngay)' : 'Tôi Đã Chuyển Khoản Xong (Xác Nhận Ngay)' }}
+              <button type="submit" class="text-rose-600 hover:text-rose-800 text-xs font-semibold underline transition-colors">
+                Hủy giao dịch &amp; hoàn trả giỏ hàng
               </button>
             </form>
+          </div>
+        </div>
 
-            <div class="d-flex justify-content-between align-items-center px-1 mt-2">
-              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="simulatePaymentDemo()" style="font-size: 0.75rem;">
-                <i class="fa-solid fa-bolt text-info me-1"></i> Giả lập ZaloPay Báo Có (Demo)
-              </button>
-
-              <form action="{{ route('client.checkout.expire', $order->order_code) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này để hoàn trả kho?')">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-link text-danger text-decoration-none" style="font-size: 0.75rem;">
-                  <i class="fa-solid fa-xmark me-1"></i> Hủy &amp; Hoàn kho
-                </button>
-              </form>
+        <!-- Cột 2: Mã QR ZaloPay & Hướng dẫn thanh toán (7 cols) -->
+        <div class="md:col-span-7 space-y-4">
+          
+          <div class="p-6 bg-neutral-50 rounded-2xl border border-neutral-200 text-center space-y-4">
+            <div class="flex justify-between items-center px-1">
+              <span class="px-2.5 py-0.5 bg-[#008fe5] text-white rounded-md font-bold text-[10px]">
+                ZALOPAY QR 24/7
+              </span>
+              <span class="text-emerald-700 font-semibold text-[11px] flex items-center gap-1">
+                <i data-lucide="radio" class="w-3 h-3 text-emerald-600"></i> Tự động khớp lệnh
+              </span>
             </div>
 
+            <div class="inline-block bg-white p-3 rounded-2xl border border-neutral-300 shadow-sm">
+              <img src="{{ $zaloQrUrl }}" alt="ZaloPay QR Code" class="w-56 h-56 object-contain mx-auto rounded-lg">
+            </div>
+            <p class="text-[11px] text-neutral-500">Quét mã bằng ứng dụng <strong>ZaloPay</strong>, <strong>Zalo</strong> hoặc App Ngân Hàng bất kỳ.</p>
+
+            <!-- Chi tiết tài khoản nhận -->
+            <div class="bg-white p-4 rounded-xl border border-neutral-200 text-left space-y-2 text-[11px]">
+              <div class="flex justify-between items-center pb-1.5 border-b border-neutral-100">
+                <span class="text-neutral-500">Chủ tài khoản:</span>
+                <strong class="text-neutral-900 font-bold tracking-wide">NGUYEN XUAN BAC</strong>
+              </div>
+              <div class="flex justify-between items-center pb-1.5 border-b border-neutral-100">
+                <span class="text-neutral-500">Ngân hàng thụ hưởng:</span>
+                <strong class="text-neutral-900 font-semibold">Techcombank (TCB)</strong>
+              </div>
+              <div class="flex justify-between items-center pb-1.5 border-b border-neutral-100">
+                <span class="text-neutral-500">Số tài khoản:</span>
+                <div class="flex items-center gap-2">
+                  <strong class="font-mono text-neutral-950 font-bold">77427842310105</strong>
+                  <button type="button" onclick="copyZaloText('77427842310105', this)" class="px-2 py-0.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded font-semibold text-[10px] transition-colors">
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <div class="flex justify-between items-center pb-1.5 border-b border-neutral-100">
+                <span class="text-neutral-500">{{ $isDeposit ? 'Số tiền cọc cần chuyển (50%):' : 'Số tiền cần chuyển:' }}</span>
+                <div class="flex items-center gap-2">
+                  <strong class="font-mono {{ $isDeposit ? 'text-rose-600' : 'text-sky-900' }} font-bold text-sm">
+                    {{ number_format($payAmount, 0, ',', '.') }}₫
+                  </strong>
+                  <button type="button" onclick="copyZaloText('{{ $payAmount }}', this)" class="px-2 py-0.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded font-semibold text-[10px] transition-colors">
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-neutral-500">Nội dung chuyển tiền:</span>
+                <div class="flex items-center gap-2">
+                  <strong class="font-mono px-2 py-0.5 bg-sky-100 border border-sky-300 text-sky-900 rounded font-bold">
+                    {{ $order->order_code }}
+                  </strong>
+                  <button type="button" onclick="copyZaloText('{{ $order->order_code }}', this)" class="px-2 py-0.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded font-semibold text-[10px] transition-colors">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3 Bước Hướng Dẫn -->
+            <div class="text-left bg-white p-3 rounded-xl border border-neutral-200 text-[11px] text-neutral-600 space-y-1">
+              <div><strong class="text-neutral-900">Bước 1:</strong> Mở ứng dụng <strong>ZaloPay</strong>, <strong>Zalo</strong> hoặc App Ngân Hàng.</div>
+              <div><strong class="text-neutral-900">Bước 2:</strong> Quét mã QR và kiểm tra số tiền khớp đúng với đơn hàng.</div>
+              <div><strong class="text-neutral-900">Bước 3:</strong> Xác nhận thanh toán &rarr; Hệ thống tự động xác nhận đơn ngay lập tức!</div>
+            </div>
+          </div>
+
+          <!-- Nút hành động -->
+          <form action="{{ route('client.checkout.zalopay.success', $order->order_code) }}" method="POST" id="zaloSuccessForm">
+            @csrf
+            <button type="submit" class="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span>{{ $isDeposit ? 'Tôi Đã Chuyển Khoản 50% Tiền Cọc (Xác Nhận Ngay)' : 'Tôi Đã Thanh Toán Qua ZaloPay (Xác Nhận Ngay)' }}</span>
+            </button>
+          </form>
+
+          <div class="flex justify-between items-center px-1 text-[11px]">
+            <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="text-neutral-500 hover:text-neutral-900 font-semibold transition-colors">
+              Kiểm tra tình trạng đơn hàng &rarr;
+            </a>
           </div>
 
         </div>
 
       </div>
-    </div>
 
-    <!-- FOOTER INFO -->
-    <div class="card-footer bg-light p-3 text-center text-muted small border-top">
-      <i class="fa-solid fa-lock me-1 text-success"></i> Giao dịch được bảo vệ an toàn bởi ZaloPay &amp; BeeStyle Menswear.
     </div>
 
   </div>
-</div>
-
-<!-- AUTO SUCCESS TOAST / MODAL -->
-<div class="modal fade" id="autoSuccessModal" tabindex="-1" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-    <div class="modal-content text-center p-4 border-0 shadow-2xl rounded-4">
-      <div class="my-3">
-        <span class="rounded-circle bg-success-subtle text-success p-3 d-inline-flex align-items-center justify-content-center shadow" style="width: 76px; height: 76px;">
-          <i class="fa-solid fa-check fs-1"></i>
-        </span>
-      </div>
-      <h5 class="fw-black text-dark mb-1">ĐÃ NHẬN ĐƯỢC THANH TOÁN ZALOPAY!</h5>
-      <p class="text-muted small mb-3">Hệ thống ZaloPay đã khớp lệnh đơn hàng <strong class="text-primary font-monospace">{{ $order->order_code }}</strong>.</p>
-      <div class="spinner-border text-info spinner-border-sm mx-auto mb-2" role="status"></div>
-      <small class="text-muted d-block">Đang tự động chuyển về Trang Chủ...</small>
-    </div>
-  </div>
-</div>
+</main>
+@endsection
 
 @push('scripts')
 <script>
-  let isCompleted = false;
-
-  // Đếm ngược 10 phút thanh toán
-  let duration = 600;
-  const timerDisplay = document.getElementById('zaloCountdown');
-  
-  const timer = setInterval(function () {
-    let minutes = parseInt(duration / 60, 10);
-    let seconds = parseInt(duration % 60, 10);
-
-    minutes = minutes < 10 ? "0" + minutes : minutes;
-    seconds = seconds < 10 ? "0" + seconds : seconds;
-
-    if (timerDisplay) {
-      timerDisplay.textContent = minutes + ":" + seconds;
-    }
-
-    if (--duration < 0) {
+  // Đếm ngược 15 phút
+  let sec = 15 * 60 - 1;
+  const timer = setInterval(() => {
+    sec--;
+    if (sec <= 0) {
       clearInterval(timer);
-      if (timerDisplay) {
-        timerDisplay.textContent = "HẾT HẠN";
-      }
-      triggerAutoExpire();
+      const cdEl = document.getElementById('zaloCountdown');
+      if (cdEl) cdEl.textContent = '00:00';
+      return;
     }
+    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    const cdEl = document.getElementById('zaloCountdown');
+    if (cdEl) cdEl.textContent = `${m}:${s}`;
   }, 1000);
 
-  function triggerAutoExpire() {
-    if (isCompleted) return;
-    fetch("{{ route('client.checkout.expire', $order->order_code) }}", {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Content-Type': 'application/json'
-      }
-    }).then(() => {
-      alert("Đơn hàng đã hết thời gian chờ thanh toán (10 phút) và đã được tự động hủy để hoàn trả tồn kho.");
-      window.location.href = "{{ route('client.cart') }}";
+  function copyZaloText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Đã chép!';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
     });
   }
 
-  // HỆ THỐNG LẮNG NGHE TRẠNG THÁI THANH TOÁN THỰC TẾ (POLLING MỖI 2.5 GIÂY)
-  // CHỈ KHI NGÂN HÀNG/ZALOPAY XÁC NHẬN TIỀN ĐÃ VÀO THÌ MỚI TỰ ĐỘNG CHUYỂN TRANG
-  const statusChecker = setInterval(function() {
-    if (isCompleted) return;
-    fetch("{{ route('client.checkout.check-status', $order->order_code) }}")
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'paid') {
-          isCompleted = true;
-          clearInterval(statusChecker);
-          
-          const modalEl = document.getElementById('autoSuccessModal');
-          const modal = new bootstrap.Modal(modalEl);
-          modal.show();
-
-          setTimeout(() => {
-            window.location.href = "{{ route('client.home') }}";
-          }, 1500);
-        }
-      }).catch(err => console.log(err));
-  }, 2500);
-
-  // Nút hỗ trợ Demo nhanh khi cần test luồng Webhook
-  function simulatePaymentDemo() {
-    if (isCompleted) return;
-    fetch("{{ route('client.checkout.auto-confirm', $order->order_code) }}", {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Content-Type': 'application/json'
-      }
-    }).then(res => res.json())
-      .then(data => {
-        // Status polling ở trên sẽ bắt được 'paid' và tự nhảy trang
-      });
-  }
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  });
 </script>
 @endpush
-@endsection

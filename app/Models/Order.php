@@ -18,6 +18,8 @@ class Order extends Model
         'shipping_address',
         'city',
         'district',
+        'ward',
+        'shipping_address_snapshot',
         'notes',
         'payment_method',
         'payment_status',
@@ -53,24 +55,25 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'status_step' => 'integer',
-        'subtotal' => 'integer',
-        'discount_amount' => 'integer',
-        'shipping_fee' => 'integer',
-        'total_amount' => 'integer',
-        'is_deposit_required' => 'boolean',
-        'deposit_amount' => 'integer',
-        'remaining_amount' => 'integer',
-        'deposit_paid_at' => 'datetime',
-        'review_notified' => 'boolean',
-        'cancelled_at' => 'datetime',
-        'confirmed_at' => 'datetime',
-        'processing_at' => 'datetime',
-        'shipping_at' => 'datetime',
-        'delivered_at' => 'datetime',
-        'completed_at' => 'datetime',
-        'paid_at' => 'datetime',
-        'delivery_proof_at' => 'datetime',
+        'status_step'               => 'integer',
+        'subtotal'                  => 'integer',
+        'discount_amount'           => 'integer',
+        'shipping_fee'              => 'integer',
+        'total_amount'              => 'integer',
+        'shipping_address_snapshot' => 'array',
+        'is_deposit_required'       => 'boolean',
+        'deposit_amount'            => 'integer',
+        'remaining_amount'          => 'integer',
+        'deposit_paid_at'           => 'datetime',
+        'review_notified'           => 'boolean',
+        'cancelled_at'              => 'datetime',
+        'confirmed_at'              => 'datetime',
+        'processing_at'             => 'datetime',
+        'shipping_at'               => 'datetime',
+        'delivered_at'              => 'datetime',
+        'completed_at'              => 'datetime',
+        'paid_at'                   => 'datetime',
+        'delivery_proof_at'         => 'datetime',
     ];
 
     protected static function booted()
@@ -98,6 +101,7 @@ class Order extends Model
             }
         });
     }
+
     public function user()
     {
         return $this->belongsTo(User::class);

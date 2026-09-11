@@ -25,23 +25,29 @@ class HomeController extends Controller
         // Lấy thương hiệu đối tác
         $brands = Brand::active()->take(6)->get();
 
-        // Ưu đãi trong ngày (Daily Deals / Flash Sale) - CHỈ HIỂN THỊ KHI ĐANG TRONG KHUNG GIỜ VÀNG
-        $runningDailyDeals = DailyDeal::with(['product.category', 'product.brand', 'product.variants'])
+        // Ưu đãi trong ngày (Daily Deals / Flash Sale)
+        $runningDailyDeals = DailyDeal::with(['product.category', 'product.brand', 'product.variants', 'product.primaryImage'])
             ->whereHas('product', fn($q) => $q->where('status', 'active'))
             ->runningNow()
             ->latest('id')
+            ->take(8)
             ->get();
 
-        $isCurrentlyLive = $runningDailyDeals->isNotEmpty();
-        $targetCountdown = null;
-        $currentSlotName = null;
-
-        if ($isCurrentlyLive) {
-            // Target thời gian kết thúc sớm nhất của các deal đang chạy
-            $earliestEnd = $runningDailyDeals->map(fn($d) => $d->getTargetEndDateTime())->min();
-            $targetCountdown = $earliestEnd ? $earliestEnd->toIso8601String() : now()->endOfDay()->toIso8601String();
-            $currentSlotName = $runningDailyDeals->first()->formatted_slot;
+        // Đảm bảo phần Flash Sale trên trang chủ luôn đủ 4 - 8 sản phẩm hấp dẫn
+        if ($runningDailyDeals->count() < 4) {
+            $fallbackDeals = DailyDeal::with(['product.category', 'product.brand', 'product.variants', 'product.primaryImage'])
+                ->whereHas('product', fn($q) => $q->where('status', 'active'))
+                ->where('is_active', true)
+                ->whereNotIn('id', $runningDailyDeals->pluck('id'))
+                ->latest('id')
+                ->take(8 - $runningDailyDeals->count())
+                ->get();
+            $runningDailyDeals = $runningDailyDeals->concat($fallbackDeals);
         }
+
+        $isCurrentlyLive = $runningDailyDeals->isNotEmpty();
+        $targetCountdown = now()->endOfDay()->toIso8601String();
+        $currentSlotName = "Khung Giờ Vàng Hôm Nay";
 
         // Lấy danh sách sản phẩm với các quan hệ đầy đủ
         $products = Product::with(['category', 'brand', 'variants'])->active()->latest()->take(8)->get();

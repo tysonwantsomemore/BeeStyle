@@ -9,10 +9,16 @@
       
       <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
         <div class="text-center mb-4">
-          <a href="{{ route('client.home') }}" class="beestyle-brand-link justify-content-center mb-3 text-decoration-none d-inline-flex" title="BEESTYLE">
-            <span class="beestyle-logo-text" style="font-size: 2.2rem;"><span class="text-danger">BEE</span>STYLE</span>
+          <a href="{{ route('client.home') }}" class="d-inline-flex align-items-center gap-2 mb-3 text-decoration-none group select-none">
+            <div class="d-flex align-items-center justify-content-center bg-warning text-dark rounded-3 shadow-xs" style="width: 42px; height: 42px; font-size: 1.2rem; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;">
+              <i class="fa-solid fa-gem text-dark"></i>
+            </div>
+            <div class="brand-logo-text text-start lh-1">
+              <div class="fw-bold text-dark tracking-wider" style="font-size: 1.4rem; font-weight: 900; letter-spacing: 0.06em;">BEE<span class="text-warning" style="color: #f59e0b !important;">STYLE</span></div>
+              <div class="text-muted fw-bold text-uppercase mt-1" style="font-size: 0.62rem; letter-spacing: 0.22em;">MENSWEAR &amp; ATELIER</div>
+            </div>
           </a>
-          <h4 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">ĐẶT LẠI MẬT KHẨU</h4>
+          <h4 class="fw-bold text-dark mb-1 text-uppercase">ĐẶT LẠI MẬT KHẨU</h4>
           <p class="text-muted small">Tạo mật khẩu mới an toàn cho tài khoản BeeStyle của bạn</p>
         </div>
 

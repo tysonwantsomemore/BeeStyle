@@ -27,6 +27,10 @@ class User extends Authenticatable
         'bank_account_name',
         'bank_branch',
         'password_changed_at',
+        'phone_verified_at',
+        'email_verified_at',
+        'locked_until',
+        'failed_login_attempts',
         'role',
         'rank',
         'points',
@@ -42,6 +46,8 @@ class User extends Authenticatable
 
     protected $appends = [
         'avatar_url',
+        'actual_total_spent',
+        'is_verified',
     ];
 
     /**
@@ -65,18 +71,66 @@ class User extends Authenticatable
         return "https://ui-avatars.com/api/?name={$name}&background=f59e0b&color=111827&bold=true&size=128";
     }
 
+    /**
+     * Tổng chi tiêu thực tế của khách hàng (tính từ các đơn hàng thành công / không bị hủy)
+     */
+    public function getActualTotalSpentAttribute(): int
+    {
+        if (array_key_exists('actual_total_spent', $this->attributes)) {
+            return (int) $this->attributes['actual_total_spent'];
+        }
+
+        if ($this->relationLoaded('orders')) {
+            return (int) $this->orders->where('shipping_status', '!=', 'cancelled')->sum('total_amount');
+        }
+
+        return (int) ($this->total_spent ?? 0);
+    }
+
     protected function casts(): array
     {
-
-
         return [
-            'email_verified_at' => 'datetime',
-            'password_changed_at' => 'datetime',
-            'dob' => 'date',
-            'password' => 'hashed',
-            'points' => 'integer',
-            'total_spent' => 'integer',
+            'email_verified_at'      => 'datetime',
+            'phone_verified_at'      => 'datetime',
+            'password_changed_at'    => 'datetime',
+            'locked_until'           => 'datetime',
+            'failed_login_attempts'  => 'integer',
+            'dob'                    => 'date',
+            'password'               => 'hashed',
+            'points'                 => 'integer',
+            'total_spent'            => 'integer',
         ];
+    }
+
+    public function getIsVerifiedAttribute(): bool
+    {
+        return $this->isVerified();
+    }
+
+    /**
+     * Kiểm tra tài khoản đã được xác thực Email hoặc Số điện thoại chưa
+     */
+    public function isVerified(): bool
+    {
+        return !is_null($this->email_verified_at) || !is_null($this->phone_verified_at);
+    }
+
+    /**
+     * Kiểm tra tài khoản có đang bị khóa tạm thời do nhập sai mật khẩu nhiều lần không
+     */
+    public function isLocked(): bool
+    {
+        return !is_null($this->locked_until) && now()->isBefore($this->locked_until);
+    }
+
+    public function verificationCodes()
+    {
+        return $this->hasMany(VerificationCode::class);
+    }
+
+    public function pendingContacts()
+    {
+        return $this->hasMany(UserPendingContact::class);
     }
 
     public function isAdmin(): bool

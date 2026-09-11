@@ -459,8 +459,8 @@ class OrderTrackingController extends Controller
                 Auth::user()->update([
                     'bank_name' => $validated['bank_name'],
                     'bank_account_number' => trim($validated['bank_account_number']),
-                    'bank_account_name' => mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8'),
-                    'bank_branch' => $validated['bank_branch'] ? trim($validated['bank_branch']) : null,
+                    'bank_account_name' => !empty($validated['bank_account_name']) ? mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8') : null,
+                    'bank_branch' => !empty($validated['bank_branch']) ? trim($validated['bank_branch']) : null,
                 ]);
             }
         });

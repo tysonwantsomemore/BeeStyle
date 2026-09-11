@@ -227,7 +227,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['category', 'brand', 'variants' => fn($q) => $q->active(), 'images', 'reviews', 'dailyDeals'])->active()->findOrFail($id);
+        $product = Product::with(['category', 'brand', 'variants' => fn($q) => $q->active(), 'images', 'reviews.user', 'dailyDeals'])->active()->findOrFail($id);
 
         // 1. Theo dõi lượt xem & Chống spam F5 qua Session
         $viewKey = 'viewed_product_' . $product->id;
@@ -350,6 +350,18 @@ class ProductController extends Controller
         // Lấy danh sách màu sắc và sizes
         $colors = $product->colors ?? [];
         $sizes = $product->sizes ?? [];
+        if (is_string($colors)) {
+            $colors = json_decode($colors, true) ?: array_map('trim', explode(',', $colors));
+        }
+        if (is_string($sizes)) {
+            $sizes = json_decode($sizes, true) ?: array_map('trim', explode(',', $sizes));
+        }
+        if (empty($colors) && $product->variants->isNotEmpty()) {
+            $colors = $product->variants->pluck('color')->filter()->unique()->values()->all();
+        }
+        if (empty($sizes) && $product->variants->isNotEmpty()) {
+            $sizes = $product->variants->pluck('size')->filter()->unique()->values()->all();
+        }
 
         // Kiểm tra ưu đãi trong ngày
         $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
