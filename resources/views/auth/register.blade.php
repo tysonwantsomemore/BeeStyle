@@ -8,14 +8,17 @@
     
     <!-- Brand Header -->
     <div class="text-center mb-8">
-      <span class="font-serif-luxury text-2xl md:text-3xl font-bold tracking-[0.25em] text-neutral-900 uppercase block">
-        BEESTYLE
-      </span>
-      <span class="block text-[8px] tracking-[0.4em] text-neutral-500 uppercase -mt-0.5 font-sans mb-3">
-        STUDIO • 2026
-      </span>
-      <h1 class="font-serif-luxury text-2xl text-neutral-900 font-medium">Đăng Ký Tài Khoản Thành Viên</h1>
-      <p class="text-xs text-neutral-500 mt-1 font-light">Nhận ngay đặc quyền may đo độc bản và ưu đãi thành viên</p>
+      <a href="{{ route('client.home') }}" class="inline-flex items-center gap-2.5 text-decoration-none group select-none mb-4">
+        <div class="w-11 h-11 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center font-bold text-xl shadow-sm group-hover:scale-105 transition-transform shrink-0" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
+          <i class="fa-solid fa-gem text-neutral-950"></i>
+        </div>
+        <div class="brand-logo-text text-left leading-tight">
+          <div class="text-2xl font-black text-neutral-950 tracking-wider font-sans">BEE<span class="text-amber-500">STYLE</span></div>
+          <div class="text-[9px] text-neutral-600 font-bold tracking-[0.25em] uppercase font-sans -mt-0.5">CONTEMPORARY FASHION</div>
+        </div>
+      </a>
+      <h1 class="text-xl font-bold text-neutral-900 tracking-tight">Đăng Ký Tài Khoản Thành Viên</h1>
+      <p class="text-xs text-neutral-600 mt-1 font-medium">Nhận ngay đặc quyền mua sắm và ưu đãi độc quyền BeeStyle</p>
     </div>
 
     <!-- Welcome Gift Promo Box -->

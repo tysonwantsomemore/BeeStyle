@@ -57,13 +57,33 @@
               {{ $p->name }}
             </a>
           </div>
-          <div class="mt-3 pt-3 border-t border-neutral-100 flex items-center justify-between">
-            <span class="font-serif-luxury text-base font-bold text-neutral-950">
-              {{ number_format($p->price, 0, ',', '.') }}₫
-            </span>
-            <a href="{{ route('client.products.show', $p->id) }}" class="px-3 py-1.5 bg-neutral-950 text-white text-xs tracking-wider uppercase font-semibold rounded hover:bg-amber-400 hover:text-black transition-colors">
-              Xem
-            </a>
+          <div class="mt-3 pt-3 border-t border-neutral-100 flex flex-col gap-2">
+            <div class="flex items-baseline justify-between">
+              <span class="font-serif-luxury text-base font-bold text-neutral-950">
+                {{ number_format($p->price, 0, ',', '.') }}₫
+              </span>
+              @if($p->original_price && $p->original_price > $p->price)
+                <span class="text-xs text-neutral-400 line-through font-medium">
+                  {{ number_format($p->original_price, 0, ',', '.') }}₫
+                </span>
+              @endif
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button type="button" 
+                      onclick="openQuickVariantModal({{ $p->id }}, false, this)" 
+                      class="w-full py-2 bg-neutral-950 hover:bg-neutral-800 text-white text-[11px] font-bold uppercase rounded-lg flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer" 
+                      title="Thêm vào giỏ hàng">
+                <i data-lucide="shopping-bag" class="w-3 h-3"></i>
+                <span class="truncate">Thêm Giỏ</span>
+              </button>
+              <button type="button" 
+                      onclick="openQuickVariantModal({{ $p->id }}, true, this)" 
+                      class="w-full py-2 bg-amber-400 hover:bg-amber-500 text-neutral-950 text-[11px] font-black uppercase rounded-lg flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer" 
+                      title="Mua ngay — Thanh toán tức thì">
+                <i data-lucide="zap" class="w-3 h-3"></i>
+                <span class="truncate">Mua Ngay</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

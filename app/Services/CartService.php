@@ -282,9 +282,10 @@ class CartService
      */
     public static function checkDepositPolicy($cart = null, $totalAmount = null, $user = null): array
     {
-        $cart = $cart ?? self::getCart();
+        $cartData = $cart ?? self::getCart();
+        $items = isset($cartData['items']) ? $cartData['items'] : (is_array($cartData) ? $cartData : []);
         $totalQty = 0;
-        foreach ($cart as $item) {
+        foreach ($items as $item) {
             $totalQty += (int)($item['quantity'] ?? 1);
         }
 
@@ -296,7 +297,13 @@ class CartService
             $reason = "Đơn hàng của quý khách có tổng số lượng {$totalQty} sản phẩm (từ 10 sản phẩm trở lên). Theo chính sách đơn hàng số lượng lớn của BeeStyle, quý khách vui lòng đặt cọc trước 50% giá trị đơn hàng để giữ hàng và xuất kho.";
         }
 
-        $totalAmount = $totalAmount !== null ? (int)$totalAmount : (int)self::total();
+        if ($totalAmount !== null) {
+            $totalAmount = (int)$totalAmount;
+        } else {
+            $cartInfo = self::getCart();
+            $totalAmount = (int)($cartInfo['total'] ?? 0);
+        }
+
         $depositAmount = $isRequired ? (int)round($totalAmount * 0.5) : 0;
         $remainingAmount = $isRequired ? ($totalAmount - $depositAmount) : $totalAmount;
 
@@ -310,6 +317,14 @@ class CartService
             'remaining_amount' => $remainingAmount,
             'reason' => $reason,
         ];
+    }
+
+    /**
+     * Lấy tổng giá trị thanh toán cuối cùng của giỏ hàng
+     */
+    public static function total(): int
+    {
+        return (int)(self::getCart()['total'] ?? 0);
     }
 
 

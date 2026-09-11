@@ -118,30 +118,51 @@
         <!-- Body -->
         <div class="p-5 flex flex-col flex-grow justify-between">
           <div>
-            <span class="text-[10px] tracking-widest uppercase text-neutral-400 font-semibold block mb-1">
+            <span class="text-[10px] tracking-widest uppercase text-amber-600 font-bold block mb-1">
               {{ $p->category->name ?? 'Beestyle Studio' }}
             </span>
-            <a href="{{ route('client.products.show', $p->id) }}" class="font-serif-luxury text-lg font-medium text-neutral-900 hover:text-amber-800 transition-colors line-clamp-2">
+            <a href="{{ route('client.products.show', $p->id) }}" class="font-serif-luxury text-lg font-bold text-neutral-950 hover:text-amber-700 transition-colors line-clamp-2">
               {{ $p->name }}
             </a>
           </div>
 
-          <div class="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between">
-            <div>
-              <span class="font-serif-luxury text-lg font-bold text-neutral-950 block">
-                {{ number_format($minPrice, 0, ',', '.') }}₫
-              </span>
+          <div class="mt-4 pt-3 border-t border-neutral-100 flex flex-col gap-3">
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span class="font-serif-luxury text-xl font-black text-neutral-950 block">
+                  {{ number_format($minPrice, 0, ',', '.') }}₫
+                </span>
+                @if($p->original_price && $p->original_price > $minPrice)
+                  <span class="text-xs text-neutral-500 line-through font-medium">
+                    {{ number_format($p->original_price, 0, ',', '.') }}₫
+                  </span>
+                @endif
+              </div>
+              @if($p->discount_percent > 0)
+                <span class="px-2 py-0.5 bg-rose-600 text-white text-[10px] font-black rounded shadow-xs">
+                  -{{ $p->discount_percent }}%
+                </span>
+              @endif
             </div>
-            <form action="{{ route('client.cart.add') }}" method="POST">
-              @csrf
-              <input type="hidden" name="product_id" value="{{ $p->id }}">
-              <input type="hidden" name="variant_id" value="{{ $p->variants->first()->id ?? '' }}">
-              <input type="hidden" name="quantity" value="1">
-              <button type="submit" class="px-3 py-1.5 bg-neutral-950 text-white text-xs tracking-wider uppercase font-semibold rounded-lg flex items-center gap-1 shadow-md hover:bg-amber-400 hover:text-black transition-colors" title="Thêm vào giỏ hàng">
-                <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
-                <span>Thêm</span>
+
+            <!-- Cặp nút Thêm vào giỏ & Mua ngay cạnh nhau -->
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" 
+                      onclick="openQuickVariantModal({{ $p->id }}, false, this)" 
+                      class="w-full py-2.5 px-2 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer group/btn" 
+                      title="Thêm vào giỏ hàng">
+                <i data-lucide="shopping-bag" class="w-3.5 h-3.5 shrink-0 group-hover/btn:scale-110 transition-transform"></i>
+                <span class="truncate">Thêm Giỏ</span>
               </button>
-            </form>
+              
+              <button type="button" 
+                      onclick="openQuickVariantModal({{ $p->id }}, true, this)" 
+                      class="w-full py-2.5 px-2 bg-amber-400 hover:bg-amber-500 text-neutral-950 text-xs font-black uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer group/btn" 
+                      title="Mua ngay — Thanh toán tức thì">
+                <i data-lucide="zap" class="w-3.5 h-3.5 shrink-0 group-hover/btn:scale-110 transition-transform"></i>
+                <span class="truncate">Mua Ngay</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

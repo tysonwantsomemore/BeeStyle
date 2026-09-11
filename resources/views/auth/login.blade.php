@@ -8,14 +8,17 @@
     
     <!-- Brand Header -->
     <div class="text-center mb-8">
-      <span class="font-serif-luxury text-2xl md:text-3xl font-bold tracking-[0.25em] text-neutral-900 uppercase block">
-        BEESTYLE
-      </span>
-      <span class="block text-[8px] tracking-[0.4em] text-neutral-500 uppercase -mt-0.5 font-sans mb-3">
-        STUDIO • 2026
-      </span>
-      <h1 class="font-serif-luxury text-2xl text-neutral-900 font-medium">Đăng Nhập Hệ Thống</h1>
-      <p class="text-xs text-neutral-500 mt-1 font-light">Chào mừng bạn quay trở lại với không gian Atelier</p>
+      <a href="{{ route('client.home') }}" class="inline-flex items-center gap-2.5 text-decoration-none group select-none mb-4">
+        <div class="w-11 h-11 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center font-bold text-xl shadow-sm group-hover:scale-105 transition-transform shrink-0" style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
+          <i class="fa-solid fa-gem text-neutral-950"></i>
+        </div>
+        <div class="brand-logo-text text-left leading-tight">
+          <div class="text-2xl font-black text-neutral-950 tracking-wider font-sans">BEE<span class="text-amber-500">STYLE</span></div>
+          <div class="text-[9px] text-neutral-600 font-bold tracking-[0.25em] uppercase font-sans -mt-0.5">CONTEMPORARY FASHION</div>
+        </div>
+      </a>
+      <h1 class="text-xl font-bold text-neutral-900 tracking-tight">Đăng Nhập Tài Khoản</h1>
+      <p class="text-xs text-neutral-600 mt-1 font-medium">Chào mừng bạn quay trở lại với hệ thống BeeStyle</p>
     </div>
 
     <!-- Error Alert Box -->
@@ -59,6 +62,7 @@
           <label for="login_password" class="block text-xs uppercase tracking-wider font-semibold text-neutral-700">
             Mật Khẩu <span class="text-rose-600">*</span>
           </label>
+          <a href="{{ route('auth.password.request') }}" class="text-[11px] text-rose-600 hover:text-rose-700 font-medium hover:underline">Quên mật khẩu?</a>
         </div>
         <div class="relative">
           <i data-lucide="lock" class="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>

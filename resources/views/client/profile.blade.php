@@ -53,6 +53,27 @@
     <span class="text-neutral-900 font-semibold">Tài Khoản Thành Viên Atelier</span>
   </nav>
 
+  @if(session('success'))
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-xl mb-6 text-xs flex items-center gap-2.5 animate-fade-in">
+      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+      <span>{{ session('success') }}</span>
+    </div>
+  @endif
+
+  @if(session('info'))
+    <div class="bg-sky-50 border border-sky-200 text-sky-900 p-4 rounded-xl mb-6 text-xs flex items-center gap-2.5 animate-fade-in">
+      <i data-lucide="info" class="w-4 h-4 text-sky-600 shrink-0"></i>
+      <span>{{ session('info') }}</span>
+    </div>
+  @endif
+
+  @if(session('error'))
+    <div class="bg-rose-50 border border-rose-200 text-rose-900 p-4 rounded-xl mb-6 text-xs flex items-center gap-2.5 animate-fade-in">
+      <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 shrink-0"></i>
+      <span>{{ session('error') }}</span>
+    </div>
+  @endif
+
   <!-- Flash Error Alerts -->
   @if(isset($errors) && $errors->any())
     <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl mb-6 text-xs animate-fade-in">
@@ -258,12 +279,20 @@
                     <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-950 flex items-center justify-between flex-wrap gap-2">
                       <div class="text-[11px]">
                         <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline text-amber-700 mr-1"></i>
-                        <strong>Yêu Cầu Đổi Trả #RMA-{{ str_pad($order->latestReturn->id, 5, '0', STR_PAD_LEFT) }}:</strong>
+                        <strong>Yêu Cầu Đổi Trả #{{ $order->latestReturn->return_code ?: 'RMA-' . str_pad($order->latestReturn->id, 5, '0', STR_PAD_LEFT) }}:</strong>
                         <span>{{ $order->latestReturn->type_label ?? 'Đổi trả hàng' }}</span>
+                        @if($order->latestReturn->reason)
+                          - <em>"{{ $order->latestReturn->reason }}"</em>
+                        @endif
                       </div>
-                      <button type="button" onclick="switchProfileTab('returns')" class="px-2.5 py-1 bg-white border border-neutral-300 rounded font-semibold text-[10px] hover:bg-neutral-50">
-                        Xem Tiến Trình
-                      </button>
+                      <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="switchProfileTab('returns')" class="px-2.5 py-1 bg-white border border-neutral-300 rounded font-semibold text-[10px] hover:bg-neutral-50 shadow-2xs">
+                          Xem Tab Đổi Trả
+                        </button>
+                        <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="px-2.5 py-1 bg-amber-600 text-white rounded font-semibold text-[10px] hover:bg-amber-700 shadow-2xs">
+                          Tra Cứu Bưu Tá
+                        </a>
+                      </div>
                     </div>
                   @endif
 
@@ -314,30 +343,32 @@
                     </div>
                     
                     <div class="flex items-center gap-2 flex-wrap">
-                      <!-- Hủy đơn hàng -->
+                      <!-- Hủy đơn hàng trước khi giao -->
                       @if(method_exists($order, 'canBeCancelledByCustomer') ? $order->canBeCancelledByCustomer() : in_array($order->shipping_status, ['pending', 'processing']))
                         <button type="button" onclick="openCancelModal({{ $order->id }}, '{{ $order->order_code }}')" class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors">
                           Hủy Đơn
                         </button>
                       @endif
 
-                      <!-- Xác nhận đã nhận / Không nhận hàng cho đơn đang giao -->
+                      <!-- Xác nhận đã nhận / Hủy hàng hoàn tiền cho đơn đang giao -->
                       @if(in_array($order->shipping_status, ['shipping', 'delivered']) || (isset($order->status_step) && in_array($order->status_step, [4, 5])))
-                        <form action="{{ route('client.order-tracking.confirm-delivered', $order->order_code) }}" method="POST" class="inline" onsubmit="return confirm('Bạn xác nhận đã nhận được kiện hàng và muốn hoàn tất đơn #{{ $order->order_code }}?');">
+                        <form action="{{ route('client.order-tracking.confirm-delivered', $order->order_code) }}" method="POST" class="inline" onsubmit="return confirm('Bạn xác nhận ĐÃ NHẬN ĐƯỢC ĐỦ HÀNG và hài lòng với chất lượng kiện hàng #{{ $order->order_code }}?');">
                           @csrf
-                          <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors">
-                            Đã Nhận Hàng
+                          <button type="submit" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs transition-colors flex items-center gap-1.5">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                            <span>Đã Nhận Được Hàng</span>
                           </button>
                         </form>
-                        <button type="button" onclick="openProfileRejectModal('{{ $order->order_code }}')" class="px-3 py-1.5 border border-rose-300 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-semibold transition-colors">
-                          Không Nhận
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                          <span>Hủy Hàng Hoàn Tiền</span>
                         </button>
                       @endif
 
-                      <!-- Yêu cầu đổi trả RMA 30 ngày (Toàn bộ đơn hàng) -->
+                      <!-- Yêu cầu đổi trả RMA sau khi nhận (Toàn bộ đơn hàng) -->
                       @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
-                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Trả / Hoàn Tiền (30 Ngày)
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-xs">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Hàng / Hoàn Tiền (7 Ngày)
                         </button>
                       @endif
 
@@ -356,7 +387,208 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 2: PENDING REVIEWS (CHỜ ĐÁNH GIÁ) -->
+      <!-- TAB 2: RMA / RETURN & EXCHANGE REQUESTS (ĐỔI TRẢ & HOÀN TIỀN) -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-returns" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="flex justify-between items-center flex-wrap gap-2 mb-6 pb-4 border-b border-neutral-100">
+            <div>
+              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">
+                Yêu Cầu Đổi Trả &amp; Bảo Hành ({{ isset($returns) ? $returns->count() : 0 }})
+              </h3>
+              <p class="text-neutral-500 mt-0.5">Theo dõi tiến trình đổi size, đổi màu và hoàn tiền cho các đơn hàng của bạn</p>
+            </div>
+            <button type="button" onclick="switchProfileTab('orders')" class="px-3.5 py-1.5 border border-neutral-300 hover:bg-neutral-50 rounded-lg font-semibold text-neutral-800 transition-colors flex items-center gap-1">
+              <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Xem Danh Sách Đơn Hàng
+            </button>
+          </div>
+
+          <!-- POLICY BANNER -->
+          <div class="p-4 mb-6 rounded-xl border border-sky-200 bg-gradient-to-r from-sky-50 to-emerald-50 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-neutral-950 text-amber-400 flex items-center justify-center shrink-0 shadow-xs">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-neutral-900 text-xs uppercase tracking-wide">Chính Sách Đổi Trả Tận Nhà Độc Quyền BeeStyle Atelier</h4>
+                <p class="text-neutral-600 text-[11px] mt-0.5">
+                  Miễn phí đổi Size / Màu trong <strong>7 ngày</strong> • Shipper mang sản phẩm mới đến tận nhà đổi đồng thời • Hoàn tiền 100% nếu lỗi sản phẩm
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-full text-[10px]">✓ Đổi Tận Nơi</span>
+              <span class="px-2.5 py-1 bg-sky-100 text-sky-800 font-bold rounded-full text-[10px]">⚡ 24-48 Giờ</span>
+            </div>
+          </div>
+
+          <!-- RETURNS LIST -->
+          <div class="space-y-4">
+            @if(isset($returns) && $returns->count() > 0)
+              @foreach($returns as $ret)
+                <div class="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 shadow-2xs">
+                  <!-- RETURN HEADER -->
+                  <div class="flex justify-between items-center flex-wrap gap-2 pb-3 border-b border-neutral-200/80 mb-3">
+                    <div>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <strong class="font-mono text-sm text-neutral-900">#{{ $ret->return_code ?: 'RMA-' . str_pad($ret->id, 5, '0', STR_PAD_LEFT) }}</strong>
+                        @if($ret->type === 'exchange')
+                          <span class="px-2 py-0.5 bg-sky-100 text-sky-800 border border-sky-200 font-bold rounded-full text-[10px]">Đổi Size/Màu</span>
+                        @elseif($ret->type === 'refund_only')
+                          <span class="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-200 font-bold rounded-full text-[10px]">Từ Chối Nhận Hàng</span>
+                        @else
+                          <span class="px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-200 font-bold rounded-full text-[10px]">Trả Hàng &amp; Hoàn Tiền</span>
+                        @endif
+                      </div>
+                      <span class="text-neutral-500 text-[11px] mt-0.5 block">
+                        Đơn hàng: <strong class="font-mono text-neutral-800">#{{ $ret->order->order_code ?? 'N/A' }}</strong> 
+                        • Ngày gửi: {{ $ret->created_at ? $ret->created_at->format('d/m/Y H:i') : '' }}
+                      </span>
+                    </div>
+                    <div>
+                      {!! $ret->status_badge !!}
+                    </div>
+                  </div>
+
+                  <!-- STEPPER TRACKER 4 BƯỚC -->
+                  @php
+                    $stepNum = match($ret->status) {
+                      'pending' => 1,
+                      'approved' => 2,
+                      'received' => 3,
+                      'completed' => 4,
+                      'rejected' => 0,
+                      default => 1,
+                    };
+                  @endphp
+                  <div class="p-3 bg-white rounded-xl border border-neutral-200 mb-3">
+                    <div class="grid grid-cols-4 gap-2 text-center text-[10px]">
+                      <div>
+                        <div class="w-6 h-6 rounded-full mx-auto mb-1 flex items-center justify-center font-bold {{ $stepNum >= 1 ? 'bg-emerald-600 text-white' : 'bg-neutral-100 text-neutral-400' }}">
+                          ✓
+                        </div>
+                        <span class="{{ $stepNum >= 1 ? 'font-bold text-neutral-900' : 'text-neutral-400' }}">1. Gửi Yêu Cầu</span>
+                      </div>
+                      <div>
+                        <div class="w-6 h-6 rounded-full mx-auto mb-1 flex items-center justify-center font-bold {{ $stepNum >= 2 ? 'bg-emerald-600 text-white' : ($stepNum === 1 ? 'bg-amber-400 text-neutral-950' : 'bg-neutral-100 text-neutral-400') }}">
+                          {{ $stepNum >= 2 ? '✓' : '2' }}
+                        </div>
+                        <span class="{{ $stepNum >= 2 ? 'font-bold text-neutral-900' : 'text-neutral-400' }}">2. Shop Tiếp Nhận</span>
+                      </div>
+                      <div>
+                        <div class="w-6 h-6 rounded-full mx-auto mb-1 flex items-center justify-center font-bold {{ $stepNum >= 3 ? 'bg-emerald-600 text-white' : 'bg-neutral-100 text-neutral-400' }}">
+                          {{ $stepNum >= 3 ? '✓' : '3' }}
+                        </div>
+                        <span class="{{ $stepNum >= 3 ? 'font-bold text-neutral-900' : 'text-neutral-400' }}">3. {{ $ret->type === 'exchange' ? 'Giao Đổi Tận Nơi' : 'Thu Hồi Hàng' }}</span>
+                      </div>
+                      <div>
+                        <div class="w-6 h-6 rounded-full mx-auto mb-1 flex items-center justify-center font-bold {{ $stepNum === 4 ? 'bg-emerald-600 text-white' : ($ret->status === 'rejected' ? 'bg-rose-600 text-white' : 'bg-neutral-100 text-neutral-400') }}">
+                          {{ $stepNum === 4 ? '✓' : ($ret->status === 'rejected' ? '✕' : '4') }}
+                        </div>
+                        <span class="{{ $stepNum === 4 ? 'font-bold text-emerald-700' : ($ret->status === 'rejected' ? 'font-bold text-rose-700' : 'text-neutral-400') }}">
+                          {{ $ret->status === 'rejected' ? 'Bị Từ Chối' : 'Hoàn Tất' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- RETURN DETAIL INFO -->
+                  <div class="p-3 bg-white rounded-xl border border-neutral-200 mb-3 space-y-2">
+                    <div>
+                      <span class="text-neutral-500 text-[11px] block">Lý do yêu cầu:</span>
+                      <strong class="text-neutral-900 text-xs">{{ $ret->reason }}</strong>
+                    </div>
+                    @if($ret->customer_notes)
+                      <div>
+                        <span class="text-neutral-500 text-[11px] block">Ghi chú của bạn:</span>
+                        <span class="text-neutral-700 italic text-xs">"{{ $ret->customer_notes }}"</span>
+                      </div>
+                    @endif
+                    @if($ret->type === 'exchange')
+                      <div class="p-2.5 rounded-lg bg-sky-50 border border-sky-100 text-xs">
+                        <strong class="text-sky-900 block mb-1">Thông tin đổi hàng mới:</strong>
+                        <div class="flex gap-2 flex-wrap">
+                          @if($ret->exchange_size)
+                            <span class="px-2 py-0.5 bg-neutral-900 text-white rounded font-bold text-[10px]">Size: {{ $ret->exchange_size }}</span>
+                          @endif
+                          @if($ret->exchange_color)
+                            <span class="px-2 py-0.5 bg-white border border-neutral-300 text-neutral-800 rounded font-semibold text-[10px]">Màu: {{ $ret->exchange_color }}</span>
+                          @endif
+                        </div>
+                        <span class="text-neutral-500 text-[10px] mt-1 block">Shipper sẽ mang trang phục mới đến tận nhà đổi và thu hồi sản phẩm cũ.</span>
+                      </div>
+                    @elseif($ret->refund_amount > 0)
+                      <div class="p-2.5 rounded-lg bg-rose-50 border border-rose-100 text-xs">
+                        <div class="flex justify-between items-center">
+                          <span class="text-neutral-600">Số tiền hoàn trả:</span>
+                          <strong class="text-rose-700 font-mono text-sm">{{ number_format($ret->refund_amount, 0, ',', '.') }}₫</strong>
+                        </div>
+                        @if($ret->bank_account_number)
+                          <div class="mt-1 text-[11px] text-neutral-700">
+                            TK nhận tiền: <strong>{{ $ret->bank_name }}</strong> • <span class="font-mono">{{ $ret->bank_account_number }}</span> ({{ $ret->bank_account_name }})
+                          </div>
+                        @endif
+                      </div>
+                    @endif
+
+                    @if(!empty($ret->image_proofs) && is_array($ret->image_proofs))
+                      <div class="pt-2 border-t border-neutral-100">
+                        <span class="text-neutral-500 text-[10px] block mb-1">Ảnh minh chứng:</span>
+                        <div class="flex gap-2 flex-wrap">
+                          @foreach($ret->image_proofs as $img)
+                            <a href="{{ asset($img) }}" target="_blank">
+                              <img src="{{ asset($img) }}" alt="Minh chứng" class="w-12 h-12 rounded border border-neutral-200 object-cover shadow-2xs">
+                            </a>
+                          @endforeach
+                        </div>
+                      </div>
+                    @endif
+                  </div>
+
+                  <!-- ADMIN RESPONSE -->
+                  @if($ret->admin_notes)
+                    <div class="p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-950 mb-3 text-xs">
+                      <strong class="block mb-0.5 text-sky-900 font-bold">Phản hồi từ BeeStyle:</strong>
+                      <span>{{ $ret->admin_notes }}</span>
+                    </div>
+                  @endif
+
+                  @if($ret->rejected_reason)
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-950 mb-3 text-xs">
+                      <strong class="block mb-0.5 text-rose-900 font-bold">Lý do từ chối:</strong>
+                      <span>{{ $ret->rejected_reason }}</span>
+                    </div>
+                  @endif
+
+                  <!-- FOOTER ACTIONS -->
+                  <div class="flex justify-between items-center flex-wrap gap-2 pt-2 border-t border-neutral-200/60">
+                    <span class="text-[10px] text-neutral-400">
+                      Cập nhật: {{ $ret->updated_at ? $ret->updated_at->format('d/m/Y H:i') : '' }}
+                    </span>
+                    @if($ret->order)
+                      <a href="{{ route('client.order-tracking', ['code' => $ret->order->order_code]) }}" class="px-3 py-1 bg-white border border-neutral-300 hover:bg-neutral-100 rounded-lg text-[11px] font-semibold text-neutral-800 transition-colors">
+                        Tra Cứu Vận Trình Bưu Tá →
+                      </a>
+                    @endif
+                  </div>
+                </div>
+              @endforeach
+            @else
+              <div class="text-center py-12 text-neutral-500">
+                <i data-lucide="rotate-ccw" class="w-12 h-12 mx-auto text-neutral-300 mb-2 stroke-1"></i>
+                <p class="font-medium text-neutral-800 text-sm">Bạn chưa có yêu cầu đổi trả hoặc bảo hành nào</p>
+                <p class="text-neutral-400 mt-1 mb-4">Mọi sản phẩm mua tại BeeStyle đều được hưởng quyền lợi đổi size miễn phí tận nhà trong 7 ngày.</p>
+                <button type="button" class="px-5 py-2 bg-neutral-950 hover:bg-neutral-800 text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors" onclick="switchProfileTab('orders')">
+                  Xem Danh Sách Đơn Hàng
+                </button>
+              </div>
+            @endif
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 3: PENDING REVIEWS (CHỜ ĐÁNH GIÁ) -->
       <!-- ========================================================================= -->
       <div id="tab-panel-pending-reviews" class="profile-panel hidden space-y-4">
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
@@ -402,7 +634,7 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 3: MY REVIEWS (ĐÁNH GIÁ CỦA TÔI) -->
+      <!-- TAB 4: MY REVIEWS (ĐÁNH GIÁ CỦA TÔI) -->
       <!-- ========================================================================= -->
       <div id="tab-panel-my-reviews" class="profile-panel hidden space-y-4">
         <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
@@ -434,135 +666,6 @@
               </div>
             @endforelse
           </div>
-        </div>
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- TAB 4: RETURNS & REFUNDS (RMA) -->
-      <!-- ========================================================================= -->
-      <div id="tab-panel-returns" class="profile-panel hidden space-y-4">
-        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
-          <div class="pb-4 mb-6 border-b border-neutral-100 flex justify-between items-center">
-            <div>
-              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Tiến Trình Đổi Trả &amp; Hoàn Tiền</h3>
-              <p class="text-neutral-500 mt-0.5">Theo dõi trạng thái xử lý yêu cầu hoàn tiền và đổi size tận nơi</p>
-            </div>
-            <span class="px-3 py-1 bg-amber-100 text-amber-900 rounded-full font-bold uppercase text-[10px]">
-              CHÍNH SÁCH 30 NGÀY
-            </span>
-          </div>
-
-          @if(!isset($returns) || $returns->isEmpty())
-            <div class="text-center py-12 text-neutral-500">
-              <i data-lucide="rotate-ccw" class="w-12 h-12 mx-auto text-neutral-300 mb-3 stroke-1"></i>
-              <p class="font-medium text-neutral-800 text-sm">Bạn chưa có yêu cầu đổi trả hoặc hoàn tiền nào</p>
-              <p class="text-neutral-400 mt-1 max-w-md mx-auto">
-                Khi nhận được hàng, nếu không vừa size hoặc không ưng ý, bạn có thể bấm nút <strong>"Đổi Trả"</strong> tại từng sản phẩm hoặc <strong>"Đổi Trả / Hoàn Tiền"</strong> của đơn hàng để được hỗ trợ 100% miễn phí.
-              </p>
-            </div>
-          @else
-            <div class="space-y-6">
-              @foreach($returns as $ret)
-                <div class="p-6 rounded-2xl border border-neutral-200 bg-neutral-50/70 space-y-4">
-                  <div class="flex flex-wrap justify-between items-center gap-2 pb-3 border-b border-neutral-200">
-                    <div>
-                      <span class="font-bold text-neutral-950 text-sm">Yêu cầu #RMA-{{ str_pad($ret->id, 5, '0', STR_PAD_LEFT) }}</span>
-                      <span class="text-neutral-400 ml-2">Đơn hàng: <strong>#{{ $ret->order->order_code ?? '' }}</strong></span>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase {{ $ret->status === 'completed' || $ret->status === 'refunded' ? 'bg-emerald-100 text-emerald-800' : ($ret->status === 'rejected' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-900') }}">
-                      {{ $ret->status_label ?? $ret->status }}
-                    </span>
-                  </div>
-
-                  <!-- 4-Step Refund Progress Tracker -->
-                  <div class="p-4 bg-white rounded-xl border border-neutral-200">
-                    <span class="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-3">TIẾN TRÌNH XỬ LÝ:</span>
-                    <div class="grid grid-cols-4 gap-2 text-center text-[11px]">
-                      <div class="space-y-1">
-                        <div class="w-7 h-7 mx-auto rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">✓</div>
-                        <span class="font-semibold text-neutral-800 block">1. Đã Gửi</span>
-                      </div>
-                      <div class="space-y-1">
-                        <div class="w-7 h-7 mx-auto rounded-full {{ in_array($ret->status, ['approved', 'received', 'completed', 'refunded']) ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600' }} flex items-center justify-center font-bold text-xs">2</div>
-                        <span class="font-semibold text-neutral-800 block">2. Xưởng Duyệt</span>
-                      </div>
-                      <div class="space-y-1">
-                        <div class="w-7 h-7 mx-auto rounded-full {{ in_array($ret->status, ['received', 'completed', 'refunded']) ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600' }} flex items-center justify-center font-bold text-xs">3</div>
-                        <span class="font-semibold text-neutral-800 block">3. Nhận Hàng</span>
-                      </div>
-                      <div class="space-y-1">
-                        <div class="w-7 h-7 mx-auto rounded-full {{ in_array($ret->status, ['completed', 'refunded']) ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600' }} flex items-center justify-center font-bold text-xs">4</div>
-                        <span class="font-semibold text-neutral-800 block">4. Hoàn Tất</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-neutral-700">
-                    <div class="space-y-2">
-                      <p><strong>Hình thức:</strong> {{ $ret->type === 'exchange' ? 'Đổi Size / Đổi Màu' : 'Trả Hàng & Hoàn Tiền' }}</p>
-                      <p><strong>Lý do:</strong> {{ $ret->reason }}</p>
-                      
-                      @if($ret->exchange_size || $ret->exchange_color)
-                        <p class="text-amber-800 font-semibold bg-amber-50 p-2 rounded border border-amber-200">
-                          Yêu cầu đổi sang: {{ $ret->exchange_size ? 'Size ' . $ret->exchange_size : '' }} {{ $ret->exchange_color ? 'Màu ' . $ret->exchange_color : '' }}
-                        </p>
-                      @endif
-
-                      <!-- Sản phẩm đổi trả cụ thể -->
-                      @if($ret->orderItem)
-                        <div class="p-2.5 bg-white rounded-xl border border-neutral-200 flex items-center gap-3">
-                          <img src="{{ asset($ret->orderItem->product->primaryImage->image_path ?? $ret->orderItem->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop') }}" class="w-12 h-14 rounded-lg object-cover border border-neutral-200 shrink-0">
-                          <div class="min-w-0 text-xs">
-                            <span class="text-[10px] font-bold uppercase text-amber-800 block">Sản phẩm đổi trả:</span>
-                            <strong class="text-neutral-900 block truncate">{{ $ret->orderItem->product_name }}</strong>
-                            <span class="text-[11px] text-neutral-500">Màu: {{ $ret->orderItem->color ?? 'Chuẩn' }} | Size: {{ $ret->orderItem->size ?? 'M' }} • SL: x{{ $ret->orderItem->quantity }}</span>
-                          </div>
-                        </div>
-                      @else
-                        <div class="p-2 bg-neutral-100 rounded-lg text-[11px] text-neutral-600">
-                          <strong>Phạm vi:</strong> Toàn bộ sản phẩm trong đơn hàng
-                        </div>
-                      @endif
-
-                      @if($ret->customer_notes)
-                        <p class="text-[11px] text-neutral-600 bg-white p-2 rounded-lg border border-neutral-200"><strong>Ghi chú:</strong> {{ $ret->customer_notes }}</p>
-                      @endif
-
-                      @if($ret->admin_notes)
-                        <div class="p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-[11px]">
-                          <strong>Ghi chú từ Xưởng may:</strong> {{ $ret->admin_notes }}
-                        </div>
-                      @endif
-                    </div>
-
-                    <div class="space-y-3">
-                      <div class="bg-white p-3.5 rounded-xl border border-neutral-200 space-y-1">
-                        <span class="font-semibold block text-neutral-900">Tài khoản nhận tiền hoàn:</span>
-                        <p class="font-mono text-neutral-900">{{ $ret->bank_name ?? $user->bank_name ?? 'Chưa cung cấp' }} — {{ $ret->bank_account_number ?? $user->bank_account_number ?? '' }}</p>
-                        <p class="text-neutral-500 font-mono text-[11px]">{{ $ret->bank_account_name ?? $user->bank_account_name ?? '' }}</p>
-                        @if($ret->refund_amount)
-                          <p class="mt-2 text-rose-700 font-bold font-serif-luxury text-sm">Số tiền hoàn trả: {{ number_format($ret->refund_amount, 0, ',', '.') }}₫</p>
-                        @endif
-                      </div>
-
-                      <!-- Ảnh minh chứng đã tải lên -->
-                      @if(!empty($ret->image_proofs) && is_array($ret->image_proofs) && count($ret->image_proofs) > 0)
-                        <div class="space-y-1 bg-white p-3 rounded-xl border border-neutral-200">
-                          <span class="text-[10px] uppercase font-bold text-neutral-600 block">Ảnh minh chứng đã gửi ({{ count($ret->image_proofs) }}):</span>
-                          <div class="flex gap-2 overflow-x-auto py-1">
-                            @foreach($ret->image_proofs as $img)
-                              <img src="{{ asset($img) }}" class="w-12 h-14 rounded-lg object-cover border border-neutral-200 shrink-0 cursor-pointer hover:opacity-80 transition-opacity" onclick="window.open('{{ asset($img) }}', '_blank')">
-                            @endforeach
-                          </div>
-                        </div>
-                      @endif
-                    </div>
-                  </div>
-
-                </div>
-              @endforeach
-            </div>
-          @endif
         </div>
       </div>
 
@@ -916,14 +1019,14 @@
     <form id="returnOrderForm" method="POST" enctype="multipart/form-data" class="space-y-4">
       @csrf
 
-      <!-- Khối Chọn Sản Phẩm Cần Đổi Trả (Kèm Ảnh Minh Họa, Tên, Phân Loại, Giá) -->
+      <!-- Khối Chọn Sản Phẩm Cần Đổi Trả -->
       <div>
         <div class="flex justify-between items-center mb-1.5">
           <label class="block font-semibold uppercase text-neutral-700">1. Chọn Sản Phẩm Cần Đổi Trả / Hoàn Tiền *</label>
           <span id="returnSelectedItemBadge" class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">Toàn bộ đơn hàng</span>
         </div>
         <div id="returnOrderItemsList" class="space-y-2 max-h-52 overflow-y-auto pr-1 border border-neutral-200 rounded-xl p-2 bg-neutral-50/60">
-          <!-- Populated dynamically by JS with thumbnail images, names, colors, sizes, prices -->
+          <!-- Populated dynamically by JS -->
         </div>
       </div>
       
@@ -932,23 +1035,36 @@
         <label class="block font-semibold uppercase text-neutral-700 mb-1.5">2. Hình Thức Mong Muốn *</label>
         <div class="grid grid-cols-2 gap-2">
           <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
-            <input type="radio" name="type" value="return_refund" checked onchange="toggleReturnTypeFields('return_refund')" class="text-neutral-900">
+            <input type="radio" name="type" value="return_refund" checked onchange="handleProfileReturnTypeChange(this.value)" class="text-neutral-900">
             <span><strong>Trả Hàng &amp; Hoàn Tiền</strong></span>
           </label>
           <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
-            <input type="radio" name="type" value="exchange" onchange="toggleReturnTypeFields('exchange')" class="text-neutral-900">
+            <input type="radio" name="type" value="exchange" onchange="handleProfileReturnTypeChange(this.value)" class="text-neutral-900">
             <span><strong>Đổi Size / Đổi Màu</strong></span>
           </label>
         </div>
       </div>
 
       <!-- Tùy chọn đổi size / màu nếu chọn Đổi hàng -->
-      <div id="exchangeFieldsBox" class="hidden p-3 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
-        <span class="font-bold text-amber-900 uppercase text-[10px] block">Yêu Cầu Đổi Size / Đổi Màu Cụ Thể:</span>
+      <div id="profileExchangeFields" class="hidden p-3 bg-sky-50 rounded-xl border border-sky-200 space-y-2">
+        <span class="font-bold text-sky-900 uppercase text-[10px] block">Yêu Cầu Đổi Size / Đổi Màu Cụ Thể:</span>
         <div class="grid grid-cols-2 gap-2">
-          <input type="text" name="exchange_size" placeholder="Size mong muốn (VD: L, XL, 41...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
-          <input type="text" name="exchange_color" placeholder="Màu mong muốn (VD: Đen, Trắng...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+          <div>
+            <label class="block text-[10px] font-semibold text-neutral-600 mb-0.5">Size mới mong muốn *</label>
+            <select name="exchange_size" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+              <option value="S">Size S (48 - 56kg)</option>
+              <option value="M" selected>Size M (57 - 65kg)</option>
+              <option value="L">Size L (66 - 73kg)</option>
+              <option value="XL">Size XL (74 - 82kg)</option>
+              <option value="XXL">Size XXL (83 - 90kg)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-neutral-600 mb-0.5">Màu sắc mới</label>
+            <input type="text" name="exchange_color" placeholder="VD: Đen, Trắng, Giữ nguyên..." class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+          </div>
         </div>
+        <p class="text-[10px] text-sky-700">Shipper sẽ mang trang phục mới đến tận nhà đổi và thu hồi sản phẩm cũ.</p>
       </div>
 
       <!-- Lý do đổi trả -->
@@ -966,8 +1082,8 @@
 
       <!-- Mô tả chi tiết -->
       <div>
-        <label class="block font-semibold uppercase text-neutral-700 mb-1">4. Mô Tả Chi Tiết Vấn Đề (Tùy chọn)</label>
-        <textarea name="customer_notes" rows="2" placeholder="Ghi chú chi tiết về tình trạng sản phẩm, yêu cầu đổi size/màu mong muốn..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950"></textarea>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">4. Ghi Chú Chi Tiết (Tùy chọn)</label>
+        <textarea name="customer_notes" rows="2" placeholder="Ghi chú thêm về tình trạng sản phẩm, yêu cầu chi tiết..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950"></textarea>
       </div>
 
       <!-- BẮT BUỘC: Upload Hình Ảnh Minh Chứng -->
@@ -975,7 +1091,7 @@
         <div class="flex items-center justify-between">
           <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
             <i data-lucide="camera" class="w-4 h-4 text-amber-700"></i>
-            <span>5. Ảnh Minh Chứng Sản Phẩm / Tem Mác <span class="text-rose-600">* (Bắt buộc)</span></span>
+            <span>5. Ảnh Minh Chứng Sản Phẩm / Tem Mác <span class="text-rose-600">*</span></span>
           </label>
           <span class="text-[10px] text-amber-800 font-semibold">1 - 5 ảnh (Tối đa 8MB/ảnh)</span>
         </div>
@@ -1002,15 +1118,15 @@
         </div>
       </div>
 
-      <!-- Thông tin ngân hàng nhận tiền hoàn -->
-      <div id="returnBankInfoBox" class="p-3 bg-brand-50 rounded-xl border border-brand-200 space-y-2">
+      <!-- Thông tin ngân hàng nhận tiền hoàn (Ẩn nếu chọn Đổi hàng) -->
+      <div id="profileBankFields" class="p-3 bg-brand-50 rounded-xl border border-brand-200 space-y-2">
         <span class="font-bold text-neutral-900 uppercase text-[10px] block">7. Thông Tin Nhận Tiền Hoàn:</span>
-        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Vietcombank' }}" placeholder="Tên Ngân Hàng (VD: Vietcombank, MB Bank...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Techcombank' }}" placeholder="Tên Ngân Hàng (VD: Vietcombank, Techcombank...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
         <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" placeholder="Số Tài Khoản Ngân Hàng" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs font-mono">
         <input type="text" name="bank_account_name" value="{{ $user->bank_account_name ?? $user->name }}" placeholder="Tên Chủ Tài Khoản (IN HOA)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs uppercase">
       </div>
 
-      <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2">
+      <button type="submit" id="btnSubmitProfileReturn" class="w-full py-3 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2">
         <i data-lucide="check-circle" class="w-4 h-4"></i>
         <span>Gửi Yêu Cầu Hoàn Tiền / Đổi Trả</span>
       </button>
@@ -1227,6 +1343,28 @@
     if (typeof lucide !== 'undefined') lucide.createIcons();
   });
 
+  // Chuyển đổi giao diện Đổi Hàng vs Trả Hàng trong Modal Profile
+  function handleProfileReturnTypeChange(type) {
+    const exBox = document.getElementById('profileExchangeFields');
+    const bankBox = document.getElementById('profileBankFields');
+    const btn = document.getElementById('btnSubmitProfileReturn');
+    if (type === 'exchange') {
+      if (exBox) exBox.classList.remove('hidden');
+      if (bankBox) bankBox.classList.add('hidden');
+      if (btn) {
+        btn.querySelector('span').textContent = 'Gửi Yêu Cầu Đổi Hàng Mới';
+        btn.className = 'w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2';
+      }
+    } else {
+      if (exBox) exBox.classList.add('hidden');
+      if (bankBox) bankBox.classList.remove('hidden');
+      if (btn) {
+        btn.querySelector('span').textContent = 'Gửi Yêu Cầu Hoàn Tiền / Đổi Trả';
+        btn.className = 'w-full py-3 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2';
+      }
+    }
+  }
+
   function toggleAddAddressForm() {
     document.getElementById('addAddressFormBox')?.classList.toggle('hidden');
   }
@@ -1239,6 +1377,27 @@
         document.getElementById('sidebarAvatarPreview').src = e.target.result;
       };
       reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // Lightbox xem ảnh review phóng to
+  function openReviewImageLightbox(imgUrl) {
+    let modal = document.getElementById('profileLightboxModal');
+    let img = document.getElementById('profileLightboxImg');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'profileLightboxModal';
+      modal.className = 'fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer';
+      modal.onclick = function() { modal.classList.add('hidden'); };
+      modal.innerHTML = `
+        <div class="relative max-w-3xl max-h-[85vh]">
+          <img id="profileLightboxImg" src="${imgUrl}" class="max-h-[80vh] w-auto rounded-xl object-contain shadow-2xl">
+        </div>
+      `;
+      document.body.appendChild(modal);
+    } else {
+      if (img) img.src = imgUrl;
+      modal.classList.remove('hidden');
     }
   }
 
@@ -1310,14 +1469,18 @@
       }
     }
 
-    // Reset uploads
+    // Reset uploads & fields
     selectedReturnFiles = [];
     const previewContainer = document.getElementById('returnImagesPreviewList');
     if (previewContainer) previewContainer.innerHTML = '';
     const imgInput = document.getElementById('returnImageProofsInput');
     if (imgInput) imgInput.value = '';
     removeReturnVideo();
-    toggleReturnTypeFields('return_refund');
+    
+    // Set radio & fields về default
+    const radioRefund = document.querySelector('input[name="type"][value="return_refund"]');
+    if (radioRefund) radioRefund.checked = true;
+    handleProfileReturnTypeChange('return_refund');
 
     document.getElementById('returnOrderModal').classList.remove('hidden');
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1338,19 +1501,9 @@
       }
     });
   }
+
   function closeReturnModal() {
     document.getElementById('returnOrderModal').classList.add('hidden');
-  }
-
-  function toggleReturnTypeFields(type) {
-    const exchangeBox = document.getElementById('exchangeFieldsBox');
-    if (exchangeBox) {
-      if (type === 'exchange') {
-        exchangeBox.classList.remove('hidden');
-      } else {
-        exchangeBox.classList.add('hidden');
-      }
-    }
   }
 
   function handleReturnImagesPreview(input) {
@@ -1370,7 +1523,6 @@
     const input = document.getElementById('returnImageProofsInput');
     if (!container || !input) return;
 
-    // Sync input files with DataTransfer
     try {
       const dt = new DataTransfer();
       selectedReturnFiles.forEach(f => dt.items.add(f));

@@ -365,7 +365,8 @@
       row.style.pointerEvents = 'none';
     }
 
-    fetch('{{ route("client.cart.remove") }}', {
+    const removeUrl = '{{ url("gio-hang/xoa") }}/' + encodeURIComponent(key);
+    fetch(removeUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -479,7 +480,7 @@
   }
 
   function executeApplyCoupon(code) {
-    fetch('{{ route("client.cart.apply-coupon") }}', {
+    fetch('{{ route("client.cart.applyCoupon") }}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -507,7 +508,7 @@
   }
 
   function removeCartCoupon() {
-    fetch('{{ route("client.cart.remove-coupon") }}', {
+    fetch('{{ route("client.cart.removeCoupon") }}', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

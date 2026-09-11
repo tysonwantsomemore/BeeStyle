@@ -71,6 +71,22 @@ class User extends Authenticatable
         return "https://ui-avatars.com/api/?name={$name}&background=f59e0b&color=111827&bold=true&size=128";
     }
 
+    /**
+     * Tổng chi tiêu thực tế của khách hàng (tính từ các đơn hàng thành công / không bị hủy)
+     */
+    public function getActualTotalSpentAttribute(): int
+    {
+        if (array_key_exists('actual_total_spent', $this->attributes)) {
+            return (int) $this->attributes['actual_total_spent'];
+        }
+
+        if ($this->relationLoaded('orders')) {
+            return (int) $this->orders->where('shipping_status', '!=', 'cancelled')->sum('total_amount');
+        }
+
+        return (int) ($this->total_spent ?? 0);
+    }
+
     protected function casts(): array
     {
         return [

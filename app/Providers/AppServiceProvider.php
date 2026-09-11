@@ -39,48 +39,91 @@ class AppServiceProvider extends ServiceProvider
             $recentCustomerOrders = collect();
             $allShopNotifications = collect();
 
+            $deliveringOrders = collect();
+            $pendingReviewOrders = collect();
+
             if (Auth::check()) {
                 $user = Auth::user();
                 $pendingReviewItems = $user->getPendingReviewItems();
                 $unnotifiedReviewItems = $user->getUnnotifiedPendingReviewItems();
-                $recentCustomerOrders = $user->orders()->with('items')->latest()->take(5)->get();
+                $recentCustomerOrders = $user->orders()->with(['items.product'])->latest()->take(10)->get();
 
-                // 1. Thông báo đánh giá sản phẩm từ các đơn hoàn tất
+                // Các đơn hàng đang ở trạng thái đã giao (delivered) cần khách hàng xác nhận hoặc đổi trả
+                $deliveringOrders = $user->orders()->with(['items.product'])
+                    ->where('shipping_status', 'delivered')
+                    ->latest()
+                    ->get();
+
+                // Các đơn hàng đã hoàn tất (completed) nhưng chưa từng được đánh giá
+                $pendingReviewOrders = $user->orders()->with(['items.product'])
+                    ->where('shipping_status', 'completed')
+                    ->where('review_notified', false)
+                    ->latest()
+                    ->get();
+
+                // 1. ƯU TIÊN HÀNG ĐẦU: Thông báo đơn hàng bưu tá vừa phát tới nơi (Cần xác nhận nhận hàng hoặc đổi trả)
+                foreach ($deliveringOrders as $dOrder) {
+                    $allShopNotifications->push([
+                        'id' => 'deliv_' . $dOrder->id,
+                        'type' => 'delivery_action',
+                        'order_id' => $dOrder->id,
+                        'order_code' => $dOrder->order_code,
+                        'total_amount' => $dOrder->total_amount,
+                        'carrier' => $dOrder->shipping_carrier ?: 'GHTK',
+                        'icon' => 'fa-solid fa-box-open text-emerald-600',
+                        'badge' => 'Bưu tá đã phát',
+                        'badge_class' => 'bg-emerald-100 text-emerald-800 border border-emerald-300',
+                        'title' => "Bưu tá đã giao kiện hàng #{$dOrder->order_code}!",
+                        'content' => "Bưu tá đã phát bưu phẩm tới địa chỉ của bạn. Vui lòng đồng kiểm và xác nhận nhận hàng hoặc yêu cầu đổi trả/hoàn tiền nếu có vấn đề.",
+                        'link' => route('client.order-tracking', ['code' => $dOrder->order_code]),
+                        'image' => asset($dOrder->items->first()->image ?? ($dOrder->items->first()->product->thumbnail ?? 'assets/img/products/1.png')),
+                        'created_at' => $dOrder->delivered_at ?: $dOrder->updated_at,
+                        'time_ago' => $dOrder->delivered_at ? $dOrder->delivered_at->diffForHumans() : 'Vừa xong',
+                        'is_unread' => true,
+                        'action_type' => 'confirm_or_return',
+                        'first_product_id' => $dOrder->items->first()->product_id ?? 1,
+                        'first_product_name' => $dOrder->items->first()->product_name ?? 'Sản phẩm',
+                    ]);
+                }
+
+                // 2. Thông báo đánh giá sản phẩm từ các đơn đã hoàn tất
                 foreach ($pendingReviewItems as $item) {
                     $allShopNotifications->push([
                         'id' => 'rev_' . $item->id,
                         'type' => 'review',
-                        'icon' => 'fa-solid fa-star text-warning',
-                        'badge' => 'Cảm ơn đã mua hàng',
-                        'badge_class' => 'bg-warning-subtle text-dark border',
-                        'title' => 'Cảm ơn bạn đã mua hàng!',
-                        'content' => "Đơn hàng {$item->order->order_code} đã hoàn tất. Hãy chia sẻ cảm nhận của bạn về sản phẩm \"{$item->product_name}\" nhé!",
-                        'link' => route('client.products.show', $item->product_id) . '#reviews',
-                        'image' => asset($item->image ?? ($item->product->image ?? '/assets/img/products/1.png')),
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product_name,
+                        'order_code' => $item->order->order_code ?? '',
+                        'icon' => 'fa-solid fa-star text-amber-500',
+                        'badge' => 'Chờ đánh giá',
+                        'badge_class' => 'bg-amber-100 text-amber-900 border border-amber-300',
+                        'title' => 'Cảm ơn bạn đã mua sắm tại BeeStyle!',
+                        'content' => "Đơn hàng #{$item->order->order_code} đã hoàn tất. Hãy chia sẻ cảm nhận của bạn về sản phẩm \"{$item->product_name}\" để nhận ngay Voucher ưu đãi nhé!",
+                        'link' => route('client.products.show', $item->product_id) . '#reviews-section',
+                        'image' => asset($item->image ?? ($item->product->thumbnail ?? 'assets/img/products/1.png')),
                         'created_at' => $item->created_at,
                         'time_ago' => $item->created_at ? $item->created_at->diffForHumans() : 'Gần đây',
                         'is_unread' => true,
-                        'action_text' => 'Đánh giá ngay',
+                        'action_type' => 'review',
+                        'action_text' => 'Đánh giá ngay (Tặng voucher)',
                     ]);
                 }
 
-                // 2. Thông báo trạng thái các đơn hàng vừa mua
-                foreach ($recentCustomerOrders as $order) {
+                // 3. Thông báo trạng thái các đơn hàng khác
+                foreach ($recentCustomerOrders->whereNotIn('shipping_status', ['delivered']) as $order) {
                     $statusText = match($order->shipping_status) {
                         'completed' => 'Đơn hàng đã hoàn tất thành công',
-                        'delivered' => 'Đơn hàng đã được giao đến bạn',
-                        'shipping' => 'Đơn hàng đang trên đường giao',
-                        'processing' => 'Đơn hàng đang được đóng gói xuất kho',
-                        'cancelled' => 'Đơn hàng đã bị hủy',
-                        default => 'Đơn hàng mới đặt thành công',
+                        'shipping' => 'Đơn hàng đang trên đường bưu tá giao tới',
+                        'processing' => 'Đơn hàng đang được kho kiểm tra & đóng gói',
+                        'cancelled' => 'Đơn hàng đã hủy',
+                        default => 'Đơn hàng mới tạo thành công',
                     };
                     $iconClass = match($order->shipping_status) {
-                        'completed' => 'fa-solid fa-circle-check text-success',
-                        'delivered' => 'fa-solid fa-box-open text-success',
-                        'shipping' => 'fa-solid fa-truck-fast text-warning',
-                        'processing' => 'fa-solid fa-box text-info',
-                        'cancelled' => 'fa-solid fa-ban text-danger',
-                        default => 'fa-solid fa-receipt text-primary',
+                        'completed' => 'fa-solid fa-circle-check text-emerald-600',
+                        'shipping' => 'fa-solid fa-truck-fast text-amber-500',
+                        'processing' => 'fa-solid fa-box text-sky-600',
+                        'cancelled' => 'fa-solid fa-ban text-rose-600',
+                        default => 'fa-solid fa-receipt text-neutral-800',
                     };
 
                     $allShopNotifications->push([
@@ -88,60 +131,47 @@ class AppServiceProvider extends ServiceProvider
                         'type' => 'order',
                         'icon' => $iconClass,
                         'badge' => $order->shipping_status_label ?? 'Đơn hàng',
-                        'badge_class' => 'bg-light text-dark border',
-                        'title' => "Cập nhật đơn hàng {$order->order_code}",
+                        'badge_class' => 'bg-neutral-100 text-neutral-800 border border-neutral-200',
+                        'title' => "Cập nhật đơn hàng #{$order->order_code}",
                         'content' => "{$statusText}. Tổng thanh toán: " . number_format($order->total_amount, 0, ',', '.') . "₫.",
                         'link' => route('client.order-tracking', ['code' => $order->order_code]),
                         'image' => null,
                         'created_at' => $order->created_at,
                         'time_ago' => $order->created_at ? $order->created_at->diffForHumans() : 'Vừa xong',
                         'is_unread' => false,
+                        'action_type' => 'view_order',
                         'action_text' => 'Xem hành trình',
                     ]);
                 }
 
-                // 3. Thông báo Mã giảm giá & Ưu đãi thành viên từ Shop
+                // 4. Thông báo Mã giảm giá & Ưu đãi thành viên từ Shop
                 $activeCoupons = \App\Models\Coupon::where('is_active', true)->take(2)->get();
                 foreach ($activeCoupons as $cp) {
                     $allShopNotifications->push([
                         'id' => 'cp_' . $cp->id,
                         'type' => 'promo',
-                        'icon' => 'fa-solid fa-tag text-danger',
-                        'badge' => 'Voucher Hot',
-                        'badge_class' => 'bg-danger-subtle text-danger',
+                        'icon' => 'fa-solid fa-tag text-rose-600',
+                        'badge' => 'Voucher Ưu Đãi',
+                        'badge_class' => 'bg-rose-100 text-rose-800 border border-rose-200',
                         'title' => "Ưu đãi độc quyền: Mã {$cp->code}",
-                        'content' => "{$cp->title}. Giảm giá khi mua sắm thời trang nam hôm nay!",
+                        'content' => "{$cp->title}. Áp dụng ngay khi thanh toán các sản phẩm thời trang Atelier!",
                         'link' => route('client.products.index'),
                         'image' => null,
                         'created_at' => now()->subHours(2),
                         'time_ago' => 'Ưu đãi hôm nay',
                         'is_unread' => false,
+                        'action_type' => 'promo',
                         'action_text' => 'Dùng ngay',
                     ]);
                 }
-
-                // 4. Lời cảm ơn và Tri ân Hội viên
-                $allShopNotifications->push([
-                    'id' => 'vip_' . $user->id,
-                    'type' => 'vip',
-                    'icon' => 'fa-solid fa-heart text-danger',
-                    'badge' => 'Tri ân khách hàng',
-                    'badge_class' => 'bg-warning-subtle text-dark border',
-                    'title' => "Cảm ơn bạn đã luôn đồng hành cùng BeeStyle!",
-                    'content' => "Hạng tài khoản: {$user->rank}. BeeStyle luôn dành tặng bạn đặc quyền đổi size tận nơi 30 ngày và hỗ trợ ưu tiên.",
-                    'link' => route('client.profile', ['tab' => 'vip']),
-                    'image' => null,
-                    'created_at' => now()->subDays(1),
-                    'time_ago' => 'Đặc quyền chăm sóc',
-                    'is_unread' => false,
-                    'action_text' => 'Xem đặc quyền',
-                ]);
             }
 
             $view->with([
                 'pendingReviewItems' => $pendingReviewItems,
                 'unnotifiedReviewItems' => $unnotifiedReviewItems,
                 'recentCustomerOrders' => $recentCustomerOrders,
+                'deliveringOrders' => $deliveringOrders,
+                'pendingReviewOrders' => $pendingReviewOrders,
                 'allShopNotifications' => $allShopNotifications,
             ]);
         });

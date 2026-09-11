@@ -47,16 +47,35 @@
         }
 
         $isFav = \App\Services\WishlistService::isFavorite($product->id);
+
+        // Dữ liệu đánh giá thực tế từ khách hàng trong cơ sở dữ liệu
+        $approvedReviews = $product->reviews->where('status', 'approved');
+        $reviewCount = $approvedReviews->count();
+        $avgRating = $reviewCount > 0 ? round($approvedReviews->avg('rating'), 1) : 5.0;
+
+        $starCounts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+        $withImagesCount = 0;
+        foreach ($approvedReviews as $r) {
+          $s = max(1, min(5, (int)$r->rating));
+          $starCounts[$s] = ($starCounts[$s] ?? 0) + 1;
+          if ($r->has_images) {
+            $withImagesCount++;
+          }
+        }
+        $starPercents = [];
+        foreach ([5, 4, 3, 2, 1] as $s) {
+          $starPercents[$s] = $reviewCount > 0 ? round(($starCounts[$s] / $reviewCount) * 100) : 0;
+        }
       @endphp
 
       <div class="lg:col-span-7 flex flex-col md:flex-row-reverse gap-4">
         
-        <!-- Main Hero Image View -->
-        <div class="relative w-full aspect-[3/4] bg-neutral-100 rounded-2xl overflow-hidden border border-neutral-200 shadow-md group">
-          <img id="main-product-img" src="{{ $firstImg }}" alt="{{ $product->name }}" class="w-full h-full object-cover transition-all duration-500 ease-out">
+        <!-- Main Hero Image View with Interactive Hover Zoom -->
+        <div id="main-image-zoom-container" class="relative w-full aspect-[3/4] bg-neutral-100 rounded-2xl overflow-hidden border border-neutral-200 shadow-md group cursor-crosshair select-none">
+          <img id="main-product-img" src="{{ $firstImg }}" alt="{{ $product->name }}" class="w-full h-full object-cover transition-transform duration-200 ease-out will-change-transform pointer-events-none">
           
           <!-- Badges -->
-          <div class="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
+          <div class="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none z-10">
             @if($isDealActive)
               <span class="px-2.5 py-1 bg-rose-600 text-white text-[10px] tracking-widest uppercase font-semibold rounded-md shadow flex items-center gap-1">
                 <i data-lucide="flame" class="w-3.5 h-3.5"></i> FLASH SALE
@@ -73,10 +92,16 @@
           <button type="button" 
                   id="wishlist-btn-{{ $product->id }}" 
                   onclick="toggleProductWishlist({{ $product->id }})" 
-                  class="absolute top-4 right-4 w-11 h-11 rounded-full {{ $isFav ? 'bg-rose-50 border border-rose-200 text-rose-600 shadow-md' : 'bg-white/90 backdrop-blur-md border border-neutral-200 text-neutral-700 shadow' }} flex items-center justify-center transition-all duration-300 hover:scale-110 group/heart" 
+                  class="absolute top-4 right-4 w-11 h-11 rounded-full {{ $isFav ? 'bg-rose-50 border border-rose-200 text-rose-600 shadow-md' : 'bg-white/90 backdrop-blur-md border border-neutral-200 text-neutral-700 shadow' }} flex items-center justify-center transition-all duration-300 hover:scale-110 group/heart z-10" 
                   title="{{ $isFav ? 'Đã yêu thích' : 'Thêm vào yêu thích' }}">
             <i data-lucide="heart" id="wishlist-icon-{{ $product->id }}" class="w-5 h-5 transition-transform duration-300 group-hover/heart:scale-110 {{ $isFav ? 'fill-rose-500 text-rose-500' : 'text-neutral-700' }}"></i>
           </button>
+
+          <!-- Zoom Magnifier Indicator Badge -->
+          <div id="zoomHintBadge" class="absolute bottom-3.5 right-3.5 px-3 py-1.5 rounded-full bg-neutral-950/75 backdrop-blur-md text-white text-[11px] font-medium flex items-center gap-1.5 pointer-events-none transition-opacity duration-300 shadow-md z-10">
+            <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Rê chuột để phóng to chi tiết</span>
+          </div>
         </div>
 
         <!-- Thumbnails Strip -->
@@ -119,22 +144,30 @@
           {{ $product->name }}
         </h1>
 
-        <!-- Ratings & Views -->
-        <div class="flex items-center gap-4 text-xs text-neutral-500 mb-6 pb-4 border-b border-neutral-200">
-          <div class="flex items-center gap-1 text-amber-500">
-            <div class="flex">
-              @for($i = 0; $i < 5; $i++)
-                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+        <!-- Ratings & Views (Click to scroll down to customer reviews) -->
+        <div class="flex flex-wrap items-center gap-3 md:gap-4 text-xs text-neutral-500 mb-6 pb-4 border-b border-neutral-200">
+          <a href="#reviews-section" onclick="scrollToReviews(event)" class="group inline-flex items-center gap-1.5 py-1 px-2.5 -ml-2 rounded-lg bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/80 hover:border-amber-300 text-amber-800 transition-all cursor-pointer shadow-2xs" title="Nhấn để xem chi tiết {{ $reviewCount }} đánh giá từ khách hàng thật">
+            <div class="flex items-center">
+              @for($i = 1; $i <= 5; $i++)
+                <i data-lucide="star" class="w-3.5 h-3.5 {{ $i <= round($avgRating) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300' }}"></i>
               @endfor
             </div>
-            <span class="font-bold text-neutral-800 ml-1">4.9</span>
-            <span class="text-neutral-500">({{ $product->reviews->count() ?: 128 }} đánh giá)</span>
-          </div>
-          <span class="text-neutral-300">|</span>
-          <span class="flex items-center gap-1">
+            <span class="font-bold text-neutral-900 text-sm ml-0.5">{{ number_format($avgRating, 1) }}</span>
+            <span class="text-neutral-600 font-medium group-hover:text-amber-900 group-hover:underline underline-offset-2 transition-colors">({{ $reviewCount }} đánh giá)</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-amber-600 group-hover:translate-y-0.5 transition-transform"></i>
+          </a>
+          <span class="text-neutral-300 hidden sm:inline">|</span>
+          <span class="flex items-center gap-1.5 text-neutral-500">
             <i data-lucide="eye" class="w-3.5 h-3.5 text-neutral-400"></i>
             <span>{{ number_format($product->views ?? 350) }} lượt xem</span>
           </span>
+          @if(($product->sold_count ?? 0) > 0)
+            <span class="text-neutral-300 hidden sm:inline">|</span>
+            <span class="flex items-center gap-1.5 text-emerald-700 font-medium">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+              <span>Đã bán {{ number_format($product->sold_count) }}</span>
+            </span>
+          @endif
         </div>
 
         <!-- Price & Stock Box -->
@@ -311,106 +344,207 @@
     </div>
 
     <!-- ========================================================================= -->
+    <!-- ========================================================================= -->
     <!-- REVIEWS & RATINGS LIST -->
     <!-- ========================================================================= -->
-    <section class="mt-20 pt-12 border-t border-neutral-200" id="reviews-section">
+    <section class="mt-20 pt-12 border-t border-neutral-200 scroll-mt-24" id="reviews-section">
       <div class="max-w-4xl mx-auto">
         
         <div class="text-center mb-10">
           <span class="text-xs tracking-[0.3em] uppercase text-amber-800 font-semibold block mb-1">TRẢI NGHIỆM THỰC TẾ</span>
           <h3 class="font-serif-luxury text-3xl font-light text-neutral-900">Đánh Giá Từ Khách Hàng</h3>
+          <p class="text-xs text-neutral-500 mt-1.5">Toàn bộ nhận xét được ghi nhận từ những khách hàng đã trực tiếp mua sắm và trải nghiệm sản phẩm tại BeeStyle</p>
         </div>
 
         <!-- Rating Summary Box -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-8 bg-brand-50/60 rounded-2xl border border-brand-200/80 mb-10 items-center">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-8 bg-brand-50/60 rounded-2xl border border-brand-200/80 mb-8 items-center transition-all duration-700" id="ratingSummaryCard">
           <div class="md:col-span-4 text-center md:border-r md:border-brand-200 pr-0 md:pr-6">
-            <div class="font-serif-luxury text-5xl font-bold text-neutral-900">4.9</div>
-            <div class="flex justify-center items-center gap-1 text-amber-400 my-2">
-              @for($i = 0; $i < 5; $i++)
-                <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <div class="font-serif-luxury text-5xl font-bold text-neutral-900">{{ number_format($avgRating, 1) }}</div>
+            <div class="flex justify-center items-center gap-1 text-amber-400 my-2.5">
+              @for($i = 1; $i <= 5; $i++)
+                <i data-lucide="star" class="w-5 h-5 {{ $i <= round($avgRating) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300' }}"></i>
               @endfor
             </div>
-            <span class="text-xs text-neutral-500 font-medium">Dựa trên {{ $product->reviews->count() ?: 128 }} nhận xét xác thực</span>
+            <span class="text-xs text-neutral-500 font-medium block">Dựa trên {{ $reviewCount }} nhận xét xác thực</span>
           </div>
 
-          <div class="md:col-span-8 space-y-2 text-xs">
-            @foreach([5 => 88, 4 => 10, 3 => 2, 2 => 0, 1 => 0] as $star => $pct)
+          <div class="md:col-span-8 space-y-2.5 text-xs">
+            @foreach([5, 4, 3, 2, 1] as $star)
+              @php
+                $cnt = $starCounts[$star] ?? 0;
+                $pct = $starPercents[$star] ?? 0;
+              @endphp
               <div class="flex items-center gap-3">
-                <span class="w-12 font-medium text-neutral-700 flex items-center gap-1">
-                  {{ $star }} <i data-lucide="star" class="w-3 h-3 text-amber-400 fill-amber-400"></i>
+                <span class="w-14 font-medium text-neutral-700 flex items-center gap-1 shrink-0">
+                  {{ $star }} <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400 fill-amber-400"></i>
                 </span>
-                <div class="flex-grow h-2 bg-neutral-200 rounded-full overflow-hidden">
-                  <div class="h-full bg-amber-400 rounded-full" style="width: {{ $pct }}%;"></div>
+                <div class="flex-grow h-2.5 bg-neutral-200/80 rounded-full overflow-hidden">
+                  <div class="h-full bg-amber-400 rounded-full transition-all duration-500" style="width: {{ $pct }}%;"></div>
                 </div>
-                <span class="w-10 text-right text-neutral-400 text-[11px]">{{ $pct }}%</span>
+                <span class="w-16 text-right text-neutral-500 text-[11px] font-mono shrink-0">{{ $cnt }} ({{ $pct }}%)</span>
               </div>
             @endforeach
           </div>
         </div>
 
-        <!-- Reviews List -->
-        <div class="space-y-6 mb-12">
-          @php
-            $displayReviews = $product->reviews->where('status', 'approved');
-          @endphp
+        <!-- Filter Tags by Star Rating -->
+        <div class="flex flex-wrap items-center gap-2 mb-8 pb-4 border-b border-neutral-200">
+          <span class="text-xs text-neutral-500 font-medium mr-1 flex items-center gap-1">
+            <i data-lucide="filter" class="w-3.5 h-3.5 text-neutral-400"></i> Lọc đánh giá:
+          </span>
+          <button type="button" onclick="filterReviews('all', this)" class="review-filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-900 text-white shadow-xs transition-all" data-star="all">
+            Tất cả ({{ $reviewCount }})
+          </button>
+          @foreach([5, 4, 3, 2, 1] as $star)
+            @if(($starCounts[$star] ?? 0) > 0)
+              <button type="button" onclick="filterReviews({{ $star }}, this)" class="review-filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-white text-neutral-700 border border-neutral-200 hover:border-amber-400 hover:text-amber-800 transition-all flex items-center gap-1" data-star="{{ $star }}">
+                <span>{{ $star }} Sao</span>
+                <span class="text-neutral-400 text-[11px]">({{ $starCounts[$star] }})</span>
+              </button>
+            @endif
+          @endforeach
+          @if($withImagesCount > 0)
+            <button type="button" onclick="filterReviews('has-image', this)" class="review-filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-white text-neutral-700 border border-neutral-200 hover:border-amber-400 hover:text-amber-800 transition-all flex items-center gap-1" data-star="has-image">
+              <i data-lucide="camera" class="w-3.5 h-3.5 text-amber-600"></i>
+              <span>Có ảnh feedback</span>
+              <span class="text-neutral-400 text-[11px]">({{ $withImagesCount }})</span>
+            </button>
+          @endif
+        </div>
 
-          @forelse($displayReviews as $rev)
-            <div class="p-6 bg-white rounded-2xl border border-neutral-200/90 shadow-2xs space-y-3">
-              <div class="flex justify-between items-start">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
-                    {{ mb_substr($rev->user_name ?? ($rev->user->name ?? 'K'), 0, 1) }}
+        <!-- Section Viết / Cập Nhật Đánh Giá (Nếu khách hàng đã mua sản phẩm) -->
+        @if(auth()->check() && $userHasPurchased)
+          <div class="mb-10 p-6 bg-brand-50/40 rounded-2xl border border-amber-200/90 shadow-2xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="text-sm font-bold text-neutral-900 flex items-center gap-2">
+                  <i data-lucide="edit-3" class="w-4 h-4 text-amber-600"></i>
+                  {{ $userReview ? 'Chỉnh Sửa Nhận Xét Của Bạn' : 'Viết Đánh Giá Về Sản Phẩm Này' }}
+                </h4>
+                <p class="text-xs text-neutral-500 mt-0.5">Chia sẻ cảm nhận về form dáng, chất vải và dịch vụ để giúp người mua khác lựa chọn tốt hơn</p>
+              </div>
+              @if($userReview)
+                <span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-200 text-xs rounded-full font-medium">Đã gửi đánh giá</span>
+              @endif
+            </div>
+
+            <form action="{{ route('client.products.review', $product->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+              @csrf
+              <!-- Star Picker -->
+              <div>
+                <label class="block text-xs font-semibold text-neutral-700 mb-1">Mức độ hài lòng:</label>
+                <div class="flex items-center gap-2" id="starPickerContainer">
+                  <input type="hidden" name="rating" id="selectedRatingInput" value="{{ $userReview ? $userReview->rating : 5 }}" required>
+                  <div class="flex items-center gap-1 cursor-pointer">
+                    @for($s = 1; $s <= 5; $s++)
+                      <button type="button" onclick="setFormRating({{ $s }})" onmouseenter="hoverFormRating({{ $s }})" onmouseleave="resetFormRating()" class="p-1 hover:scale-110 transition-transform focus:outline-none" title="{{ $s }} Sao">
+                        <i data-lucide="star" id="form-star-{{ $s }}" class="w-6 h-6 fill-amber-400 text-amber-400 transition-colors"></i>
+                      </button>
+                    @endfor
                   </div>
+                  <span id="ratingLabelDisplay" class="text-xs font-bold text-amber-800 ml-2">5/5 - Rất hài lòng</span>
+                </div>
+              </div>
+
+              <!-- Comment input -->
+              <div>
+                <label for="reviewCommentInput" class="block text-xs font-semibold text-neutral-700 mb-1">Nội dung nhận xét:</label>
+                <textarea id="reviewCommentInput" name="comment" rows="3" required minlength="4" maxlength="1000" class="w-full px-4 py-3 rounded-xl border border-neutral-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-xs text-neutral-800 leading-relaxed transition-all placeholder:text-neutral-400" placeholder="Chất liệu vải, kích cỡ thực tế, đường kim mũi chỉ, dịch vụ giao hàng...">{{ $userReview ? $userReview->comment : '' }}</textarea>
+              </div>
+
+              <!-- Image upload optional -->
+              <div>
+                <label class="block text-xs font-semibold text-neutral-700 mb-1">Ảnh thực tế sản phẩm (tùy chọn, tối đa 5 ảnh):</label>
+                <input type="file" name="review_images[]" multiple accept="image/*" class="text-xs text-neutral-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 file:text-neutral-700 hover:file:bg-neutral-200 cursor-pointer">
+              </div>
+
+              <div class="flex justify-end pt-1">
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs tracking-wider uppercase transition-all shadow-sm hover:shadow-md flex items-center gap-2">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  <span>{{ $userReview ? 'Cập Nhật Nhận Xét' : 'Gửi Nhận Xét Ngay' }}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        @elseif(auth()->check() && !$userHasPurchased)
+          <div class="mb-8 p-4 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center gap-3 text-xs text-neutral-600">
+            <i data-lucide="info" class="w-4 h-4 text-neutral-500 shrink-0"></i>
+            <span>Chức năng nhận xét chỉ mở cho các khách hàng đã từng đặt mua sản phẩm này để đảm bảo 100% đánh giá là chân thực.</span>
+          </div>
+        @endif
+
+        <!-- Reviews List -->
+        <div class="space-y-4 mb-12" id="reviewsListContainer">
+          @forelse($approvedReviews as $rev)
+            @php
+              $uName = $rev->user_name ?: ($rev->user->name ?? 'Khách Hàng Atelier');
+              $firstChar = mb_substr($uName, 0, 1, 'UTF-8');
+              $hasRevImages = !empty($rev->images_urls);
+            @endphp
+            <div class="review-item p-6 bg-white rounded-2xl border border-neutral-200/90 shadow-2xs space-y-3 transition-all duration-300 hover:border-amber-200 hover:shadow-xs" data-rating="{{ $rev->rating }}" data-has-image="{{ $hasRevImages ? '1' : '0' }}">
+              <div class="flex justify-between items-start gap-4">
+                <div class="flex items-center gap-3">
+                  @if($rev->user && $rev->user->avatar)
+                    <img src="{{ asset($rev->user->avatar) }}" alt="{{ $uName }}" class="w-10 h-10 rounded-full object-cover border border-neutral-200 shrink-0">
+                  @else
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-950 text-amber-300 flex items-center justify-center font-bold text-xs uppercase shadow-xs shrink-0 border border-neutral-700">
+                      {{ $firstChar }}
+                    </div>
+                  @endif
                   <div>
-                    <div class="flex items-center gap-2">
-                      <span class="font-bold text-neutral-900 text-xs">{{ $rev->user_name ?? ($rev->user->name ?? 'Khách Hàng Atelier') }}</span>
-                      <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded text-[10px] font-medium flex items-center gap-1">
-                        <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i> Đã mua hàng
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-bold text-neutral-900 text-xs">{{ $uName }}</span>
+                      <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-[10px] font-medium flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i> Đã mua hàng tại BeeStyle
                       </span>
                     </div>
-                    <span class="text-[11px] text-neutral-400 block mt-0.5">{{ $rev->created_at ? $rev->created_at->format('d/m/Y') : 'Vừa xong' }}</span>
+                    <span class="text-[11px] text-neutral-400 block mt-0.5">
+                      {{ $rev->created_at ? $rev->created_at->format('d/m/Y') : 'Vừa xong' }}
+                      @if($rev->created_at)
+                        <span class="mx-1">•</span>{{ $rev->created_at->diffForHumans() }}
+                      @endif
+                    </span>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-0.5 text-amber-400">
+                <div class="flex items-center gap-0.5 text-amber-400 shrink-0">
                   @for($s = 1; $s <= 5; $s++)
                     <i data-lucide="star" class="w-3.5 h-3.5 {{ $s <= ($rev->rating ?? 5) ? 'fill-amber-400 text-amber-400' : 'text-neutral-200' }}"></i>
                   @endfor
                 </div>
               </div>
 
-              <p class="text-xs text-neutral-700 leading-relaxed font-light">
+              <p class="text-xs text-neutral-700 leading-relaxed font-normal">
                 {{ $rev->comment }}
               </p>
+
+              @if($hasRevImages)
+                <div class="flex flex-wrap gap-2 pt-1">
+                  @foreach($rev->images_urls as $imgUrl)
+                    <a href="{{ $imgUrl }}" target="_blank" class="group/img relative block w-16 h-16 rounded-xl overflow-hidden border border-neutral-200 hover:border-amber-400 shadow-2xs transition-all">
+                      <img src="{{ $imgUrl }}" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300" alt="Ảnh feedback thực tế">
+                    </a>
+                  @endforeach
+                </div>
+              @endif
             </div>
           @empty
-            <div class="p-6 bg-white rounded-2xl border border-neutral-200/90 shadow-2xs space-y-3">
-              <div class="flex justify-between items-start">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
-                    N
-                  </div>
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="font-bold text-neutral-900 text-xs">Nguyễn Trần Nam</span>
-                      <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded text-[10px] font-medium flex items-center gap-1">
-                        <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i> Đã mua hàng
-                      </span>
-                    </div>
-                    <span class="text-[11px] text-neutral-400 block mt-0.5">28/08/2026</span>
-                  </div>
-                </div>
-                <div class="flex items-center gap-0.5 text-amber-400">
-                  @for($i = 0; $i < 5; $i++)
-                    <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
-                  @endfor
-                </div>
+            <div class="p-10 text-center bg-white rounded-2xl border border-dashed border-neutral-300 text-neutral-500">
+              <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="message-square" class="w-6 h-6"></i>
               </div>
-              <p class="text-xs text-neutral-700 leading-relaxed font-light">
-                Chất vải lụa mềm mịn và thoáng khí vượt ngoài mong đợi. Đường kim mũi chỉ may giấu viền rất tinh tế chuẩn may đo cao cấp. Sẽ tiếp tục ủng hộ xưởng!
-              </p>
+              <p class="text-sm font-semibold text-neutral-800">Chưa có đánh giá nào cho sản phẩm này.</p>
+              <p class="text-xs text-neutral-400 mt-1 max-w-sm mx-auto">Tất cả sản phẩm tại BeeStyle đều được cập nhật đánh giá thực tế từ khách hàng sau khi đặt mua và trải nghiệm.</p>
             </div>
           @endforelse
+
+          <div id="noMatchingReviews" class="hidden p-8 text-center bg-white rounded-2xl border border-neutral-200 text-neutral-500">
+            <i data-lucide="search-x" class="w-6 h-6 mx-auto text-neutral-300 mb-2"></i>
+            <p class="text-xs font-medium text-neutral-700">Không tìm thấy nhận xét nào phù hợp với bộ lọc đã chọn.</p>
+            <button type="button" onclick="filterReviews('all')" class="mt-3 text-xs text-amber-800 font-semibold underline underline-offset-4 hover:text-amber-900">
+              Xem tất cả đánh giá
+            </button>
+          </div>
         </div>
 
       </div>
@@ -575,6 +709,8 @@
     const mainImg = document.getElementById('main-product-img');
     if (!mainImg) return;
     mainImg.style.opacity = '0.5';
+    mainImg.style.transform = 'scale(1)';
+    mainImg.style.transformOrigin = 'center center';
     mainImg.src = url;
     setTimeout(() => { mainImg.style.opacity = '1'; }, 150);
 
@@ -587,6 +723,30 @@
       btn.classList.remove('border-neutral-200');
     }
   }
+
+  // Khởi tạo tính năng Rê chuột phóng to ảnh chi tiết (Interactive Image Zoom)
+  (function initProductImageZoom() {
+    const zoomContainer = document.getElementById('main-image-zoom-container');
+    const zoomImg = document.getElementById('main-product-img');
+    const hintBadge = document.getElementById('zoomHintBadge');
+    if (!zoomContainer || !zoomImg) return;
+
+    zoomContainer.addEventListener('mousemove', function(e) {
+      const rect = zoomContainer.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+
+      zoomImg.style.transformOrigin = `${x}% ${y}%`;
+      zoomImg.style.transform = 'scale(2.2)';
+      if (hintBadge) hintBadge.style.opacity = '0';
+    });
+
+    zoomContainer.addEventListener('mouseleave', function() {
+      zoomImg.style.transformOrigin = 'center center';
+      zoomImg.style.transform = 'scale(1)';
+      if (hintBadge) hintBadge.style.opacity = '1';
+    });
+  })();
 
   // 2. Color Swatch Selector
   function selectColorSwatch(colorName, colorCode, variantId, variantImg, btn) {
@@ -702,24 +862,108 @@
     recalculateSubtotals();
   }
 
-  // 6. Form Submission Check
+  // 6. Form Submission Check & Realtime AJAX Cart Synchronization
   document.getElementById('productPurchaseForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
     const hasColors = document.querySelectorAll('.color-swatch-btn').length > 0;
     const hasSizes = document.querySelectorAll('.variant-size-btn').length > 0;
 
     if (hasColors && !selectedProductColor) {
-      e.preventDefault();
-      alert('Vui lòng chọn Màu sắc sản phẩm!');
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast('Vui lòng chọn Màu sắc sản phẩm trước khi thêm vào giỏ!', 'info');
+      } else {
+        alert('Vui lòng chọn Màu sắc sản phẩm!');
+      }
       document.getElementById('colorGroupSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return false;
     }
 
     if (hasSizes && !selectedProductSize) {
-      e.preventDefault();
-      alert('Vui lòng chọn Kích cỡ (Size) sản phẩm!');
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast('Vui lòng chọn Kích cỡ (Size) sản phẩm trước khi thêm vào giỏ!', 'info');
+      } else {
+        alert('Vui lòng chọn Kích cỡ (Size) sản phẩm!');
+      }
       document.getElementById('sizeGroupSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return false;
     }
+
+    const btn = document.getElementById('btnAddToCart');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>ĐANG THÊM...</span>';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    const form = this;
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        if (window.lucide) lucide.createIcons();
+      }
+
+      if (data && data.success) {
+        const qty = parseInt(formData.get('quantity')) || 1;
+        
+        // 1. Cập nhật Badge giỏ hàng trên Header & rung hiệu ứng
+        if (typeof updateGlobalCartState === 'function') {
+          updateGlobalCartState(data.cart_count, data.cart?.total_formatted);
+        }
+
+        // 2. Mở Modal thông báo thêm thành công
+        const csmModal = document.getElementById('cartSuccessModal');
+        if (csmModal) {
+          const csmImg = document.getElementById('csmProductImage');
+          const csmName = document.getElementById('csmProductName');
+          const csmVar = document.getElementById('csmVariantText');
+          const csmQty = document.getElementById('csmQuantityText');
+          const csmPrice = document.getElementById('csmPriceText');
+
+          if (csmImg) csmImg.src = document.getElementById('mainProductDisplayImage')?.src || '';
+          if (csmName) csmName.textContent = @json($product->name);
+          if (csmVar) csmVar.textContent = `${selectedProductColor || 'Tiêu chuẩn'} / Size ${selectedProductSize || 'Freesize'}`;
+          if (csmQty) csmQty.textContent = qty;
+          if (csmPrice) {
+            const unitPrice = {{ (int)$effectivePrice }};
+            csmPrice.textContent = (unitPrice * qty).toLocaleString('vi-VN') + '₫';
+          }
+          csmModal.classList.remove('hidden');
+        }
+
+        // 3. Thông báo Toast thông minh
+        if (typeof showGlobalToast === 'function') {
+          showGlobalToast(`🛒 Đã thêm ${qty} sản phẩm vào giỏ hàng thành công! Giỏ hiện có ${data.cart_count} sản phẩm.`, 'success');
+        }
+      } else {
+        if (typeof showGlobalToast === 'function') {
+          showGlobalToast(data.message || 'Không thể thêm sản phẩm vào giỏ hàng', 'info');
+        } else {
+          alert(data.message || 'Không thể thêm sản phẩm');
+        }
+      }
+    })
+    .catch(err => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        if (window.lucide) lucide.createIcons();
+      }
+      console.warn('Cart add error, submitting standard form:', err);
+      form.submit();
+    });
   });
 
   function buyNowSubmit() {
@@ -728,15 +972,30 @@
     const hasSizes = document.querySelectorAll('.variant-size-btn').length > 0;
 
     if (hasColors && !selectedProductColor) {
-      alert('Vui lòng chọn Màu sắc sản phẩm!');
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast('Vui lòng chọn Màu sắc sản phẩm để Mua Ngay!', 'info');
+      } else {
+        alert('Vui lòng chọn Màu sắc sản phẩm!');
+      }
       document.getElementById('colorGroupSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     if (hasSizes && !selectedProductSize) {
-      alert('Vui lòng chọn Kích cỡ (Size) sản phẩm!');
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast('Vui lòng chọn Kích cỡ (Size) sản phẩm để Mua Ngay!', 'info');
+      } else {
+        alert('Vui lòng chọn Kích cỡ (Size) sản phẩm!');
+      }
       document.getElementById('sizeGroupSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
+    }
+
+    const btn = document.getElementById('btnBuyNow');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>ĐANG CHUYỂN ĐẾN THANH TOÁN...</span>';
+      if (window.lucide) lucide.createIcons();
     }
 
     let input = document.querySelector('input[name="buy_now"]');
@@ -824,9 +1083,121 @@
     .catch(err => console.error('Lỗi cập nhật wishlist:', err));
   }
 
+  // 10. Scroll smoothly to Customer Reviews Section & highlight
+  function scrollToReviews(e) {
+    if (e) e.preventDefault();
+    const section = document.getElementById('reviews-section');
+    if (!section) return;
+
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const card = document.getElementById('ratingSummaryCard');
+    if (card) {
+      card.classList.add('ring-4', 'ring-amber-300', 'bg-amber-100/60', 'scale-[1.01]');
+      setTimeout(() => {
+        card.classList.remove('ring-4', 'ring-amber-300', 'bg-amber-100/60', 'scale-[1.01]');
+      }, 1600);
+    }
+    if (history.pushState) {
+      history.pushState(null, null, '#reviews-section');
+    }
+  }
+
+  // 11. Filter Customer Reviews by Star Rating
+  function filterReviews(filterValue, clickedBtn) {
+    // Cập nhật trạng thái active của nút bấm
+    document.querySelectorAll('.review-filter-btn').forEach(btn => {
+      btn.className = 'review-filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-white text-neutral-700 border border-neutral-200 hover:border-amber-400 hover:text-amber-800 transition-all flex items-center gap-1';
+    });
+
+    if (clickedBtn) {
+      clickedBtn.className = 'review-filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-900 text-white shadow-xs transition-all flex items-center gap-1';
+    }
+
+    const items = document.querySelectorAll('.review-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+      const itemRating = parseInt(item.getAttribute('data-rating')) || 0;
+      const hasImage = item.getAttribute('data-has-image') === '1';
+
+      let match = false;
+      if (filterValue === 'all') {
+        match = true;
+      } else if (filterValue === 'has-image') {
+        match = hasImage;
+      } else {
+        match = (itemRating === parseInt(filterValue));
+      }
+
+      if (match) {
+        item.style.display = '';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    const noMatching = document.getElementById('noMatchingReviews');
+    if (noMatching) {
+      noMatching.style.display = (visibleCount === 0 && items.length > 0) ? 'block' : 'none';
+    }
+  }
+
+  // 12. Star Picker Interaction for Review Form
+  let currentSelectedRating = parseInt(document.getElementById('selectedRatingInput')?.value) || 5;
+  const ratingTexts = {
+    1: '1/5 - Rất không hài lòng',
+    2: '2/5 - Chưa hài lòng',
+    3: '3/5 - Bình thường',
+    4: '4/5 - Hài lòng',
+    5: '5/5 - Rất hài lòng'
+  };
+
+  function updateStarsUI(val) {
+    for (let s = 1; s <= 5; s++) {
+      const icon = document.getElementById('form-star-' + s);
+      if (!icon) continue;
+      if (s <= val) {
+        icon.classList.add('fill-amber-400', 'text-amber-400');
+        icon.classList.remove('text-neutral-300');
+      } else {
+        icon.classList.remove('fill-amber-400', 'text-amber-400');
+        icon.classList.add('text-neutral-300');
+      }
+    }
+    const label = document.getElementById('ratingLabelDisplay');
+    if (label && ratingTexts[val]) {
+      label.textContent = ratingTexts[val];
+    }
+  }
+
+  function setFormRating(val) {
+    currentSelectedRating = val;
+    const input = document.getElementById('selectedRatingInput');
+    if (input) input.value = val;
+    updateStarsUI(val);
+  }
+
+  function hoverFormRating(val) {
+    updateStarsUI(val);
+  }
+
+  function resetFormRating() {
+    updateStarsUI(currentSelectedRating);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
     calculateSmartFit();
+    resetFormRating();
+
+    // Auto scroll if URL contains hash #reviews-section
+    if (window.location.hash === '#reviews-section') {
+      setTimeout(() => {
+        scrollToReviews();
+      }, 300);
+    }
   });
 </script>
 @endpush

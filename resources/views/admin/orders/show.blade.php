@@ -68,24 +68,143 @@
   </div>
 </div>
 
-<!-- ACTIVE RMA RETURN REQUEST ALERT -->
+<!-- ACTIVE RMA RETURN & REFUND REQUEST MANAGEMENT CARD FOR ADMIN -->
 @if($order->returns && $order->returns->count() > 0)
   @php $latestRma = $order->returns->first(); @endphp
-  <div class="alert alert-warning border border-translucent shadow-sm p-3 mb-4 rounded d-flex align-items-center justify-content-between flex-wrap gap-3 d-print-none">
-    <div class="d-flex align-items-center gap-3">
-      <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; min-width: 44px;">
-        <i class="fa-solid fa-arrow-rotate-left fs-7"></i>
+  <div class="card border-0 shadow-sm p-4 mb-4 rounded-4 d-print-none" style="background: #fffbeb; border: 2px solid #f59e0b !important;">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 pb-3 border-bottom border-warning-subtle">
+      <div class="d-flex align-items-center gap-3">
+        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
+          <i class="fa-solid fa-hand-holding-dollar fs-3"></i>
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="badge bg-danger text-white px-2.5 py-1 rounded-pill fw-bold text-uppercase">
+              <i class="fa-solid fa-bell me-1"></i> YÊU CẦU HỦY HÀNG &amp; HOÀN TIỀN
+            </span>
+            <span class="badge bg-dark text-warning font-monospace px-2.5 py-1">Mã: #{{ $latestRma->return_code }}</span>
+            {!! $latestRma->status_badge !!}
+          </div>
+          <h5 class="fw-bold text-dark mb-0">Khách Hàng Yêu Cầu Hủy Hàng Hoàn Tiền / Đổi Trả</h5>
+        </div>
       </div>
-      <div>
-        <h5 class="fw-bold text-body-emphasis mb-1">ĐƠN HÀNG CÓ PHIẾU YÊU CẦU ĐỔI TRẢ (#{{ $latestRma->return_code }})</h5>
-        <p class="mb-0 text-body-tertiary fs-10">Hình thức: <strong>{{ $latestRma->type_label }}</strong> • Lý do: <strong>{{ $latestRma->reason }}</strong> • Trạng thái: {!! $latestRma->status_badge !!}</p>
+      <div class="text-end">
+        <span class="text-muted small d-block">Số tiền yêu cầu hoàn:</span>
+        <strong class="fs-4 text-danger font-monospace">{{ number_format($latestRma->refund_amount, 0, ',', '.') }}₫</strong>
+        <div class="mt-1">
+          <a href="{{ route('admin.returns.show', $latestRma->id) }}" class="btn btn-warning btn-sm fw-bold shadow-xs">
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Xử Lý Phiếu RMA
+          </a>
+        </div>
       </div>
     </div>
-    <div>
-      <a href="{{ route('admin.returns.show', $latestRma->id) }}" class="btn btn-warning btn-sm fw-bold">
-        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Xử Lý Phiếu RMA
-      </a>
+
+    <div class="row g-3 mt-1 small">
+      <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border h-100">
+          <div class="fw-bold text-dark mb-2"><i class="fa-solid fa-circle-info text-warning me-1"></i> Thông Tin Yêu Cầu:</div>
+          <div class="mb-1"><strong>Hình thức:</strong> <span class="badge bg-light text-dark border">{{ $latestRma->type_label }}</span></div>
+          <div class="mb-1"><strong>Lý do:</strong> <span class="text-danger fw-semibold">{{ $latestRma->reason }}</span></div>
+          @if($latestRma->customer_notes)
+            <div class="mb-1"><strong>Ghi chú của khách:</strong> <em>"{{ $latestRma->customer_notes }}"</em></div>
+          @endif
+          <div class="text-muted fs-11 mt-2">
+            <i class="fa-regular fa-clock me-1"></i> Thời gian gửi yêu cầu: {{ $latestRma->created_at ? $latestRma->created_at->format('d/m/Y H:i:s') : '' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border h-100">
+          <div class="fw-bold text-dark mb-2"><i class="fa-solid fa-building-columns text-primary me-1"></i> Tài Khoản Ngân Hàng Nhận Tiền Hoàn:</div>
+          @if($latestRma->bank_name || $latestRma->bank_account_number)
+            <div class="mb-1"><strong>Ngân hàng:</strong> <span class="fw-bold text-primary">{{ $latestRma->bank_name }}</span></div>
+            <div class="mb-1"><strong>Số tài khoản:</strong> <span class="font-monospace fw-bold fs-6 text-dark">{{ $latestRma->bank_account_number }}</span></div>
+            <div class="mb-1"><strong>Chủ tài khoản:</strong> <span class="fw-bold text-uppercase">{{ $latestRma->bank_account_name ?: 'Chưa cập nhật' }}</span></div>
+            @if($latestRma->bank_branch)
+              <div class="text-muted small">Chi nhánh: {{ $latestRma->bank_branch }}</div>
+            @endif
+          @else
+            <div class="text-muted fst-italic">Đơn COD chưa thanh toán hoặc khách hàng chưa cung cấp số tài khoản.</div>
+          @endif
+
+          @if($latestRma->image_proofs && count($latestRma->image_proofs) > 0)
+            <div class="mt-2 pt-2 border-top">
+              <span class="small fw-bold d-block mb-1"><i class="fa-solid fa-images text-secondary me-1"></i> Ảnh minh chứng của khách ({{ count($latestRma->image_proofs) }} ảnh):</span>
+              <div class="d-flex gap-2 flex-wrap">
+                @foreach($latestRma->image_proofs as $img)
+                  <a href="{{ asset($img) }}" target="_blank">
+                    <img src="{{ asset($img) }}" class="rounded border shadow-2xs" style="width: 50px; height: 50px; object-fit: cover;" alt="Minh chứng hoàn tiền">
+                  </a>
+                @endforeach
+              </div>
+            </div>
+          @endif
+        </div>
+      </div>
     </div>
+
+    @if($latestRma->status === 'pending' || $latestRma->status === 'approved')
+      <div class="pt-3 mt-3 border-top border-warning-subtle d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="small text-muted">
+          <i class="fa-solid fa-shield-halved text-success me-1"></i> Thao tác xử lý hoàn tiền cho khách hàng:
+        </div>
+        <div class="d-flex gap-2">
+          <!-- DUYỆT HOÀN TIỀN -->
+          <form action="{{ route('admin.orders.approveRefund', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn xác nhận ĐÃ CHUYỂN KHOẢN HOÀN TIỀN {{ number_format($latestRma->refund_amount) }}₫ cho khách hàng?')">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm px-4 fw-bold rounded-pill shadow-xs">
+              <i class="fa-solid fa-check-double me-1"></i> Duyệt Hoàn Tiền (Đã Chuyển Khoản)
+            </button>
+          </form>
+
+          <!-- TỪ CHỐI HOÀN TIỀN -->
+          <button type="button" class="btn btn-outline-danger btn-sm px-3 fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#adminRejectRefundModal">
+            <i class="fa-solid fa-ban me-1"></i> Từ Chối Hoàn Tiền
+          </button>
+        </div>
+      </div>
+
+      <!-- MODAL TỪ CHỐI HOÀN TIỀN CỦA ADMIN -->
+      <div class="modal fade" id="adminRejectRefundModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-0 shadow-lg rounded-4">
+            <form action="{{ route('admin.orders.rejectRefund', $order->id) }}" method="POST">
+              @csrf
+              <div class="modal-header border-bottom pb-3">
+                <h6 class="modal-title fw-bold text-danger d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-circle-xmark fs-5"></i>
+                  <span>Từ Chối Yêu Cầu Hoàn Tiền #{{ $latestRma->return_code }}</span>
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body p-4">
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-dark">Lý do từ chối yêu cầu hoàn tiền <span class="text-danger">*</span></label>
+                  <textarea name="rejected_reason" class="form-control" rows="3" placeholder="Nhập lý do từ chối để thông báo cho khách hàng..." required>Sản phẩm không đủ điều kiện đổi trả theo chính sách hoặc bằng chứng đối soát không hợp lệ.</textarea>
+                </div>
+              </div>
+              <div class="modal-footer border-top bg-light">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
+                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                  Xác Nhận Từ Chối
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    @elseif($latestRma->status === 'completed')
+      <div class="alert alert-success border-0 p-2.5 rounded-3 small mt-3 mb-0 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-circle-check text-success fs-5"></i>
+        <span>Yêu cầu hoàn tiền đã được <strong>hoàn tất</strong>{{ $latestRma->completed_at ? ' lúc ' . $latestRma->completed_at->format('d/m/Y H:i') : '' }}. Số tiền <strong>{{ number_format($latestRma->refund_amount) }}₫</strong> đã được chuyển khoản trả lại khách hàng.</span>
+      </div>
+    @elseif($latestRma->status === 'rejected')
+      <div class="alert alert-secondary border-0 p-2.5 rounded-3 small mt-3 mb-0 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-circle-xmark text-danger fs-5"></i>
+        <span>Yêu cầu hoàn tiền đã bị <strong>từ chối</strong>{{ $latestRma->rejected_at ? ' lúc ' . $latestRma->rejected_at->format('d/m/Y H:i') : '' }}. Lý do: <em>{{ $latestRma->rejected_reason ?: 'Không có ghi chú' }}</em></span>
+      </div>
+    @endif
   </div>
 @endif
 

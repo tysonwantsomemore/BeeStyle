@@ -3,6 +3,16 @@
 @section('title', 'Quản Lý Đổi Trả & Hoàn Tiền (RMA) | BeeStyle Admin')
 
 @section('content')
+@php
+  $status = $status ?? request('status', '');
+  $search = $search ?? request('q', '');
+  $totalCount = $totalCount ?? (\App\Models\OrderReturn::count());
+  $pendingCount = $pendingCount ?? (\App\Models\OrderReturn::where('status', 'pending')->count());
+  $approvedCount = $approvedCount ?? (\App\Models\OrderReturn::where('status', 'approved')->count());
+  $receivedCount = $receivedCount ?? (\App\Models\OrderReturn::where('status', 'received')->count());
+  $completedCount = $completedCount ?? (\App\Models\OrderReturn::where('status', 'completed')->count());
+  $rejectedCount = $rejectedCount ?? (\App\Models\OrderReturn::where('status', 'rejected')->count());
+@endphp
 <!-- HEADER -->
 <div class="row gy-3 mb-4 justify-content-between align-items-center">
   <div class="col-md">

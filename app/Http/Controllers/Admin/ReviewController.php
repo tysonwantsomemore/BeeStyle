@@ -137,23 +137,63 @@ class ReviewController extends Controller
     }
 
     /**
-     * Cập nhật trạng thái duyệt/ẩn đánh giá
+     * Cập nhật trạng thái duyệt hoặc ẩn đánh giá của khách hàng
      */
     public function updateStatus(Request $request, $id)
     {
         $review = Review::findOrFail($id);
-        $status = $request->input('status', 'approved');
-        $review->update(['status' => $status]);
-        return back()->with('success', 'Trạng thái đánh giá đã được cập nhật thành công!');
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:approved,rejected,pending',
+        ]);
+
+        $review->update(['status' => $validated['status']]);
+
+        // Cập nhật lại số sao trung bình và số lượt đánh giá của sản phẩm
+        if ($review->product_id) {
+            $product = Product::find($review->product_id);
+            if ($product) {
+                $approvedReviews = Review::where('product_id', $product->id)->where('status', 'approved');
+                $avgRating = $approvedReviews->avg('rating') ?: 5.0;
+                $reviewsCount = $approvedReviews->count();
+                $product->update([
+                    'rating' => round($avgRating, 1),
+                    'reviews_count' => $reviewsCount,
+                ]);
+            }
+        }
+
+        $statusText = match ($validated['status']) {
+            'approved' => 'Đã duyệt công khai',
+            'rejected' => 'Đã ẩn khỏi website',
+            default => 'Chờ duyệt',
+        };
+
+        return back()->with('success', "Đã thay đổi trạng thái đánh giá #{$review->id} sang \"{$statusText}\" thành công!");
     }
 
     /**
-     * Xóa đánh giá khỏi hệ thống
+     * Xóa hoàn toàn một đánh giá
      */
     public function destroy($id)
     {
         $review = Review::findOrFail($id);
+        $productId = $review->product_id;
         $review->delete();
-        return back()->with('success', 'Đánh giá đã được xóa thành công!');
+
+        if ($productId) {
+            $product = Product::find($productId);
+            if ($product) {
+                $approvedReviews = Review::where('product_id', $productId)->where('status', 'approved');
+                $avgRating = $approvedReviews->avg('rating') ?: 5.0;
+                $reviewsCount = $approvedReviews->count();
+                $product->update([
+                    'rating' => round($avgRating, 1),
+                    'reviews_count' => $reviewsCount,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Đã xóa đánh giá thành công và cập nhật lại điểm đánh giá sản phẩm!');
     }
 }

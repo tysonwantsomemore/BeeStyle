@@ -47,24 +47,79 @@
     }
   </script>
 
+  <!-- Google Fonts: Montserrat & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <!-- FontAwesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
     body {
-      font-family: 'Nunito Sans', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #0f172a;
+      background-color: #f8fafc;
     }
     .brand-logo-text {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+    /* Đảm bảo toàn bộ màu chữ trong trang quản trị sắc nét, tương phản cao tuyệt đối, không bị ẩn hay mờ nhạt */
+    .text-body-tertiary {
+      color: #475569 !important;
+      font-weight: 500;
+    }
+    .text-body-secondary {
+      color: #334155 !important;
+      font-weight: 500;
+    }
+    .text-body-emphasis {
+      color: #0f172a !important;
+      font-weight: 700;
+    }
+    .text-muted {
+      color: #475569 !important;
+      font-weight: 500;
+    }
+    .text-secondary {
+      color: #475569 !important;
+    }
+    .table thead th {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      color: #0f172a !important;
+      background-color: #f1f5f9 !important;
+      border-bottom: 2px solid #e2e8f0 !important;
+    }
+    .table tbody td {
+      color: #0f172a;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+    .form-label {
+      color: #0f172a !important;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+    .form-control, .form-select {
+      color: #0f172a !important;
+      font-weight: 500;
+      border-color: #cbd5e1;
+    }
+    .form-control::placeholder {
+      color: #64748b !important;
+      opacity: 0.9;
     }
     .navbar-vertical .navbar-vertical-label {
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
       font-size: 0.68rem;
       letter-spacing: 0.08em;
-      color: var(--phoenix-tertiary-color, #8a94ad);
+      color: #64748b !important;
       margin-top: 1.25rem;
       margin-bottom: 0.5rem;
       padding-left: 1rem;
@@ -75,11 +130,8 @@
       padding: 0.25rem 0.5rem;
       border-radius: 6px;
     }
-    .table thead th {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 700;
+    .card {
+      border: 1px solid #e2e8f0;
     }
   </style>
 
