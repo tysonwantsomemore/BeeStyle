@@ -115,7 +115,7 @@ Route::name('client.')->group(function () {
     )->name('home');
 
     // Categories (Xem danh mục sản phẩm)
-    Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
+    Route::get('/danh-muc', [ClientCategoryController::class, 'index'])->name('categories.index');
     Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
 
 

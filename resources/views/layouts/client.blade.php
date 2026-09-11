@@ -660,6 +660,7 @@
             <li><a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Khoác &amp; Blazer</a></li>
             <li><a href="{{ route('client.categories.show', 'ao-thun-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thun Nam Basic</a></li>
             <li><a href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thu Đông Cao Cấp</a></li>
+            <li><a href="{{ route('client.categories.index') }}" class="text-warning text-decoration-none hover-warning fw-semibold transition-all"><i class="fa-solid fa-grid-2 me-1.5 small"></i> Xem tất cả danh mục &rarr;</a></li>
           </ul>
         </div>
 
