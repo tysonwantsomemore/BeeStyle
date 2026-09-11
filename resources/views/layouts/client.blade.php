@@ -504,6 +504,58 @@
         </div>
 
       </div>
+    </div>
+
+    <!-- 2. MAIN FOOTER CONTENT -->
+    <div class="container pt-5">
+      <div class="row g-4 pb-5 border-bottom" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+        <!-- Brand Info -->
+        <div class="col-lg-4 col-md-6 pe-lg-4">
+          <a href="{{ route('client.home') }}" class="beestyle-logo logo-light mb-3 d-inline-flex align-items-center text-decoration-none">
+            <span class="logo-badge me-2" style="background: #f59e0b; color: #111; padding: 6px 10px; border-radius: 10px;"><i class="fa-solid fa-gem"></i></span>
+            <span class="fs-4 fw-bolder tracking-wide text-white">BEE<span class="brand-highlight text-warning">STYLE</span></span>
+          </a>
+          <p class="text-secondary small mb-3 leading-relaxed">
+            Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất liệu sợi tự nhiên tuyển chọn vượt trội.
+          </p>
+          <div class="d-flex flex-column gap-2 text-secondary small mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-location-dot text-warning" style="width: 18px;"></i>
+              <span>Tầng 5, Tòa Nhà BeeStyle Center, Q. Cầu Giấy, Hà Nội</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-phone text-warning" style="width: 18px;"></i>
+              <span>Hotline đặt hàng: <strong class="text-white">1900 8888</strong> (08:00 - 22:00)</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-envelope text-warning" style="width: 18px;"></i>
+              <span>Email: <strong class="text-white">cskh@beestyle.vn</strong></span>
+            </div>
+          </div>
+          <div class="d-flex gap-2 pt-1">
+            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Instagram"><i class="fa-brands fa-instagram text-danger"></i></a>
+            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="YouTube"><i class="fa-brands fa-youtube text-danger"></i></a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="col-lg-2 col-md-6 col-6">
+          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
+            DANH MỤC ÁO NAM
+            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
+          </h6>
+          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
+            <li><a href="{{ route('client.categories.show', 'ao-polo-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Polo Nam</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-so-mi-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Sơ Mi Công Sở</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Phông (T-Shirt)</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Khoác &amp; Blazer</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-thun-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thun Nam Basic</a></li>
+            <li><a href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thu Đông Cao Cấp</a></li>
+            <li><a href="{{ route('client.categories.index') }}" class="text-warning text-decoration-none hover-warning fw-semibold transition-all"><i class="fa-solid fa-grid-2 me-1.5 small"></i> Xem tất cả danh mục &rarr;</a></li>
+          </ul>
+        </div>
 
     </div>
 

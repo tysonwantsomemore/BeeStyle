@@ -368,7 +368,7 @@ class OrderController extends Controller
                         break;
 
                     case 'completed':
-                        if ($order->shipping_status !== 'cancelled') {
+                        if (in_array($order->shipping_status, ['delivered', 'shipping'], true)) {
                             $updateData['shipping_status'] = 'completed';
                             $updateData['status_step'] = 6;
                             if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
@@ -400,7 +400,7 @@ class OrderController extends Controller
                         break;
 
                     case 'cancel':
-                        if ($order->shipping_status !== 'cancelled') {
+                        if (in_array($order->shipping_status, ['pending', 'confirmed', 'processing', 'shipping'], true)) {
                             $updateData['shipping_status'] = 'cancelled';
                             $updateData['status_step'] = 0;
                             $updateData['cancelled_at'] = $now;
@@ -512,6 +512,33 @@ class OrderController extends Controller
         $previousShippingStatus = $order->shipping_status;
         $newShippingStatus = $validated['shipping_status'];
         $paymentStatus = $validated['payment_status'] ?? $order->payment_status;
+
+        // KIỂM TRA QUY TẮC CHUYỂN TRẠNG THÁI (STATE MACHINE ENFORCEMENT)
+        if ($newShippingStatus !== $previousShippingStatus) {
+            if (!$order->canTransitionTo($newShippingStatus)) {
+                $statusLabels = [
+                    'pending' => 'Chờ xác nhận',
+                    'confirmed' => 'Đã xác nhận',
+                    'processing' => 'Đang đóng gói',
+                    'shipping' => 'Đang giao hàng',
+                    'delivered' => 'Đã giao hàng',
+                    'completed' => 'Hoàn tất',
+                    'cancelled' => 'Đã hủy',
+                ];
+                $currentLabel = $statusLabels[$previousShippingStatus] ?? $previousShippingStatus;
+                $targetLabel = $statusLabels[$newShippingStatus] ?? $newShippingStatus;
+                
+                if (in_array($previousShippingStatus, ['delivered', 'completed'], true)) {
+                    return back()->with('error', "Không thể chuyển ngược đơn hàng từ trạng thái '{$currentLabel}' về '{$targetLabel}'. Hàng đã được giao đến tay khách hàng! Nếu khách hàng có yêu cầu đổi trả hoặc hoàn tiền, vui lòng sử dụng chức năng Phiếu Đổi Trả (RMA).");
+                }
+                
+                if ($previousShippingStatus === 'cancelled') {
+                    return back()->with('error', "Đơn hàng đã ở trạng thái 'Đã hủy' và không thể thay đổi trạng thái.");
+                }
+
+                return back()->with('error', "Không thể chuyển trạng thái đơn hàng từ '{$currentLabel}' sang '{$targetLabel}' theo quy trình vận hành TMĐT chuẩn.");
+            }
+        }
 
         $cancelledBy = $order->cancelled_by;
         $cancelledAt = $order->cancelled_at;

@@ -69,21 +69,11 @@ Route::name('auth.')->group(function () {
     Route::post('/dang-nhap', [AuthController::class, 'login'])->name('login.post');
 
     // Đăng ký
-    Route::get(
-        '/dang-ky',
-        [AuthController::class, 'showRegisterForm']
-    )->name('register');
-
-    Route::post(
-        '/dang-ky',
-        [AuthController::class, 'register']
-    )->name('register.post');
+    Route::get('/dang-ky', [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/dang-ky', [AuthController::class, 'register'])->name('register.post');
 
     // Xác thực kích hoạt tài khoản qua OTP
-    Route::post(
-        '/xac-thuc-otp',
-        [AuthController::class, 'verifyOtp']
-    )->name('verify-otp');
+    Route::post('/xac-thuc-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
 
     // Quên mật khẩu & Đặt lại mật khẩu
     Route::get('/quen-mat-khau', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
@@ -128,7 +118,7 @@ Route::name('client.')->group(function () {
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
     Route::get('/san-pham/{id}/danh-gia-chi-tiet', [ReviewController::class, 'getProductReviewsData'])->name('products.reviews.data');
 
-    // Danh mục sản phẩm (Categories)
+    // Danh mục sản phẩm (Redirect 301 về trang sản phẩm)
     Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
     Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
 
@@ -154,13 +144,15 @@ Route::name('client.')->group(function () {
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
     Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
     Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-    Route::match(['delete', 'post'], '/gio-hang/xoa/{key}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/gio-hang/xoa', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
     Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
-    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
-    Route::post('/gio-hang/ap-dung-ma', [CartController::class, 'applyCoupon'])->name('cart.apply-coupon');
-    Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
-    Route::match(['delete', 'post'], '/gio-hang/bo-ma', [CartController::class, 'removeCoupon'])->name('cart.remove-coupon');
+
+    // Áp dụng / Hủy mã giảm giá (Hỗ trợ cả định dạng apply-coupon & applyCoupon cho Blade/JS)
+    Route::post('/gio-hang/ma-giam-gia', [CartController::class, 'applyCoupon'])->name('cart.apply-coupon');
+    Route::post('/gio-hang/ap-dung-ma', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
+    Route::match(['delete', 'post'], '/gio-hang/xoa-ma', [CartController::class, 'removeCoupon'])->name('cart.remove-coupon');
+    Route::match(['delete', 'post'], '/gio-hang/bo-ma', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
 
     /*
     |--------------------------------------------------------------------------
@@ -181,16 +173,9 @@ Route::name('client.')->group(function () {
     | MOMO ONLINE PAYMENT GATEWAY (DEEP LINK / APP-TO-APP / SANDBOX)
     |--------------------------------------------------------------------------
     */
-    // API tạo giao dịch MoMo: POST /api/payments/momo/create
     Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
-
-    // API IPN Webhook: POST /api/payments/momo/ipn
     Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
-
-    // Trang kết quả giao dịch: GET /payment/momo/result
     Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
-
-    // Legacy/Fallback routes cho tương thích
     Route::get('/thanh-toan/momo/callback', [MomoPaymentController::class, 'result'])->name('checkout.momo.callback');
     Route::post('/thanh-toan/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('checkout.momo.ipn');
 
@@ -212,21 +197,21 @@ Route::name('client.')->group(function () {
         */
         Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
         Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
-        
-        // Cổng Thanh Toán MoMo Gateway
+
+        // Cổng MoMo Gateway
         Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
         Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
         Route::post('/thanh-toan/momo/{code}/sandbox-redirect', [CheckoutController::class, 'momoRedirectSandbox'])->name('checkout.momo.redirect');
 
-        // Cổng Thanh Toán ZaloPay Gateway
+        // Cổng ZaloPay Gateway
         Route::get('/thanh-toan/zalopay/{code}', [CheckoutController::class, 'zalopayGateway'])->name('checkout.zalopay');
         Route::post('/thanh-toan/zalopay/{code}/xac-nhan', [CheckoutController::class, 'zalopaySuccess'])->name('checkout.zalopay.success');
 
-        // Cổng Thanh Toán Online Banking Gateway (Techcombank / Napas 247)
+        // Cổng Online Banking Gateway (Techcombank / Napas 247)
         Route::get('/thanh-toan/online/{code}', [CheckoutController::class, 'onlineGateway'])->name('checkout.online');
         Route::post('/thanh-toan/online/{code}/xac-nhan', [CheckoutController::class, 'onlineSuccess'])->name('checkout.online.success');
 
-        // Xử lý Hết hạn thanh toán (Auto-Expiry & Restock) & Tự Động Khớp Lệnh
+        // Auto-Expiry & Tự Động Khớp Lệnh
         Route::post('/thanh-toan/{code}/het-han', [CheckoutController::class, 'handleExpired'])->name('checkout.expire');
         Route::get('/thanh-toan/{code}/kiem-tra-trang-thai', [CheckoutController::class, 'checkPaymentStatus'])->name('checkout.check-status');
         Route::post('/thanh-toan/{code}/tu-dong-khop-lenh', [CheckoutController::class, 'autoConfirmTransfer'])->name('checkout.auto-confirm');
@@ -336,15 +321,10 @@ Route::prefix('admin')
         |--------------------------------------------------------------------------
         */
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-
-        // Thao tác hàng loạt & tự động xác nhận tất cả đơn hàng
         Route::post('/orders/bulk-action', [AdminOrderController::class, 'bulkAction'])->name('orders.bulkAction');
         Route::post('/orders/confirm-all-pending', [AdminOrderController::class, 'confirmAllPending'])->name('orders.confirmAllPending');
-
-        // Xuất Excel / CSV & In phiếu đóng gói hàng loạt (Chuẩn TMĐT)
         Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
         Route::post('/orders/bulk-print', [AdminOrderController::class, 'bulkPrint'])->name('orders.bulkPrint');
-
         Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
         Route::post('/orders/{id}/approve-refund', [AdminOrderController::class, 'approveRefund'])->name('orders.approveRefund');
