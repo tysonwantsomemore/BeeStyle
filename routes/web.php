@@ -122,6 +122,8 @@ Route::name('client.')->group(function () {
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
     Route::get('/san-pham/{id}/danh-gia-chi-tiet', [ReviewController::class, 'getProductReviewsData'])->name('products.reviews.data');
 
+    // Categories (Xem danh mục sản phẩm)
+    Route::get('/danh-muc', [ClientCategoryController::class, 'index'])->name('categories.index');
     // Danh mục sản phẩm (Categories)
     Route::redirect('/danh-muc', '/san-pham', 301)->name('categories.index');
     Route::get('/danh-muc/{slug}', [ClientCategoryController::class, 'show'])->name('categories.show');
