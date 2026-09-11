@@ -52,7 +52,7 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|integer|exists:products,id',
             'variant_id' => 'nullable|integer|exists:product_variants,id',
-            'quantity' => 'nullable|integer|min:1|max:10',
+            'quantity' => 'nullable|integer|min:1',
             'color' => 'nullable|string',
             'size' => 'nullable|string',
         ]);
@@ -86,7 +86,7 @@ class CartController extends Controller
     {
         $request->validate([
             'key' => 'required|string',
-            'quantity' => 'required|integer|min:0|max:10',
+            'quantity' => 'required|integer|min:0',
         ]);
 
         $result = CartService::update($request->key, (int)$request->quantity);
@@ -104,9 +104,15 @@ class CartController extends Controller
         return back()->with('success', $result['message']);
     }
 
-    public function remove(Request $request, $key)
+    // FIX: bỏ tham số route {key}. Route giờ không còn {key} trong URI nữa —
+    // giá trị key được lấy từ trường "cart_key" trong JSON body mà blade JS gửi lên.
+    public function remove(Request $request)
     {
-        $result = CartService::remove($key);
+        $request->validate([
+            'cart_key' => 'required|string',
+        ]);
+
+        $result = CartService::remove($request->cart_key);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(array_merge($result, [
@@ -134,13 +140,15 @@ class CartController extends Controller
         return redirect()->route('client.cart')->with('success', 'Đã xóa toàn bộ sản phẩm trong giỏ hàng!');
     }
 
+    // FIX: đổi field validate từ "code" sang "coupon_code" để khớp với body
+    // mà blade JS gửi lên: JSON.stringify({ coupon_code: code }).
     public function applyCoupon(Request $request)
     {
         $request->validate([
-            'code' => 'required|string',
+            'coupon_code' => 'required|string',
         ]);
 
-        $result = CartService::applyCoupon($request->code);
+        $result = CartService::applyCoupon($request->coupon_code);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(array_merge($result, [

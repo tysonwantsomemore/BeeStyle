@@ -46,7 +46,10 @@ class OrderReturnController extends Controller
             foreach ($order->items as $item) {
                 if ($item->product_id) {
                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                    Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                    $prod = Product::find($item->product_id);
+                    if ($prod && $prod->sold_count >= $item->quantity) {
+                        $prod->decrement('sold_count', $item->quantity);
+                    }
 
                     if (!empty($item->color) && !empty($item->size)) {
                         ProductVariant::where('product_id', $item->product_id)
@@ -155,19 +158,19 @@ class OrderReturnController extends Controller
         }
 
         // Cập nhật thông tin tài khoản ngân hàng của user nếu nhập mới
+        $bankName = $validated['bank_name'] ?? $user->bank_name;
+        $bankAccNum = !empty($validated['bank_account_number']) ? trim($validated['bank_account_number']) : $user->bank_account_number;
+        $bankAccName = !empty($validated['bank_account_name']) ? mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8') : ($user->bank_account_name ?? $user->name);
+        $bankBranch = !empty($validated['bank_branch']) ? trim($validated['bank_branch']) : $user->bank_branch;
+
         if (!empty($validated['bank_name']) && !empty($validated['bank_account_number'])) {
             $user->update([
-                'bank_name' => $validated['bank_name'],
-                'bank_account_number' => trim($validated['bank_account_number']),
-                'bank_account_name' => mb_strtoupper(trim($validated['bank_account_name'] ?? $user->name), 'UTF-8'),
-                'bank_branch' => $validated['bank_branch'] ? trim($validated['bank_branch']) : null,
+                'bank_name' => $bankName,
+                'bank_account_number' => $bankAccNum,
+                'bank_account_name' => $bankAccName,
+                'bank_branch' => $bankBranch,
             ]);
         }
-
-        $bankName = $validated['bank_name'] ?? $user->bank_name;
-        $bankAccNum = $validated['bank_account_number'] ?? $user->bank_account_number;
-        $bankAccName = $validated['bank_account_name'] ?? $user->bank_account_name;
-        $bankBranch = $validated['bank_branch'] ?? $user->bank_branch;
 
         $returnCode = 'RET-' . date('Ymd') . '-' . strtoupper(Str::random(5));
 

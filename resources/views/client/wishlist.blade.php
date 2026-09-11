@@ -1,158 +1,101 @@
 @extends('layouts.client')
 
-@section('title', 'Sản Phẩm Yêu Thích • BeeStyle Menswear')
+@section('title', 'Sản Phẩm Yêu Thích — BEESTYLE Studio')
 
 @section('content')
-<div class="container py-4">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb small">
-      <li class="breadcrumb-item"><a href="{{ route('client.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
-      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Sản phẩm yêu thích</li>
-    </ol>
+<main class="w-full flex-grow py-10 px-6 max-w-7xl mx-auto">
+  
+  <!-- Breadcrumb Navigation -->
+  <nav class="flex items-center gap-2 text-xs text-neutral-500 mb-8 overflow-x-auto whitespace-nowrap pb-2">
+    <a href="{{ route('client.home') }}" class="hover:text-black">Trang Chủ</a>
+    <i data-lucide="chevron-right" class="w-3 h-3 text-neutral-400"></i>
+    <span class="text-neutral-900 font-semibold">Tác Phẩm Yêu Thích</span>
   </nav>
 
-  <!-- HEADER TIÊU ĐỀ -->
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 pb-3 border-bottom">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 pb-6 border-b border-neutral-200">
     <div>
-      <h2 class="fw-bold text-dark mb-1" style="font-size: 1.6rem; letter-spacing: -0.5px;">
-        <i class="fa-solid fa-heart text-danger me-2"></i> SẢN PHẨM YÊU THÍCH
-      </h2>
-      <p class="text-muted small mb-0">
-        Danh sách những thiết kế thời trang bạn đã lưu lại để tham khảo và đặt mua
-      </p>
+      <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-semibold block mb-1">BỘ SƯU TẬP CÁ NHÂN</span>
+      <h1 class="font-serif-luxury text-3xl md:text-4xl font-light text-neutral-900">Danh Sách Yêu Thích</h1>
     </div>
-    
     @if($products->count() > 0)
-      <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-warning-subtle text-dark border border-warning px-3 py-2 fw-bold" style="font-size: 0.85rem;">
-          Đã lưu: <strong class="text-danger fs-6">{{ $products->count() }}</strong> sản phẩm
-        </span>
+      <div class="flex items-center gap-4">
+        <span class="text-xs text-neutral-500">Đã lưu: <strong class="text-neutral-950 font-semibold">{{ $products->count() }}</strong> tác phẩm</span>
         <form action="{{ route('client.wishlist.clear') }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa tất cả sản phẩm khỏi danh sách yêu thích?');">
           @csrf
-          <button type="submit" class="btn btn-outline-danger btn-sm px-3 py-1.5 rounded-2 fw-semibold">
-            <i class="fa-regular fa-trash-can me-1"></i> Xóa tất cả
+          <button type="submit" class="text-xs text-rose-600 hover:text-rose-800 font-semibold uppercase tracking-wider">
+            Xóa Tất Cả
           </button>
         </form>
       </div>
     @endif
   </div>
 
-  @if($products->count() > 0)
-    <!-- DANH SÁCH SẢN PHẨM YÊU THÍCH -->
-    <div class="row g-3 g-md-4">
-      @foreach($products as $product)
-        <div class="col-6 col-md-4 col-lg-3">
-          <div class="card h-100 border-0 shadow-sm transition-all hover-lift" style="border-radius: 16px; overflow: hidden; background: #ffffff; border: 1px solid rgba(0,0,0,0.06) !important;">
-            
-            <!-- ẢNH & NÚT XÓA YÊU THÍCH -->
-            <div class="position-relative bg-light p-3 text-center" style="height: 220px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-              @if($product->discount_percent > 0)
-                <span class="position-absolute top-0 start-0 m-2.5 badge bg-danger rounded-pill shadow-xs" style="font-size: 0.72rem; z-index: 2;">-{{ $product->discount_percent }}%</span>
-              @endif
+  @if($products->isEmpty())
+    <div class="bg-white p-12 md:p-16 rounded-2xl border border-neutral-200 text-center max-w-md mx-auto shadow-sm my-8">
+      <div class="w-20 h-20 rounded-full bg-brand-100 flex items-center justify-center mx-auto mb-4 text-neutral-400">
+        <i data-lucide="heart" class="w-10 h-10 stroke-1"></i>
+      </div>
+      <h2 class="font-serif-luxury text-2xl text-neutral-900 mb-2">Chưa có tác phẩm nào được lưu</h2>
+      <p class="text-xs text-neutral-500 font-light mb-8 leading-relaxed">
+        Hãy nhấn biểu tượng trái tim trên các sản phẩm bạn yêu thích để dễ dàng xem lại bất cứ lúc nào.
+      </p>
+      <a href="{{ route('client.products.index') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-neutral-950 text-white text-xs font-semibold tracking-[0.2em] uppercase rounded-lg hover:bg-neutral-800 transition-all shadow-lg">
+        <span>Khám Phá Sản Phẩm</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-amber-400"></i>
+      </a>
+    </div>
+  @else
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+      @foreach($products as $item)
+        @php
+          $itemImg = $item->primaryImage->image_path ?? $item->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop';
+          if (!str_starts_with($itemImg, 'http')) {
+            $itemImg = asset($itemImg);
+          }
+        @endphp
+        <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+          <div class="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
+            <a href="{{ route('client.products.show', $item->id) }}" class="block w-full h-full">
+              <img src="{{ $itemImg }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+            </a>
+            <form action="{{ route('client.wishlist.remove', $item->id) }}" method="POST" class="absolute top-3 right-3">
+              @csrf
+              @method('DELETE')
+              <button type="submit" class="w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-rose-600 shadow hover:scale-110 transition-transform" title="Bỏ yêu thích">
+                <i data-lucide="heart" class="w-4 h-4 fill-rose-600"></i>
+              </button>
+            </form>
+          </div>
 
-              <!-- NÚT BỎ YÊU THÍCH -->
-              <form action="{{ route('client.wishlist.remove', $product->id) }}" method="POST" class="position-absolute top-0 end-0 m-2" style="z-index: 3;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-white rounded-circle shadow-xs border text-danger" title="Xóa khỏi danh sách yêu thích" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #ffffff;">
-                  <i class="fa-solid fa-heart fs-6"></i>
-                </button>
-              </form>
-
-              <a href="{{ route('client.products.show', $product->id) }}" class="d-block w-100 h-100 d-flex align-items-center justify-content-center">
-                <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="img-fluid transition-all" style="max-height: 180px; object-fit: contain;">
+          <div class="p-4 flex flex-col justify-between flex-grow">
+            <div>
+              <span class="text-[10px] tracking-widest uppercase text-neutral-400 font-semibold block mb-1">
+                {{ $item->category->name ?? 'Beestyle' }}
+              </span>
+              <a href="{{ route('client.products.show', $item->id) }}" class="font-serif-luxury text-base font-semibold text-neutral-900 hover:text-amber-800 transition-colors line-clamp-1">
+                {{ $item->name }}
               </a>
             </div>
 
-            <!-- BODY CARD -->
-            <div class="card-body p-3 d-flex flex-column justify-content-between">
-              <div>
-                <small class="text-warning fw-bold text-uppercase d-block mb-1" style="font-size: 0.75rem;">
-                  {{ $product->category->name ?? 'Thời trang nam' }}
-                </small>
-
-                <h6 class="fw-bold text-dark text-truncate-2 mb-2" style="font-size: 0.92rem; min-height: 42px; line-height: 1.35;">
-                  <a href="{{ route('client.products.show', $product->id) }}" class="text-decoration-none text-dark hover-warning">
-                    {{ $product->name }}
-                  </a>
-                </h6>
-              </div>
-
-              <div>
-                <div class="d-flex align-items-baseline gap-2 mb-2.5">
-                  <strong class="text-danger fw-bold fs-6">{{ number_format($product->price, 0, ',', '.') }}₫</strong>
-                  @if($product->original_price && $product->original_price > $product->price)
-                    <small class="text-muted text-decoration-line-through" style="font-size: 0.8rem;">{{ number_format($product->original_price, 0, ',', '.') }}₫</small>
-                  @endif
-                </div>
-
-                <!-- 2 NÚT THÊM GIỎ HÀNG & MUA NGAY (MỞ POPUP CHỌN MÀU & SIZE) -->
-                <div class="d-flex gap-1.5">
-                  <button type="button" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap shadow-xs" 
-                    data-id="{{ $product->id }}"
-                    data-name="{{ $product->name }}"
-                    data-price="{{ $product->price }}"
-                    data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
-                    data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
-                    data-discount="{{ $product->discount_percent ?? 0 }}"
-                    data-image="{{ asset($product->image) }}"
-                    data-category="{{ $product->category->name ?? 'Thời trang nam' }}"
-                    data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
-                    data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
-                    data-stock="{{ $product->stock ?? 999 }}"
-                    onclick="openQuickVariantModal({{ $product->id }}, false, this)" 
-                    title="Thêm vào giỏ hàng" style="font-size: 0.76rem; padding-top: 6px; padding-bottom: 6px;">
-                    <i class="fa-solid fa-cart-plus me-1 text-warning"></i> Thêm Vào Giỏ Hàng
-                  </button>
-                  <button type="button" class="btn btn-bee-primary btn-sm flex-fill fw-bold rounded-2 px-1 text-nowrap shadow-xs" 
-                    data-id="{{ $product->id }}"
-                    data-name="{{ $product->name }}"
-                    data-price="{{ $product->price }}"
-                    data-price-formatted="{{ number_format($product->price, 0, ',', '.') }}₫"
-                    data-original-price-formatted="{{ $product->original_price ? number_format($product->original_price, 0, ',', '.') . '₫' : '' }}"
-                    data-discount="{{ $product->discount_percent ?? 0 }}"
-                    data-image="{{ asset($product->image) }}"
-                    data-category="{{ $product->category->name ?? 'Thời trang nam' }}"
-                    data-colors="{{ json_encode($product->colors ?? ['Đen', 'Trắng', 'Xanh Navy']) }}"
-                    data-sizes="{{ json_encode($product->sizes ?? ['S', 'M', 'L', 'XL', 'XXL']) }}"
-                    data-stock="{{ $product->stock ?? 999 }}"
-                    onclick="openQuickVariantModal({{ $product->id }}, true, this)" 
-                    title="Mua ngay" style="font-size: 0.8rem; padding-top: 6px; padding-bottom: 6px;">
-                    <i class="fa-solid fa-bolt me-1"></i> Mua Ngay
-                  </button>
-                </div>
-              </div>
-
+            <div class="mt-3 pt-3 border-t border-neutral-100 flex items-center justify-between">
+              <span class="font-serif-luxury text-base font-bold text-neutral-950">
+                {{ number_format($item->price, 0, ',', '.') }}₫
+              </span>
+              <form action="{{ route('client.cart.add') }}" method="POST">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $item->id }}">
+                <input type="hidden" name="variant_id" value="{{ $item->variants->first()->id ?? '' }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="px-3 py-1.5 bg-neutral-950 text-white text-xs tracking-wider uppercase font-semibold rounded hover:bg-amber-400 hover:text-black transition-colors">
+                  Mua Ngay
+                </button>
+              </form>
             </div>
           </div>
         </div>
       @endforeach
     </div>
-
-    <!-- NÚT TIẾP TỤC MUA SẮM -->
-    <div class="text-center mt-5 pt-3 border-top">
-      <a href="{{ route('client.products.index') }}" class="btn btn-outline-dark px-4 py-2.5 rounded-3 fw-bold shadow-xs">
-        <i class="fa-solid fa-arrow-left me-1.5"></i> Tiếp Tục Khám Phá Sản Phẩm Khác
-      </a>
-    </div>
-
-  @else
-    <!-- EMPTY STATE KHI CHƯA CÓ YÊU THÍCH -->
-    <div class="card border-0 shadow-sm p-5 text-center my-4" style="border-radius: 20px; background: #ffffff;">
-      <div class="rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center mx-auto mb-3 shadow-xs" style="width: 80px; height: 80px;">
-        <i class="fa-regular fa-heart fs-1"></i>
-      </div>
-      <h4 class="fw-bold text-dark mb-2">Chưa có sản phẩm nào trong danh sách yêu thích</h4>
-      <p class="text-muted small mx-auto mb-4" style="max-width: 480px;">
-        Hãy nhấn vào biểu tượng <i class="fa-solid fa-heart text-danger"></i> trái tim trên mỗi sản phẩm để lưu lại những thiết kế mà bạn ưng ý nhất!
-      </p>
-      <div>
-        <a href="{{ route('client.products.index') }}" class="btn btn-bee-primary px-4 py-2.5 rounded-3 fw-bold shadow-xs">
-          <i class="fa-solid fa-shirt me-1.5"></i> Khám Phá Bộ Sưu Tập Ngay
-        </a>
-      </div>
-    </div>
   @endif
-</div>
+
+</main>
 @endsection

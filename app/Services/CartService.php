@@ -32,8 +32,22 @@ class CartService
                 $v = \App\Models\ProductVariant::find($item['variant_id']);
                 if ($v) $currentStock = $v->stock;
             } elseif (!empty($item['product_id'])) {
-                $p = \App\Models\Product::find($item['product_id']);
-                if ($p) $currentStock = $p->stock;
+                if (!empty($item['color']) && !empty($item['size'])) {
+                    $v = \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                        ->where('color', $item['color'])
+                        ->where('size', $item['size'])
+                        ->first();
+                    if ($v) {
+                        $currentStock = $v->stock;
+                        $item['variant_id'] = $v->id;
+                    } else {
+                        $p = \App\Models\Product::find($item['product_id']);
+                        if ($p) $currentStock = $p->stock;
+                    }
+                } else {
+                    $p = \App\Models\Product::find($item['product_id']);
+                    if ($p) $currentStock = $p->stock;
+                }
             }
 
             $isOutOfStock = ($currentStock <= 0);
@@ -121,16 +135,39 @@ class CartService
             $variant = $product->variants()->where('color', $color)->where('size', $size)->where('status', 'active')->first();
         }
 
+        // Kiểm tra biến thể: Bắt buộc khách hàng tự chọn, không tự ý gán mặc định
+        $prodColors = is_array($product->colors) ? $product->colors : (is_string($product->colors) ? (json_decode($product->colors, true) ?: array_map('trim', explode(',', $product->colors))) : []);
+        $prodSizes = is_array($product->sizes) ? $product->sizes : (is_string($product->sizes) ? (json_decode($product->sizes, true) ?: array_map('trim', explode(',', $product->sizes))) : []);
+
+        if (empty($prodColors) && $product->variants->isNotEmpty()) {
+            $prodColors = $product->variants->pluck('color')->filter()->unique()->values()->all();
+        }
+        if (empty($prodSizes) && $product->variants->isNotEmpty()) {
+            $prodSizes = $product->variants->pluck('size')->filter()->unique()->values()->all();
+        }
+
+        if (!empty($prodColors) && empty($color) && !$variant) {
+            return ['success' => false, 'message' => 'Quý khách vui lòng chọn Màu sắc cho sản phẩm trước khi mua hàng!'];
+        }
+
+        if (!empty($prodSizes) && empty($size) && !$variant) {
+            return ['success' => false, 'message' => 'Quý khách vui lòng chọn Kích thước (Size) cho sản phẩm trước khi mua hàng!'];
+        }
+
         $price = $variant ? $variant->price : $product->price;
         $originalPrice = $variant ? ($variant->original_price ?? $product->original_price) : $product->original_price;
         $stock = $variant ? $variant->stock : $product->stock;
         $sku = $variant ? $variant->sku : $product->sku;
         $image = ($variant && $variant->image) ? $variant->image : $product->image;
-        $selectedColor = $variant ? $variant->color : ($color ?? ($product->colors[0] ?? 'Tiêu chuẩn'));
-        $selectedSize = $variant ? $variant->size : ($size ?? ($product->sizes[0] ?? 'Tiêu chuẩn'));
+        $selectedColor = $variant ? $variant->color : ($color ?: 'Tiêu chuẩn');
+        $selectedSize = $variant ? $variant->size : ($size ?: 'Tiêu chuẩn');
 
         if ($stock <= 0) {
-            return ['success' => false, 'message' => 'Phiên bản sản phẩm đã chọn hiện đã hết hàng trong kho.'];
+            return ['success' => false, 'message' => "Phiên bản \"{$selectedColor} - Size {$selectedSize}\" hiện đã hết hàng trong kho."];
+        }
+
+        if ($quantity > $stock) {
+            return ['success' => false, 'message' => "Phiên bản này trong kho chỉ còn {$stock} sản phẩm. Quý khách vui lòng chọn tối đa {$stock} cái."];
         }
 
         // Kiểm tra xem sản phẩm có đang trong chương trình Ưu Đãi Trong Ngày (Daily Deal) không
@@ -147,14 +184,22 @@ class CartService
             $price = max(0, (int) round($price * (1 - ($runningDeal->discount_percent / 100))));
         }
 
-        // Giới hạn tối đa 10 sản phẩm mỗi lần mua
-        $quantity = min(10, max(1, $quantity));
+        // Khách hàng có thể mua được nhiều sản phẩm 1 lần (tùy theo số lượng tồn kho)
+        $maxAllowed = max(1, $stock);
+        $quantity = min($maxAllowed, max(1, $quantity));
 
         $cartKey = $variant ? "v_{$variant->id}" : "{$productId}_{$selectedColor}_{$selectedSize}";
         $cart = Session::get(self::CART_SESSION_KEY, []);
 
         if (isset($cart[$cartKey])) {
-            $newQuantity = min(10, $cart[$cartKey]['quantity'] + $quantity);
+            $newQuantity = $cart[$cartKey]['quantity'] + $quantity;
+            if ($newQuantity > $maxAllowed) {
+                $canAdd = max(0, $maxAllowed - $cart[$cartKey]['quantity']);
+                if ($canAdd <= 0) {
+                    return ['success' => false, 'message' => "Bạn đã có {$cart[$cartKey]['quantity']} sản phẩm này trong giỏ hàng (đã đạt số lượng tồn kho tối đa có sẵn)."];
+                }
+                return ['success' => false, 'message' => "Bạn đã có {$cart[$cartKey]['quantity']} sản phẩm này trong giỏ. Trong kho chỉ còn {$stock} cái, bạn chỉ có thể thêm tối đa {$canAdd} cái nữa."];
+            }
             $cart[$cartKey]['quantity'] = $newQuantity;
         } else {
             $cart[$cartKey] = [
@@ -201,13 +246,70 @@ class CartService
             return self::remove($cartKey);
         }
 
-        // Giới hạn số lượng tối đa 10 sản phẩm
-        $quantity = min(10, max(1, $quantity));
+        $item = $cart[$cartKey];
+        $realStock = 999;
+        if (!empty($item['variant_id'])) {
+            $v = \App\Models\ProductVariant::find($item['variant_id']);
+            if ($v) $realStock = $v->stock;
+        } elseif (!empty($item['product_id'])) {
+            $v = \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                ->where('color', $item['color'] ?? '')
+                ->where('size', $item['size'] ?? '')
+                ->first();
+            if ($v) $realStock = $v->stock;
+            else {
+                $p = \App\Models\Product::find($item['product_id']);
+                if ($p) $realStock = $p->stock;
+            }
+        }
+
+        $maxAllowed = max(1, $realStock);
+        if ($quantity > $maxAllowed) {
+            return ['success' => false, 'message' => "Kho chỉ còn {$realStock} cái, không thể tăng vượt quá tồn kho."];
+        }
 
         $cart[$cartKey]['quantity'] = $quantity;
         Session::put(self::CART_SESSION_KEY, $cart);
 
         return ['success' => true, 'message' => 'Đã cập nhật số lượng giỏ hàng!'];
+    }
+
+    /**
+     * Kiểm tra đơn hàng có yêu cầu đặt cọc 50% không
+     * Quy tắc chuẩn:
+     * - Chỉ áp dụng đặt cọc 50% khi đơn hàng có TỔNG SỐ LƯỢNG TỪ 10 SẢN PHẨM TRỞ LÊN (totalQty >= 10).
+     * - Khi khách mua dưới 10 sản phẩm (totalQty < 10): HOÀN TOÀN KHÔNG CẦN ĐẶT CỌC.
+     */
+    public static function checkDepositPolicy($cart = null, $totalAmount = null, $user = null): array
+    {
+        $cart = $cart ?? self::getCart();
+        $totalQty = 0;
+        foreach ($cart as $item) {
+            $totalQty += (int)($item['quantity'] ?? 1);
+        }
+
+        $isRequired = false;
+        $reason = '';
+
+        if ($totalQty >= 10) {
+            $isRequired = true;
+            $reason = "Đơn hàng của quý khách có tổng số lượng {$totalQty} sản phẩm (từ 10 sản phẩm trở lên). Theo chính sách đơn hàng số lượng lớn của BeeStyle, quý khách vui lòng đặt cọc trước 50% giá trị đơn hàng để giữ hàng và xuất kho.";
+        }
+
+        $totalAmount = $totalAmount !== null ? (int)$totalAmount : (int)self::total();
+        $depositAmount = $isRequired ? (int)round($totalAmount * 0.5) : 0;
+        $remainingAmount = $isRequired ? ($totalAmount - $depositAmount) : $totalAmount;
+
+        return [
+            'is_required' => $isRequired,
+            'is_deposit_required' => $isRequired,
+            'total_quantity' => $totalQty,
+            'deposit_percent' => 50,
+            'total_amount' => $totalAmount,
+            'deposit_amount' => $depositAmount,
+            'remaining_amount' => $remainingAmount,
+            'reason' => $reason,
+        ];
     }
 
 

@@ -95,11 +95,33 @@ class ReturnController extends Controller
             'warehouse_instruction' => 'nullable|string|max:500',
         ]);
 
+        $previousStatus = $return->status;
         $status = $validated['status'];
         $adminNotes = $validated['admin_notes'] ?? $return->admin_notes;
         $rejectedReason = $validated['rejected_reason'] ?? $return->rejected_reason;
 
-        DB::transaction(function () use ($return, $status, $adminNotes, $rejectedReason, $request, $validated) {
+        // KIỂM TRA QUY TẮC CHUYỂN TRẠNG THÁI (STATE MACHINE ENFORCEMENT)
+        if ($status !== $previousStatus) {
+            if (!$return->canTransitionTo($status)) {
+                $statusLabels = [
+                    'pending'   => 'Chờ duyệt',
+                    'approved'  => 'Đã duyệt (Chờ gửi hàng)',
+                    'received'  => 'Kho đã nhận hàng',
+                    'completed' => 'Hoàn tất',
+                    'rejected'  => 'Đã từ chối',
+                ];
+                $currentLabel = $statusLabels[$previousStatus] ?? $previousStatus;
+                $targetLabel = $statusLabels[$status] ?? $status;
+
+                if ($return->isFinalStatus()) {
+                    return back()->with('error', "Phiếu đổi trả #{$return->return_code} đã ở trạng thái kết thúc '{$currentLabel}' và đã được khóa hoàn toàn. Không thể thay đổi hoặc chuyển ngược trạng thái!");
+                }
+
+                return back()->with('error', "Không thể chuyển ngược hoặc nhảy bước trạng thái phiếu RMA từ '{$currentLabel}' sang '{$targetLabel}' theo quy trình vận hành TMĐT chuẩn.");
+            }
+        }
+
+        DB::transaction(function () use ($return, $status, $previousStatus, $adminNotes, $rejectedReason, $request, $validated) {
             $data = [
                 'status' => $status,
                 'admin_notes' => $adminNotes,
@@ -110,7 +132,7 @@ class ReturnController extends Controller
             }
 
             // Xử lý bước 2: Duyệt yêu cầu
-            if ($status === 'approved') {
+            if ($status === 'approved' && $previousStatus !== 'approved') {
                 if (!$return->approved_at) {
                     $data['approved_at'] = now();
                 }
@@ -120,7 +142,7 @@ class ReturnController extends Controller
                 }
             } 
             // Xử lý bước 3: Kho nhận hàng
-            elseif ($status === 'received') {
+            elseif ($status === 'received' && $previousStatus !== 'received') {
                 if (!$return->received_at) {
                     $data['received_at'] = now();
                 }
@@ -130,7 +152,7 @@ class ReturnController extends Controller
                 }
             } 
             // Xử lý bước 4: Hoàn tất & Hoàn tiền / Đổi hàng
-            elseif ($status === 'completed') {
+            elseif ($status === 'completed' && $previousStatus !== 'completed') {
                 $data['completed_at'] = now();
 
                 // Ghi nhận mã giao dịch chuyển tiền hoặc mã vận đơn đổi hàng
@@ -192,6 +214,7 @@ class ReturnController extends Controller
 
                             // Trừ kho món mới
                             ProductVariant::where('product_id', $item->product_id)
+                                ->where('color', $newColor)
                                 ->where('size', $newSize)
                                 ->decrement('stock', $item->quantity);
                         }
@@ -245,7 +268,7 @@ class ReturnController extends Controller
                 }
             } 
             // Xử lý từ chối
-            elseif ($status === 'rejected') {
+            elseif ($status === 'rejected' && $previousStatus !== 'rejected') {
                 $data['rejected_at'] = now();
                 $data['rejected_reason'] = $rejectedReason;
             }

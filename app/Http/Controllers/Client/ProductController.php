@@ -15,8 +15,9 @@ class ProductController extends Controller
     /**
      * Danh sách tất cả sản phẩm đang có ƯU ĐÃI TRONG NGÀY (Flash Sale)
      */
-    public function dailyDeals(Request $request)
+    public function dailyDeals(Request $request = null)
     {
+        $request = $request ?? request();
         $tab = $request->query('tab', 'all'); // all, running, upcoming
         $categorySlug = $request->query('category');
         $sort = $request->query('sort', 'discount_desc');
@@ -270,7 +271,7 @@ class ProductController extends Controller
                 $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
             })
             ->orderBy('min_order_value', 'asc')
-            ->take(4)
+            ->take(6)
             ->get();
 
         $relatedProducts = Product::with(['category', 'brand', 'variants'])
@@ -286,16 +287,54 @@ class ProductController extends Controller
         $userReview = null;
         if (\Illuminate\Support\Facades\Auth::check()) {
             $user = \Illuminate\Support\Facades\Auth::user();
-            $userHasPurchased = \App\Models\Order::where('user_id', $user->id)
-                ->whereHas('items', function ($q) use ($id) {
-                    $q->where('product_id', $id);
-                })
-                ->exists();
+            if ($user->role === 'admin' || $user->role === 'staff') {
+                $userHasPurchased = true;
+            } else {
+                $userHasPurchased = \App\Models\Order::where(function($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                        if ($user->phone) $q->orWhere('customer_phone', $user->phone);
+                        if ($user->email) $q->orWhere('customer_email', $user->email);
+                    })
+                    ->where('shipping_status', '!=', 'cancelled')
+                    ->whereHas('items', function ($q) use ($id, $product) {
+                        $q->where('product_id', $id)
+                          ->orWhere('product_name', 'LIKE', '%' . $product->name . '%');
+                    })
+                    ->exists();
+
+                if (!$userHasPurchased) {
+                    $userHasPurchased = \App\Models\OrderItem::whereHas('order', function($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                        if ($user->phone) $q->orWhere('customer_phone', $user->phone);
+                        $q->where('shipping_status', '!=', 'cancelled');
+                    })
+                    ->where(function($q) use ($id, $product) {
+                        $q->where('product_id', $id)
+                          ->orWhere('product_name', 'LIKE', '%' . $product->name . '%');
+                    })
+                    ->exists();
+                }
+            }
 
             $userReview = \App\Models\Review::where('product_id', $id)->where('user_id', $user->id)->first();
         }
 
-        return view('client.products.show', compact('product', 'relatedProducts', 'categories', 'userHasPurchased', 'userReview', 'recentlyViewedProducts', 'availableCoupons'));
+        // Kiểm tra Deal / Flash Sale đang hoạt động
+        $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
+        if (!$runningDeal) {
+            $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->forToday()->first();
+        }
+
+        return view('client.products.show', compact(
+            'product',
+            'relatedProducts',
+            'recentlyViewedProducts',
+            'availableCoupons',
+            'runningDeal',
+            'categories',
+            'userHasPurchased',
+            'userReview'
+        ));
     }
 
     /**
@@ -312,17 +351,6 @@ class ProductController extends Controller
         $colors = $product->colors ?? [];
         $sizes = $product->sizes ?? [];
 
-        if ($product->variants->isNotEmpty()) {
-            $variantColors = $product->variants->pluck('color')->filter()->unique()->values()->all();
-            $variantSizes = $product->variants->pluck('size')->filter()->unique()->values()->all();
-
-            if (!empty($variantColors)) $colors = array_values(array_unique(array_merge($colors, $variantColors)));
-            if (!empty($variantSizes)) $sizes = array_values(array_unique(array_merge($sizes, $variantSizes)));
-        }
-
-        if (empty($colors)) $colors = ['Đen', 'Trắng', 'Xanh Navy'];
-        if (empty($sizes)) $sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-
         // Kiểm tra ưu đãi trong ngày
         $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
         $effectivePrice = $product->price;
@@ -334,61 +362,36 @@ class ProductController extends Controller
             $discountPercent = $runningDeal->discount_percent;
         }
 
-        $saveAmount = max(0, $originalPrice - $effectivePrice);
-
-        // Tập hợp danh sách ảnh gallery
         $gallery = collect([asset($product->image)]);
-        if ($product->images && $product->images->isNotEmpty()) {
+        if ($product->images && $product->images->count() > 0) {
             foreach ($product->images as $img) {
-                $gallery->push(asset($img->image_path));
+                if ($img->image_path) {
+                    $gallery->push(asset($img->image_path));
+                }
             }
         }
-        foreach ($product->variants as $v) {
-            if ($v->image) {
-                $gallery->push(asset($v->image));
-            }
-        }
-        $gallery = $gallery->unique()->values()->take(6)->all();
-
-        // Chuẩn hóa thông số kỹ thuật
-        $specs = $product->specifications;
-        if (empty($specs) || !is_array($specs)) {
-            $specs = [
-                'Chất liệu' => 'Cotton Compact dệt tổ ong kháng khuẩn độc quyền',
-                'Phom dáng' => 'Regular Fit / Slimfit tôn dáng chuẩn quý ông',
-                'Co giãn' => 'Co giãn 4 chiều tự nhiên, thoáng mát cả ngày',
-                'Bảo hành' => 'Đổi size miễn phí trong 30 ngày tận nhà',
-                'Xuất xứ' => 'Việt Nam (Tiêu chuẩn xuất khẩu chất lượng cao)'
-            ];
-        }
+        $gallery = $gallery->unique()->values()->all();
 
         return response()->json([
             'success' => true,
             'id' => $product->id,
             'name' => $product->name,
-            'sku' => $product->sku ?? ('BS-' . str_pad($product->id, 4, '0', STR_PAD_LEFT)),
-            'brand_name' => $product->brand->name ?? 'BeeStyle Signature',
+            'sku' => $product->sku ?: ('BS-' . $product->id),
             'category_name' => $product->category->name ?? 'Thời trang nam',
-            'category_url' => $product->category ? route('client.categories.show', $product->category->slug) : route('client.products.index'),
-            'detail_url' => route('client.products.show', $product->id),
+            'brand_name' => $product->brand->name ?? 'BeeStyle Menswear',
+            'rating' => (float)($product->rating ?? 5.0),
+            'sold_count' => (int)($product->sold_count ?? 0),
+            'product_url' => route('client.products.show', $product->id),
             'price' => $effectivePrice,
             'price_formatted' => number_format($effectivePrice, 0, ',', '.') . '₫',
             'original_price' => $originalPrice,
             'original_price_formatted' => $originalPrice ? number_format($originalPrice, 0, ',', '.') . '₫' : null,
             'discount_percent' => $discountPercent,
-            'save_amount' => $saveAmount,
-            'save_amount_formatted' => number_format($saveAmount, 0, ',', '.') . '₫',
-            'rating' => (float)($product->rating ?: 4.9),
-            'reviews_count' => (int)($product->reviews_count ?: 86),
-            'sold_count' => (int)($product->sold_count ?: 1240),
-            'views' => (int)($product->views ?: 850),
-            'short_description' => $product->short_description ?: "Mẫu {$product->name} cao cấp từ BeeStyle, chất liệu sợi tự nhiên thoáng mát, co giãn đàn hồi cao, đường may tỉ mỉ.",
-            'specifications' => $specs,
             'is_daily_deal' => (bool)$runningDeal,
             'deal_slot' => $runningDeal ? $runningDeal->formatted_slot : null,
             'image' => asset($product->image),
-            'gallery_images' => $gallery,
-            'stock' => $product->stock ?? 999,
+            'gallery' => $gallery,
+            'stock' => $product->variants->count() > 0 ? (int)$product->variants->sum('stock') : (int)$product->stock,
             'colors' => $colors,
             'sizes' => $sizes,
             'variants' => $product->variants->map(function ($v) use ($runningDeal) {
@@ -398,15 +401,11 @@ class ProductController extends Controller
                 }
                 return [
                     'id' => $v->id,
-                    'sku' => $v->sku,
-                    'color' => $v->color,
-                    'size' => $v->size,
+                    'color' => trim($v->color),
+                    'size' => trim($v->size),
                     'price' => $vPrice,
                     'price_formatted' => number_format($vPrice, 0, ',', '.') . '₫',
-                    'original_price' => $v->original_price,
-                    'original_price_formatted' => $v->original_price ? number_format($v->original_price, 0, ',', '.') . '₫' : null,
-                    'stock' => $v->stock,
-                    'image' => $v->image ? asset($v->image) : null,
+                    'stock' => (int) $v->stock,
                 ];
             }),
         ]);

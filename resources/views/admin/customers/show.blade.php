@@ -3,442 +3,402 @@
 @section('title', 'Chi Tiết Khách Hàng: ' . $customer->name . ' | BeeStyle Admin')
 
 @section('content')
+<!-- HEADER -->
 <div class="mb-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div>
+  <div class="row gy-3 justify-content-between align-items-center">
+    <div class="col-md">
       <div class="d-flex align-items-center gap-2 mb-1">
-        <a href="{{ route('admin.customers.index') }}" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+        <a href="{{ route('admin.customers.index') }}" class="btn btn-phoenix-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
           <i class="fa-solid fa-arrow-left"></i>
         </a>
-        <h3 class="fw-bold text-dark mb-0">Hồ Sơ Khách Hàng: {{ $customer->name }}</h3>
-        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">ID: #{{ $customer->id }}</span>
+        <h2 class="mb-0 text-body-emphasis fw-bold">Hồ Sơ Khách Hàng: {{ $customer->name }}</h2>
+        <span class="badge badge-phoenix badge-phoenix-primary fs-10">ID: #{{ $customer->id }}</span>
       </div>
-      <p class="text-muted small mb-0 ps-4 ms-2">Xem thông tin tài khoản đăng nhập, tổng chi tiêu cá nhân và thống kê chi tiêu của tất cả khách hàng</p>
+      <p class="text-body-tertiary mb-0 fs-9">Xem thông tin tài khoản đăng nhập, tổng chi tiêu cá nhân và thống kê chi tiêu toàn shop</p>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="{{ route('admin.customers.index') }}" class="btn btn-outline-dark btn-sm px-3">
-        <i class="fa-solid fa-users me-1.5"></i> Danh Sách Khách Hàng
-      </a>
-      <a href="{{ route('admin.orders.index') }}" class="btn btn-bee-primary btn-sm px-3">
-        <i class="fa-solid fa-receipt me-1.5"></i> Quản Lý Đơn Hàng
-      </a>
+    <div class="col-auto">
+      <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('admin.customers.index') }}" class="btn btn-phoenix-secondary btn-sm">
+          <i class="fa-solid fa-users me-1"></i> Danh Sách Khách Hàng
+        </a>
+        <a href="{{ route('admin.orders.index') }}" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-receipt me-1"></i> Quản Lý Đơn Hàng
+        </a>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- 4 THẺ THỐNG KÊ CHI TIÊU TOÀN DIỆN (TOÀN SHOP & KHÁCH HÀNG HIỆN TẠI) -->
+<!-- 4 THẺ STATS -->
 <div class="row g-3 mb-4">
-  <!-- 1. Tổng Chi Tiêu Tất Cả Khách Hàng Toàn Shop -->
-  <div class="col-xl-3 col-md-6">
-    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid var(--bee-primary, #f59e0b) !important;">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tổng Chi Tiêu Tất Cả Khách Hàng</span>
-        <div class="rounded-circle p-2 bg-warning-subtle text-warning" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-          <i class="fa-solid fa-sack-dollar fs-6"></i>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="text-body-tertiary text-uppercase mb-1 fw-semibold fs-10">Tổng Chi Tiêu Toàn Shop</h6>
+            <h3 class="text-body-emphasis mb-0 fw-bold">{{ number_format($totalAllCustomersSpent, 0, ',', '.') }}₫</h3>
+          </div>
+          <div class="rounded-circle p-2 bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="fa-solid fa-sack-dollar fs-8"></i>
+          </div>
         </div>
-      </div>
-      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ number_format($totalAllCustomersSpent, 0, ',', '.') }}₫</h3>
-      <div class="text-muted small fs-11">
-        <i class="fa-solid fa-circle-check text-success me-1"></i> Hoàn tất: <strong>{{ number_format($totalCompletedSpent, 0, ',', '.') }}₫</strong>
+        <div class="text-body-tertiary fs-10">
+          <i class="fa-solid fa-circle-check text-success me-1"></i> Hoàn tất: <strong>{{ number_format($totalCompletedSpent, 0, ',', '.') }}₫</strong>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 2. Tổng Tài Khoản Đã Mua Hàng -->
-  <div class="col-xl-3 col-md-6">
-    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #06b6d4 !important;">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tài Khoản Đã Mua Hàng</span>
-        <div class="rounded-circle p-2 bg-info-subtle text-info" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-          <i class="fa-solid fa-users-line fs-6"></i>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="text-body-tertiary text-uppercase mb-1 fw-semibold fs-10">Tài Khoản Đã Mua Hàng</h6>
+            <h3 class="text-info mb-0 fw-bold">{{ $totalPurchasingAccounts }} <span class="fs-9 text-body-tertiary fw-normal">/ {{ $totalAllRegisteredCustomers }}</span></h3>
+          </div>
+          <div class="rounded-circle p-2 bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="fa-solid fa-users-line fs-8"></i>
+          </div>
         </div>
-      </div>
-      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">{{ $totalPurchasingAccounts }} <span class="fs-6 text-muted fw-normal">/ {{ $totalAllRegisteredCustomers }} tài khoản</span></h3>
-      <div class="text-muted small fs-11">
-        <i class="fa-solid fa-arrow-trend-up text-info me-1"></i> Chi tiêu TB: <strong>{{ number_format($averageSpendPerAccount, 0, ',', '.') }}₫</strong> / khách
+        <div class="text-body-tertiary fs-10">
+          <i class="fa-solid fa-arrow-trend-up text-info me-1"></i> TB: <strong>{{ number_format($averageSpendPerAccount, 0, ',', '.') }}₫</strong> / khách
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 3. Chi Tiêu Của Khách Hàng Hiện Tại -->
-  <div class="col-xl-3 col-md-6">
-    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #10b981 !important;">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-muted small fw-bold text-uppercase text-truncate" style="letter-spacing: 0.05em; font-size: 0.72rem;">Chi Tiêu Của {{ $customer->name }}</span>
-        <div class="rounded-circle p-2 bg-success-subtle text-success" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-          <i class="fa-solid fa-wallet fs-6"></i>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="text-body-tertiary text-uppercase mb-1 fw-semibold fs-10 text-truncate">Chi Tiêu Của {{ $customer->name }}</h6>
+            <h3 class="text-danger mb-0 fw-bold">{{ number_format($customerTotalSpent, 0, ',', '.') }}₫</h3>
+          </div>
+          <div class="rounded-circle p-2 bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="fa-solid fa-wallet fs-8"></i>
+          </div>
         </div>
-      </div>
-      <h3 class="fw-bold text-danger mb-1" style="font-size: 1.55rem;">{{ number_format($customerTotalSpent, 0, ',', '.') }}₫</h3>
-      <div class="text-muted small fs-11">
-        <i class="fa-solid fa-pie-chart text-success me-1"></i> Chiếm <strong>{{ $customerContributionPercent }}%</strong> tổng chi tiêu toàn shop
+        <div class="text-body-tertiary fs-10">
+          <i class="fa-solid fa-chart-pie text-success me-1"></i> Chiếm <strong>{{ $customerContributionPercent }}%</strong> tổng chi tiêu
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 4. Vị Trí Xếp Hạng Chi Tiêu Của Khách -->
-  <div class="col-xl-3 col-md-6">
-    <div class="card border-0 shadow-sm p-3.5 h-100" style="border-radius: 14px; background: #ffffff; border-left: 4px solid #8b5cf6 !important;">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Xếp Hạng & TB Đơn Hàng</span>
-        <div class="rounded-circle p-2 bg-primary-subtle text-primary" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-          <i class="fa-solid fa-trophy fs-6"></i>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="text-body-tertiary text-uppercase mb-1 fw-semibold fs-10">Xếp Hạng &amp; TB Đơn</h6>
+            <h3 class="text-body-emphasis mb-0 fw-bold">Top #{{ $customerRankPosition }} <span class="fs-9 text-body-tertiary fw-normal">/ {{ $totalPurchasingAccounts }}</span></h3>
+          </div>
+          <div class="rounded-circle p-2 bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="fa-solid fa-trophy fs-8"></i>
+          </div>
         </div>
-      </div>
-      <h3 class="fw-bold text-dark mb-1" style="font-size: 1.55rem;">Top #{{ $customerRankPosition }} <span class="fs-6 text-muted fw-normal">/ {{ $totalPurchasingAccounts }}</span></h3>
-      <div class="text-muted small fs-11">
-        <i class="fa-solid fa-calculator text-primary me-1"></i> TB: <strong>{{ number_format($customerAverageOrderValue, 0, ',', '.') }}₫</strong> / đơn ({{ $customerOrdersCount }} đơn)
+        <div class="text-body-tertiary fs-10">
+          <i class="fa-solid fa-calculator text-primary me-1"></i> TB: <strong>{{ number_format($customerAverageOrderValue, 0, ',', '.') }}₫</strong> / đơn ({{ $customerOrdersCount }} đơn)
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <div class="row g-4">
-  <!-- LEFT COLUMN: CUSTOMER PROFILE & VIP -->
-  <div class="col-lg-4">
-    <!-- Profile Card -->
-    <div class="card border-0 shadow-sm p-4 text-center mb-4" style="border-radius: 16px; background: #ffffff;">
-      <div class="position-relative mx-auto mb-3" style="width: 90px; height: 90px;">
-        <img class="rounded-circle border border-3 border-dark object-fit-cover w-100 h-100 shadow-sm" src="{{ asset($customer->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ $customer->name }}">
-        <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-warning text-dark p-2 border">
-          <i class="fa-solid fa-crown fs-11"></i>
-        </span>
-      </div>
+  <!-- LEFT COLUMN: PROFILE CARD -->
+  <div class="col-12 col-lg-4">
+    <div class="card border-0 shadow-sm text-center mb-4">
+      <div class="card-body p-4">
+        <div class="position-relative mx-auto mb-3" style="width: 80px; height: 80px;">
+          <img class="rounded-circle border border-2 border-translucent object-fit-cover w-100 h-100 shadow-sm" src="{{ asset($customer->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ $customer->name }}">
+          <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-warning text-dark p-1 border border-translucent">
+            <i class="fa-solid fa-crown fs-11"></i>
+          </span>
+        </div>
 
-      <h5 class="fw-bold text-dark mb-1">{{ $customer->name }}</h5>
-      <p class="text-muted small mb-3">{{ $customer->email }}</p>
+        <h5 class="fw-bold text-body-emphasis mb-1">{{ $customer->name }}</h5>
+        <p class="text-body-tertiary fs-10 mb-3">{{ $customer->email }}</p>
 
-      <div class="d-flex justify-content-center gap-2 mb-4 flex-wrap">
-        <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-2 rounded-pill">
-          <i class="fa-solid fa-award me-1"></i> {{ $customer->rank }}
-        </span>
-        <span class="badge bg-light text-dark fw-bold px-3 py-2 rounded-pill border">
-          <i class="fa-solid fa-circle-check me-1 text-success"></i> Khách Hàng Thân Thiết
-        </span>
-      </div>
+        <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
+          <span class="badge badge-phoenix badge-phoenix-warning fs-10">
+            <i class="fa-solid fa-award me-1"></i> {{ $customer->rank }}
+          </span>
+          <span class="badge badge-phoenix badge-phoenix-success fs-10">
+            <i class="fa-solid fa-circle-check me-1"></i> Thành Viên
+          </span>
+        </div>
 
-      <!-- Information List -->
-      <div class="text-start border-top pt-3 small">
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Mã khách hàng:</span>
-          <strong class="text-dark font-monospace">#CUST-{{ str_pad($customer->id, 4, '0', STR_PAD_LEFT) }}</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Số điện thoại:</span>
-          <strong class="text-dark">{{ $customer->phone ?? 'Chưa cập nhật' }}</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Giới tính:</span>
-          <strong class="text-dark">{{ $customer->gender ?? 'Nam' }}</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Ngày sinh:</span>
-          <strong class="text-dark">{{ $customer->dob ? \Carbon\Carbon::parse($customer->dob)->format('d/m/Y') : 'Chưa cập nhật' }}</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Ngày đăng ký:</span>
-          <strong class="text-dark">{{ $customer->created_at ? $customer->created_at->format('d/m/Y H:i') : '' }}</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Tổng chi tiêu:</span>
-          <strong class="text-danger fs-6">{{ number_format($customerTotalSpent, 0, ',', '.') }}₫</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Đơn hàng hoàn tất:</span>
-          <strong class="text-success">{{ $customerCompletedOrdersCount }} / {{ $customerOrdersCount }} đơn</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5 border-bottom">
-          <span class="text-muted">Đóng góp doanh thu:</span>
-          <strong class="text-primary">{{ $customerContributionPercent }}% toàn shop</strong>
-        </div>
-        <div class="d-flex justify-content-between py-1.5">
-          <span class="text-muted">Địa chỉ nhận hàng:</span>
-          <strong class="text-dark text-end" style="max-width: 200px;">{{ $customer->address ? ($customer->address . ', ' . $customer->district . ', ' . $customer->city) : 'Chưa cập nhật' }}</strong>
+        <div class="text-start border-top border-translucent pt-3 fs-10">
+          <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
+            <span class="text-body-tertiary">Mã khách:</span>
+            <strong class="text-body-emphasis font-monospace">#CUST-{{ str_pad($customer->id, 4, '0', STR_PAD_LEFT) }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
+            <span class="text-body-tertiary">Số điện thoại:</span>
+            <strong class="text-body-emphasis">{{ $customer->phone ?? 'Chưa cập nhật' }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
+            <span class="text-body-tertiary">Giới tính:</span>
+            <strong class="text-body-emphasis">{{ $customer->gender ?? 'Nam' }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
+            <span class="text-body-tertiary">Ngày sinh:</span>
+            <strong class="text-body-emphasis">{{ $customer->dob ? \Carbon\Carbon::parse($customer->dob)->format('d/m/Y') : 'Chưa cập nhật' }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
+            <span class="text-body-tertiary">Ngày tham gia:</span>
+            <strong class="text-body-emphasis">{{ $customer->created_at ? $customer->created_at->format('d/m/Y H:i') : '' }}</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
+            <span class="text-body-tertiary">Tổng chi tiêu:</span>
+            <strong class="text-danger fs-9 font-monospace">{{ number_format($customerTotalSpent, 0, ',', '.') }}₫</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
+            <span class="text-body-tertiary">Đơn hoàn tất:</span>
+            <strong class="text-success">{{ $customerCompletedOrdersCount }} / {{ $customerOrdersCount }} đơn</strong>
+          </div>
+          <div class="d-flex justify-content-between py-1.5">
+            <span class="text-body-tertiary">Địa chỉ nhận hàng:</span>
+            <strong class="text-body-emphasis text-end" style="max-width: 180px;">{{ $customer->address ? ($customer->address . ', ' . $customer->district . ', ' . $customer->city) : 'Chưa cập nhật' }}</strong>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- RIGHT COLUMN: ORDERS & ALL CUSTOMERS TABS -->
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm p-4" style="border-radius: 16px; background: #ffffff;">
-      <ul class="nav nav-tabs border-bottom mb-4" id="custTabs" role="tablist">
-        <!-- Tab 1: Đơn Hàng Của Khách Này -->
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active fw-bold text-uppercase py-2.5 px-3" id="cust-orders-tab" data-bs-toggle="tab" data-bs-target="#cust-orders" type="button" role="tab">
-            <i class="fa-solid fa-box-archive me-1 text-danger"></i> Đơn Hàng Của Khách ({{ $customer->orders->count() }})
-          </button>
-        </li>
-        <!-- Tab 2: Sổ Địa Chỉ Giao Hàng -->
-        <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-addresses-tab" data-bs-toggle="tab" data-bs-target="#cust-addresses" type="button" role="tab">
-            <i class="fa-solid fa-map-location-dot me-1 text-primary"></i> Sổ Địa Chỉ ({{ $customer->addresses->count() }})
-          </button>
-        </li>
-        <!-- Tab 3: Tổng Hợp Chi Tiêu TẤT CẢ Khách Hàng -->
-        <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-all-spending-tab" data-bs-toggle="tab" data-bs-target="#cust-all-spending" type="button" role="tab">
-            <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Chi Tiêu Toàn Shop ({{ $allPurchasingCustomers->count() }})
-          </button>
-        </li>
-        <!-- Tab 4: Đánh Giá Đã Viết -->
-        <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold text-uppercase py-2.5 px-3" id="cust-reviews-tab" data-bs-toggle="tab" data-bs-target="#cust-reviews" type="button" role="tab">
-            <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá ({{ $customer->reviews->count() }})
-          </button>
-        </li>
-      </ul>
+  <!-- RIGHT COLUMN: TABS -->
+  <div class="col-12 col-lg-8">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header border-bottom border-translucent bg-body-emphasis pb-0">
+        <ul class="nav nav-underline fs-9" id="custTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="cust-orders-tab" data-bs-toggle="tab" href="#cust-orders" role="tab">
+              <i class="fa-solid fa-box-archive me-1 text-primary"></i> Đơn Hàng ({{ $customer->orders->count() }})
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="cust-addresses-tab" data-bs-toggle="tab" href="#cust-addresses" role="tab">
+              <i class="fa-solid fa-map-location-dot me-1 text-info"></i> Sổ Địa Chỉ ({{ $customer->addresses->count() }})
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="cust-all-spending-tab" data-bs-toggle="tab" href="#cust-all-spending" role="tab">
+              <i class="fa-solid fa-chart-pie me-1 text-warning"></i> Chi Tiêu Toàn Shop ({{ $allPurchasingCustomers->count() }})
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="cust-reviews-tab" data-bs-toggle="tab" href="#cust-reviews" role="tab">
+              <i class="fa-solid fa-star me-1 text-warning"></i> Đánh Giá ({{ $customer->reviews->count() }})
+            </a>
+          </li>
+        </ul>
+      </div>
 
-      <div class="tab-content" id="custTabsContent">
-        <!-- Tab 1: Orders của khách hiện tại -->
-        <div class="tab-pane fade show active" id="cust-orders" role="tabpanel">
-          <div class="table-responsive">
-            <table class="table align-middle small mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Mã Đơn</th>
-                  <th>Sản Phẩm Đã Mua</th>
-                  <th>Ngày Đặt</th>
-                  <th>Tổng Tiền</th>
-                  <th>Trạng Thái</th>
-                  <th>Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                @forelse($customer->orders as $order)
+      <div class="card-body p-0">
+        <div class="tab-content" id="custTabsContent">
+          <!-- Tab 1: Orders -->
+          <div class="tab-pane fade show active p-3" id="cust-orders" role="tabpanel">
+            <div class="table-responsive scrollbar">
+              <table class="table table-sm fs-9 mb-0 align-middle">
+                <thead class="bg-body-tertiary text-body-tertiary">
                   <tr>
-                    <td><strong class="font-monospace text-primary">#{{ $order->order_code }}</strong></td>
-                    <td>
-                      <div class="d-flex align-items-center gap-2 flex-wrap" style="max-width: 280px;">
-                        @foreach($order->items->take(2) as $it)
-                          <div class="d-flex align-items-center gap-1.5 p-1 bg-light rounded border">
-                            <img src="{{ $it->image ? asset($it->image) : asset('/assets/img/products/tshirt_01.jpg') }}" alt="{{ $it->product_name }}" style="width: 32px; height: 32px; object-fit: cover;" class="rounded bg-white">
-                            <span class="small text-dark text-truncate" style="max-width: 100px; font-size: 0.75rem;">{{ $it->product_name }}</span>
-                          </div>
-                        @endforeach
-                        @if($order->items->count() > 2)
-                          <span class="badge bg-secondary-subtle text-secondary small">+{{ $order->items->count() - 2 }}</span>
+                    <th class="ps-2 py-2">Mã Đơn</th>
+                    <th class="py-2">Sản Phẩm Đã Mua</th>
+                    <th class="py-2">Ngày Đặt</th>
+                    <th class="py-2">Tổng Tiền</th>
+                    <th class="py-2">Trạng Thái</th>
+                    <th class="text-end pe-2 py-2">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody class="list">
+                  @forelse($customer->orders as $order)
+                    <tr class="border-bottom border-translucent">
+                      <td class="ps-2 py-2"><strong class="font-monospace text-primary">#{{ $order->order_code }}</strong></td>
+                      <td class="py-2">
+                        <div class="d-flex align-items-center gap-1 flex-wrap" style="max-width: 240px;">
+                          @foreach($order->items->take(2) as $it)
+                            <div class="d-flex align-items-center gap-1 p-1 bg-body-tertiary rounded border border-translucent">
+                              <img src="{{ $it->image ? asset($it->image) : asset('/assets/img/products/1.png') }}" alt="{{ $it->product_name }}" style="width: 28px; height: 28px; object-fit: cover;" class="rounded bg-body-emphasis">
+                              <span class="text-body-emphasis text-truncate fs-11" style="max-width: 80px;">{{ $it->product_name }}</span>
+                            </div>
+                          @endforeach
+                          @if($order->items->count() > 2)
+                            <span class="badge badge-phoenix badge-phoenix-secondary fs-11">+{{ $order->items->count() - 2 }}</span>
+                          @endif
+                        </div>
+                      </td>
+                      <td class="py-2"><small class="text-body-tertiary fs-10">{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }}</small></td>
+                      <td class="py-2"><strong class="text-danger font-monospace fs-9">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong></td>
+                      <td class="py-2">
+                        @if($order->shipping_status === 'completed')
+                          <span class="badge badge-phoenix badge-phoenix-success">Hoàn tất</span>
+                        @elseif($order->shipping_status === 'delivered')
+                          <span class="badge badge-phoenix badge-phoenix-success">Đã giao</span>
+                        @elseif($order->shipping_status === 'shipping')
+                          <span class="badge badge-phoenix badge-phoenix-warning">Đang giao</span>
+                        @elseif($order->shipping_status === 'processing')
+                          <span class="badge badge-phoenix badge-phoenix-info">Đóng gói</span>
+                        @elseif($order->shipping_status === 'cancelled')
+                          <span class="badge badge-phoenix badge-phoenix-danger">Đã hủy</span>
+                        @else
+                          <span class="badge badge-phoenix badge-phoenix-secondary">{{ $order->status_label ?? 'Chờ xác nhận' }}</span>
                         @endif
-                      </div>
-                    </td>
-                    <td>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }}</td>
-                    <td><strong class="text-danger fs-6">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong></td>
-                    <td>
-                      @if($order->shipping_status === 'completed')
-                        <span class="badge bg-success text-white">Hoàn tất</span>
-                      @elseif($order->shipping_status === 'delivered')
-                        <span class="badge bg-success-subtle text-success border border-success">Đã giao hàng</span>
-                      @elseif($order->shipping_status === 'shipping')
-                        <span class="badge bg-warning text-dark">Đang giao</span>
-                      @elseif($order->shipping_status === 'processing')
-                        <span class="badge bg-info text-white">Đang đóng gói</span>
-                      @elseif($order->shipping_status === 'cancelled')
-                        <span class="badge bg-danger text-white">Đã hủy</span>
-                      @else
-                        <span class="badge bg-secondary text-white">{{ $order->status_label ?? 'Đã hoàn tất' }}</span>
-                      @endif
-                    </td>
-                    <td>
-                      <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold">
-                        <i class="fa-regular fa-eye me-1"></i> Chi Tiết
-                      </a>
-                    </td>
-                  </tr>
-                @empty
-                  <tr>
-                    <td colspan="6" class="text-center py-4 text-muted">Khách hàng chưa có đơn hàng nào.</td>
-                  </tr>
-                @endforelse
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Tab 2: Sổ Địa Chỉ Nhận Hàng Của Khách Hàng -->
-        <div class="tab-pane fade" id="cust-addresses" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div>
-              <h6 class="fw-bold text-dark mb-0">Danh Sách Sổ Địa Chỉ Đã Lưu ({{ $customer->addresses->count() }})</h6>
-              <small class="text-muted">Các địa chỉ giao nhận hàng được khách hàng lưu trên hệ thống</small>
-            </div>
-            <span class="badge bg-light text-dark border px-3 py-2 fw-semibold rounded-pill">
-              <i class="fa-solid fa-map-pin text-danger me-1"></i> {{ $customer->addresses->where('is_default', true)->count() > 0 ? 'Đã có địa chỉ mặc định' : 'Chưa đặt mặc định' }}
-            </span>
-          </div>
-
-          <div class="d-flex flex-column gap-3">
-            @forelse($customer->addresses as $cAddr)
-              <div class="p-3 bg-light rounded-3 border {{ $cAddr->is_default ? 'border-warning shadow-xs bg-white' : '' }}">
-                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <strong class="text-dark">{{ $cAddr->recipient_name }}</strong>
-                    <span class="text-muted small">|</span>
-                    <span class="text-dark small font-monospace"><i class="fa-solid fa-phone fs-11 text-muted me-1"></i>{{ $cAddr->phone }}</span>
-                    
-                    @if($cAddr->label === 'Văn phòng')
-                      <span class="badge bg-info-subtle text-info small"><i class="fa-solid fa-building me-1"></i>Văn phòng</span>
-                    @elseif($cAddr->label === 'Nhà riêng')
-                      <span class="badge bg-secondary-subtle text-secondary small"><i class="fa-solid fa-house me-1"></i>Nhà riêng</span>
-                    @else
-                      <span class="badge bg-light text-dark border small">{{ $cAddr->label ?? 'Địa chỉ' }}</span>
-                    @endif
-
-                    @if($cAddr->is_default)
-                      <span class="badge bg-warning text-dark small fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Mặc định</span>
-                    @endif
-                  </div>
-                  <small class="text-muted fs-11">Ngày tạo: {{ $cAddr->created_at ? $cAddr->created_at->format('d/m/Y H:i') : 'N/A' }}</small>
-                </div>
-                <p class="text-secondary small mb-1">
-                  <i class="fa-solid fa-location-dot text-danger me-1.5"></i>
-                  <span>{{ $cAddr->address }}</span>@if($cAddr->ward)<span>, {{ $cAddr->ward }}</span>@endif@if($cAddr->district)<span>, {{ $cAddr->district }}</span>@endif@if($cAddr->city)<span>, {{ $cAddr->city }}</span>@endif
-                </p>
-                @if($cAddr->notes)
-                  <small class="text-muted fst-italic d-block">
-                    <i class="fa-regular fa-comment-dots me-1"></i> Ghi chú: {{ $cAddr->notes }}
-                  </small>
-                @endif
-              </div>
-            @empty
-              <div class="text-center py-4 text-muted bg-light rounded-3 border">
-                <i class="fa-solid fa-map-location-dot fs-2 mb-2 d-block text-secondary"></i>
-                Khách hàng này chưa thêm địa chỉ nào vào sổ địa chỉ.
-              </div>
-            @endforelse
-          </div>
-        </div>
-
-        <!-- Tab 3: Tổng hợp chi tiêu của TẤT CẢ các tài khoản khách hàng -->
-        <div class="tab-pane fade" id="cust-all-spending" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div>
-              <h6 class="fw-bold text-dark mb-0">Bảng Xếp Hạng Chi Tiêu Toàn Bộ Khách Hàng</h6>
-              <small class="text-muted">Tổng hợp tất cả các tài khoản đã mua hàng của shop từ trước đến nay</small>
-            </div>
-            <span class="badge bg-warning text-dark px-3 py-2 fw-bold rounded-pill">
-              Tổng chi tiêu: {{ number_format($totalAllCustomersSpent, 0, ',', '.') }}₫
-            </span>
-          </div>
-
-          <div class="table-responsive">
-            <table class="table align-middle small mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th style="width: 60px;">Hạng</th>
-                  <th>Khách Hàng</th>
-                  <th>Số Đơn</th>
-                  <th>Tổng Chi Tiêu</th>
-                  <th>Tỷ Lệ Toàn Shop</th>
-                  <th>Hạng Thành Viên</th>
-                  <th>Hành Động</th>
-                </tr>
-              </thead>
-              <tbody>
-                @forelse($allPurchasingCustomers as $idx => $c)
-                  @php
-                    $isCurrent = ($c->id === $customer->id);
-                    $share = $totalAllCustomersSpent > 0 ? round(($c->total_spent / $totalAllCustomersSpent) * 100, 1) : 0;
-                  @endphp
-                  <tr class="{{ $isCurrent ? 'table-warning fw-bold' : '' }}">
-                    <td>
-                      @if($idx === 0)
-                        <span class="badge bg-warning text-dark rounded-circle p-2" title="Top 1"><i class="fa-solid fa-crown"></i></span>
-                      @elseif($idx === 1)
-                        <span class="badge bg-secondary text-white rounded-circle p-2" title="Top 2">2</span>
-                      @elseif($idx === 2)
-                        <span class="badge bg-danger-subtle text-danger rounded-circle p-2" title="Top 3">3</span>
-                      @else
-                        <span class="text-muted ps-1">#{{ $idx + 1 }}</span>
-                      @endif
-                    </td>
-                    <td>
-                      <div class="d-flex align-items-center gap-2">
-                        <img src="{{ $c->avatar_url ?? asset('/assets/img/team/40x40/58.webp') }}" alt="{{ $c->name }}" class="rounded-circle border bg-white" style="width: 38px; height: 38px; object-fit: cover;">
-                        <div>
-                          <strong class="text-dark d-block">
-                            {{ $c->name }}
-                            @if($isCurrent)
-                              <span class="badge bg-danger text-white ms-1" style="font-size: 0.65rem;">(Đang xem)</span>
-                            @endif
-                          </strong>
-                          <small class="text-muted">{{ $c->email }} • {{ $c->phone ?? 'Chưa có SĐT' }}</small>
-                        </div>
-                      </div>
-                    </td>
-                    <td><span class="badge bg-light text-dark border px-2 py-1">{{ $c->orders_count }} đơn</span></td>
-                    <td><strong class="text-danger fs-6">{{ number_format($c->total_spent, 0, ',', '.') }}₫</strong></td>
-                    <td>
-                      <div class="d-flex align-items-center gap-1.5">
-                        <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
-                          <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $share }}%"></div>
-                        </div>
-                        <span class="fw-bold small text-dark">{{ $share }}%</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span class="badge bg-warning-subtle text-dark fw-bold px-2 py-1">
-                        {{ $c->rank ?? 'Hội Viên' }}
-                      </span>
-                    </td>
-                    <td>
-                      @if($isCurrent)
-                        <span class="badge bg-dark text-white py-1.5 px-2">Hồ sơ hiện tại</span>
-                      @else
-                        <a href="{{ route('admin.customers.show', $c->id) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold text-nowrap py-1 px-2" style="font-size: 0.75rem;">
-                          <i class="fa-regular fa-eye me-1"></i> Xem Hồ Sơ
+                      </td>
+                      <td class="text-end pe-2 py-2">
+                        <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-phoenix-primary py-1 px-2 fs-10">
+                          Chi Tiết
                         </a>
-                      @endif
-                    </td>
-                  </tr>
-                @empty
-                  <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">Chưa có khách hàng nào phát sinh đơn hàng.</td>
-                  </tr>
-                @endforelse
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="6" class="text-center py-4 text-body-tertiary">Khách hàng chưa có đơn hàng nào.</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        <!-- Tab 3: Reviews -->
-        <div class="tab-pane fade" id="cust-reviews" role="tabpanel">
-          <div class="d-flex flex-column gap-3">
-            @forelse($customer->reviews as $rev)
-              <div class="p-3 bg-light rounded-3 border">
-                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                  <div class="d-flex align-items-center gap-2">
-                    <img src="{{ $rev->product ? asset($rev->product->image) : asset('/assets/img/products/tshirt_01.jpg') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 44px; height: 44px; object-fit: cover;" class="rounded border bg-white shadow-xs">
-                    <div>
-                      <strong class="text-dark small d-block">{{ $rev->product->name ?? 'Sản phẩm thời trang nam' }}</strong>
-                      <small class="text-muted">{{ $rev->created_at ? $rev->created_at->format('d/m/Y H:i') : '' }}</small>
+          <!-- Tab 2: Addresses -->
+          <div class="tab-pane fade p-3" id="cust-addresses" role="tabpanel">
+            <div class="d-flex flex-column gap-2">
+              @forelse($customer->addresses as $cAddr)
+                <div class="p-3 bg-body-tertiary rounded border border-translucent {{ $cAddr->is_default ? 'border-primary' : '' }}">
+                  <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <strong class="text-body-emphasis fs-9">{{ $cAddr->recipient_name }}</strong>
+                      <span class="text-body-tertiary fs-10 font-monospace"><i class="fa-solid fa-phone fs-11 text-muted me-1"></i>{{ $cAddr->phone }}</span>
+                      @if($cAddr->is_default)
+                        <span class="badge badge-phoenix badge-phoenix-primary fs-11"><i class="fa-solid fa-circle-check me-1"></i> Mặc định</span>
+                      @endif
+                    </div>
+                    <small class="text-body-tertiary fs-11">Ngày tạo: {{ $cAddr->created_at ? $cAddr->created_at->format('d/m/Y') : 'N/A' }}</small>
+                  </div>
+                  <p class="text-body-secondary fs-10 mb-0">
+                    <i class="fa-solid fa-location-dot text-danger me-1"></i>
+                    <span>{{ $cAddr->address }}</span>
+                    @if($cAddr->ward)<span>, {{ $cAddr->ward }}</span>@endif
+                    @if($cAddr->district)<span>, {{ $cAddr->district }}</span>@endif
+                    @if($cAddr->city)<span>, {{ $cAddr->city }}</span>@endif
+                  </p>
+                </div>
+              @empty
+                <div class="text-center py-4 text-body-tertiary">
+                  Khách hàng này chưa thêm địa chỉ nào vào sổ địa chỉ.
+                </div>
+              @endforelse
+            </div>
+          </div>
+
+          <!-- Tab 3: All Customers Spending -->
+          <div class="tab-pane fade p-3" id="cust-all-spending" role="tabpanel">
+            <div class="table-responsive scrollbar">
+              <table class="table table-sm fs-9 mb-0 align-middle">
+                <thead class="bg-body-tertiary text-body-tertiary">
+                  <tr>
+                    <th class="ps-2 py-2" style="width: 50px;">Hạng</th>
+                    <th class="py-2">Khách Hàng</th>
+                    <th class="py-2">Số Đơn</th>
+                    <th class="py-2">Tổng Chi Tiêu</th>
+                    <th class="py-2">Tỷ Lệ Toàn Shop</th>
+                    <th class="py-2">Hạng Thành Viên</th>
+                    <th class="text-end pe-2 py-2">Hành Động</th>
+                  </tr>
+                </thead>
+                <tbody class="list">
+                  @forelse($allPurchasingCustomers as $idx => $c)
+                    @php
+                      $isCurrent = ($c->id === $customer->id);
+                      $share = $totalAllCustomersSpent > 0 ? round(($c->total_spent / $totalAllCustomersSpent) * 100, 1) : 0;
+                    @endphp
+                    <tr class="border-bottom border-translucent {{ $isCurrent ? 'bg-warning-subtle' : '' }}">
+                      <td class="ps-2 py-2">
+                        @if($idx === 0)
+                          <span class="badge badge-phoenix badge-phoenix-warning"><i class="fa-solid fa-crown"></i> 1</span>
+                        @else
+                          <span class="text-body-tertiary">#{{ $idx + 1 }}</span>
+                        @endif
+                      </td>
+                      <td class="py-2">
+                        <div class="d-flex align-items-center gap-2">
+                          <img src="{{ $c->avatar_url ?? asset('/assets/img/team/40x40/58.webp') }}" alt="{{ $c->name }}" class="rounded-circle border border-translucent bg-body-emphasis" style="width: 32px; height: 32px; object-fit: cover;">
+                          <div>
+                            <strong class="text-body-emphasis d-block fs-10">
+                              {{ $c->name }}
+                              @if($isCurrent)
+                                <span class="badge badge-phoenix badge-phoenix-danger ms-1 fs-11">(Đang xem)</span>
+                              @endif
+                            </strong>
+                            <small class="text-body-tertiary fs-11">{{ $c->email }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="py-2"><span class="badge badge-phoenix badge-phoenix-secondary">{{ $c->orders_count }} đơn</span></td>
+                      <td class="py-2"><strong class="text-danger font-monospace fs-9">{{ number_format($c->total_spent, 0, ',', '.') }}₫</strong></td>
+                      <td class="py-2">
+                        <div class="d-flex align-items-center gap-1">
+                          <div class="progress flex-grow-1" style="height: 5px; width: 50px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $share }}%"></div>
+                          </div>
+                          <span class="fw-semibold fs-11 text-body-emphasis">{{ $share }}%</span>
+                        </div>
+                      </td>
+                      <td class="py-2">
+                        <span class="badge badge-phoenix badge-phoenix-warning fs-11">{{ $c->rank ?? 'Hội Viên' }}</span>
+                      </td>
+                      <td class="text-end pe-2 py-2">
+                        @if(!$isCurrent)
+                          <a href="{{ route('admin.customers.show', $c->id) }}" class="btn btn-sm btn-phoenix-secondary py-1 px-2 fs-10">
+                            Xem
+                          </a>
+                        @endif
+                      </td>
+                    </tr>
+                  @empty
+                    <tr>
+                      <td colspan="7" class="text-center py-4 text-body-tertiary">Chưa có khách hàng nào phát sinh đơn hàng.</td>
+                    </tr>
+                  @endforelse
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tab 4: Reviews -->
+          <div class="tab-pane fade p-3" id="cust-reviews" role="tabpanel">
+            <div class="d-flex flex-column gap-2">
+              @forelse($customer->reviews as $rev)
+                <div class="p-3 bg-body-tertiary rounded border border-translucent">
+                  <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <img src="{{ $rev->product ? asset($rev->product->image) : asset('/assets/img/products/1.png') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 36px; height: 36px; object-fit: cover;" class="rounded border border-translucent bg-body-emphasis">
+                      <div>
+                        <strong class="text-body-emphasis fs-10 d-block">{{ $rev->product->name ?? 'Sản phẩm' }}</strong>
+                        <small class="text-body-tertiary fs-11">{{ $rev->created_at ? $rev->created_at->format('d/m/Y') : '' }}</small>
+                      </div>
+                    </div>
+                    <div class="text-warning fs-10">
+                      @for($i=1; $i<=5; $i++)
+                        <i class="fa-solid fa-star {{ $i <= $rev->rating ? 'text-warning' : 'text-body-tertiary' }}"></i>
+                      @endfor
+                      <span class="fw-bold text-body-emphasis ms-1">({{ $rev->rating }}/5)</span>
                     </div>
                   </div>
-                  <div class="text-warning small bg-white px-2.5 py-1 rounded-pill border shadow-xs">
-                    @for($i=1; $i<=5; $i++)
-                      <i class="fa-solid fa-star {{ $i <= $rev->rating ? 'text-warning' : 'text-secondary-subtle' }}"></i>
-                    @endfor
-                    <span class="fw-bold text-dark ms-1">({{ $rev->rating }}/5)</span>
-                  </div>
+                  <p class="fs-10 text-body-secondary mb-0 fst-italic">
+                    "{{ $rev->comment }}"
+                  </p>
                 </div>
-                <p class="small text-secondary mb-2 fst-italic leading-relaxed">
-                  "{{ $rev->comment }}"
-                </p>
-                @if(!empty($rev->images_urls))
-                  <div class="d-flex gap-2 flex-wrap mt-2 pt-2 border-top border-secondary border-opacity-10">
-                    @foreach($rev->images_urls as $pImg)
-                      <a href="{{ $pImg }}" target="_blank" class="d-inline-block">
-                        <img src="{{ $pImg }}" alt="ảnh đánh giá" class="rounded border shadow-xs" style="width: 52px; height: 52px; object-fit: cover;">
-                      </a>
-                    @endforeach
-                  </div>
-                @endif
-              </div>
-            @empty
-              <div class="text-center py-4 text-muted">
-                <i class="fa-regular fa-comment-dots fs-2 mb-2 d-block"></i>
-                Khách hàng này chưa viết đánh giá nào.
-              </div>
-            @endforelse
+              @empty
+                <div class="text-center py-4 text-body-tertiary">
+                  Khách hàng này chưa viết đánh giá nào.
+                </div>
+              @endforelse
+            </div>
           </div>
         </div>
       </div>
@@ -446,4 +406,3 @@
   </div>
 </div>
 @endsection
-

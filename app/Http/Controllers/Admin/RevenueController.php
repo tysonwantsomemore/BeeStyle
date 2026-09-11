@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RevenueController extends Controller
 {
@@ -63,66 +64,21 @@ class RevenueController extends Controller
         $cancelledOrdersCount = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->where('shipping_status', 'cancelled')->count();
 
-        // 3. Lấy danh sách đầy đủ tất cả khách hàng duy nhất đã mua hàng trong tháng
-        $monthOrders = Order::with(['items.product', 'user'])
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->where('shipping_status', '!=', 'cancelled')
-            ->latest()
-            ->get();
+        // Lấy danh sách khách hàng duy nhất đã mua đơn trong tháng
+        $customerIds = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->whereNotNull('user_id')
+            ->pluck('user_id')
+            ->unique();
+        
+        $totalCustomersInMonth = $customerIds->count();
+        if ($totalCustomersInMonth === 0 && $monthlyOrdersCount > 0) {
+            $totalCustomersInMonth = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->pluck('customer_phone')
+                ->unique()
+                ->count();
+        }
 
-        $groupedCustomers = $monthOrders->groupBy(function($order) {
-            if ($order->user_id) {
-                return 'user_' . $order->user_id;
-            }
-            return 'guest_' . ($order->customer_phone ?: ($order->customer_email ?: $order->customer_name));
-        });
-
-        $monthlyCustomersList = $groupedCustomers->map(function($cOrders, $key) {
-            $firstOrder = $cOrders->first();
-            $user = $firstOrder->user;
-
-            $cTotalSpent = $cOrders->sum('total_amount');
-            $cOrdersCount = $cOrders->count();
-            $completedCount = $cOrders->whereIn('shipping_status', ['completed', 'delivered'])->count();
-
-            $name = $user ? $user->name : $firstOrder->customer_name;
-            $email = $user ? $user->email : $firstOrder->customer_email;
-            $phone = $user ? $user->phone : $firstOrder->customer_phone;
-            $avatar = $user ? $user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=f59e0b&color=111827&bold=true&size=128';
-            $rank = $user ? $user->rank : 'Khách vãng lai';
-
-            return [
-                'key' => $key,
-                'user_id' => $user ? $user->id : null,
-                'name' => $name,
-                'email' => $email ?: 'Chưa cập nhật email',
-                'phone' => $phone ?: 'Chưa cập nhật SĐT',
-                'avatar' => $avatar,
-                'rank' => $rank,
-                'is_registered' => (bool)$user,
-                'total_spent_in_month' => $cTotalSpent,
-                'total_spent_in_month_formatted' => number_format($cTotalSpent, 0, ',', '.') . '₫',
-                'orders_count' => $cOrdersCount,
-                'completed_count' => $completedCount,
-                'orders' => $cOrders->map(function($o) {
-                    return [
-                        'id' => $o->id,
-                        'order_code' => $o->order_code,
-                        'created_at' => $o->created_at ? $o->created_at->format('d/m/Y H:i') : '',
-                        'total_amount' => $o->total_amount,
-                        'total_amount_formatted' => number_format($o->total_amount, 0, ',', '.') . '₫',
-                        'shipping_status' => $o->shipping_status,
-                        'shipping_status_label' => $o->status_label,
-                        'payment_status' => $o->payment_status,
-                        'payment_status_label' => $o->payment_status_label,
-                        'items_count' => $o->items->sum('quantity'),
-                        'items_names' => $o->items->pluck('product_name')->take(2)->implode(', '),
-                    ];
-                })->values()->all(),
-            ];
-        })->sortByDesc('total_spent_in_month')->values();
-
-        $totalCustomersInMonth = $monthlyCustomersList->count();
+        $monthlyCustomersList = User::whereIn('id', $customerIds)->get();
 
         $aovMonth = $monthlyOrdersCount > 0 ? (int)round($monthlyRevenue / max(1, $monthlyOrdersCount - $cancelledOrdersCount)) : 0;
 
@@ -137,6 +93,71 @@ class RevenueController extends Controller
             $growth = (($monthlyRevenue - $prevMonthRevenue) / $prevMonthRevenue) * 100;
             $growthRate = ($growth >= 0 ? '+' : '') . number_format($growth, 1) . '%';
         }
+
+        // 3. Biểu đồ doanh thu từng ngày trong tháng (Daily Trend)
+        $dailyRecords = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->where('shipping_status', '!=', 'cancelled')
+            ->select(
+                DB::raw('DATE(created_at) as order_date'),
+                DB::raw('COUNT(*) as order_count'),
+                DB::raw('SUM(total_amount) as daily_revenue')
+            )
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->get()
+            ->keyBy('order_date');
+
+        $dailyLabels = [];
+        $dailyRevenueData = [];
+        $dailyOrdersData = [];
+        $daysInMonth = $endOfMonth->day;
+
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dateKey = $startOfMonth->copy()->day($d)->format('Y-m-d');
+            $dailyLabels[] = $d . '/' . $startOfMonth->format('m');
+            $record = $dailyRecords->get($dateKey);
+            $dailyRevenueData[] = $record ? (int)$record->daily_revenue : 0;
+            $dailyOrdersData[] = $record ? (int)$record->order_count : 0;
+        }
+
+        // 4. Cơ cấu phương thức thanh toán
+        $paymentRaw = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(total_amount) as total'))
+            ->groupBy('payment_method')
+            ->get();
+
+        $paymentLabels = [];
+        $paymentData = [];
+        $paymentCounts = [];
+        $paymentNameMap = [
+            'cod' => 'Tiền Mặt (COD)',
+            'momo' => 'Ví MoMo',
+            'zalopay' => 'Ví ZaloPay',
+            'vnpay' => 'Cổng VNPAY',
+            'bank_transfer' => 'Chuyển Khoản'
+        ];
+
+        foreach ($paymentRaw as $p) {
+            $name = $paymentNameMap[$p->payment_method] ?? strtoupper($p->payment_method ?? 'Khác');
+            $paymentLabels[] = $name;
+            $paymentData[] = (int)$p->total;
+            $paymentCounts[] = (int)$p->count;
+        }
+
+        // 5. Top 5 Khách hàng VIP chi tiêu nhiều nhất trong tháng
+        $topCustomers = Order::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->where('shipping_status', '!=', 'cancelled')
+            ->select(
+                DB::raw('COALESCE(user_id, 0) as user_id'),
+                'customer_name',
+                'customer_phone',
+                'customer_email',
+                DB::raw('COUNT(*) as total_orders'),
+                DB::raw('SUM(total_amount) as total_spent')
+            )
+            ->groupBy('user_id', 'customer_name', 'customer_phone', 'customer_email')
+            ->orderByDesc('total_spent')
+            ->limit(5)
+            ->get();
 
         // Danh sách 12 tháng gần nhất để hiển thị dropdown chọn tháng
         $availableMonths = [];
@@ -159,8 +180,14 @@ class RevenueController extends Controller
             'growthRate',
             'availableMonths',
             'status',
-            'search'
+            'search',
+            'dailyLabels',
+            'dailyRevenueData',
+            'dailyOrdersData',
+            'paymentLabels',
+            'paymentData',
+            'paymentCounts',
+            'topCustomers'
         ));
     }
 }
-

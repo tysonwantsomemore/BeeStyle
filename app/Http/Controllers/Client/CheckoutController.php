@@ -1,18 +1,17 @@
 <?php
 
 namespace App\Http\Controllers\Client;
-  
+
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use App\Models\User;
 use App\Services\CartService;
+use App\Services\MomoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -22,15 +21,20 @@ class CheckoutController extends Controller
         $cartData = CartService::getCart();
 
         if (empty($cartData['items'])) {
-            return redirect()->route('client.products.index')
-                ->with('error', 'Giỏ hàng của bạn đang trống! Hãy chọn sản phẩm trước khi thanh toán.');
+            return redirect()->route('client.cart')
+                ->with('error', 'Giỏ hàng của bạn đang trống.');
         }
 
         $user = Auth::user();
-        $addresses = $user ? $user->addresses : collect();
-        $defaultAddress = $user ? ($user->defaultAddress ?? $addresses->first()) : null;
+        $addresses = $user ? $user->addresses()->get() : collect();
+        $defaultAddress = $addresses->firstWhere('is_default', true) ?? $addresses->first();
+        $depositInfo = CartService::checkDepositPolicy($cartData['items'], $cartData['total'], $user);
+        $coupons = Coupon::query()->where('is_active', true)->get();
 
         return view('client.checkout', [
+            'user' => $user,
+            'addresses' => $addresses,
+            'defaultAddress' => $defaultAddress,
             'cartItems' => $cartData['items'],
             'cartCount' => $cartData['count'],
             'subtotal' => $cartData['subtotal'],
@@ -38,13 +42,11 @@ class CheckoutController extends Controller
             'shipping' => $cartData['shipping'],
             'total' => $cartData['total'],
             'appliedCoupon' => $cartData['coupon'],
-            'user' => $user,
-            'addresses' => $addresses,
-            'defaultAddress' => $defaultAddress,
+            'coupons' => $coupons,
+            'depositInfo' => $depositInfo,
         ]);
     }
-
-    public function process(Request $request)
+public function process(Request $request)
     {
         $cartData = CartService::getCart();
 
@@ -60,6 +62,7 @@ class CheckoutController extends Controller
             'shipping_address' => 'required|string|max:255',
             'city' => 'nullable|string|max:100',
             'district' => 'nullable|string|max:100',
+            'ward' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:1000',
             'payment_method' => 'required|string|in:cod,online,momo,zalopay,vnpay,vietqr',
         ]);
@@ -67,9 +70,89 @@ class CheckoutController extends Controller
         $user = Auth::user();
         $orderCode = 'BEE-' . date('Ymd') . '-' . strtoupper(Str::random(4));
 
+        // Tạo Snapshot địa chỉ bất biến tại thời điểm chốt đơn
+        $addressService = app(\App\Services\Address\AddressService::class);
+        $addressSnapshot = $addressService->createOrderAddressSnapshot($validated);
+
         DB::beginTransaction();
 
         try {
+            // 1. KIỂM TRA TỒN KHO THỰC TẾ & TÍNH TOÁN LẠI TỪ DATABASE (KHÔNG TIN TƯỞNG CLIENT)
+            $verifiedSubtotal = 0;
+            foreach ($cartData['items'] as $item) {
+                $productDb = Product::findOrFail($item['product_id']);
+
+                // Tìm đúng biến thể theo variant_id hoặc màu + size
+                $variantDb = null;
+                if (!empty($item['variant_id'])) {
+                    $variantDb = \App\Models\ProductVariant::find($item['variant_id']);
+                } elseif (!empty($item['color']) && !empty($item['size'])) {
+                    $variantDb = \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                        ->where('color', $item['color'])
+                        ->where('size', $item['size'])
+                        ->first();
+                }
+
+                $availableStock = $variantDb ? $variantDb->stock : $productDb->stock;
+                $variantDesc = ($item['color'] ?? '') . ($item['size'] ? ' - Size ' . $item['size'] : '');
+
+                if ($availableStock <= 0) {
+                    DB::rollBack();
+                    return redirect()->route('client.cart')
+                        ->with('error', "Rất tiếc, sản phẩm \"{$item['name']}\" ({$variantDesc}) hiện đã hết hàng trong kho. Vui lòng cập nhật giỏ hàng!");
+                }
+
+                if ($item['quantity'] > $availableStock) {
+                    DB::rollBack();
+                    return redirect()->route('client.cart')
+                        ->with('error', "Sản phẩm \"{$item['name']}\" ({$variantDesc}) trong kho chỉ còn {$availableStock} cái, không đủ cho số lượng đặt ({$item['quantity']} cái). Vui lòng điều chỉnh lại giỏ hàng!");
+                }
+
+                $itemPrice = (int)$productDb->price;
+                if ($variantDb && $variantDb->price > 0) {
+                    $itemPrice = (int)$variantDb->price;
+                }
+
+                if (!empty($item['deal_id'])) {
+                    $deal = \App\Models\DailyDeal::where('id', $item['deal_id'])->where('status', 'active')->first();
+                    if ($deal) {
+                        $itemPrice = (int)$deal->deal_price;
+                    }
+                }
+                $verifiedSubtotal += $itemPrice * (int)$item['quantity'];
+            }
+
+            $verifiedDiscount = 0;
+            if ($cartData['coupon']) {
+                $couponDb = Coupon::where('code', $cartData['coupon']->code)->where('status', 'active')->first();
+                if ($couponDb && $couponDb->isValidForOrder($verifiedSubtotal)) {
+                    $verifiedDiscount = $couponDb->calculateDiscount($verifiedSubtotal);
+                }
+            }
+
+            $verifiedShipping = (int)$cartData['shipping'];
+            $verifiedTotal = max(0, $verifiedSubtotal - $verifiedDiscount + $verifiedShipping);
+
+            // Xác định payment_status: MoMo cần đợi webhook/callback, COD & VietQR là chưa trả, còn lại tùy cấu hình
+            $paymentStatus = match ($validated['payment_method']) {
+                'momo' => 'PENDING_PAYMENT',
+                'cod', 'vietqr', 'online', 'zalopay' => 'unpaid',
+                default => 'unpaid',
+            };
+
+            $depositPolicy = CartService::checkDepositPolicy($cartData['items'], $verifiedTotal, $user);
+            $isDepositRequired = $depositPolicy['is_required'];
+            $depositAmount = $depositPolicy['deposit_amount'];
+            $remainingAmount = $depositPolicy['remaining_amount'];
+
+            $orderNotes = $validated['notes'] ?? null;
+            $adminNotes = null;
+            if ($isDepositRequired) {
+                $depositNotice = "[CHÍNH SÁCH ĐẶT CỌC 50%: {$depositPolicy['reason']} - Tiền cọc: " . number_format($depositAmount, 0, ',', '.') . "₫, Còn lại thu COD: " . number_format($remainingAmount, 0, ',', '.') . "₫]";
+                $adminNotes = $depositNotice;
+                $orderNotes = $orderNotes ? "{$orderNotes} | {$depositNotice}" : $depositNotice;
+            }
+
             $order = Order::create([
                 'order_code' => $orderCode,
                 'user_id' => $user ? $user->id : null,
@@ -79,15 +162,24 @@ class CheckoutController extends Controller
                 'shipping_address' => $validated['shipping_address'],
                 'city' => $validated['city'] ?? 'Hồ Chí Minh',
                 'district' => $validated['district'] ?? '',
-                'notes' => $validated['notes'] ?? null,
+                'ward' => $validated['ward'] ?? '',
+                'shipping_address_snapshot' => $addressSnapshot,
+                'notes' => $orderNotes,
+                'admin_notes' => $adminNotes,
                 'payment_method' => $validated['payment_method'],
-                'payment_status' => in_array($validated['payment_method'], ['cod', 'online', 'momo', 'zalopay']) ? 'unpaid' : 'paid',
+                'payment_status' => $paymentStatus,
                 'shipping_status' => 'pending',
+                'shipping_carrier' => 'Giao Hàng Tiết Kiệm (GHTK)',
+                'tracking_code' => 'GHTK-' . strtoupper(\Illuminate\Support\Str::random(8)),
                 'status_step' => 1,
-                'subtotal' => $cartData['subtotal'],
-                'discount_amount' => $cartData['discount'],
-                'shipping_fee' => $cartData['shipping'],
-                'total_amount' => $cartData['total'],
+                'subtotal' => $verifiedSubtotal,
+                'discount_amount' => $verifiedDiscount,
+                'shipping_fee' => $verifiedShipping,
+                'total_amount' => $verifiedTotal,
+                'is_deposit_required' => $isDepositRequired,
+                'deposit_amount' => $depositAmount,
+                'remaining_amount' => $remainingAmount,
+                'deposit_status' => $isDepositRequired ? 'unpaid' : 'none',
                 'coupon_code' => $cartData['coupon'] ? $cartData['coupon']->code : null,
             ]);
 
@@ -105,16 +197,32 @@ class CheckoutController extends Controller
                     'image' => $item['image'],
                 ]);
 
-                // TRỪ TỒN KHO TỔNG CỦA SẢN PHẨM VÀ TĂNG ĐÃ BÁN
-                Product::where('id', $item['product_id'])->decrement('stock', $item['quantity']);
-                Product::where('id', $item['product_id'])->increment('sold_count', $item['quantity']);
-
                 // TRỪ TỒN KHO CHI TIẾT CỦA BIẾN THỂ (MÀU + SIZE)
-                if (!empty($item['color']) && !empty($item['size'])) {
-                    \App\Models\ProductVariant::where('product_id', $item['product_id'])
+                $variant = null;
+                if (!empty($item['variant_id'])) {
+                    $variant = \App\Models\ProductVariant::find($item['variant_id']);
+                } elseif (!empty($item['color']) && !empty($item['size'])) {
+                    $variant = \App\Models\ProductVariant::where('product_id', $item['product_id'])
                         ->where('color', $item['color'])
                         ->where('size', $item['size'])
-                        ->decrement('stock', $item['quantity']);
+                        ->first();
+                }
+
+                if ($variant) {
+                    $variant->decrement('stock', $item['quantity']);
+                    if ($variant->stock < 0) {
+                        $variant->update(['stock' => 0]);
+                    }
+                }
+
+                // TRỪ TỒN KHO TỔNG CỦA SẢN PHẨM VÀ TĂNG ĐÃ BÁN
+                $prod = Product::find($item['product_id']);
+                if ($prod) {
+                    $prod->decrement('stock', $item['quantity']);
+                    if ($prod->stock < 0) {
+                        $prod->update(['stock' => 0]);
+                    }
+                    $prod->increment('sold_count', $item['quantity']);
                 }
 
                 // Cập nhật số lượng đã bán của chương trình Ưu Đãi Trong Ngày (Daily Deal)
@@ -134,13 +242,6 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Tích điểm thưởng và cộng dồn tổng tiền mua sắm cho thành viên
-            if ($user) {
-                $earnedPoints = (int)floor($cartData['total'] / 10000);
-                $user->increment('points', $earnedPoints);
-                $user->increment('total_spent', $cartData['total']);
-            }
-
             DB::commit();
 
             // Xóa sạch giỏ hàng trong session sau khi hoàn tất đặt hàng
@@ -151,9 +252,33 @@ class CheckoutController extends Controller
                 return redirect()->route('client.checkout.online', ['code' => $orderCode]);
             }
 
-            // Nếu chọn Ví MoMo -> Chuyển sang Cổng Thanh Toán MoMo Gateway
+            // Nếu chọn Thanh toán trực tuyến qua MoMo -> Tạo giao dịch và chuyển hướng Deep Link / payUrl
             if ($validated['payment_method'] === 'momo') {
-                return redirect()->route('client.checkout.momo', ['code' => $orderCode]);
+                $momoService = app(MomoService::class);
+                $momoResult = $momoService->createPayment($order);
+
+                if (!empty($momoResult['success']) && !empty($momoResult['payUrl'])) {
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json([
+                            'success' => true,
+                            'order_code' => $orderCode,
+                            'deeplink' => $momoResult['deeplink'] ?? null,
+                            'payUrl' => $momoResult['payUrl'],
+                        ]);
+                    }
+
+                    $userAgent = $request->userAgent() ?? '';
+                    $isMobile = preg_match('/(android|iphone|ipad|ipod|mobile)/i', $userAgent);
+
+                    if ($isMobile && !empty($momoResult['deeplink'])) {
+                        return redirect()->away($momoResult['deeplink']);
+                    }
+
+                    return redirect()->away($momoResult['payUrl']);
+                }
+
+                return redirect()->route('client.checkout')
+                    ->with('error', $momoResult['message'] ?? 'Không thể khởi tạo giao dịch MoMo Sandbox. Vui lòng thử lại sau giây lát.');
             }
 
             // Nếu chọn Ví ZaloPay -> Chuyển sang Cổng Thanh Toán ZaloPay Gateway
@@ -161,7 +286,7 @@ class CheckoutController extends Controller
                 return redirect()->route('client.checkout.zalopay', ['code' => $orderCode]);
             }
 
-            // Với đơn COD: gửi email hóa đơn ngay và chuyển sang trang tra cứu
+            // Với đơn COD & VietQR: gửi email hóa đơn ngay và chuyển sang trang tra cứu
             $this->sendOrderInvoiceEmail($order);
 
             return redirect()->route('client.order-tracking', ['code' => $orderCode])
@@ -171,217 +296,10 @@ class CheckoutController extends Controller
             return back()->withInput()->with('error', 'Đã xảy ra lỗi khi tạo đơn hàng: ' . $e->getMessage());
         }
     }
-
     /**
-     * Cổng Thanh Toán Trực Tuyến Online Banking Napas 247
+     * Invoice delivery is handled by the payment callback when configured.
      */
-    public function onlineGateway($code)
+    protected function sendOrderInvoiceEmail(Order $order): void
     {
-        $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
-        return view('client.payment.online', compact('order'));
-    }
-
-    /**
-     * Xác nhận thanh toán Online Banking thành công
-     */
-    public function onlineSuccess($code)
-    {
-        $order = Order::where('order_code', $code)->firstOrFail();
-        $order->update([
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 2,
-        ]);
-        $this->sendOrderInvoiceEmail($order);
-
-        return redirect()->route('client.home')
-            ->with('payment_success_order', $code)
-            ->with('payment_success_amount', $order->total_amount)
-            ->with('payment_success_method', 'Thanh toán Online (Techcombank Napas 247)')
-            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
-    }
-
-    /**
-     * Cổng Thanh Toán Trực Tuyến Ví MoMo
-     */
-    public function momoGateway($code)
-    {
-        $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
-        return view('client.payment.momo', compact('order'));
-    }
-
-    /**
-     * Xác nhận thanh toán Ví MoMo thành công
-     */
-    public function momoSuccess($code)
-    {
-        $order = Order::where('order_code', $code)->firstOrFail();
-        $order->update([
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 2,
-        ]);
-        $this->sendOrderInvoiceEmail($order);
-
-        return redirect()->route('client.home')
-            ->with('payment_success_order', $code)
-            ->with('payment_success_amount', $order->total_amount)
-            ->with('payment_success_method', 'Ví Điện Tử MoMo')
-            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví MoMo! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
-    }
-
-    /**
-     * Cổng Thanh Toán Trực Tuyến Ví ZaloPay
-     */
-    public function zalopayGateway($code)
-    {
-        $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
-        return view('client.payment.zalopay', compact('order'));
-    }
-
-    /**
-     * Xác nhận thanh toán Ví ZaloPay thành công
-     */
-    public function zalopaySuccess($code)
-    {
-        $order = Order::where('order_code', $code)->firstOrFail();
-        $order->update([
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 2,
-        ]);
-        $this->sendOrderInvoiceEmail($order);
-
-        return redirect()->route('client.home')
-            ->with('payment_success_order', $code)
-            ->with('payment_success_amount', $order->total_amount)
-            ->with('payment_success_method', 'Ví Điện Tử ZaloPay')
-            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví ZaloPay! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
-    }
-
-    /**
-     * Xử lý Hết hạn thời gian chờ thanh toán (Auto-Expiry & Restock Kho)
-     */
-    public function handleExpired($code)
-    {
-        $order = Order::with('items')->where('order_code', $code)->firstOrFail();
-
-        if ($order->payment_status === 'unpaid' && $order->shipping_status === 'pending') {
-            DB::transaction(function () use ($order) {
-                $order->update(['shipping_status' => 'cancelled']);
-
-                // Hoàn trả số lượng tồn kho sản phẩm & biến thể
-                foreach ($order->items as $item) {
-                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                    Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
-
-                    \App\Models\ProductVariant::where('product_id', $item->product_id)
-                        ->where('color', $item->color)
-                        ->where('size', $item->size)
-                        ->increment('stock', $item->quantity);
-                }
-
-                // Trừ lại điểm thưởng & chi tiêu nếu đã tích lũy
-                if ($order->user_id) {
-                    $user = User::find($order->user_id);
-                    if ($user) {
-                        $earnedPoints = (int)floor($order->total_amount / 10000);
-                        if ($user->points >= $earnedPoints) {
-                            $user->decrement('points', $earnedPoints);
-                        }
-                        if ($user->total_spent >= $order->total_amount) {
-                            $user->decrement('total_spent', $order->total_amount);
-                        }
-                    }
-                }
-            });
-        }
-
-        if (request()->wantsJson() || request()->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => "Đơn hàng #{$code} đã hết hạn thời gian thanh toán và được tự động hủy để hoàn trả kho.",
-                'redirect' => route('client.cart')
-            ]);
-        }
-
-        return redirect()->route('client.cart')
-            ->with('warning', "Đơn hàng #{$code} đã hết hạn thời gian thanh toán (10 phút) và đã được tự động hủy để hoàn trả kho hàng.");
-    }
-
-    /**
-     * API Polling kiểm tra trạng thái thanh toán theo thời gian thực (Realtime Payment Status)
-     */
-    public function checkPaymentStatus($code)
-    {
-        $order = Order::where('order_code', $code)->firstOrFail();
-
-        if ($order->payment_status === 'paid') {
-            session()->flash('payment_success_order', $code);
-            session()->flash('payment_success_amount', $order->total_amount);
-            session()->flash('payment_success_method', $order->payment_method_name);
-            session()->flash('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
-
-            return response()->json([
-                'status' => 'paid',
-                'redirect' => route('client.home')
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'unpaid',
-            'redirect' => null
-        ]);
-    }
-
-
-    /**
-     * Tự động nhận diện & khớp lệnh chuyển khoản (Webhook / Realtime Banking Auto-Match)
-     */
-    public function autoConfirmTransfer($code)
-    {
-        $order = Order::where('order_code', $code)->firstOrFail();
-
-        if ($order->payment_status !== 'paid') {
-            $order->update([
-                'payment_status' => 'paid',
-                'shipping_status' => 'processing',
-                'status_step' => 2,
-            ]);
-            $this->sendOrderInvoiceEmail($order);
-
-            session()->flash('payment_success_order', $code);
-            session()->flash('payment_success_amount', $order->total_amount);
-            session()->flash('payment_success_method', $order->payment_method_name);
-            session()->flash('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
-        }
-
-        return response()->json([
-            'success' => true,
-            'status' => 'paid',
-            'redirect' => route('client.home')
-        ]);
-    }
-
-
-
-    /**
-     * Gửi Hóa đơn Điện tử HTML qua Email
-     */
-    protected function sendOrderInvoiceEmail($order)
-    {
-        if (empty($order->customer_email)) {
-            return;
-        }
-
-        try {
-            $order->load(['items.product', 'user']);
-            Mail::send('emails.order_invoice', ['order' => $order], function ($message) use ($order) {
-                $message->to($order->customer_email, $order->customer_name)
-                    ->subject("【BeeStyle】Xác nhận Hóa Đơn Điện Tử Đơn Hàng #{$order->order_code}");
-            });
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning("Lỗi gửi email hóa đơn đơn #{$order->order_code}: " . $e->getMessage());
-        }
     }
 }

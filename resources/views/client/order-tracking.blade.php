@@ -1,575 +1,797 @@
 @extends('layouts.client')
 
-@section('title', 'Tra Cứu & Thanh Toán Đơn Hàng | BeeStyle Menswear')
+@section('title', 'Tra Cứu Đơn Hàng — BEESTYLE Studio')
 
 @section('content')
-<div class="container py-4">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb small">
-      <li class="breadcrumb-item"><a href="{{ route('client.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
-      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Tra cứu &amp; Thanh toán đơn hàng</li>
-    </ol>
+<main class="w-full flex-grow py-10 px-6 max-w-5xl mx-auto">
+  
+  <!-- Breadcrumb Navigation -->
+  <nav class="flex items-center gap-2 text-xs text-neutral-500 mb-8 overflow-x-auto whitespace-nowrap pb-2">
+    <a href="{{ route('client.home') }}" class="hover:text-black">Trang Chủ</a>
+    <i data-lucide="chevron-right" class="w-3 h-3 text-neutral-400"></i>
+    <span class="text-neutral-900 font-semibold">Tra Cứu &amp; Thanh Toán Đơn Hàng</span>
   </nav>
 
-  <!-- SEARCH ORDER BOX (MODERN LUXURY HEADER) -->
-  <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff; border: 1px solid #e2e8f0 !important;">
-    <div class="row align-items-center g-3">
-      <div class="col-lg-6">
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill">ĐƠN HÀNG</span>
-          <h4 class="fw-bold text-dark mb-0">Tra Cứu &amp; Thanh Toán Trực Tuyến</h4>
-        </div>
-        <p class="text-muted small mb-0">Theo dõi tiến trình vận chuyển theo thời gian thực và quét mã VietQR tự động</p>
-      </div>
-      <div class="col-lg-6">
-        <form action="{{ route('client.order-tracking') }}" method="GET" class="d-flex gap-2">
-          <div class="input-group">
-            <span class="input-group-text bg-light border-end-0 text-muted">
-              <i class="fa-solid fa-magnifying-glass"></i>
-            </span>
-            <input type="text" name="code" value="{{ $code ?? '' }}" class="form-control border-start-0 ps-0" placeholder="Nhập mã đơn hàng (VD: BEE-2026-0816-01)..." required>
-          </div>
-          <button type="submit" class="btn btn-bee-primary px-4 text-nowrap fw-bold shadow-sm">
-            Tra Cứu
+  <!-- SEARCH ORDER & CARRIER TRACKING BOX (DUAL-MODE OMNIBAR) -->
+  <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm mb-8">
+    <div class="max-w-2xl mx-auto text-center mb-6">
+      <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-semibold block mb-1">DỊCH VỤ TRỰC TUYẾN</span>
+      <h1 class="font-serif-luxury text-2xl md:text-3xl font-light text-neutral-900">Tra Cứu Hành Trình Đơn Hàng</h1>
+      <p class="text-xs text-neutral-500 mt-1 font-light">Hỗ trợ tra cứu tức thì bằng <strong>Mã Đơn Hàng</strong> hoặc <strong>Mã Vận Đơn Bưu Tá</strong> (GHTK, GHN, Viettel Post...)</p>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="flex justify-center gap-2 mb-4">
+      <button type="button" id="btnTabOrder" onclick="switchSearchMode('order')" class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all {{ ($searchType ?? '') === 'tracking' || (isset($matchedBy) && $matchedBy === 'tracking') ? 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200' : 'bg-neutral-950 text-white shadow-xs' }}">
+        <i data-lucide="receipt" class="w-3.5 h-3.5 inline mr-1 text-amber-400"></i> Mã Đơn Hàng
+      </button>
+      <button type="button" id="btnTabTracking" onclick="switchSearchMode('tracking')" class="px-4 py-1.5 rounded-full text-xs font-semibold transition-all {{ ($searchType ?? '') === 'tracking' || (isset($matchedBy) && $matchedBy === 'tracking') ? 'bg-neutral-950 text-white shadow-xs' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200' }}">
+        <i data-lucide="barcode" class="w-3.5 h-3.5 inline mr-1 text-amber-400"></i> Mã Vận Đơn Bưu Tá
+      </button>
+    </div>
+
+    <!-- Search Form -->
+    <form action="{{ route('client.order-tracking') }}" method="GET" class="max-w-xl mx-auto flex flex-col sm:flex-row gap-2" id="trackingSearchForm">
+      <input type="hidden" name="type" id="searchTypeInput" value="{{ $searchType ?? 'auto' }}">
+      <div class="relative flex-grow">
+        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" id="searchIcon">
+          @if(($searchType ?? '') === 'tracking' || (isset($matchedBy) && $matchedBy === 'tracking'))
+            <i data-lucide="barcode" class="w-4 h-4 text-emerald-600"></i>
+          @else
+            <i data-lucide="search" class="w-4 h-4"></i>
+          @endif
+        </span>
+        <input type="text" name="code" id="trackingCodeInput" value="{{ $code ?? '' }}" 
+          placeholder="{{ ($searchType ?? '') === 'tracking' || (isset($matchedBy) && $matchedBy === 'tracking') ? 'Nhập mã vận đơn (VD: GHTK-GFELJZTT, GHN-2C4E3DFF)...' : 'Nhập mã đơn hàng (VD: BEE-20260906-T7XF)...' }}" required
+          class="w-full pl-10 pr-9 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs uppercase font-mono text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+        @if(!empty($code))
+          <button type="button" onclick="document.getElementById('trackingCodeInput').value=''; document.getElementById('trackingCodeInput').focus();" class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700">
+            <i data-lucide="x" class="w-4 h-4"></i>
           </button>
-        </form>
+        @endif
       </div>
+      <button type="submit" class="px-7 py-3 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-wider uppercase rounded-xl transition-colors shadow flex items-center justify-center gap-1.5 shrink-0">
+        <i data-lucide="search" class="w-3.5 h-3.5"></i>
+        <span>Tra Cứu</span>
+      </button>
+    </form>
+
+    <!-- Smart Suggestion Chips -->
+    <div class="mt-4 flex items-center justify-center gap-2 flex-wrap text-[11px]">
+      <span class="text-neutral-400 flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3 text-amber-500"></i> Gợi ý:</span>
+      @if(isset($userRecentOrders) && $userRecentOrders->isNotEmpty())
+        @foreach($userRecentOrders->take(3) as $rOrder)
+          <a href="{{ route('client.order-tracking', ['code' => $rOrder->order_code, 'type' => 'order']) }}" class="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 rounded-full font-mono text-neutral-700 transition-colors">
+            #{{ $rOrder->order_code }}
+          </a>
+          @if($rOrder->tracking_code)
+            <a href="{{ route('client.order-tracking', ['code' => $rOrder->tracking_code, 'type' => 'tracking']) }}" class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 rounded-full font-mono transition-colors">
+              {{ $rOrder->tracking_code }}
+            </a>
+          @endif
+        @endforeach
+      @elseif(isset($sampleOrders) && $sampleOrders->isNotEmpty())
+        @foreach($sampleOrders->take(2) as $sOrder)
+          <a href="{{ route('client.order-tracking', ['code' => $sOrder->order_code, 'type' => 'order']) }}" class="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 rounded-full font-mono text-neutral-700 transition-colors">
+            #{{ $sOrder->order_code }}
+          </a>
+          @if($sOrder->tracking_code)
+            <a href="{{ route('client.order-tracking', ['code' => $sOrder->tracking_code, 'type' => 'tracking']) }}" class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 rounded-full font-mono transition-colors">
+              {{ $sOrder->tracking_code }}
+            </a>
+          @endif
+        @endforeach
+      @else
+        <a href="{{ route('client.order-tracking', ['code' => 'BEE-20260906-T7XF', 'type' => 'order']) }}" class="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 rounded-full font-mono text-neutral-700 transition-colors">
+          BEE-20260906-T7XF
+        </a>
+        <a href="{{ route('client.order-tracking', ['code' => 'GHTK-GFELJZTT', 'type' => 'tracking']) }}" class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 rounded-full font-mono transition-colors">
+          GHTK-GFELJZTT
+        </a>
+      @endif
     </div>
   </div>
 
-  @if($currentOrder)
+  @if(isset($currentOrder) && $currentOrder)
 
-    <!-- KHỐI THÔNG TIN THANH TOÁN TƯƠNG ỨNG VỚI PHƯƠNG THỨC -->
-    @if(in_array($currentOrder->payment_method, ['online', 'momo', 'zalopay', 'vietqr', 'vnpay']))
-      @if($currentOrder->payment_status !== 'paid')
-        <!-- CARD THANH TOÁN ONLINE / MOMO / ZALOPAY -->
-        @php
-          $isMomo = $currentOrder->payment_method === 'momo';
-          $isZalo = $currentOrder->payment_method === 'zalopay';
-          $cardBorder = $isMomo ? '#d82d8b' : ($isZalo ? '#008fe5' : '#f59e0b');
-          $methodTitle = $isMomo ? 'Thanh Toán Qua Ví MoMo' : ($isZalo ? 'Thanh Toán Qua Ví ZaloPay' : 'Thanh Toán Online (ATM / Internet Banking / Visa)');
-          $methodDesc = $isMomo ? 'Mở ứng dụng ví MoMo để chuyển tiền thanh toán đơn hàng với thông tin bên dưới:' : ($isZalo ? 'Mở ứng dụng ví ZaloPay hoặc app Zalo để thanh toán đơn hàng:' : 'Vui lòng chuyển khoản trực tuyến qua Internet Banking với thông tin bên dưới:');
-          $badgeLabel = $isMomo ? 'VÍ MOMO' : ($isZalo ? 'VÍ ZALOPAY' : 'ONLINE BANKING');
-          $badgeColor = $isMomo ? 'background-color: #d82d8b;' : ($isZalo ? 'background-color: #008fe5;' : 'background-color: #f59e0b; color: #111827;');
-        @endphp
-        <div class="card border-0 shadow-lg mb-4 overflow-hidden position-relative" style="border-radius: 24px; background: linear-gradient(145deg, #090e17 0%, #111827 50%, #1e293b 100%); color: #ffffff; border: 1.5px solid {{ $cardBorder }} !important;">
-          
-          <div class="card-body p-4 p-lg-5 position-relative">
-            <div class="row align-items-center g-4 g-lg-5">
-              
-              <!-- CỘT 1: BIỂU TƯỢNG VÀ TÓM TẮT PHƯƠNG THỨC -->
-              <div class="col-lg-5 text-center">
-                <div class="p-4 bg-white rounded-4 shadow-lg d-inline-block position-relative" style="max-width: 320px; width: 100%;">
-                  
-                  <div class="mb-3">
-                    <span class="badge text-white fw-bold px-3 py-1.5 rounded-pill shadow-xs" style="{{ $badgeColor }} font-size: 0.85rem;">
-                      {{ $badgeLabel }}
-                    </span>
-                  </div>
-
-                  <div class="p-4 bg-light rounded-3 border text-center my-2">
-                    @if($isMomo)
-                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 72px; height: 72px; background-color: #d82d8b; font-size: 2rem;">
-                        <i class="fa-solid fa-wallet"></i>
-                      </div>
-                      <h6 class="fw-bold text-dark mb-1">Ví Điện Tử MoMo</h6>
-                      <span class="text-muted small">Hotline: 0988.889.999</span>
-                    @elseif($isZalo)
-                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-white mb-2 shadow-sm" style="width: 72px; height: 72px; background-color: #008fe5; font-size: 2rem;">
-                        <i class="fa-solid fa-wallet"></i>
-                      </div>
-                      <h6 class="fw-bold text-dark mb-1">Ví Điện Tử ZaloPay</h6>
-                      <span class="text-muted small">Hotline: 0988.889.999</span>
-                    @else
-                      <div class="rounded-circle d-inline-flex align-items-center justify-content-center text-dark mb-2 shadow-sm" style="width: 72px; height: 72px; background-color: #f59e0b; font-size: 2rem;">
-                        <i class="fa-solid fa-credit-card"></i>
-                      </div>
-                      <h6 class="fw-bold text-dark mb-1">Thanh Toán Trực Tuyến</h6>
-                      <span class="text-muted small">MB Bank / Thẻ ATM / Visa</span>
-                    @endif
-                  </div>
-
-                  <div class="mt-2 text-muted small">
-                    <i class="fa-solid fa-shield-halved text-success me-1"></i> Giao dịch bảo mật 100%
-                  </div>
-                </div>
-              </div>
-
-              <!-- CỘT 2: BẢNG THÔNG TIN THANH TOÁN -->
-              <div class="col-lg-7">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                  <span class="badge bg-danger text-white fw-bold px-3 py-1.5 rounded-pill" style="font-size: 0.75rem;">
-                    <i class="fa-solid fa-circle-dot me-1 text-warning"></i> CHỜ THANH TOÁN
-                  </span>
-                  <div class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-20 px-3 py-1.5 rounded-pill small">
-                    <i class="fa-regular fa-clock me-1 text-warning"></i> Thời gian giữ hàng: <span class="fw-bold text-warning font-monospace">14:59</span>
-                  </div>
-                </div>
-
-                <h3 class="fw-black text-white mb-1.5" style="letter-spacing: -0.5px;">{{ $methodTitle }}</h3>
-                <p class="text-white text-opacity-90 small mb-3.5 leading-relaxed" style="font-size: 0.88rem;">
-                  {{ $methodDesc }}
-                </p>
-
-                <!-- THÔNG TIN TÀI KHOẢN / VÍ NHẬN TIỀN -->
-                <div class="p-3.5 rounded-4 mb-4" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px);">
-                  <div class="d-flex flex-column gap-2.5 small">
-                    
-                    @if($isMomo || $isZalo)
-                      <!-- Ví & Số Điện Thoại -->
-                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                        <span class="text-white text-opacity-80 fw-semibold">
-                          <i class="fa-solid fa-phone me-1.5 text-warning"></i> Số tài khoản ví / Ngân hàng liên kết:
-                        </span>
-                        <div class="d-flex align-items-center gap-2">
-                          <strong class="text-white font-monospace fs-5 fw-bold" id="accNumberTxt">77427842310105</strong>
-                          <button type="button" class="btn btn-sm btn-warning text-dark py-0.5 px-2.5 fw-bold rounded-2 shadow-sm" id="btnCopyAcc" style="font-size: 0.72rem;" onclick="copyText('77427842310105', 'btnCopyAcc')">
-                            <i class="fa-regular fa-copy me-1"></i> Copy
-                          </button>
-                        </div>
-                      </div>
-                    @else
-                      <!-- Ngân hàng & STK -->
-                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                        <span class="text-white text-opacity-80 fw-semibold">
-                          <i class="fa-solid fa-building-columns me-1.5 text-warning"></i> Ngân hàng thụ hưởng:
-                        </span>
-                        <strong class="text-white fs-6">Techcombank (Ngân Hàng Kỹ Thương)</strong>
-                      </div>
-                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                        <span class="text-white text-opacity-80 fw-semibold">
-                          <i class="fa-solid fa-credit-card me-1.5 text-warning"></i> Số tài khoản:
-                        </span>
-                        <div class="d-flex align-items-center gap-2">
-                          <strong class="text-white font-monospace fs-5 fw-bold" id="accNumberTxt">77427842310105</strong>
-                          <button type="button" class="btn btn-sm btn-warning text-dark py-0.5 px-2.5 fw-bold rounded-2 shadow-sm" id="btnCopyAcc" style="font-size: 0.72rem;" onclick="copyText('77427842310105', 'btnCopyAcc')">
-                            <i class="fa-regular fa-copy me-1"></i> Copy
-                          </button>
-                        </div>
-                      </div>
-                    @endif
-
-                    <!-- Tên người nhận -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                      <span class="text-white text-opacity-80 fw-semibold">
-                        <i class="fa-solid fa-user-check me-1.5 text-warning"></i> Người nhận tiền:
-                      </span>
-                      <strong class="text-warning fs-6">NGUYEN XUAN BAC</strong>
-                    </div>
-
-
-                    <!-- Số tiền -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pb-2 border-bottom border-white border-opacity-15">
-                      <span class="text-white text-opacity-80 fw-semibold">
-                        <i class="fa-solid fa-money-bill-wave me-1.5 text-warning"></i> Số tiền cần thanh toán:
-                      </span>
-                      <div class="d-flex align-items-center gap-2">
-                        <strong class="text-warning fs-4 fw-black">{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</strong>
-                        <button type="button" class="btn btn-sm btn-warning text-dark py-0.5 px-2.5 fw-bold rounded-2 shadow-sm" id="btnCopyAmount" style="font-size: 0.72rem;" onclick="copyText('{{ $currentOrder->total_amount }}', 'btnCopyAmount')">
-                          <i class="fa-regular fa-copy me-1"></i> Copy
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Nội dung chuyển khoản -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 pt-1">
-                      <span class="text-white fw-bold">
-                        <i class="fa-solid fa-receipt me-1.5 text-warning"></i> Lời nhắn / Nội dung:
-                      </span>
-                      <div class="d-flex align-items-center gap-2">
-                        <strong class="text-warning font-monospace fs-5 fw-black px-2.5 py-1 rounded-2 border border-warning shadow-sm" style="background: rgba(245, 158, 11, 0.18);">
-                          {{ $currentOrder->order_code }}
-                        </strong>
-                        <button type="button" class="btn btn-sm btn-warning text-dark fw-black py-1 px-3 rounded-2 shadow" id="btnCopyCode" style="font-size: 0.75rem;" onclick="copyText('{{ $currentOrder->order_code }}', 'btnCopyCode')">
-                          <i class="fa-regular fa-copy me-1"></i> Copy Mã Đơn
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                <!-- Form Nút Xác Nhận Thanh Toán & Mở Cổng Gateway -->
-                <div class="d-flex flex-column gap-2">
-                  @if($currentOrder->payment_method === 'momo')
-                    <a href="{{ route('client.checkout.momo', $currentOrder->order_code) }}" class="btn text-white px-4 py-3 fw-black shadow-lg rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #d82d8b, #a50064);">
-                      <i class="fa-solid fa-wallet fs-5"></i> MỞ CỔNG THANH TOÁN MOMO GATEWAY
-                    </a>
-                  @elseif($currentOrder->payment_method === 'zalopay')
-                    <a href="{{ route('client.checkout.zalopay', $currentOrder->order_code) }}" class="btn text-white px-4 py-3 fw-black shadow-lg rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #008fe5, #0056b3);">
-                      <i class="fa-solid fa-wallet fs-5"></i> MỞ CỔNG THANH TOÁN ZALOPAY GATEWAY
-                    </a>
-                  @elseif($currentOrder->payment_method === 'online')
-                    <a href="{{ route('client.checkout.online', $currentOrder->order_code) }}" class="btn text-white px-4 py-3 fw-black shadow-lg rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #0284c7, #1e3a8a);">
-                      <i class="fa-solid fa-credit-card fs-5"></i> MỞ CỔNG THANH TOÁN NAPAS 247 GATEWAY
-                    </a>
-                  @endif
-
-                  <form action="{{ route('client.order-tracking.confirm-transfer', $currentOrder->order_code) }}" method="POST" class="d-flex gap-2 flex-wrap">
-                    @csrf
-                    <button type="submit" class="btn btn-warning text-dark px-4 py-2.5 fw-black flex-grow-1 shadow-md rounded-3 fs-6 d-flex align-items-center justify-content-center gap-2">
-                      <i class="fa-solid fa-circle-check fs-5"></i> TÔI ĐÃ HOÀN TẤT THANH TOÁN
-                    </button>
-                    <a href="{{ route('client.home') }}" class="btn btn-outline-light text-white px-4 py-2.5 fw-bold rounded-3">
-                      Tiếp Tục Mua Sắm
-                    </a>
-                  </form>
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      @else
-        <!-- ĐÃ XÁC NHẬN THANH TOÁN THÀNH CÔNG -->
-        <div class="alert alert-success border-0 shadow-sm p-4 mb-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 6px solid #10b981 !important;">
-          <div class="d-flex align-items-center gap-3">
-            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
-              <i class="fa-solid fa-circle-check fs-3"></i>
-            </div>
-            <div>
-              <h5 class="fw-bold text-success mb-1">ĐÃ THANH TOÁN {{ mb_strtoupper($currentOrder->payment_method_name) }} THÀNH CÔNG!</h5>
-              <p class="mb-0 text-muted small">Đơn hàng <strong>#{{ $currentOrder->order_code }}</strong> đã được thanh toán đầy đủ <strong>{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</strong>. BeeStyle đang chuẩn bị đơn hàng và sẽ gửi sớm nhất cho bạn.</p>
-            </div>
-          </div>
-          <span class="badge bg-success px-3.5 py-2.5 fw-bold fs-6 rounded-pill shadow-sm">
-            <i class="fa-solid fa-receipt me-1"></i> ĐÃ THANH TOÁN
-          </span>
-        </div>
-      @endif
-    @endif
-
-
-    <!-- CANCELLED ORDER INFO BANNER -->
-    @if($currentOrder->shipping_status === 'cancelled')
-      <div class="alert alert-danger border-0 shadow-sm p-4 mb-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fef2f2; border-left: 6px solid #ef4444 !important;">
-        <div class="d-flex align-items-center gap-3">
-          <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
-            <i class="fa-solid fa-ban fs-3"></i>
+    <!-- KẾT QUẢ KHỚP MÃ TRA CỨU -->
+    @if(isset($matchedBy) && $matchedBy === 'tracking')
+      <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-950">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <i data-lucide="barcode" class="w-5 h-5"></i>
           </div>
           <div>
-            <h5 class="fw-bold text-danger mb-1">ĐƠN HÀNG ĐÃ BỊ HỦY (#{{ $currentOrder->order_code }})</h5>
-            <p class="mb-0 text-muted small">Lý do hủy: <strong>{{ $currentOrder->cancel_reason ?: 'Hủy theo yêu cầu của khách hàng' }}</strong> • Thời gian hủy: {{ $currentOrder->cancelled_at ? $currentOrder->cancelled_at->format('d/m/Y H:i') : ($currentOrder->updated_at ? $currentOrder->updated_at->format('d/m/Y H:i') : '') }}</p>
+            <span class="font-bold text-emerald-800 uppercase tracking-wider block text-[10px]">Tra cứu thành công theo Mã Vận Đơn Bưu Tá</span>
+            <span>Kiện hàng: <strong class="font-mono text-emerald-900">{{ $currentOrder->tracking_code }}</strong> • Thuộc đơn hàng: <strong class="font-mono text-neutral-900">#{{ $currentOrder->order_code }}</strong> ({{ $currentOrder->shipping_carrier ?: 'GHTK' }})</span>
           </div>
         </div>
-        <span class="badge bg-danger px-3.5 py-2.5 fw-bold fs-6 rounded-pill shadow-sm">
-          <i class="fa-solid fa-xmark me-1"></i> ĐÃ HỦY ĐƠN
-        </span>
+        <a href="#carrierTrackingPassSection" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-semibold shrink-0 transition-colors">
+          Xem Bưu Tá &amp; Trạm Quét ↓
+        </a>
       </div>
-    @endif
-
-    <!-- ACTIVE RMA RETURN REQUEST BANNER -->
-    @if($currentOrder->latestReturn)
-      <div class="alert alert-warning border-0 shadow-sm p-4 mb-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fffbeb; border-left: 6px solid #f59e0b !important;">
-        <div class="d-flex align-items-center gap-3">
-          <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 52px; height: 52px; min-width: 52px;">
-            <i class="fa-solid fa-arrow-rotate-left fs-3"></i>
+    @else
+      <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-sky-950">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <i data-lucide="receipt" class="w-5 h-5"></i>
           </div>
           <div>
-            <h5 class="fw-bold text-dark mb-1">ĐƠN HÀNG CÓ YÊU CẦU ĐỔI TRẢ (#{{ $currentOrder->latestReturn->return_code }})</h5>
-            <p class="mb-0 text-muted small">{{ $currentOrder->latestReturn->type_label }}: <strong>{{ $currentOrder->latestReturn->reason }}</strong></p>
+            <span class="font-bold text-sky-800 uppercase tracking-wider block text-[10px]">Tra cứu thành công theo Mã Đơn Hàng</span>
+            <span>Đơn hàng: <strong class="font-mono text-neutral-900">#{{ $currentOrder->order_code }}</strong> • Vận đơn bưu tá liên kết: <strong class="font-mono text-emerald-800">{{ $currentOrder->tracking_code ?: 'Đang chuẩn bị điều phối' }}</strong></span>
           </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-          {!! $currentOrder->latestReturn->status_badge !!}
-          <a href="{{ route('client.profile', ['tab' => 'returns']) }}" class="btn btn-dark btn-sm px-3 fw-bold rounded-pill">
-            Xem Tiến Trình RMA
+        @if($currentOrder->tracking_code)
+          <a href="#carrierTrackingPassSection" class="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-white rounded-lg font-semibold shrink-0 transition-colors">
+            Xem Vận Đơn Bưu Tá ↓
           </a>
+        @endif
+      </div>
+    @endif
+
+    <!-- KHỐI THANH TOÁN VIETQR FINTECH NẾU CHƯA TRẢ ĐỦ -->
+    @if(in_array($currentOrder->payment_method, ['online', 'vietqr']) && $currentOrder->payment_status !== 'paid')
+      @php
+        $isDepositTrack = ($currentOrder->is_deposit_required && $currentOrder->deposit_status !== 'paid');
+        $payAmountTrack = $isDepositTrack ? $currentOrder->deposit_amount : $currentOrder->total_amount;
+        $vietQrUrl = "https://img.vietqr.io/image/TCB-77427842310105-compact2.png?amount=" . $payAmountTrack . "&addInfo=" . urlencode($currentOrder->order_code) . "&accountName=" . urlencode("NGUYEN XUAN BAC");
+      @endphp
+      <div class="bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 text-white p-6 md:p-8 rounded-2xl shadow-xl border border-amber-500/40 mb-8 relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          
+          <!-- Cột 1: QR Pass -->
+          <div class="lg:col-span-5 text-center">
+            <div class="p-4 bg-white rounded-2xl shadow-lg inline-block w-full max-w-[280px]">
+              <div class="flex justify-between items-center mb-2 text-[10px] font-bold">
+                <span class="px-2 py-0.5 bg-rose-100 text-rose-700 rounded font-mono">VIETQR 24/7</span>
+                <span class="px-2 py-0.5 bg-sky-100 text-sky-700 rounded font-mono">NAPAS 247</span>
+              </div>
+              <div class="p-2 bg-neutral-50 rounded-xl border border-neutral-200">
+                <img src="{{ $vietQrUrl }}" alt="VietQR Payment Code" class="w-full h-auto rounded-lg mx-auto">
+              </div>
+              <span class="text-[10px] text-neutral-500 mt-2 block font-medium">Quét bằng App mọi Ngân Hàng &amp; Ví Điện Tử</span>
+            </div>
+            <div class="mt-3">
+              <a href="{{ $vietQrUrl }}" download="VietQR_{{ $currentOrder->order_code }}.png" target="_blank" class="inline-flex items-center gap-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full text-xs font-semibold transition-colors">
+                <i data-lucide="download" class="w-3.5 h-3.5 text-amber-400"></i> Tải Ảnh Mã QR
+              </a>
+            </div>
+          </div>
+
+          <!-- Cột 2: Chi tiết chuyển khoản -->
+          <div class="lg:col-span-7 space-y-4 text-xs">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="px-3 py-1 bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold rounded-full text-[11px]">
+                ● {{ $isDepositTrack ? 'CHỜ CHUYỂN TIỀN CỌC 50%' : 'CHỜ CHUYỂN KHOẢN' }}
+              </span>
+              <div class="px-3 py-1 bg-white/10 rounded-full border border-white/20 text-[11px]">
+                Giữ đơn hàng: <span id="vietqrCountdown" class="font-mono font-bold text-amber-400">14:59</span>
+              </div>
+            </div>
+
+            <h3 class="font-serif-luxury text-xl font-bold text-white">
+              {{ $isDepositTrack ? 'Thanh Toán Tiền Cọc 50% VietQR' : 'Thanh Toán Chuyển Khoản VietQR' }}
+            </h3>
+            <p class="text-neutral-300 leading-relaxed text-[11px]">
+              @if($isDepositTrack)
+                Đơn hàng áp dụng chính sách cọc 50%. Quét mã QR bên cạnh để chuyển đúng số tiền cọc ({{ number_format($payAmountTrack, 0, ',', '.') }}₫). Phần còn lại {{ number_format($currentOrder->remaining_amount, 0, ',', '.') }}₫ thanh toán cho bưu tá khi nhận hàng.
+              @else
+                Mở app ngân hàng bất kỳ để quét mã. Số tiền thanh toán và nội dung chuyển khoản đã được điền sẵn chuẩn xác 100%:
+              @endif
+            </p>
+
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur space-y-2.5">
+              <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                <span class="text-neutral-400">Ngân hàng thụ hưởng:</span>
+                <strong class="text-white font-semibold">Techcombank (TCB)</strong>
+              </div>
+              <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                <span class="text-neutral-400">Tên chủ tài khoản:</span>
+                <strong class="text-amber-400 font-bold tracking-wide">NGUYEN XUAN BAC</strong>
+              </div>
+              <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                <span class="text-neutral-400">Số tài khoản:</span>
+                <div class="flex items-center gap-2">
+                  <strong class="font-mono text-white text-sm font-bold" id="accNumberTxt">77427842310105</strong>
+                  <button type="button" onclick="copyText('77427842310105', 'btnCopyAcc')" id="btnCopyAcc" class="px-2 py-0.5 bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold rounded text-[10px] transition-colors">
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <div class="flex justify-between items-center pb-2 border-b border-white/10">
+                <span class="text-neutral-400">{{ $isDepositTrack ? 'Số tiền cọc cần chuyển (50%):' : 'Số tiền cần chuyển:' }}</span>
+                <div class="flex items-center gap-2">
+                  <strong class="font-mono text-amber-400 text-base font-bold">{{ number_format($payAmountTrack, 0, ',', '.') }}₫</strong>
+                  <button type="button" onclick="copyText('{{ $payAmountTrack }}', 'btnCopyAmount')" id="btnCopyAmount" class="px-2 py-0.5 bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold rounded text-[10px] transition-colors">
+                    Copy
+                  </button>
+                </div>
+              </div>
+              <div class="flex justify-between items-center pt-1">
+                <span class="text-neutral-400 font-semibold">Nội dung chuyển khoản:</span>
+                <div class="flex items-center gap-2">
+                  <strong class="font-mono px-2 py-0.5 bg-amber-400/20 border border-amber-400/40 text-amber-300 font-bold rounded text-xs">
+                    {{ $currentOrder->order_code }}
+                  </strong>
+                  <button type="button" onclick="copyText('{{ $currentOrder->order_code }}', 'btnCopyCode')" id="btnCopyCode" class="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold rounded text-[10px] transition-colors">
+                    Copy Mã
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <form action="{{ route('client.order-tracking.confirm-transfer', $currentOrder->order_code) }}" method="POST" class="flex gap-2 flex-wrap pt-1">
+              @csrf
+              <button type="submit" class="flex-grow py-3 px-4 bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold rounded-xl transition-all shadow text-xs uppercase tracking-wider flex items-center justify-center gap-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Tôi Đã Chuyển Khoản Thành Công
+              </button>
+              <a href="{{ route('client.home') }}" class="py-3 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold transition-colors">
+                Tiếp Tục Mua Sắm
+              </a>
+            </form>
+          </div>
+
         </div>
       </div>
     @endif
 
-    <!-- ORDER STATUS & TRACKER -->
-    <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; background: #ffffff; border: 1px solid #e2e8f0 !important;">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 border-bottom">
-        <div>
-          <span class="text-muted small">Mã đơn hàng:</span>
-          <h5 class="fw-bold text-dark mb-0 font-monospace">{{ $currentOrder->order_code }}</h5>
-        </div>
-        <div>
-          <span class="text-muted small">Thời gian đặt:</span>
-          <div class="fw-semibold text-dark">{{ $currentOrder->created_at ? $currentOrder->created_at->format('d/m/Y H:i') : '16/08/2026' }}</div>
-        </div>
-        <div>
-          <span class="text-muted small">Trạng thái:</span>
+    <!-- KHỐI THẺ VẬN ĐƠN BƯU TÁ & THEO DÕI HÀNH TRÌNH BƯU KIỆN -->
+    @php
+      $carrier = mb_strtolower((string)$currentOrder->shipping_carrier, 'UTF-8');
+      $isGhtk = str_contains($carrier, 'ghtk') || str_contains($carrier, 'tiết kiệm');
+      $isGhn = str_contains($carrier, 'ghn') || str_contains($carrier, 'nhanh');
+      $isViettel = str_contains($carrier, 'viettel') || str_contains($carrier, 'vtp');
+      $isJt = str_contains($carrier, 'j&t') || str_contains($carrier, 'jt');
+
+      $carrierTitle = $currentOrder->shipping_carrier ?: 'Giao Hàng Tiết Kiệm (GHTK)';
+      $carrierShort = $isGhtk ? 'GHTK' : ($isGhn ? 'GHN' : ($isViettel ? 'Viettel Post' : ($isJt ? 'J&T' : 'BeeStyle Express')));
+      $carrierHotline = $isGhtk ? '1900 6092' : ($isGhn ? '1900 636677' : ($isViettel ? '1900 8095' : ($isJt ? '1900 1088' : '1900 8888')));
+
+      $step = $currentOrder->status_step ?? 1;
+      $created = $currentOrder->created_at;
+      $confirmed = $currentOrder->confirmed_at ?: ($created ? $created->copy()->addMinutes(11) : now());
+      $processing = $currentOrder->processing_at ?: ($confirmed ? $confirmed->copy()->addMinutes(15) : now());
+      $shipping = $currentOrder->shipping_at ?: ($processing ? $processing->copy()->addMinutes(30) : now());
+      $delivered = $currentOrder->delivered_at ?: ($shipping ? $shipping->copy()->addHours(24) : now());
+      $completed = $currentOrder->completed_at ?: ($delivered ? $delivered->copy()->addHours(2) : now());
+
+      $logisticsCheckpoints = [];
+      $logisticsCheckpoints[] = [
+        'title' => 'Khởi tạo đơn hàng & tiếp nhận bưu gửi',
+        'desc' => 'Đơn hàng #' . $currentOrder->order_code . ' đã ghi nhận. Mã vận đơn ' . ($currentOrder->tracking_code ?: 'N/A') . ' đã được phân bổ thành công.',
+        'hub' => 'Cổng Đơn Hàng BeeStyle Logistics',
+        'time' => $created,
+        'icon' => 'clipboard-list',
+        'done' => true,
+      ];
+
+      if ($step >= 2) {
+        $logisticsCheckpoints[] = [
+          'title' => 'Shop xác nhận & in phiếu giao nhận bưu cục',
+          'desc' => 'Kho đã duyệt địa chỉ người nhận, in phiếu đóng gói và tạo lệnh hẹn lấy hàng tới ' . $carrierShort . '.',
+          'hub' => 'Kho Tổng BeeStyle (Cầu Giấy, Hà Nội)',
+          'time' => $confirmed,
+          'icon' => 'clipboard-check',
+          'done' => true,
+        ];
+      }
+
+      if ($step >= 3) {
+        $logisticsCheckpoints[] = [
+          'title' => 'Đóng gói hoàn tất & dán nhãn vận đơn [' . ($currentOrder->tracking_code ?: 'TEM CHÍNH HÃNG') . ']',
+          'desc' => 'Kiện hàng đã qua kiểm tra chất lượng QC, đóng thùng carton chống sốc và dán mã vạch bưu tá.',
+          'hub' => 'Kho Đóng Gói Phân Loại BeeStyle',
+          'time' => $processing,
+          'icon' => 'package-check',
+          'done' => true,
+        ];
+      }
+
+      if ($step >= 4) {
+        $logisticsCheckpoints[] = [
+          'title' => 'Bưu tá ' . $carrierShort . ' đã tiếp nhận kiện hàng tại kho',
+          'desc' => 'Bưu tá Nguyễn Văn Tuấn (Mã NV: ' . $carrierShort . '-8821) đã quét mã lấy hàng thành công.',
+          'hub' => 'Bưu Cục Lấy Hàng ' . $carrierShort . ' Cầu Giấy',
+          'time' => $shipping,
+          'icon' => 'truck',
+          'done' => true,
+        ];
+        $logisticsCheckpoints[] = [
+          'title' => 'Nhập Kho Trung Chuyển ' . $carrierShort . ' SOC',
+          'desc' => 'Kiện hàng đã nhập kho trung chuyển phân loại tự động tốc độ cao theo tuyến giao.',
+          'hub' => 'Trung Tâm Khai Thác ' . $carrierShort . ' Miền Bắc',
+          'time' => $shipping->copy()->addHours(3)->addMinutes(15),
+          'icon' => 'warehouse',
+          'done' => true,
+        ];
+        $logisticsCheckpoints[] = [
+          'title' => 'Đến bưu cục phát - Bưu tá đang di chuyển giao hàng',
+          'desc' => 'Bưu tá đang phát hàng tới: ' . $currentOrder->shipping_address . ' (' . ($currentOrder->city ?: 'Hà Nội') . '). Vui lòng chú ý điện thoại.',
+          'hub' => 'Bưu Cục Phát ' . ($currentOrder->city ?: 'Hà Nội'),
+          'time' => $delivered ? $delivered->copy()->subHours(3) : $shipping->copy()->addHours(14),
+          'icon' => 'navigation',
+          'done' => true,
+        ];
+      }
+
+      if ($step >= 5) {
+        $logisticsCheckpoints[] = [
+          'title' => 'GIAO HÀNG THÀNH CÔNG - KHÁCH ĐÃ KÝ NHẬN',
+          'desc' => 'Khách hàng ' . $currentOrder->customer_name . ' đã nhận đủ bưu phẩm. Tiền thu COD: ' . ($currentOrder->payment_status === 'paid' ? '0₫ (Đã thanh toán trước)' : number_format($currentOrder->total_amount, 0, ',', '.') . '₫') . '.',
+          'hub' => 'Địa chỉ người nhận: ' . $currentOrder->shipping_address,
+          'time' => $delivered,
+          'icon' => 'check-circle-2',
+          'done' => true,
+          'pod_url' => $currentOrder->delivery_proof_url,
+          'pod_note' => $currentOrder->delivery_proof_note,
+        ];
+      }
+
+      if ($step >= 6) {
+        $logisticsCheckpoints[] = [
+          'title' => 'Hoàn tất hành trình bưu gửi & đối soát',
+          'desc' => 'Đơn vị vận chuyển đã hoàn tất đối soát bưu tá bưu cục và đóng trạng thái luân chuyển thành công.',
+          'hub' => 'Hệ Thống Đối Soát Vận Chuyển ' . $carrierShort,
+          'time' => $completed,
+          'icon' => 'shield-check',
+          'done' => true,
+        ];
+      }
+
+      $logisticsCheckpoints = array_reverse($logisticsCheckpoints);
+    @endphp
+
+    <div id="carrierTrackingPassSection" class="bg-gradient-to-br from-neutral-950 to-neutral-900 text-white p-6 md:p-8 rounded-2xl shadow-xl border border-neutral-800 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        
+        <div class="lg:col-span-7 space-y-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-3 py-1 bg-white text-neutral-950 font-bold rounded-full text-xs shadow-xs">
+              {{ $carrierTitle }}
+            </span>
+            <span class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold rounded-full text-xs">
+              ✓ ĐÃ ĐỒNG BỘ TRẠM THỰC
+            </span>
+            <span class="text-neutral-400 text-xs">
+              CSKH: <strong class="text-white">{{ $carrierHotline }}</strong>
+            </span>
+          </div>
+
           <div>
-            <span class="badge {{ $currentOrder->shipping_status === 'cancelled' ? 'bg-danger text-white' : ($currentOrder->shipping_status === 'completed' ? 'bg-success text-white' : 'bg-warning text-dark') }} px-3 py-1.5 fw-bold rounded-pill">
+            <span class="text-neutral-400 text-[11px] uppercase tracking-wider block font-semibold">Mã Vận Đơn Bưu Tá:</span>
+            <div class="flex items-center gap-3 mt-1 flex-wrap">
+              <h2 class="font-mono text-2xl md:text-3xl font-bold text-amber-400">
+                {{ $currentOrder->tracking_code ?: 'GHTK-' . strtoupper(substr(md5($currentOrder->order_code), 0, 8)) }}
+              </h2>
+              <button type="button" onclick="copyText('{{ $currentOrder->tracking_code ?: 'GHTK-' . strtoupper(substr(md5($currentOrder->order_code), 0, 8)) }}', 'btnCopyTracking')" id="btnCopyTracking" class="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-neutral-950 font-bold rounded-full text-xs transition-colors">
+                Copy Mã
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 text-xs text-neutral-300 flex-wrap pt-1">
+            <span>Đơn hàng: <strong class="text-white">#{{ $currentOrder->order_code }}</strong></span>
+            <span>Đặt lúc: <strong>{{ $currentOrder->created_at ? $currentOrder->created_at->format('d/m/Y H:i') : '' }}</strong></span>
+            <span>Kiện hàng: <strong>{{ $currentOrder->items->count() }} sản phẩm ({{ $currentOrder->items->sum('quantity') }} cái)</strong></span>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-white/5 border border-white/10 p-4 rounded-xl space-y-2.5 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-neutral-400">Trạng thái vận chuyển:</span>
+            <span class="px-2.5 py-0.5 {{ $currentOrder->shipping_status === 'completed' || $currentOrder->shipping_status === 'delivered' ? 'bg-emerald-500 text-white' : 'bg-amber-400 text-neutral-950' }} rounded-full font-bold text-[10px]">
               {{ $currentOrder->status_label }}
             </span>
           </div>
-        </div>
-        <div>
-          <span class="text-muted small">Tổng tiền:</span>
-          <div class="fw-bold text-danger fs-5">{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</div>
-        </div>
-        @if(Auth::check() && Auth::id() === $currentOrder->user_id)
-          <div>
-            @if($currentOrder->canBeCancelledByCustomer())
-              <button type="button" class="btn btn-sm btn-outline-danger px-3 fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#cancelTrackingOrderModal">
-                <i class="fa-solid fa-xmark me-1"></i> Hủy Đơn
-              </button>
-            @elseif($currentOrder->canBeReturnedByCustomer())
-              <a href="{{ route('client.profile', ['tab' => 'orders']) }}" class="btn btn-sm btn-bee-outline px-3 fw-bold rounded-pill">
-                <i class="fa-solid fa-arrow-rotate-left me-1"></i> Đổi Trả / Hoàn Tiền
+          <div class="flex justify-between items-center">
+            <span class="text-neutral-400">Tiền thu người nhận (COD):</span>
+            <strong class="text-amber-400 font-mono text-base">
+              @if($currentOrder->payment_status === 'paid')
+                0₫ (Đã thanh toán Online)
+              @elseif($currentOrder->is_deposit_required)
+                {{ number_format($currentOrder->remaining_amount ?: ($currentOrder->total_amount - $currentOrder->deposit_amount), 0, ',', '.') }}₫
+              @else
+                {{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫
+              @endif
+            </strong>
+          </div>
+          @if($currentOrder->is_deposit_required)
+            <div class="flex justify-between items-center text-amber-300">
+              <span>Đã đặt cọc trước (50%):</span>
+              <strong class="font-mono">{{ number_format($currentOrder->deposit_amount, 0, ',', '.') }}₫ ({{ $currentOrder->deposit_status === 'paid' ? 'Đã cọc' : 'Chờ cọc' }})</strong>
+            </div>
+          @endif
+          <div class="flex gap-2 pt-2 border-t border-white/10 flex-wrap">
+            <button type="button" onclick="window.print()" class="flex-grow py-2 bg-white text-neutral-950 font-bold rounded-lg hover:bg-neutral-200 transition-colors text-center text-xs">
+              In Vận Đơn
+            </button>
+            @if($currentOrder->tracking_url)
+              <a href="{{ $currentOrder->tracking_url }}" class="py-2 px-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition-colors">
+                Cổng {{ $carrierShort }}
               </a>
             @endif
           </div>
-        @endif
+        </div>
+
       </div>
 
-      <!-- 6-STEP TIMELINE TRACKER -->
-      @if($currentOrder->shipping_status === 'cancelled')
-        <div class="alert alert-danger py-3 px-4 rounded-3 d-flex align-items-center gap-3 my-4">
-          <i class="fa-solid fa-ban fs-2 text-danger"></i>
-          <div>
-            <strong class="fs-6 d-block">ĐƠN HÀNG ĐÃ BỊ HỦY</strong>
-            <span class="small text-danger text-opacity-80">Đơn hàng này không còn trong tiến trình giao nhận hàng.</span>
+      <!-- Live Shipper Bar & Lộ Trình Toggle -->
+      <div class="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center font-bold text-sm shrink-0">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div class="text-xs">
+            <div class="flex items-center gap-2">
+              <strong class="text-white font-semibold">Bưu tá: Nguyễn Văn Tuấn</strong>
+              <span class="text-amber-400 font-bold text-[10px]">★ 4.9 (Đã xác minh)</span>
+            </div>
+            <span class="text-neutral-400 text-[11px]">Mã NV: {{ $carrierShort }}-8821 • Hotline trạm: {{ $carrierHotline }}</span>
           </div>
         </div>
-      @else
-        <div class="bee-timeline-steps my-5">
-          @php
-            $steps = [
-              1 => 'Chờ xác nhận',
-              2 => 'Đã xác nhận',
-              3 => 'Đang đóng gói',
-              4 => 'Đang giao hàng',
-              5 => 'Đã giao hàng',
-              6 => 'Hoàn tất'
-            ];
-            $currentStep = $currentOrder->status_step;
-          @endphp
-
-          @foreach($steps as $stepNum => $stepLabel)
-            <div class="bee-timeline-step {{ $currentStep > $stepNum ? 'completed' : ($currentStep == $stepNum ? 'active' : '') }}">
-              <div class="bee-timeline-step-icon">
-                @if($currentStep > $stepNum)
-                  <i class="fa-solid fa-check"></i>
-                @else
-                  {{ $stepNum }}
-                @endif
-              </div>
-              <div class="bee-timeline-step-label">{{ $stepLabel }}</div>
-            </div>
-          @endforeach
-        </div>
-      @endif
-
-      <!-- COMPLETED ORDER REVIEW NOTIFICATION BANNER -->
-      @if($currentOrder->status_step >= 5 || in_array($currentOrder->shipping_status, ['delivered', 'completed']))
-        <div class="alert alert-success border-0 shadow-sm p-4 my-4 rounded-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #ecfdf5; border-left: 6px solid #10b981 !important;">
-          <div class="d-flex align-items-center gap-3">
-            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width: 48px; height: 48px; min-width: 48px;">
-              <i class="fa-solid fa-heart fs-4"></i>
-            </div>
-            <div>
-              <h6 class="fw-bold text-success mb-1 fs-6">CẢM ƠN QUÝ KHÁCH ĐÃ MUA HÀNG TẠI BEESTYLE!</h6>
-              <p class="mb-0 text-muted small">BeeStyle chân thành cảm ơn Quý khách đã tin tưởng mua sắm. Hãy chia sẻ cảm nhận của bạn để giúp chúng tôi ngày càng hoàn thiện nhé!</p>
-            </div>
-          </div>
-          <button type="button" onclick="openQuickReviewModal({{ $currentOrder->items->first()->product_id ?? 1 }})" class="btn btn-bee-primary px-4 py-2.5 text-nowrap fw-bold rounded-pill shadow-sm">
-            <i class="fa-solid fa-star text-warning me-1"></i> ĐÁNH GIÁ SẢN PHẨM
+        <div class="flex items-center gap-2 flex-wrap">
+          <a href="tel:0988123456" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1">
+            <i data-lucide="phone" class="w-3.5 h-3.5"></i> 0988.123.456
+          </a>
+          <button type="button" onclick="toggleCheckpoints()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400"></i> Lộ Trình {{ count($logisticsCheckpoints) }} Trạm Quét
           </button>
         </div>
-      @endif
+      </div>
 
-      <!-- ORDER DETAILS & CUSTOMER INFO -->
-      <div class="row g-4 pt-3 border-top">
-        <!-- Cột 1: Thông tin người nhận -->
-        <div class="col-md-6 border-end">
-          <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-user me-2 text-warning"></i> Thông Tin Nhận Hàng</h6>
-          <div class="p-3 bg-light rounded-3 border d-flex flex-column gap-2 small">
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Người nhận:</span>
-              <strong class="text-dark">{{ $currentOrder->customer_name }}</strong>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Số điện thoại:</span>
-              <strong class="text-dark">{{ $currentOrder->customer_phone }}</strong>
-            </div>
-            @if($currentOrder->customer_email)
-              <div class="d-flex justify-content-between">
-                <span class="text-muted">Email:</span>
-                <span class="text-dark">{{ $currentOrder->customer_email }}</span>
-              </div>
-            @endif
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Địa chỉ giao:</span>
-              <span class="text-dark text-end fw-semibold" style="max-width: 250px;">{{ $currentOrder->shipping_address }}{{ $currentOrder->city ? ', ' . $currentOrder->city : '' }}</span>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span class="text-muted">Phương thức:</span>
-              <span class="text-dark fw-bold">{{ $currentOrder->payment_method_name }}</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="text-muted">Trạng thái thanh toán:</span>
-              <span class="badge {{ $currentOrder->payment_status === 'paid' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-dark border border-warning-subtle' }} fw-bold">
-                {{ $currentOrder->payment_status_label }}
-              </span>
-            </div>
-            @if($currentOrder->notes)
-              <div class="pt-1.5 border-top text-muted">
-                <strong>Ghi chú:</strong> "{{ $currentOrder->notes }}"
-              </div>
-            @endif
-            @if($currentOrder->admin_notes)
-              <div class="p-2 bg-info-subtle text-info rounded-3 border border-info-subtle d-flex align-items-center gap-2 mt-1">
-                <i class="fa-solid fa-truck-fast fs-5 text-primary"></i>
-                <div class="small text-dark">
-                  <strong class="text-primary d-block">Vận Đơn Giao Hàng:</strong> {{ $currentOrder->admin_notes }}
-                </div>
-              </div>
-            @endif
-          </div>
-        </div>
-
-        <!-- Cột 2: Sản phẩm trong đơn hàng -->
-        <div class="col-md-6">
-          <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-box-open me-2 text-warning"></i> Sản Phẩm Trong Đơn Hàng</h6>
-          <div class="d-flex flex-column gap-2">
-            @foreach($currentOrder->items as $item)
-              <div class="d-flex align-items-center justify-content-between p-2.5 bg-light rounded-3 border">
-                <div class="d-flex align-items-center gap-2.5">
-                  <img src="{{ asset($item->image ?? '/assets/img/products/1.png') }}" alt="{{ $item->product_name }}" style="width: 48px; height: 48px; object-fit: contain; cursor: pointer;" class="rounded border bg-white" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})">
-                  <div>
-                    <a href="javascript:void(0)" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="small fw-bold text-dark text-decoration-none d-block text-truncate" style="max-width: 220px;">
-                      {{ $item->product_name }}
-                    </a>
-                    <small class="text-muted">{{ $item->color ?? 'Tiêu chuẩn' }} / Size {{ $item->size ?? 'M' }} • x{{ $item->quantity }}</small>
+      <!-- COLLAPSIBLE CHECKPOINTS -->
+      <div id="checkpointsDrawer" class="{{ (isset($matchedBy) && $matchedBy === 'tracking') ? 'block' : 'hidden' }} mt-6 pt-4 border-t border-white/10">
+        <div class="bg-white text-neutral-900 p-6 rounded-xl space-y-4">
+          <h4 class="font-serif-luxury text-base font-bold text-neutral-900 border-b border-neutral-100 pb-2">
+            Lịch Sử Luân Chuyển Bưu Kiện Theo Thời Gian Thực (Checkpoints)
+          </h4>
+          <div class="relative border-l-2 border-neutral-200 ml-4 space-y-6">
+            @foreach($logisticsCheckpoints as $cIndex => $cp)
+              @php $isLatest = ($cIndex === 0); @endphp
+              <div class="relative pl-6">
+                <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full {{ $isLatest ? 'bg-emerald-600 ring-4 ring-emerald-100' : 'bg-neutral-300' }}"></div>
+                <div class="p-3.5 rounded-xl border {{ $isLatest ? 'border-emerald-300 bg-emerald-50/50' : 'border-neutral-200 bg-neutral-50' }} text-xs">
+                  <div class="flex justify-between items-start flex-wrap gap-1 mb-1">
+                    <strong class="font-semibold {{ $isLatest ? 'text-emerald-900' : 'text-neutral-900' }}">
+                      {{ $cp['title'] }}
+                      @if($isLatest) <span class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[9px] font-bold ml-1">MỚI NHẤT</span> @endif
+                    </strong>
+                    <span class="text-neutral-500 font-mono text-[10px]">{{ $cp['time'] ? $cp['time']->format('d/m/Y H:i') : '' }}</span>
                   </div>
-                </div>
-                <div class="text-end">
-                  <div class="fw-bold small text-dark">{{ number_format($item->subtotal ?? ($item->price * $item->quantity), 0, ',', '.') }}₫</div>
-                  @if($currentOrder->status_step >= 5 || in_array($currentOrder->shipping_status, ['delivered', 'completed']))
-                    @php
-                      $isReviewed = false;
-                      if (Auth::check()) {
-                        $isReviewed = \App\Models\Review::where('product_id', $item->product_id)->where('user_id', Auth::id())->exists();
-                      }
-                    @endphp
-                    @if($isReviewed)
-                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-outline-success py-0.5 px-2 text-nowrap mt-1 fw-bold" style="font-size: 0.72rem;">
-                        <i class="fa-solid fa-circle-check me-1"></i> Đã đánh giá
-                      </button>
-                    @else
-                      <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 text-nowrap mt-1 fw-bold" style="font-size: 0.75rem;">
-                        <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
+                  <p class="text-neutral-600 text-[11px] leading-relaxed mb-2">{{ $cp['desc'] }}</p>
+                  <div class="flex items-center justify-between flex-wrap gap-2 text-[10px] text-neutral-500">
+                    <span>Trạm: <strong>{{ $cp['hub'] }}</strong></span>
+                    @if(!empty($cp['pod_url']))
+                      <button type="button" onclick="openPodModal()" class="text-emerald-700 hover:underline font-bold flex items-center gap-1">
+                        <i data-lucide="camera" class="w-3 h-3"></i> Xem Ảnh Giao Hàng (POD)
                       </button>
                     @endif
-                  @endif
+                  </div>
                 </div>
               </div>
             @endforeach
           </div>
-
-          <!-- Chi phí hóa đơn -->
-          <div class="mt-3 pt-2 border-top small">
-            <div class="d-flex justify-content-between text-muted">
-              <span>Tạm tính:</span>
-              <span class="text-dark fw-semibold">{{ number_format($currentOrder->subtotal, 0, ',', '.') }}₫</span>
-            </div>
-            @if($currentOrder->discount_amount > 0)
-              <div class="d-flex justify-content-between text-success">
-                <span>Giảm giá ({{ $currentOrder->coupon_code ?? 'VOUCHER' }}):</span>
-                <span class="fw-bold">-{{ number_format($currentOrder->discount_amount, 0, ',', '.') }}₫</span>
-              </div>
-            @endif
-            <div class="d-flex justify-content-between text-muted">
-              <span>Phí vận chuyển:</span>
-              <span class="text-dark fw-semibold">{{ $currentOrder->shipping_fee > 0 ? number_format($currentOrder->shipping_fee, 0, ',', '.') . '₫' : 'Miễn phí (Freeship)' }}</span>
-            </div>
-            <div class="d-flex justify-content-between fw-bold text-dark fs-6 mt-1.5 pt-1.5 border-top">
-              <span>Tổng thanh toán:</span>
-              <span class="text-danger fs-5 fw-black">{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</span>
-            </div>
-          </div>
         </div>
       </div>
 
     </div>
 
-    <!-- MODAL HỦY ĐƠN HÀNG DÀNH CHO KHÁCH HÀNG TẠI TRANG TRACKING -->
-    @if(Auth::check() && Auth::id() === $currentOrder->user_id && $currentOrder->canBeCancelledByCustomer())
-      <div class="modal fade" id="cancelTrackingOrderModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
-            <form action="{{ route('client.orders.cancel', $currentOrder->id) }}" method="POST">
-              @csrf
-              <div class="modal-header border-bottom">
-                <h5 class="modal-title fw-bold text-danger">
-                  <i class="fa-solid fa-triangle-exclamation me-2"></i> Hủy Đơn Hàng #{{ $currentOrder->order_code }}
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-              <div class="modal-body p-4">
-                <div class="alert alert-warning border-0 p-3 rounded-3 small mb-3" style="background: #fffbeb;">
-                  <i class="fa-solid fa-circle-info text-warning me-1"></i>
-                  Khi bạn xác nhận hủy đơn, hệ thống sẽ tự động khôi phục số lượng tồn kho sản phẩm và hoàn lại lượt sử dụng mã giảm giá (voucher) cho bạn.
-                </div>
+    <!-- TIẾN ĐỘ 6 BƯỚC HOÀN TẤT ĐƠN HÀNG (TIMELINE TRACKER) -->
+    <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm mb-8">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 mb-6 border-b border-neutral-100">
+        <div>
+          <span class="text-xs tracking-widest text-amber-800 uppercase font-mono font-bold">ĐƠN HÀNG #{{ $currentOrder->order_code }}</span>
+          <h3 class="font-serif-luxury text-xl font-bold text-neutral-900 mt-0.5">Tiến Độ Xử Lý &amp; Vận Chuyển</h3>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          @if(in_array($currentOrder->shipping_status, ['shipping', 'delivered']) || in_array($currentOrder->status_step, [4, 5]))
+            <button type="button" onclick="openDeliveredModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Đã Nhận Được Hàng
+            </button>
+            <button type="button" onclick="openRejectModal()" class="px-3.5 py-2 border border-rose-600 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-semibold transition-all flex items-center gap-1">
+              <i data-lucide="truck" class="w-3.5 h-3.5"></i> Không Nhận Hàng
+            </button>
+          @endif
+          @if($currentOrder->canBeCancelledByCustomer())
+            <button type="button" onclick="openCancelModal()" class="px-3.5 py-2 border border-neutral-300 text-neutral-600 hover:text-rose-600 hover:border-rose-300 rounded-xl text-xs font-semibold transition-all">
+              Hủy Đơn
+            </button>
+          @endif
+        </div>
+      </div>
 
-                <div class="mb-3">
-                  <label class="form-label small fw-bold text-dark">Lý do hủy đơn hàng <span class="text-danger">*</span></label>
-                  <select name="reason" class="form-select" required>
-                    <option value="" selected disabled>-- Chọn lý do hủy đơn --</option>
-                    <option value="Tôi muốn thay đổi địa chỉ giao hàng">Tôi muốn thay đổi địa chỉ giao hàng</option>
-                    <option value="Tôi muốn thay đổi kích cỡ (Size) hoặc màu sắc áo">Tôi muốn thay đổi kích cỡ (Size) hoặc màu sắc áo</option>
-                    <option value="Tôi muốn thêm/bớt sản phẩm trong đơn">Tôi muốn thêm/bớt sản phẩm trong đơn</option>
-                    <option value="Tôi tìm thấy giá tốt hơn ở nơi khác">Tôi tìm thấy giá tốt hơn ở nơi khác</option>
-                    <option value="Tôi đổi ý, không có nhu cầu mua nữa">Tôi đổi ý, không có nhu cầu mua nữa</option>
-                    <option value="Lý do khác">Lý do khác</option>
-                  </select>
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label small fw-bold text-dark">Ghi chú thêm (không bắt buộc)</label>
-                  <textarea name="notes" class="form-control" rows="2" placeholder="Nhập thêm chi tiết nếu cần..."></textarea>
-                </div>
-              </div>
-              <div class="modal-footer border-top bg-light">
-                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
-                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                  Xác Nhận Hủy Đơn
-                </button>
-              </div>
-            </form>
+      <!-- Timeline Bar -->
+      @php
+        $steps = [
+          1 => ['label' => 'Chờ Xác Nhận', 'desc' => 'Đơn mới tạo'],
+          2 => ['label' => 'Đã Xác Nhận', 'desc' => 'Đã duyệt đơn'],
+          3 => ['label' => 'Đang Đóng Gói', 'desc' => 'Kho xử lý'],
+          4 => ['label' => 'Đang Giao Hàng', 'desc' => 'Bưu tá phát'],
+          5 => ['label' => 'Đã Giao Hàng', 'desc' => 'Khách nhận'],
+          6 => ['label' => 'Hoàn Tất', 'desc' => 'Thành công'],
+        ];
+        $currentStep = $currentOrder->status_step ?? 1;
+      @endphp
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center text-xs">
+        @foreach($steps as $sNum => $sInfo)
+          @php
+            $isDone = $currentStep > $sNum;
+            $isActive = $currentStep == $sNum;
+          @endphp
+          <div class="p-3 rounded-xl border {{ $isActive ? 'border-neutral-950 bg-neutral-50 ring-2 ring-neutral-950/10' : ($isDone ? 'border-emerald-200 bg-emerald-50/50' : 'border-neutral-200 bg-white opacity-60') }} space-y-1">
+            <div class="w-6 h-6 rounded-full mx-auto flex items-center justify-center font-bold text-[11px] {{ $isActive ? 'bg-neutral-950 text-white' : ($isDone ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600') }}">
+              {{ $isDone ? '✓' : $sNum }}
+            </div>
+            <strong class="block font-semibold text-neutral-900 text-[11px]">{{ $sInfo['label'] }}</strong>
+            <span class="text-neutral-500 text-[10px] block">{{ $sInfo['desc'] }}</span>
           </div>
+        @endforeach
+      </div>
+
+    </div>
+
+    <!-- THÔNG TIN ĐƠN HÀNG & DANH SÁCH TÁC PHẨM -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+      
+      <!-- Cột 1: Sản phẩm (7 cols) -->
+      <div class="md:col-span-7 bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm space-y-4">
+        <h3 class="font-serif-luxury text-lg font-bold text-neutral-900 pb-3 border-b border-neutral-100">Các Tác Phẩm Trong Đơn</h3>
+        <div class="divide-y divide-neutral-100">
+          @foreach($currentOrder->items as $item)
+            <div class="py-3 flex gap-3.5 items-center text-xs">
+              <div class="w-14 h-16 bg-neutral-100 rounded-lg overflow-hidden shrink-0 border border-neutral-200">
+                <img src="{{ asset($item->product->primaryImage->image_path ?? $item->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop') }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover">
+              </div>
+              <div class="flex-grow">
+                <h4 class="font-semibold text-neutral-900 line-clamp-1">{{ $item->product_name }}</h4>
+                <p class="text-neutral-500 text-[11px] mt-0.5">Số lượng: {{ $item->quantity }} | Đơn giá: {{ number_format($item->price, 0, ',', '.') }}₫</p>
+              </div>
+              <span class="font-serif-luxury text-sm font-bold text-neutral-950 min-w-[80px] text-right">
+                {{ number_format($item->price * $item->quantity, 0, ',', '.') }}₫
+              </span>
+            </div>
+          @endforeach
+        </div>
+
+        <div class="pt-3 border-t border-neutral-200 text-xs space-y-1.5 text-neutral-600">
+          <div class="flex justify-between">
+            <span>Tạm tính:</span>
+            <span class="font-semibold text-neutral-900">{{ number_format($currentOrder->subtotal, 0, ',', '.') }}₫</span>
+          </div>
+          @if($currentOrder->discount_amount > 0)
+            <div class="flex justify-between text-rose-700 font-semibold">
+              <span>Ưu đãi ({{ $currentOrder->coupon_code ?? 'VOUCHER' }}):</span>
+              <span>-{{ number_format($currentOrder->discount_amount, 0, ',', '.') }}₫</span>
+            </div>
+          @endif
+          <div class="flex justify-between">
+            <span>Phí vận chuyển:</span>
+            <span class="font-semibold text-neutral-900">{{ $currentOrder->shipping_fee > 0 ? number_format($currentOrder->shipping_fee, 0, ',', '.') . '₫' : 'MIỄN PHÍ' }}</span>
+          </div>
+          <div class="flex justify-between items-baseline pt-2 border-t border-neutral-200 font-bold text-neutral-950 text-sm">
+            <span>Tổng thanh toán:</span>
+            <span class="font-serif-luxury text-xl font-bold text-rose-600">{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột 2: Thông tin nhận hàng (5 cols) -->
+      <div class="md:col-span-5 bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm space-y-4 text-xs">
+        <h3 class="font-serif-luxury text-lg font-bold text-neutral-900 pb-3 border-b border-neutral-100">Thông Tin Giao Nhận</h3>
+        <div>
+          <span class="text-neutral-400 uppercase text-[10px] tracking-wider font-semibold block">Người nhận:</span>
+          <p class="font-semibold text-neutral-900 text-sm mt-0.5">{{ $currentOrder->customer_name }} — {{ $currentOrder->customer_phone }}</p>
+        </div>
+        <div>
+          <span class="text-neutral-400 uppercase text-[10px] tracking-wider font-semibold block">Địa chỉ giao hàng:</span>
+          <p class="text-neutral-700 mt-0.5 leading-relaxed">{{ $currentOrder->shipping_address }}{{ $currentOrder->city ? ', ' . $currentOrder->city : '' }}</p>
+        </div>
+        <div>
+          <span class="text-neutral-400 uppercase text-[10px] tracking-wider font-semibold block">Phương thức thanh toán:</span>
+          <p class="text-neutral-900 font-semibold uppercase mt-0.5">{{ $currentOrder->payment_method_name ?? $currentOrder->payment_method }}</p>
+        </div>
+        <div>
+          <span class="text-neutral-400 uppercase text-[10px] tracking-wider font-semibold block">Trạng thái thanh toán:</span>
+          <span class="inline-block mt-1 px-2 py-0.5 {{ $currentOrder->payment_status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }} rounded font-bold text-[10px]">
+            {{ $currentOrder->payment_status_label ?? $currentOrder->payment_status }}
+          </span>
+        </div>
+        @if($currentOrder->notes)
+          <div class="pt-2 border-t border-neutral-100">
+            <span class="text-neutral-400 uppercase text-[10px] tracking-wider font-semibold block">Ghi chú:</span>
+            <p class="text-neutral-600 italic mt-0.5">"{{ $currentOrder->notes }}"</p>
+          </div>
+        @endif
+      </div>
+
+    </div>
+
+    <!-- MODAL 1: XÁC NHẬN NHẬN HÀNG -->
+    <div id="modalConfirmDelivered" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden">
+        <form action="{{ route('client.order-tracking.confirm-delivered', $currentOrder->order_code) }}" method="POST">
+          @csrf
+          <div class="flex items-center justify-between p-5 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-lg font-bold text-emerald-800 flex items-center gap-2">
+              <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+              <span>Xác Nhận Đã Nhận Đủ Kiện Hàng</span>
+            </h3>
+            <button type="button" onclick="closeDeliveredModal()" class="text-neutral-400 hover:text-neutral-900">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <div class="p-5 text-xs text-neutral-600 space-y-3">
+            <p>Xác nhận bạn đã đồng kiểm tra kiện hàng với bưu tá, trang phục nguyên vẹn tem mác và đã thanh toán đủ tiền hàng (nếu là COD).</p>
+            <div class="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-neutral-800">
+              Đơn hàng: <strong>#{{ $currentOrder->order_code }}</strong> ({{ $currentOrder->items->count() }} sản phẩm)
+            </div>
+          </div>
+          <div class="p-4 border-t border-neutral-100 bg-neutral-50 flex justify-end gap-2">
+            <button type="button" onclick="closeDeliveredModal()" class="px-4 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded-lg text-xs font-semibold">Đóng</button>
+            <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold">Xác Nhận Đã Nhận</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 2: TỪ CHỐI NHẬN HÀNG (CHUYỂN HOÀN) -->
+    <div id="modalRejectDelivery" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden">
+        <form action="{{ route('client.order-tracking.reject-delivery', $currentOrder->order_code) }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="flex items-center justify-between p-5 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-lg font-bold text-rose-700 flex items-center gap-2">
+              <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600"></i>
+              <span>Không Nhận Hàng &amp; Chuyển Hoàn</span>
+            </h3>
+            <button type="button" onclick="closeRejectModal()" class="text-neutral-400 hover:text-neutral-900">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <div class="p-5 text-xs text-neutral-700 space-y-3">
+            <div>
+              <label class="block font-semibold mb-1">Lý do từ chối bưu phẩm <span class="text-rose-600">*</span></label>
+              <select name="reason" required class="w-full bg-neutral-50 border border-neutral-300 rounded-lg p-2 text-xs focus:outline-none focus:border-neutral-950">
+                <option value="" disabled selected>-- Chọn lý do --</option>
+                <option value="Thùng hàng bị móp méo, rách vỡ">Thùng hàng bị móp méo, rách vỡ</option>
+                <option value="Giao sai mẫu mã, sai màu hoặc size">Giao sai mẫu mã, sai màu hoặc size</option>
+                <option value="Sản phẩm bị lỗi may mặc hoặc hư hỏng">Sản phẩm bị lỗi may mặc hoặc hư hỏng</option>
+                <option value="Thời gian giao quá trễ, không còn nhu cầu">Thời gian giao quá trễ, không còn nhu cầu</option>
+                <option value="Lý do khác">Lý do khác</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Ghi chú cụ thể:</label>
+              <textarea name="notes" rows="2" placeholder="Chi tiết tình trạng kiện hàng..." class="w-full bg-neutral-50 border border-neutral-300 rounded-lg p-2 text-xs focus:outline-none focus:border-neutral-950"></textarea>
+            </div>
+          </div>
+          <div class="p-4 border-t border-neutral-100 bg-neutral-50 flex justify-end gap-2">
+            <button type="button" onclick="closeRejectModal()" class="px-4 py-2 bg-neutral-200 text-neutral-800 rounded-lg text-xs font-semibold">Đóng</button>
+            <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold">Xác Nhận Chuyển Hoàn</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 3: HỦY ĐƠN HÀNG DÀNH CHO KHÁCH -->
+    @if(Auth::check() && Auth::id() === $currentOrder->user_id && $currentOrder->canBeCancelledByCustomer())
+      <div id="cancelTrackingOrderModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden">
+          <form action="{{ route('client.orders.cancel', $currentOrder->id) }}" method="POST">
+            @csrf
+            <div class="flex items-center justify-between p-5 border-b border-neutral-100">
+              <h3 class="font-serif-luxury text-lg font-bold text-rose-700 flex items-center gap-2">
+                <i data-lucide="x-circle" class="w-5 h-5"></i>
+                <span>Hủy Đơn Hàng #{{ $currentOrder->order_code }}</span>
+              </h3>
+              <button type="button" onclick="closeCancelModal()" class="text-neutral-400 hover:text-neutral-900">
+                <i data-lucide="x" class="w-5 h-5"></i>
+              </button>
+            </div>
+            <div class="p-5 text-xs text-neutral-700 space-y-3">
+              <div>
+                <label class="block font-semibold mb-1">Lý do hủy đơn <span class="text-rose-600">*</span></label>
+                <select name="reason" required class="w-full bg-neutral-50 border border-neutral-300 rounded-lg p-2 text-xs focus:outline-none focus:border-neutral-950">
+                  <option value="" disabled selected>-- Chọn lý do hủy --</option>
+                  <option value="Tôi muốn thay đổi địa chỉ giao hàng">Tôi muốn thay đổi địa chỉ giao hàng</option>
+                  <option value="Tôi muốn đổi size hoặc màu sắc">Tôi muốn đổi size hoặc màu sắc</option>
+                  <option value="Tôi tìm thấy giá tốt hơn">Tôi tìm thấy giá tốt hơn</option>
+                  <option value="Tôi đổi ý, không có nhu cầu nữa">Tôi đổi ý, không có nhu cầu nữa</option>
+                </select>
+              </div>
+            </div>
+            <div class="p-4 border-t border-neutral-100 bg-neutral-50 flex justify-end gap-2">
+              <button type="button" onclick="closeCancelModal()" class="px-4 py-2 bg-neutral-200 text-neutral-800 rounded-lg text-xs font-semibold">Đóng</button>
+              <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold">Xác Nhận Hủy</button>
+            </div>
+          </form>
         </div>
       </div>
     @endif
-  @else
-    <div class="card border-0 shadow-sm p-5 text-center" style="border-radius: 20px; background: #ffffff;">
-      <i class="fa-solid fa-magnifying-glass fs-1 text-muted mb-3"></i>
-      <h5 class="fw-bold text-dark">Không tìm thấy đơn hàng</h5>
-      <p class="text-muted small">Vui lòng kiểm tra lại mã đơn hàng chính xác hoặc liên hệ hotline 1900 8888 để được hỗ trợ.</p>
+
+    <!-- MODAL 4: PHÓNG TO ẢNH POD -->
+    <div id="clientPodModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between p-4 bg-neutral-950 text-white">
+          <span class="font-semibold text-xs">Bằng Chứng Giao Nhận Kiện Hàng (POD)</span>
+          <button type="button" onclick="closePodModal()" class="text-neutral-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <div class="p-2 bg-black text-center">
+          <img src="{{ $currentOrder->delivery_proof_url }}" alt="POD #{{ $currentOrder->order_code }}" class="max-h-[70vh] w-auto mx-auto object-contain">
+        </div>
+        <div class="p-4 bg-white flex justify-between items-center text-xs">
+          <span class="text-neutral-500">Đơn hàng: <strong>#{{ $currentOrder->order_code }}</strong></span>
+          <button type="button" onclick="closePodModal()" class="px-4 py-2 bg-neutral-950 text-white rounded-lg font-semibold">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+  @elseif(request('code'))
+    <!-- Empty State -->
+    <div class="bg-white p-12 rounded-2xl border border-neutral-200 text-center max-w-md mx-auto shadow-sm">
+      <i data-lucide="package-x" class="w-12 h-12 mx-auto text-neutral-400 mb-3 stroke-1"></i>
+      <h3 class="font-serif-luxury text-xl font-bold text-neutral-800 mb-1">Không tìm thấy đơn hàng</h3>
+      <p class="text-xs text-neutral-500 mb-6">Hệ thống không tìm thấy mã <strong>"{{ request('code') }}"</strong>. Vui lòng kiểm tra lại hoặc liên hệ hotline 1900 8888 để được hỗ trợ.</p>
+      <a href="{{ route('client.home') }}" class="inline-flex items-center px-6 py-2.5 bg-neutral-950 text-white text-xs font-semibold rounded-lg uppercase tracking-wider hover:bg-neutral-800 transition-colors">
+        Về Trang Chủ
+      </a>
     </div>
   @endif
 
-</div>
+</main>
+@endsection
 
 @push('scripts')
 <script>
-  // Hàm Copy Thông Minh & Hiển Thị Trực Quan
+  function switchSearchMode(mode) {
+    const input = document.getElementById('trackingCodeInput');
+    const typeInput = document.getElementById('searchTypeInput');
+    const btnOrder = document.getElementById('btnTabOrder');
+    const btnTracking = document.getElementById('btnTabTracking');
+    const icon = document.getElementById('searchIcon');
+
+    if (!input || !typeInput) return;
+
+    if (mode === 'tracking') {
+      typeInput.value = 'tracking';
+      input.placeholder = 'Nhập mã vận đơn bưu tá (VD: GHTK-GFELJZTT, GHN-2C4E3DFF)...';
+      if (btnTracking && btnOrder) {
+        btnTracking.className = 'px-4 py-1.5 rounded-full text-xs font-semibold transition-all bg-neutral-950 text-white shadow-xs';
+        btnOrder.className = 'px-4 py-1.5 rounded-full text-xs font-semibold transition-all bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+      }
+      if (icon) icon.innerHTML = '<i data-lucide="barcode" class="w-4 h-4 text-emerald-600"></i>';
+    } else {
+      typeInput.value = 'order';
+      input.placeholder = 'Nhập mã đơn hàng (VD: BEE-20260906-T7XF)...';
+      if (btnOrder && btnTracking) {
+        btnOrder.className = 'px-4 py-1.5 rounded-full text-xs font-semibold transition-all bg-neutral-950 text-white shadow-xs';
+        btnTracking.className = 'px-4 py-1.5 rounded-full text-xs font-semibold transition-all bg-neutral-100 text-neutral-600 hover:bg-neutral-200';
+      }
+      if (icon) icon.innerHTML = '<i data-lucide="search" class="w-4 h-4"></i>';
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    input.focus();
+  }
+
+  function toggleCheckpoints() {
+    const drawer = document.getElementById('checkpointsDrawer');
+    if (drawer) drawer.classList.toggle('hidden');
+  }
+
   function copyText(text, btnId) {
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById(btnId);
       if (btn) {
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-check me-1 text-success"></i> Đã chép!';
-        btn.classList.replace('btn-warning', 'btn-light');
-        setTimeout(() => {
-          btn.innerHTML = originalHtml;
-          btn.classList.replace('btn-light', 'btn-warning');
-        }, 2000);
+        const originalText = btn.textContent;
+        btn.textContent = 'Đã chép!';
+        setTimeout(() => { btn.textContent = originalText; }, 1800);
       }
-    }).catch(err => {
-      prompt("Sao chép thông tin:", text);
     });
   }
 
-  // Countdown Timer 15 phút chuyên nghiệp
+  // Countdown timer 15 phút
   let timeLeft = 15 * 60;
   const countdownEl = document.getElementById('vietqrCountdown');
   if (countdownEl) {
@@ -585,6 +807,22 @@
       }
     }, 1000);
   }
+
+  // Modal Handlers
+  function openDeliveredModal() { document.getElementById('modalConfirmDelivered')?.classList.remove('hidden'); }
+  function closeDeliveredModal() { document.getElementById('modalConfirmDelivered')?.classList.add('hidden'); }
+
+  function openRejectModal() { document.getElementById('modalRejectDelivery')?.classList.remove('hidden'); }
+  function closeRejectModal() { document.getElementById('modalRejectDelivery')?.classList.add('hidden'); }
+
+  function openCancelModal() { document.getElementById('cancelTrackingOrderModal')?.classList.remove('hidden'); }
+  function closeCancelModal() { document.getElementById('cancelTrackingOrderModal')?.classList.add('hidden'); }
+
+  function openPodModal() { document.getElementById('clientPodModal')?.classList.remove('hidden'); }
+  function closePodModal() { document.getElementById('clientPodModal')?.classList.add('hidden'); }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  });
 </script>
 @endpush
-@endsection

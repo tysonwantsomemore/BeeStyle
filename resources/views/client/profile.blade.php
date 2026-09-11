@@ -1,1620 +1,1555 @@
 @extends('layouts.client')
 
-@section('title', 'Tài Khoản & Cài Đặt Hồ Sơ | BeeStyle Menswear')
+@section('title', 'Tài Khoản & Thiết Lập Atelier — BEESTYLE Studio')
 
 @section('content')
 @php
   $addresses = $addresses ?? ($user->addresses ?? collect());
+  $pendingReviewItems = $pendingReviewItems ?? collect();
+  $userReviews = $user->reviews ?? collect();
+  
+  $totalSpent = $orders->where('shipping_status', 'completed')->sum('total_amount');
+  if ($totalSpent <= 0) {
+    $totalSpent = $orders->where('payment_status', 'paid')->sum('total_amount');
+  }
+  
+  if ($totalSpent >= 10000000) {
+    $tierName = 'VIP Kim Cương (Diamond)';
+    $tierBadgeClass = 'bg-neutral-900 text-amber-400 border border-amber-400/40';
+    $nextTierName = 'Hạng Cao Nhất';
+    $nextTierTarget = 10000000;
+    $progressPercent = 100;
+    $neededMore = 0;
+  } elseif ($totalSpent >= 5000000) {
+    $tierName = 'VIP Vàng (Gold)';
+    $tierBadgeClass = 'bg-amber-100 text-amber-900 border border-amber-300';
+    $nextTierName = 'VIP Kim Cương';
+    $nextTierTarget = 10000000;
+    $progressPercent = min(100, round(($totalSpent / 10000000) * 100));
+    $neededMore = 10000000 - $totalSpent;
+  } elseif ($totalSpent >= 2000000) {
+    $tierName = 'Hội Viên Bạc (Silver)';
+    $tierBadgeClass = 'bg-neutral-200 text-neutral-800';
+    $nextTierName = 'VIP Vàng';
+    $nextTierTarget = 5000000;
+    $progressPercent = min(100, round(($totalSpent / 5000000) * 100));
+    $neededMore = 5000000 - $totalSpent;
+  } else {
+    $tierName = 'Thành Viên Đồng (Bronze)';
+    $tierBadgeClass = 'bg-neutral-100 text-neutral-700 border border-neutral-200';
+    $nextTierName = 'Hội Viên Bạc';
+    $nextTierTarget = 2000000;
+    $progressPercent = min(100, round(($totalSpent / 2000000) * 100));
+    $neededMore = 2000000 - $totalSpent;
+  }
 @endphp
-<div class="container py-4">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb small">
-      <li class="breadcrumb-item"><a href="{{ route('client.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
-      <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Tài khoản cá nhân</li>
-    </ol>
+
+<main class="w-full flex-grow py-10 px-6 max-w-7xl mx-auto">
+  
+  <!-- Breadcrumb Navigation -->
+  <nav class="flex items-center gap-2 text-xs text-neutral-500 mb-8 overflow-x-auto whitespace-nowrap pb-2">
+    <a href="{{ route('client.home') }}" class="hover:text-black">Trang Chủ</a>
+    <i data-lucide="chevron-right" class="w-3 h-3 text-neutral-400"></i>
+    <span class="text-neutral-900 font-semibold">Tài Khoản Thành Viên Atelier</span>
   </nav>
 
-
-
+  <!-- Flash Error Alerts -->
   @if(isset($errors) && $errors->any())
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
-      <ul class="mb-0 ps-3">
+    <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl mb-6 text-xs animate-fade-in">
+      <div class="flex items-center gap-2 font-semibold mb-1">
+        <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
+        <span>Vui lòng kiểm tra lại thông tin:</span>
+      </div>
+      <ul class="list-disc list-inside space-y-0.5 text-rose-700 pl-2">
         @foreach($errors->all() as $error)
           <li>{{ $error }}</li>
         @endforeach
       </ul>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   @endif
 
-
-  <div class="row g-4">
-    <!-- USER PROFILE SIDEBAR -->
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm p-4 text-center mb-4" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-        <div class="position-relative mx-auto mb-3" style="width: 100px; height: 100px;">
-          <img id="sidebarAvatarPreview" class="rounded-circle border border-3 border-dark object-fit-cover w-100 h-100 shadow-sm" src="{{ asset($user->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ $user->name }}">
-          <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-warning text-dark p-2 border" title="Hội viên chính thức">
-            <i class="fa-solid fa-crown fs-11"></i>
-          </span>
-        </div>
-
-        <h5 class="fw-bold text-dark mb-1" style="font-family: var(--atino-font-heading);">{{ $user->name }}</h5>
-        <p class="text-muted small mb-2">{{ $user->email }}</p>
-
-        <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
-          <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-2 rounded-pill">
-            <i class="fa-solid fa-award me-1"></i> {{ $user->rank ?? 'Thành viên Mới' }}
-          </span>
-          <span class="badge bg-light text-dark fw-bold px-3 py-2 rounded-pill border">
-            <i class="fa-solid fa-circle-check me-1 text-success"></i> Khách Hàng Thân Thiết
-          </span>
-        </div>
-
-        <!-- Navigation Tabs List -->
-        <div class="nav flex-column nav-pills text-start small border-top pt-3 gap-1" id="profileTabs" role="tablist">
-          <button class="nav-link active fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center justify-content-between" id="orders-tab" data-bs-toggle="pill" data-bs-target="#tab-orders" type="button" role="tab">
-            <span><i class="fa-solid fa-box-archive me-2 text-danger"></i> Đơn Hàng Của Tôi</span>
-            <span class="badge bg-dark text-white rounded-pill">{{ $orders->count() }}</span>
-          </button>
-
-          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center justify-content-between" id="returns-tab" data-bs-toggle="pill" data-bs-target="#tab-returns" type="button" role="tab">
-            <span><i class="fa-solid fa-arrow-rotate-left me-2 text-warning"></i> Đổi Trả &amp; Hoàn Tiền</span>
-            <span class="badge {{ isset($returns) && $returns->where('status', 'pending')->count() > 0 ? 'bg-warning text-dark' : 'bg-secondary text-white' }} rounded-pill">{{ isset($returns) ? $returns->count() : 0 }}</span>
-          </button>
-
-          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="edit-profile-tab" data-bs-toggle="pill" data-bs-target="#tab-profile" type="button" role="tab">
-            <i class="fa-solid fa-user-pen me-2 text-secondary"></i> Thông Tin Cá Nhân
-          </button>
-
-          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="bank-tab" data-bs-toggle="pill" data-bs-target="#tab-bank" type="button" role="tab">
-            <i class="fa-solid fa-building-columns me-2 text-secondary"></i> Tài Khoản Ngân Hàng
-          </button>
-
-          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="password-tab" data-bs-toggle="pill" data-bs-target="#tab-password" type="button" role="tab">
-            <i class="fa-solid fa-shield-halved me-2 text-secondary"></i> Đổi Mật Khẩu Tài Khoản
-          </button>
-
-          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="addresses-tab" data-bs-toggle="pill" data-bs-target="#tab-addresses" type="button" role="tab">
-            <i class="fa-solid fa-map-location-dot me-2 text-secondary"></i> Sổ Địa Chỉ ({{ isset($addresses) ? $addresses->count() : 0 }})
-          </button>
-
-          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center justify-content-between" id="my-reviews-tab" data-bs-toggle="pill" data-bs-target="#tab-my-reviews" type="button" role="tab">
-            <span><i class="fa-solid fa-star me-2 text-warning"></i> Đánh Giá Của Tôi</span>
-            <span class="badge bg-warning-subtle text-dark rounded-pill">{{ $user->reviews->count() }}</span>
-          </button>
-
-          <button class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center" id="rewards-tab" data-bs-toggle="pill" data-bs-target="#tab-vip" type="button" role="tab">
-            <i class="fa-solid fa-heart me-2 text-danger"></i> Tri Ân Khách Hàng &amp; Đặc Quyền
-          </button>
-
-
-          <a href="{{ route('client.products.index') }}" class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center text-dark">
-            <i class="fa-solid fa-store me-2 text-secondary"></i> Mua Sắm Sản Phẩm Mới
-          </a>
-
-          @if($user->isAdmin())
-            <a href="{{ route('admin.dashboard') }}" class="nav-link fw-bold py-2.5 px-3 rounded-3 text-start d-flex align-items-center text-danger">
-              <i class="fa-solid fa-gauge-high me-2"></i> Bảng Quản Trị Hệ Thống (Admin)
-            </a>
-          @endif
-        </div>
-
-        <!-- Logout Form -->
-        <form action="{{ route('auth.logout') }}" method="POST" class="mt-3 pt-3 border-top">
-          @csrf
-          <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-2 fw-semibold rounded-pill">
-            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Đăng Xuất Tài Khoản
-          </button>
-        </form>
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT COLUMN: User Sidebar & Tab Navigation (4 cols) -->
+    <div class="lg:col-span-4 bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-center">
+      
+      <!-- Avatar & Crown -->
+      <div class="relative w-24 h-24 mx-auto mb-4">
+        <img id="sidebarAvatarPreview" src="{{ asset($user->avatar ?? 'assets/img/team/40x40/58.webp') }}" alt="{{ $user->name }}" class="w-full h-full rounded-full object-cover border-2 border-neutral-900 shadow-md">
+        <span class="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center border-2 border-white shadow-xs" title="Hội viên VIP Atelier">
+          <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+        </span>
       </div>
+
+      <!-- User Info -->
+      <h2 class="font-serif-luxury text-2xl font-bold text-neutral-900 mb-1">{{ $user->name }}</h2>
+      <p class="text-xs text-neutral-500 mb-3">{{ $user->email }}</p>
+      
+      <div class="flex justify-center items-center gap-2 mb-6 flex-wrap">
+        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase {{ $tierBadgeClass }}">
+          {{ $tierName }}
+        </span>
+        <span class="px-2.5 py-1 bg-neutral-100 text-neutral-700 rounded-full text-[10px] font-semibold">
+          {{ number_format($user->points ?? 150) }} ĐIỂM THƯỞNG
+        </span>
+      </div>
+
+      <!-- Navigation Tabs List -->
+      <div class="space-y-1 text-left text-xs font-medium border-t border-neutral-100 pt-4" id="profileTabs">
+        
+        <button onclick="switchProfileTab('orders')" id="tab-btn-orders" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors bg-neutral-950 text-white font-semibold profile-tab-btn">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="shopping-bag" class="w-4 h-4 text-amber-400"></i>
+            <span>Đơn Hàng Của Tôi</span>
+          </div>
+          <span class="px-2 py-0.5 bg-neutral-800 text-white rounded-full text-[10px] font-bold">{{ $orders->count() }}</span>
+        </button>
+
+        <button onclick="switchProfileTab('pending-reviews')" id="tab-btn-pending-reviews" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+            <span>Chờ Đánh Giá</span>
+          </div>
+          <span class="px-2 py-0.5 {{ $pendingReviewItems->count() > 0 ? 'bg-rose-100 text-rose-700 font-bold' : 'bg-neutral-100 text-neutral-600' }} rounded-full text-[10px]">
+            {{ $pendingReviewItems->count() }}
+          </span>
+        </button>
+
+        <button onclick="switchProfileTab('my-reviews')" id="tab-btn-my-reviews" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="star" class="w-4 h-4 text-amber-500"></i>
+            <span>Đánh Giá Của Tôi</span>
+          </div>
+          <span class="px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-full text-[10px]">{{ $userReviews->count() }}</span>
+        </button>
+
+        <button onclick="switchProfileTab('returns')" id="tab-btn-returns" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-600"></i>
+            <span>Đổi Trả &amp; Hoàn Tiền (RMA)</span>
+          </div>
+          <span class="px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-full text-[10px]">{{ isset($returns) ? $returns->count() : 0 }}</span>
+        </button>
+
+        <button onclick="switchProfileTab('profile')" id="tab-btn-profile" class="w-full flex items-center gap-2.5 p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <i data-lucide="user" class="w-4 h-4 text-neutral-400"></i>
+          <span>Hồ Sơ &amp; Liên Hệ (2-Step OTP)</span>
+        </button>
+
+        <button onclick="switchProfileTab('bank')" id="tab-btn-bank" class="w-full flex items-center gap-2.5 p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <i data-lucide="credit-card" class="w-4 h-4 text-neutral-400"></i>
+          <span>Tài Khoản Ngân Hàng Hoàn Tiền</span>
+        </button>
+
+        <button onclick="switchProfileTab('password')" id="tab-btn-password" class="w-full flex items-center gap-2.5 p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <i data-lucide="shield" class="w-4 h-4 text-neutral-400"></i>
+          <span>Đổi Mật Khẩu &amp; Revoke Sessions</span>
+        </button>
+
+        <button onclick="switchProfileTab('addresses')" id="tab-btn-addresses" class="w-full flex items-center justify-between p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="map-pin" class="w-4 h-4 text-neutral-400"></i>
+            <span>Sổ Địa Chỉ Giao Hàng</span>
+          </div>
+          <span class="px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-full text-[10px]">{{ $addresses->count() }}</span>
+        </button>
+
+        <button onclick="switchProfileTab('vip')" id="tab-btn-vip" class="w-full flex items-center gap-2.5 p-3 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-50 profile-tab-btn">
+          <i data-lucide="gift" class="w-4 h-4 text-amber-600"></i>
+          <span>Đặc Quyền Thành Viên Atelier</span>
+        </button>
+
+      </div>
+
+      <!-- Logout Form -->
+      <form action="{{ route('auth.logout') }}" method="POST" class="mt-6 pt-4 border-t border-neutral-100">
+        @csrf
+        <button type="submit" class="w-full py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Đăng Xuất Tài Khoản</span>
+        </button>
+      </form>
+
     </div>
 
-    <!-- TAB CONTENTS -->
-    <div class="col-lg-8">
-      <div class="tab-content" id="profileTabsContent">
-        
-        <!-- TAB 1: ORDER HISTORY -->
-        <div class="tab-pane fade show active" id="tab-orders" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-              <h5 class="fw-bold text-dark mb-0 text-uppercase" style="font-family: var(--atino-font-heading);">
-                <i class="fa-solid fa-clock-rotate-left me-2 text-danger"></i> Lịch Sử Đơn Hàng ({{ $orders->count() }})
-              </h5>
-              <a href="{{ route('client.products.index') }}" class="small text-danger fw-bold text-decoration-none">
-                Đặt thêm sản phẩm <i class="fa-solid fa-arrow-right ms-1"></i>
-              </a>
+    <!-- RIGHT COLUMN: Tab Contents (8 cols) -->
+    <div class="lg:col-span-8 space-y-6">
+      
+      <!-- ========================================================================= -->
+      <!-- TAB 1: ORDERS HISTORY & ACTIONS -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-orders" class="profile-panel space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+          <div class="flex justify-between items-center pb-4 mb-6 border-b border-neutral-100">
+            <div>
+              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Lịch Sử Đơn Hàng</h3>
+              <p class="text-xs text-neutral-500 mt-0.5">Theo dõi chi tiết các đơn may đo, đánh giá sản phẩm và đổi trả</p>
             </div>
+            <a href="{{ route('client.products.index') }}" class="text-xs text-amber-800 font-semibold hover:underline flex items-center gap-1">
+              <span>Mua thêm</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
 
-            <!-- TOP PENDING REVIEWS BANNER (Nổi bật nhắc nhở đánh giá đơn hoàn tất) -->
-            @if(isset($pendingReviewItems) && $pendingReviewItems->count() > 0)
-              <div class="alert alert-warning border-0 shadow-sm p-3 mb-4 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fffbeb; border-left: 5px solid #f59e0b !important;">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; min-width: 44px;">
-                    <i class="fa-solid fa-gift fs-4"></i>
-                  </div>
-                  <div>
-                    <h6 class="fw-bold text-dark mb-1 small text-uppercase">Bạn có {{ $pendingReviewItems->count() }} sản phẩm từ đơn hàng hoàn tất chưa đánh giá!</h6>
-                    <p class="mb-0 text-muted small">Cảm ơn bạn đã mua hàng! Hãy chia sẻ cảm nhận để giúp BeeStyle ngày càng hoàn thiện nhé.</p>
-                  </div>
-                </div>
-                <div class="d-flex gap-2">
-                  <a href="{{ route('client.products.show', $pendingReviewItems->first()->product_id) }}#reviews" class="btn btn-bee-primary btn-sm px-3 fw-bold text-nowrap">
-                    <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
-                  </a>
-                </div>
-              </div>
-            @endif
-
-            <div class="d-flex flex-column gap-3">
-              @forelse($orders as $order)
-                <div class="border rounded-3 p-3 bg-light-subtle">
-                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pb-2 border-bottom mb-3">
+          @if($orders->isEmpty())
+            <div class="text-center py-12 text-neutral-500 text-xs">
+              <i data-lucide="package" class="w-12 h-12 mx-auto text-neutral-300 mb-2 stroke-1"></i>
+              <p class="font-medium text-neutral-800">Bạn chưa có đơn hàng nào tại BeeStyle</p>
+              <a href="{{ route('client.products.index') }}" class="inline-block mt-3 text-amber-800 font-semibold underline">Khám phá các thiết kế mới ngay</a>
+            </div>
+          @else
+            <div class="space-y-5">
+              @foreach($orders as $order)
+                <div class="p-5 rounded-xl border border-neutral-200 bg-neutral-50/60 space-y-4 text-xs shadow-2xs">
+                  
+                  <!-- Order Top Info -->
+                  <div class="flex flex-wrap justify-between items-center gap-2 pb-3 border-b border-neutral-200">
                     <div>
-                      <span class="small text-muted">Mã đơn hàng:</span>
-                      <strong class="text-dark font-monospace fs-9">{{ $order->order_code }}</strong>
-                      <span class="text-muted small ms-2">({{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }})</span>
+                      <span class="font-mono font-bold text-neutral-950 text-sm">#{{ $order->order_code }}</span>
+                      <span class="text-neutral-400 text-[11px] ml-2">{{ $order->created_at->format('d/m/Y H:i') }}</span>
                     </div>
-                    <div>
+                    <div class="flex items-center gap-2">
                       @if($order->shipping_status === 'completed')
-                        <span class="badge bg-success-subtle text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Hoàn tất</span>
+                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Hoàn tất</span>
                       @elseif($order->shipping_status === 'delivered')
-                        <span class="badge bg-success-subtle text-success fw-bold"><i class="fa-solid fa-box-open me-1"></i> Đã giao hàng</span>
+                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Đã giao hàng</span>
                       @elseif($order->shipping_status === 'shipping')
-                        <span class="badge bg-warning-subtle text-dark fw-bold"><i class="fa-solid fa-truck-fast me-1"></i> Đang giao hàng</span>
+                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">Đang giao hàng</span>
                       @elseif($order->shipping_status === 'processing')
-                        <span class="badge bg-info-subtle text-info fw-bold"><i class="fa-solid fa-box me-1"></i> Đang đóng gói</span>
+                        <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded font-bold text-[10px]">Đang đóng gói</span>
                       @elseif($order->shipping_status === 'cancelled')
-                        <span class="badge bg-danger-subtle text-danger fw-bold"><i class="fa-solid fa-xmark me-1"></i> Đã hủy</span>
+                        @if(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
+                          <span class="px-2.5 py-0.5 bg-rose-600 text-white rounded font-bold text-[10px]">Khách không nhận (Chuyển hoàn)</span>
+                        @else
+                          <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded font-bold text-[10px]">Đã hủy</span>
+                        @endif
                       @else
-                        <span class="badge bg-secondary-subtle text-dark fw-bold"><i class="fa-solid fa-hourglass-start me-1"></i> Chờ xác nhận</span>
+                        <span class="px-2.5 py-0.5 bg-neutral-200 text-neutral-800 rounded font-bold text-[10px]">Chờ xác nhận</span>
                       @endif
+
+                      <span class="font-serif-luxury text-base font-bold text-neutral-950 ml-1">
+                        {{ number_format($order->total_amount, 0, ',', '.') }}₫
+                      </span>
                     </div>
                   </div>
 
-                  <!-- Cancelled Order Info Banner -->
-                  @if($order->shipping_status === 'cancelled')
-                    <div class="alert alert-danger border-0 py-2 px-3 mb-3 rounded-2 small d-flex align-items-center gap-2" style="background: #fef2f2;">
-                      <i class="fa-solid fa-ban text-danger fs-5"></i>
-                      <div>
-                        <strong class="text-danger">Đơn hàng đã hủy:</strong>
-                        <span class="text-dark">{{ $order->cancel_reason ?: 'Hủy theo yêu cầu của khách hàng' }}</span>
-                        <small class="text-muted d-block" style="font-size: 0.72rem;">Thời gian hủy: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i') : ($order->updated_at ? $order->updated_at->format('d/m/Y H:i') : '') }}</small>
+                  <!-- Banner cảnh báo Đơn hàng từ chối nhận / Đã hủy -->
+                  @if(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 flex items-start gap-2.5">
+                      <i data-lucide="truck" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                      <div class="text-[11px]">
+                        <strong>Đơn hàng đã từ chối nhận (Đang chuyển hoàn về kho):</strong>
+                        <span>{{ $order->cancel_reason ?: 'Khách hàng từ chối nhận bưu phẩm' }}</span>
+                        <span class="block text-neutral-400 text-[10px] mt-0.5">Thời gian ghi nhận: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i') : '' }}</span>
+                      </div>
+                    </div>
+                  @elseif($order->shipping_status === 'cancelled')
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 flex items-start gap-2.5">
+                      <i data-lucide="x-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                      <div class="text-[11px]">
+                        <strong>Đơn hàng đã hủy:</strong> <span>{{ $order->cancel_reason ?: 'Hủy theo yêu cầu' }}</span>
+                        <span class="block text-neutral-400 text-[10px] mt-0.5">Thời gian: {{ $order->cancelled_at ? $order->cancelled_at->format('d/m/Y H:i') : '' }}</span>
                       </div>
                     </div>
                   @endif
 
-                  <!-- Active RMA / Return Request Banner -->
+                  <!-- Banner Đổi Trả RMA Active -->
                   @if($order->latestReturn)
-                    <div class="alert alert-warning border-0 py-2 px-3 mb-3 rounded-2 small d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
-                      <div>
-                        <i class="fa-solid fa-arrow-rotate-left text-warning me-1"></i>
-                        <strong>Yêu Cầu Đổi Trả #{{ $order->latestReturn->return_code }}:</strong> {{ $order->latestReturn->type_label }} - <em>{{ $order->latestReturn->reason }}</em>
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-950 flex items-center justify-between flex-wrap gap-2">
+                      <div class="text-[11px]">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline text-amber-700 mr-1"></i>
+                        <strong>Yêu Cầu Đổi Trả #RMA-{{ str_pad($order->latestReturn->id, 5, '0', STR_PAD_LEFT) }}:</strong>
+                        <span>{{ $order->latestReturn->type_label ?? 'Đổi trả hàng' }}</span>
                       </div>
-                      <div class="d-flex align-items-center gap-2">
-                        {!! $order->latestReturn->status_badge !!}
-                        <button type="button" class="btn btn-sm btn-outline-dark py-0.5 px-2 fw-bold" style="font-size: 0.72rem;" onclick="document.getElementById('returns-tab').click()">
-                          Xem Tiến Trình
-                        </button>
-                      </div>
+                      <button type="button" onclick="switchProfileTab('returns')" class="px-2.5 py-1 bg-white border border-neutral-300 rounded font-semibold text-[10px] hover:bg-neutral-50">
+                        Xem Tiến Trình
+                      </button>
                     </div>
                   @endif
 
-                  <!-- Completed Order Prompt Banner -->
-                  @if($order->shipping_status === 'delivered' || $order->shipping_status === 'completed' || $order->status_step >= 5)
-                    <div class="alert alert-success border-0 py-2 px-3 mb-3 rounded-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #ecfdf5;">
-                      <div class="small text-success">
-                        <i class="fa-solid fa-circle-check me-1"></i> <strong>Đơn hàng đã hoàn tất!</strong> Cảm ơn bạn đã mua sắm tại BeeStyle. Hãy đánh giá các sản phẩm bên dưới.
-                      </div>
-                    </div>
-                  @endif
-
-                  <!-- Order Items -->
-                  <div class="d-flex flex-column gap-2 mb-3">
-                    @php
-                      $userReviewedIds = $user->reviews->pluck('product_id')->toArray();
-                    @endphp
+                  <!-- Order Items List with Review & Return Buttons -->
+                  <div class="space-y-3">
                     @foreach($order->items as $item)
-                      @php
-                        $hasReviewedThisItem = in_array($item->product_id, $userReviewedIds);
-                      @endphp
-                      <div class="d-flex align-items-center justify-content-between p-2.5 bg-white rounded-3 border">
-                        <div class="d-flex align-items-center gap-2.5">
-                          <img src="{{ asset($item->image ?? '/assets/img/products/1.png') }}" alt="{{ $item->product_name }}" style="width: 48px; height: 48px; object-fit: cover; cursor: pointer;" class="rounded border" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})">
-                          <div>
-                            <a href="javascript:void(0)" onclick="openQuickReviewModal({{ $item->product_id ?? 1 }})" class="small fw-semibold text-dark text-decoration-none d-block">
+                      <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-neutral-200/80 hover:border-neutral-300 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0 pr-2">
+                          <div class="w-12 h-14 bg-neutral-100 rounded-lg border border-neutral-200 overflow-hidden shrink-0">
+                            <img src="{{ asset($item->product->primaryImage->image_path ?? $item->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop') }}" alt="{{ $item->product_name }}" class="w-full h-full object-cover">
+                          </div>
+                          <div class="min-w-0">
+                            <a href="{{ route('client.products.show', $item->product_id ?: 1) }}" class="font-semibold text-neutral-900 hover:text-amber-800 transition-colors block line-clamp-1 text-xs">
                               {{ $item->product_name }}
                             </a>
-                            <small class="text-muted">Màu: {{ $item->color ?? 'Tiêu chuẩn' }} | Size: {{ $item->size ?? 'M' }} • SL: x{{ $item->quantity }}</small>
+                            <span class="text-[11px] text-neutral-500">Màu: {{ $item->color ?? 'Chuẩn' }} | Size: {{ $item->size ?? 'M' }} • SL: x{{ $item->quantity }}</span>
                           </div>
                         </div>
-                        <div class="text-end">
-                          <span class="small fw-bold text-dark d-block">{{ number_format($item->subtotal ?? ($item->price * $item->quantity), 0, ',', '.') }}₫</span>
-                          @if($order->shipping_status === 'delivered' || $order->shipping_status === 'completed' || $order->status_step >= 5)
-                            @if($hasReviewedThisItem)
-                              <button type="button" id="order-btn-review-{{ $item->product_id ?: ($item->product->id ?? 1) }}" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-outline-success py-0.5 px-2 mt-1 fw-bold text-nowrap" style="font-size: 0.72rem;">
-                                <i class="fa-solid fa-circle-check me-1"></i> Xem / Sửa Đánh Giá
+
+                        <div class="text-right flex flex-col items-end gap-1.5 shrink-0">
+                          <span class="font-serif-luxury font-bold text-neutral-950">
+                            {{ number_format($item->price * $item->quantity, 0, ',', '.') }}₫
+                          </span>
+                          
+                          <!-- Nút Đổi Trả & Đánh Giá Cho Đơn Đã Giao -->
+                          @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
+                            <div class="flex items-center gap-1.5">
+                              <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, {{ $item->id }})" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-md font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-sm" title="Yêu cầu đổi trả riêng cho sản phẩm này">
+                                <i data-lucide="rotate-ccw" class="w-3 h-3 text-amber-700"></i> Đổi trả
                               </button>
-                            @else
-                              <button type="button" id="order-btn-review-{{ $item->product_id ?: ($item->product->id ?? 1) }}" onclick="openQuickReviewModal({{ $item->product_id ?: ($item->product->id ?? 1) }})" class="btn btn-sm btn-bee-primary py-0.5 px-2.5 mt-1 fw-bold text-nowrap" style="font-size: 0.75rem;">
-                                <i class="fa-solid fa-star text-warning me-1"></i> Đánh giá ngay
+                              <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: 1 }}, '{{ addslashes($item->product_name) }}')" class="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-md font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-sm">
+                                <i data-lucide="star" class="w-3 h-3 text-amber-400"></i> Đánh giá
                               </button>
-                            @endif
+                            </div>
                           @endif
                         </div>
                       </div>
                     @endforeach
                   </div>
 
-                  <!-- Order Footer -->
-                  <div class="d-flex justify-content-between align-items-center pt-2 border-top flex-wrap gap-2">
-                    <div>
-                      <span class="small text-muted">Phương thức: <strong>{{ $order->payment_method_name }}</strong></span>
-                      <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success-subtle text-success' : ($order->payment_status === 'refunded' ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-dark') }} ms-1">
-                        {{ $order->payment_status_label }}
-                      </span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                      <div>
-                        <span class="small text-muted">Tổng tiền: </span>
-                        <strong class="text-danger fs-6">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong>
-                      </div>
-
-                      @if($order->payment_status !== 'paid' && $order->payment_status !== 'refunded' && $order->shipping_status !== 'cancelled' && in_array($order->payment_method, ['online', 'momo', 'zalopay', 'vietqr', 'vnpay']))
-                        @php
-                          $gatewayRoute = match($order->payment_method) {
-                            'momo' => route('client.checkout.momo', $order->order_code),
-                            'zalopay' => route('client.checkout.zalopay', $order->order_code),
-                            'online', 'vietqr', 'vnpay' => route('client.checkout.online', $order->order_code),
-                            default => route('client.order-tracking', ['code' => $order->order_code]),
-                          };
-                        @endphp
-                        <a href="{{ $gatewayRoute }}" class="btn btn-sm btn-bee-primary fw-bold px-3 shadow-xs">
-                          <i class="fa-solid fa-credit-card me-1"></i> Mở Cổng Thanh Toán
-                        </a>
-                      @endif
-
-                      @if($order->canBeCancelledByCustomer())
-                        <button type="button" class="btn btn-sm btn-outline-danger fw-bold px-2.5" data-bs-toggle="modal" data-bs-target="#cancelOrderModal{{ $order->id }}">
-                          <i class="fa-solid fa-xmark me-1"></i> Hủy Đơn
-                        </button>
-                      @endif
-
-                      @if($order->canBeReturnedByCustomer())
-                        <button type="button" class="btn btn-sm btn-bee-outline fw-bold px-2.5" data-bs-toggle="modal" data-bs-target="#returnOrderModal{{ $order->id }}">
-                          <i class="fa-solid fa-arrow-rotate-left me-1"></i> Đổi Trả / Hoàn Tiền
-                        </button>
-                      @endif
-
-                      <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="btn btn-sm btn-light border text-dark">
-                        <i class="fa-solid fa-truck-fast me-1 text-secondary"></i> Tra Cứu
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- MODAL HỦY ĐƠN HÀNG DÀNH CHO KHÁCH HÀNG -->
-                @if($order->canBeCancelledByCustomer())
-                  <div class="modal fade" id="cancelOrderModal{{ $order->id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                      <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
-                        <form action="{{ route('client.orders.cancel', $order->id) }}" method="POST">
-                          @csrf
-                          <div class="modal-header border-bottom">
-                            <h5 class="modal-title fw-bold text-danger">
-                              <i class="fa-solid fa-triangle-exclamation me-2"></i> Hủy Đơn Hàng #{{ $order->order_code }}
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                          </div>
-                          <div class="modal-body p-4">
-                            <div class="alert alert-warning border-0 p-3 rounded-3 small mb-3" style="background: #fffbeb;">
-                              <i class="fa-solid fa-circle-info text-warning me-1"></i>
-                              Khi bạn xác nhận hủy đơn, hệ thống sẽ tự động khôi phục số lượng tồn kho sản phẩm và hoàn lại lượt sử dụng mã giảm giá (voucher) cho bạn.
-                            </div>
-
-                            <div class="mb-3">
-                              <label class="form-label small fw-bold text-dark">Lý do hủy đơn hàng <span class="text-danger">*</span></label>
-                              <select name="reason" class="form-select" required>
-                                <option value="" selected disabled>-- Chọn lý do hủy đơn --</option>
-                                <option value="Tôi muốn thay đổi địa chỉ giao hàng">Tôi muốn thay đổi địa chỉ giao hàng</option>
-                                <option value="Tôi muốn thay đổi kích cỡ (Size) hoặc màu sắc áo">Tôi muốn thay đổi kích cỡ (Size) hoặc màu sắc áo</option>
-                                <option value="Tôi muốn thêm/bớt sản phẩm trong đơn">Tôi muốn thêm/bớt sản phẩm trong đơn</option>
-                                <option value="Tôi tìm thấy giá tốt hơn ở nơi khác">Tôi tìm thấy giá tốt hơn ở nơi khác</option>
-                                <option value="Tôi đổi ý, không có nhu cầu mua nữa">Tôi đổi ý, không có nhu cầu mua nữa</option>
-                                <option value="Lý do khác">Lý do khác</option>
-                              </select>
-                            </div>
-
-                            <div class="mb-3">
-                              <label class="form-label small fw-bold text-dark">Ghi chú thêm (không bắt buộc)</label>
-                              <textarea name="notes" class="form-control" rows="2" placeholder="Nhập thêm chi tiết nếu cần..."></textarea>
-                            </div>
-                          </div>
-                          <div class="modal-footer border-top bg-light">
-                            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
-                            <button type="submit" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                              Xác Nhận Hủy Đơn
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                @endif
-
-                <!-- MODAL YÊU CẦU ĐỔI TRẢ & HOÀN TIỀN (RMA) -->
-                @if($order->canBeReturnedByCustomer())
-                  <div class="modal fade" id="returnOrderModal{{ $order->id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                      <div class="modal-content border-0 shadow-2xl" style="border-radius: 20px;">
-                        <form action="{{ route('client.orders.return.store', $order->id) }}" method="POST" enctype="multipart/form-data">
-                          @csrf
-                          <div class="modal-header border-bottom p-4">
-                            <div>
-                              <h5 class="modal-title fw-bold text-dark mb-1">
-                                <i class="fa-solid fa-arrow-rotate-left text-warning me-2"></i> Yêu Cầu Đổi Trả / Hoàn Tiền (RMA)
-                              </h5>
-                              <p class="text-muted small mb-0">Đơn hàng: <strong class="text-dark font-monospace">#{{ $order->order_code }}</strong> (Tổng: {{ number_format($order->total_amount, 0, ',', '.') }}₫)</p>
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                          </div>
-
-                          <div class="modal-body p-4">
-                            <!-- CHỌN HÌNH THỨC XỬ LÝ -->
-                            <div class="mb-4">
-                              <label class="form-label small fw-bold text-dark">Hình thức mong muốn <span class="text-danger">*</span></label>
-                              <div class="row g-2">
-                                <div class="col-md-4">
-                                  <label class="p-3 border rounded-3 d-flex align-items-center gap-2 cursor-pointer w-100 h-100 bg-light" style="cursor: pointer;">
-                                    <input type="radio" name="type" value="return_refund" class="form-check-input mt-0" checked onchange="toggleRmaFields(this.value, {{ $order->id }})">
-                                    <div class="small">
-                                      <strong class="d-block text-dark">Trả Hàng &amp; Hoàn Tiền</strong>
-                                      <span class="text-muted" style="font-size: 0.72rem;">Gửi hàng về kho nhận lại 100% tiền</span>
-                                    </div>
-                                  </label>
-                                </div>
-                                <div class="col-md-4">
-                                  <label class="p-3 border rounded-3 d-flex align-items-center gap-2 cursor-pointer w-100 h-100 bg-light" style="cursor: pointer;">
-                                    <input type="radio" name="type" value="exchange" class="form-check-input mt-0" onchange="toggleRmaFields(this.value, {{ $order->id }})">
-                                    <div class="small">
-                                      <strong class="d-block text-dark">Đổi Size / Đổi Màu</strong>
-                                      <span class="text-muted" style="font-size: 0.72rem;">Đổi sang size áo vừa vặn hơn</span>
-                                    </div>
-                                  </label>
-                                </div>
-                                <div class="col-md-4">
-                                  <label class="p-3 border rounded-3 d-flex align-items-center gap-2 cursor-pointer w-100 h-100 bg-light" style="cursor: pointer;">
-                                    <input type="radio" name="type" value="refund_only" class="form-check-input mt-0" onchange="toggleRmaFields(this.value, {{ $order->id }})">
-                                    <div class="small">
-                                      <strong class="d-block text-dark">Chỉ Hoàn Tiền</strong>
-                                      <span class="text-muted" style="font-size: 0.72rem;">Hàng lỗi hỏng nặng không cần trả</span>
-                                    </div>
-                                  </label>
-                                </div>
-                              </div>
-                            </div>
-
-                            <!-- CHỌN SẢN PHẨM MUỐN TRẢ -->
-                            <div class="mb-3">
-                              <label class="form-label small fw-bold text-dark">Sản phẩm áp dụng đổi/trả</label>
-                              <select name="order_item_id" class="form-select">
-                                <option value="">Toàn bộ đơn hàng ({{ $order->items->count() }} sản phẩm)</option>
-                                @foreach($order->items as $oItem)
-                                  <option value="{{ $oItem->id }}">{{ $oItem->product_name }} ({{ $oItem->color ?? 'Chuẩn' }} / Size {{ $oItem->size ?? 'M' }}) - {{ number_format($oItem->subtotal ?: ($oItem->price * $oItem->quantity), 0, ',', '.') }}₫</option>
-                                @endforeach
-                              </select>
-                            </div>
-
-                            <!-- LÝ DO ĐỔI TRẢ -->
-                            <div class="mb-3">
-                              <label class="form-label small fw-bold text-dark">Lý do đổi trả <span class="text-danger">*</span></label>
-                              <select name="reason" class="form-select" required>
-                                <option value="" selected disabled>-- Chọn lý do cụ thể --</option>
-                                <option value="Sản phẩm bị lỗi vải, rách hoặc bung chỉ từ xưởng">Sản phẩm bị lỗi vải, rách hoặc bung chỉ từ xưởng</option>
-                                <option value="Giao sai mẫu, sai màu hoặc sai kích thước (Size)">Giao sai mẫu, sai màu hoặc sai kích thước (Size)</option>
-                                <option value="Mặc không vừa kích cỡ (Yêu cầu đổi sang Size khác)">Mặc không vừa kích cỡ (Yêu cầu đổi sang Size khác)</option>
-                                <option value="Sản phẩm không đúng với hình ảnh và mô tả trên web">Sản phẩm không đúng với hình ảnh và mô tả trên web</option>
-                                <option value="Sản phẩm bị hư hại trong quá trình vận chuyển">Sản phẩm bị hư hại trong quá trình vận chuyển</option>
-                                <option value="Lý do khác">Lý do khác</option>
-                              </select>
-                            </div>
-
-                            <!-- TRƯỜNG HỢP ĐỔI SIZE / MÀU -->
-                            <div class="row g-2 mb-3 d-none" id="exchangeFields{{ $order->id }}">
-                              <div class="col-md-6">
-                                <label class="form-label small fw-bold text-dark">Size mong muốn đổi</label>
-                                <select name="exchange_size" class="form-select">
-                                  <option value="S">Size S (48 - 56kg)</option>
-                                  <option value="M" selected>Size M (57 - 65kg)</option>
-                                  <option value="L">Size L (66 - 73kg)</option>
-                                  <option value="XL">Size XL (74 - 82kg)</option>
-                                  <option value="2XL">Size 2XL (83 - 92kg)</option>
-                                </select>
-                              </div>
-                              <div class="col-md-6">
-                                <label class="form-label small fw-bold text-dark">Màu sắc mong muốn</label>
-                                <input type="text" name="exchange_color" class="form-control" placeholder="Ví dụ: Đen Obsidian, Trắng Basic, Xanh Navy...">
-                              </div>
-                            </div>
-
-                            <!-- THÔNG TIN TÀI KHOẢN NGÂN HÀNG HOÀN TIỀN -->
-                            <div id="refundBankFields{{ $order->id }}" class="p-3 bg-light rounded-3 border mb-3">
-                              <h6 class="fw-bold text-dark small mb-2"><i class="fa-solid fa-building-columns text-warning me-1"></i> Thông Tin Nhận Tiền Hoàn Trả</h6>
-                              <div class="row g-2">
-                                <div class="col-md-4">
-                                  <label class="form-label small text-muted">Tên Ngân Hàng</label>
-                                  <input type="text" name="bank_name" value="{{ $user->bank_name ?? '' }}" class="form-control form-control-sm" placeholder="VD: Vietcombank, MB Bank, Techcombank...">
-                                </div>
-                                <div class="col-md-4">
-                                  <label class="form-label small text-muted">Số Tài Khoản</label>
-                                  <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" class="form-control form-control-sm font-monospace" placeholder="Nhập số tài khoản...">
-                                </div>
-                                <div class="col-md-4">
-                                  <label class="form-label small text-muted">Tên Chủ Tài Khoản</label>
-                                  <input type="text" name="bank_account_name" value="{{ $user->bank_account_name ?? $user->name }}" class="form-control form-control-sm text-uppercase" placeholder="NGUYEN VAN A">
-                                </div>
-                              </div>
-                            </div>
-
-                            <!-- TẢI LÊN ẢNH MINH CHỨNG -->
-                            <div class="mb-3">
-                              <label class="form-label small fw-bold text-dark">Ảnh chụp cận cảnh tem mác và lỗi sản phẩm (Tối đa 4 ảnh)</label>
-                              <input type="file" name="image_proofs[]" multiple accept="image/*" class="form-control">
-                              <small class="text-muted" style="font-size: 0.72rem;">Hỗ trợ: jpg, png, webp. Dung lượng tối đa 4MB/ảnh.</small>
-                            </div>
-
-                            <!-- MÔ TẢ CHI TIẾT -->
-                            <div class="mb-0">
-                              <label class="form-label small fw-bold text-dark">Mô tả thêm tình trạng sản phẩm</label>
-                              <textarea name="customer_notes" class="form-control" rows="2.5" placeholder="Mô tả cụ thể vị trí lỗi hoặc yêu cầu thêm của bạn..."></textarea>
-                            </div>
-                          </div>
-
-                          <div class="modal-footer border-top bg-light p-3">
-                            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Hủy Bỏ</button>
-                            <button type="submit" class="btn btn-bee-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                              <i class="fa-solid fa-paper-plane me-1"></i> Gửi Yêu Cầu Đổi Trả
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                @endif
-
-              @empty
-                <div class="text-center py-5">
-                  <i class="fa-solid fa-bag-shopping fs-1 text-muted mb-2"></i>
-                  <h6 class="fw-bold text-dark">Bạn chưa có đơn hàng nào tại BeeStyle</h6>
-                  <p class="text-muted small mb-3">Hãy khám phá bộ sưu tập áo polo nam, sơ mi và blazer mới nhất!</p>
-                  <a href="{{ route('client.products.index') }}" class="btn btn-bee-primary btn-sm px-4">
-                    Khám Phá Cửa Hàng Ngay
-                  </a>
-                </div>
-              @endforelse
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB 2: EDIT PROFILE -->
-        <div class="tab-pane fade" id="tab-profile" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="mb-4 pb-2 border-bottom">
-              <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                <i class="fa-solid fa-user-pen me-2 text-danger"></i> Cập Nhật Hồ Sơ Cá Nhân
-              </h5>
-              <p class="text-muted small mb-0">Quản lý thông tin tài khoản và địa chỉ nhận hàng mặc định</p>
-            </div>
-
-            <form action="{{ route('client.profile.update') }}" method="POST" enctype="multipart/form-data">
-              @csrf
-              @method('PUT')
-
-              <!-- Avatar Upload with Live Preview -->
-              <div class="mb-4">
-                <label class="form-label small fw-semibold text-dark">Ảnh đại diện (Avatar)</label>
-                <div class="d-flex align-items-center gap-3">
-                  <img id="avatarPreview" src="{{ asset($user->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="Avatar" class="rounded-circle border object-fit-cover" style="width: 70px; height: 70px;">
-                  <div>
-                    <input type="file" name="avatar" id="avatarInput" class="form-control form-control-sm" accept="image/*" onchange="var reader = new FileReader(); reader.onload = function(e){ document.getElementById('avatarPreview').src = e.target.result; document.getElementById('sidebarAvatarPreview').src = e.target.result; }; reader.readAsDataURL(this.files[0]);">
-                    <small class="text-muted fs-11">Định dạng: JPG, PNG, WEBP. Tối đa 3MB.</small>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Name & Phone -->
-              <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Họ và tên <span class="text-danger">*</span></label>
-                  <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name', $user->name) }}" required>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-                  <input type="tel" name="phone" class="form-control form-control-sm" value="{{ old('phone', $user->phone) }}" required>
-                </div>
-              </div>
-
-              <!-- Email, Gender & Date of Birth -->
-              <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Địa chỉ Email <span class="text-danger">*</span></label>
-                  <input type="email" name="email" class="form-control form-control-sm" value="{{ old('email', $user->email) }}" required>
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label small fw-semibold text-dark">Giới tính</label>
-                  <select name="gender" class="form-select form-select-sm">
-                    <option value="Nam" {{ old('gender', $user->gender) === 'Nam' ? 'selected' : '' }}>Nam</option>
-                    <option value="Nữ" {{ old('gender', $user->gender) === 'Nữ' ? 'selected' : '' }}>Nữ</option>
-                    <option value="Khác" {{ old('gender', $user->gender) === 'Khác' ? 'selected' : '' }}>Khác</option>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label small fw-semibold text-dark">Ngày sinh</label>
-                  <input type="date" name="dob" class="form-control form-control-sm" value="{{ old('dob', $user->dob ? \Carbon\Carbon::parse($user->dob)->format('Y-m-d') : '') }}">
-                </div>
-              </div>
-
-              <!-- Address, City, District -->
-              <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Tỉnh / Thành phố</label>
-                  <input type="text" name="city" class="form-control form-control-sm" value="{{ old('city', $user->city ?? 'Hà Nội') }}" placeholder="Ví dụ: Hà Nội, TP. Hồ Chí Minh...">
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Quận / Huyện</label>
-                  <input type="text" name="district" class="form-control form-control-sm" value="{{ old('district', $user->district ?? '') }}" placeholder="Ví dụ: Cầu Giấy, Quận 1...">
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label small fw-semibold text-dark">Địa chỉ giao hàng chi tiết (Số nhà, tên đường, phường)</label>
-                  <input type="text" name="address" class="form-control form-control-sm" value="{{ old('address', $user->address) }}" placeholder="Ví dụ: Số 18 Phố Huế, Hoàn Kiếm">
-                </div>
-              </div>
-
-              <!-- Submit -->
-              <div class="mt-4 pt-2 border-top text-end">
-                <button type="submit" class="btn btn-bee-primary px-4 py-2">
-                  <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Thay Đổi Hồ Sơ
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- TAB: BANK ACCOUNT / HOÀN TIỀN -->
-        <div class="tab-pane fade" id="tab-bank" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="mb-4 pb-2 border-bottom">
-              <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                <i class="fa-solid fa-building-columns me-2 text-danger"></i> Tài Khoản Ngân Hàng Nhận Hoàn Tiền
-              </h5>
-              <p class="text-muted small mb-0">Cung cấp thông tin tài khoản ngân hàng chính chủ để nhận tiền hoàn nhanh chóng khi đổi trả hàng</p>
-            </div>
-
-            <!-- Visual Bank Card Mockup -->
-            <div class="p-4 rounded-4 text-white mb-4 position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); max-width: 480px; border: 1px solid rgba(255,255,255,0.12);">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center gap-2">
-                  <i class="fa-solid fa-microchip text-warning fs-3"></i>
-                  <i class="fa-solid fa-wifi text-white-50 fs-5" style="transform: rotate(90deg);"></i>
-                </div>
-                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 text-uppercase font-monospace" style="letter-spacing: 1px;">
-                  {{ $user->bank_name ?: 'BEESTYLE REWARD' }}
-                </span>
-              </div>
-              <div class="mb-4">
-                <small class="text-white-50 text-uppercase d-block" style="font-size: 0.7rem; letter-spacing: 1.5px;">Số tài khoản</small>
-                <h4 class="fw-bold text-white font-monospace mb-0" style="letter-spacing: 2px;">
-                  @if($user->bank_account_number)
-                    {{ chunk_split($user->bank_account_number, 4, ' ') }}
-                  @else
-                    •••• •••• •••• ••••
-                  @endif
-                </h4>
-              </div>
-              <div class="d-flex justify-content-between align-items-end">
-                <div>
-                  <small class="text-white-50 text-uppercase d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Chủ tài khoản</small>
-                  <span class="fw-bold text-white text-uppercase font-monospace" style="letter-spacing: 1px; font-size: 0.95rem;">
-                    {{ $user->bank_account_name ?: ($user->name ?: 'CHƯA CẬP NHẬT') }}
-                  </span>
-                </div>
-                @if($user->bank_branch)
-                  <div class="text-end">
-                    <small class="text-white-50 text-uppercase d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Chi nhánh</small>
-                    <span class="text-white-50 small font-monospace">{{ $user->bank_branch }}</span>
-                  </div>
-                @endif
-              </div>
-            </div>
-
-            <form action="{{ route('client.profile.bank') }}" method="POST">
-              @csrf
-              @method('PUT')
-
-              <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Ngân hàng thụ hưởng <span class="text-danger">*</span></label>
-                  <select name="bank_name" class="form-select form-select-sm" required>
-                    <option value="" disabled {{ empty($user->bank_name) ? 'selected' : '' }}>-- Chọn ngân hàng --</option>
-                    @php
-                      $banks = [
-                        'Vietcombank' => 'Vietcombank (Ngoại Thương Việt Nam)',
-                        'Techcombank' => 'Techcombank (Kỹ Thương Việt Nam)',
-                        'MB Bank' => 'MB Bank (Quân Đội)',
-                        'VietinBank' => 'VietinBank (Công Thương Việt Nam)',
-                        'BIDV' => 'BIDV (Đầu Tư và Phát Triển)',
-                        'ACB' => 'ACB (Á Châu)',
-                        'VPBank' => 'VPBank (Việt Nam Thịnh Vượng)',
-                        'TPBank' => 'TPBank (Tiên Phong)',
-                        'Sacombank' => 'Sacombank (Sài Gòn Thương Tín)',
-                        'HDBank' => 'HDBank (Phát Triển TP.HCM)',
-                        'VIB' => 'VIB (Quốc Tế Việt Nam)',
-                        'MSB' => 'MSB (Hàng Hải)',
-                        'OCB' => 'OCB (Phương Đông)',
-                        'Agribank' => 'Agribank (Nông Nghiệp & PTNT)',
-                        'SeABank' => 'SeABank (Đông Nam Á)',
-                        'LPBank' => 'LPBank (Lộc Phát Việt Nam)',
-                        'SHB' => 'SHB (Sài Gòn - Hà Nội)',
-                      ];
-                    @endphp
-                    @foreach($banks as $bKey => $bLabel)
-                      <option value="{{ $bKey }}" {{ old('bank_name', $user->bank_name) === $bKey ? 'selected' : '' }}>{{ $bLabel }}</option>
-                    @endforeach
-                    @if($user->bank_name && !array_key_exists($user->bank_name, $banks))
-                      <option value="{{ $user->bank_name }}" selected>{{ $user->bank_name }}</option>
-                    @endif
-                  </select>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Số tài khoản ngân hàng <span class="text-danger">*</span></label>
-                  <input type="text" name="bank_account_number" class="form-control form-control-sm font-monospace" value="{{ old('bank_account_number', $user->bank_account_number) }}" placeholder="Ví dụ: 0071001234567" required>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Tên chủ tài khoản (Viết hoa không dấu) <span class="text-danger">*</span></label>
-                  <input type="text" name="bank_account_name" class="form-control form-control-sm text-uppercase font-monospace" value="{{ old('bank_account_name', $user->bank_account_name) }}" placeholder="Ví dụ: NGUYEN VAN A" required>
-                  <small class="text-muted fs-11">Tên chủ tài khoản cần khớp chính xác với thẻ/CCCD để đảm bảo nhận tiền thành công.</small>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label small fw-semibold text-dark">Chi nhánh mở thẻ</label>
-                  <input type="text" name="bank_branch" class="form-control form-control-sm" value="{{ old('bank_branch', $user->bank_branch) }}" placeholder="Ví dụ: Chi nhánh Hà Nội, Chi nhánh Cầu Giấy...">
-                </div>
-              </div>
-
-              <div class="p-3 bg-light rounded-3 mb-4">
-                <h6 class="small fw-bold text-dark mb-1"><i class="fa-solid fa-shield-halved text-success me-1"></i> Chính sách bảo mật thông tin tài khoản:</h6>
-                <ul class="text-muted small ps-3 mb-0">
-                  <li>Thông tin tài khoản ngân hàng của bạn được bảo mật tuyệt đối theo tiêu chuẩn an toàn thanh toán.</li>
-                  <li>BeeStyle chỉ sử dụng thông tin này để xử lý hoàn tiền tự động khi quý khách có đơn hàng hoàn trả hoặc hủy hợp lệ.</li>
-                </ul>
-              </div>
-
-              <div class="pt-2 border-top text-end">
-                <button type="submit" class="btn btn-bee-primary px-4 py-2">
-                  <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Thông Tin Ngân Hàng
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- TAB 3: CHANGE PASSWORD -->
-        <div class="tab-pane fade" id="tab-password" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="mb-4 pb-2 border-bottom">
-              <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                <i class="fa-solid fa-shield-halved me-2 text-danger"></i> Đổi Mật Khẩu An Toàn
-              </h5>
-              <p class="text-muted small mb-0">Bảo vệ tài khoản BeeStyle bằng mật khẩu mạnh và bảo mật</p>
-            </div>
-
-            <form action="{{ route('client.profile.password') }}" method="POST">
-              @csrf
-              @method('PUT')
-
-              <div class="mb-3" style="max-width: 480px;">
-                <label class="form-label small fw-semibold text-dark">Mật khẩu hiện tại <span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <input type="password" name="current_password" id="curPass" class="form-control form-control-sm" placeholder="Nhập mật khẩu hiện tại..." required>
-                  <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var p=document.getElementById('curPass'); p.type=(p.type==='password'?'text':'password');">
-                    <i class="fa-regular fa-eye"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="mb-3" style="max-width: 480px;">
-                <label class="form-label small fw-semibold text-dark">Mật khẩu mới <span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <input type="password" name="password" id="newPass" class="form-control form-control-sm" placeholder="Tối thiểu 6 ký tự..." required>
-                  <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var p=document.getElementById('newPass'); p.type=(p.type==='password'?'text':'password');">
-                    <i class="fa-regular fa-eye"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="mb-4" style="max-width: 480px;">
-                <label class="form-label small fw-semibold text-dark">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
-                <div class="input-group">
-                  <input type="password" name="password_confirmation" id="confirmPass" class="form-control form-control-sm" placeholder="Nhập lại mật khẩu mới..." required>
-                  <button class="btn btn-outline-secondary btn-sm" type="button" onclick="var p=document.getElementById('confirmPass'); p.type=(p.type==='password'?'text':'password');">
-                    <i class="fa-regular fa-eye"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="p-3 bg-light rounded-3 mb-4" style="max-width: 480px;">
-                <h6 class="small fw-bold text-dark mb-1"><i class="fa-solid fa-circle-info text-warning me-1"></i> Lưu ý bảo mật:</h6>
-                <ul class="text-muted small ps-3 mb-0">
-                  <li>Mật khẩu nên chứa ít nhất 6 ký tự.</li>
-                  <li>Không chia sẻ mật khẩu tài khoản cho người khác.</li>
-                </ul>
-              </div>
-
-              <div class="pt-2 border-top">
-                <button type="submit" class="btn btn-bee-primary px-4 py-2">
-                  <i class="fa-solid fa-lock me-1"></i> Cập Nhật Mật Khẩu Mới
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- TAB 4: ADDRESS BOOK -->
-        <div class="tab-pane fade" id="tab-addresses" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom flex-wrap gap-2">
-              <div>
-                <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                  <i class="fa-solid fa-map-location-dot me-2 text-danger"></i> Sổ Địa Chỉ Nhận Hàng ({{ $addresses->count() }})
-                </h5>
-                <p class="text-muted small mb-0">Quản lý danh sách địa chỉ giao hàng giúp đặt hàng và thanh toán nhanh chóng hơn</p>
-              </div>
-              <button type="button" class="btn btn-bee-primary btn-sm px-3" data-bs-toggle="collapse" data-bs-target="#addAddressBox">
-                <i class="fa-solid fa-plus me-1"></i> Thêm Địa Chỉ Mới
-              </button>
-            </div>
-
-            <!-- Collapse Add Address Box -->
-            <div class="collapse mb-4" id="addAddressBox">
-              <div class="card card-body bg-light border p-4 rounded-3 shadow-xs">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-location-crosshairs me-1 text-danger"></i> Thêm địa chỉ nhận hàng mới:</h6>
-                  <button type="button" class="btn-close btn-sm" data-bs-toggle="collapse" data-bs-target="#addAddressBox"></button>
-                </div>
-                <form action="{{ route('client.profile.address.store') }}" method="POST">
-                  @csrf
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <label class="form-label small fw-semibold text-dark">Họ và tên người nhận <span class="text-danger">*</span></label>
-                      <input type="text" name="recipient_name" class="form-control form-control-sm" value="{{ old('recipient_name', $user->name) }}" placeholder="Ví dụ: Nguyễn Văn A" required>
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label small fw-semibold text-dark">Số điện thoại người nhận <span class="text-danger">*</span></label>
-                      <input type="tel" name="phone" class="form-control form-control-sm" value="{{ old('phone', $user->phone) }}" placeholder="Ví dụ: 0987654321" required>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label small fw-semibold text-dark">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                      <input type="text" name="city" class="form-control form-control-sm" value="{{ old('city', $user->city ?? 'Hà Nội') }}" placeholder="Hà Nội, TP. HCM..." required>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label small fw-semibold text-dark">Quận / Huyện <span class="text-danger">*</span></label>
-                      <input type="text" name="district" class="form-control form-control-sm" value="{{ old('district', $user->district ?? '') }}" placeholder="Cầu Giấy, Quận 1..." required>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label small fw-semibold text-dark">Phường / Xã</label>
-                      <input type="text" name="ward" class="form-control form-control-sm" value="{{ old('ward') }}" placeholder="Phường Dịch Vọng...">
-                    </div>
-                    <div class="col-md-8">
-                      <label class="form-label small fw-semibold text-dark">Địa chỉ chi tiết (Số nhà, tên ngõ/đường) <span class="text-danger">*</span></label>
-                      <input type="text" name="address" class="form-control form-control-sm" value="{{ old('address') }}" placeholder="Số 18 Phố Huế..." required>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label small fw-semibold text-dark">Loại địa chỉ</label>
-                      <select name="label" class="form-select form-select-sm">
-                        <option value="Nhà riêng" {{ old('label') === 'Nhà riêng' ? 'selected' : '' }}>Nhà riêng</option>
-                        <option value="Văn phòng" {{ old('label') === 'Văn phòng' ? 'selected' : '' }}>Văn phòng / Công ty</option>
-                        <option value="Khác" {{ old('label') === 'Khác' ? 'selected' : '' }}>Khác</option>
-                      </select>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label small fw-semibold text-dark">Ghi chú giao hàng (không bắt buộc)</label>
-                      <input type="text" name="notes" class="form-control form-control-sm" value="{{ old('notes') }}" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao...">
-                    </div>
-                    <div class="col-12">
-                      <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="is_default" value="1" id="isDefaultCheck" {{ $addresses->count() === 0 ? 'checked' : '' }}>
-                        <label class="form-check-label small text-dark cursor-pointer fw-semibold" for="isDefaultCheck">
-                          Thiết lập làm địa chỉ giao hàng mặc định
-                        </label>
-                      </div>
-                    </div>
-                    <div class="col-12 text-end mt-3 border-top pt-3">
-                      <button type="button" class="btn btn-outline-secondary btn-sm me-2 rounded-pill px-3" data-bs-toggle="collapse" data-bs-target="#addAddressBox">Hủy Bỏ</button>
-                      <button type="submit" class="btn btn-bee-primary btn-sm px-4 rounded-pill fw-bold shadow-xs">
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Địa Chỉ
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-
-            <!-- Current Addresses List -->
-            <div class="d-flex flex-column gap-3">
-              @forelse($addresses as $addr)
-                <div class="p-3.5 bg-white rounded-3 border {{ $addr->is_default ? 'border-warning shadow-xs' : 'border-light-subtle' }} d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative">
-                  <div class="flex-grow-1" style="max-width: 580px;">
-                    <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
-                      <strong class="text-dark fs-6">{{ $addr->recipient_name }}</strong>
-                      <span class="text-muted small">|</span>
-                      <span class="text-dark small font-monospace fw-semibold"><i class="fa-solid fa-phone fs-11 text-muted me-1"></i>{{ $addr->phone }}</span>
-                      
-                      @if($addr->label === 'Văn phòng')
-                        <span class="badge bg-info-subtle text-info small"><i class="fa-solid fa-building me-1"></i>Văn phòng</span>
-                      @elseif($addr->label === 'Nhà riêng')
-                        <span class="badge bg-secondary-subtle text-secondary small"><i class="fa-solid fa-house me-1"></i>Nhà riêng</span>
-                      @else
-                        <span class="badge bg-light text-dark border small">{{ $addr->label ?? 'Địa chỉ' }}</span>
-                      @endif
-
-                      @if($addr->is_default)
-                        <span class="badge bg-warning text-dark small fw-bold px-2 py-1">
-                          <i class="fa-solid fa-circle-check me-1"></i> Mặc định
-                        </span>
+                  <!-- Order Footer Actions -->
+                  <div class="pt-3 border-t border-neutral-200 flex flex-wrap justify-between items-center gap-3">
+                    <div class="text-neutral-500 text-[11px]">
+                      Hình thức: <strong>{{ $order->payment_method_name ?? $order->payment_method }}</strong>
+                      @if($order->is_deposit_required)
+                        <span class="ml-1.5 px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">Cọc 50%: {{ number_format($order->deposit_amount, 0, ',', '.') }}₫</span>
                       @endif
                     </div>
                     
-                    <p class="text-secondary small mb-1">
-                      <i class="fa-solid fa-location-dot text-danger me-1.5"></i>
-                      <span>{{ $addr->address }}</span>@if($addr->ward)<span>, {{ $addr->ward }}</span>@endif@if($addr->district)<span>, {{ $addr->district }}</span>@endif@if($addr->city)<span>, {{ $addr->city }}</span>@endif
-                    </p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <!-- Hủy đơn hàng -->
+                      @if(method_exists($order, 'canBeCancelledByCustomer') ? $order->canBeCancelledByCustomer() : in_array($order->shipping_status, ['pending', 'processing']))
+                        <button type="button" onclick="openCancelModal({{ $order->id }}, '{{ $order->order_code }}')" class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors">
+                          Hủy Đơn
+                        </button>
+                      @endif
 
-                    @if($addr->notes)
-                      <p class="text-muted small mb-0 fst-italic" style="font-size: 0.8rem;">
-                        <i class="fa-regular fa-comment-dots me-1"></i> Ghi chú: {{ $addr->notes }}
-                      </p>
-                    @endif
+                      <!-- Xác nhận đã nhận / Không nhận hàng cho đơn đang giao -->
+                      @if(in_array($order->shipping_status, ['shipping', 'delivered']) || (isset($order->status_step) && in_array($order->status_step, [4, 5])))
+                        <form action="{{ route('client.order-tracking.confirm-delivered', $order->order_code) }}" method="POST" class="inline" onsubmit="return confirm('Bạn xác nhận đã nhận được kiện hàng và muốn hoàn tất đơn #{{ $order->order_code }}?');">
+                          @csrf
+                          <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors">
+                            Đã Nhận Hàng
+                          </button>
+                        </form>
+                        <button type="button" onclick="openProfileRejectModal('{{ $order->order_code }}')" class="px-3 py-1.5 border border-rose-300 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-semibold transition-colors">
+                          Không Nhận
+                        </button>
+                      @endif
+
+                      <!-- Yêu cầu đổi trả RMA 30 ngày (Toàn bộ đơn hàng) -->
+                      @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-sm">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Trả / Hoàn Tiền (30 Ngày)
+                        </button>
+                      @endif
+
+                      <!-- Chi tiết vận chuyển -->
+                      <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="px-3 py-1.5 bg-white border border-neutral-300 rounded-lg text-neutral-800 hover:bg-neutral-100 font-semibold transition-colors flex items-center gap-1">
+                        <i data-lucide="truck" class="w-3.5 h-3.5 text-neutral-500"></i> Tra Cứu
+                      </a>
+                    </div>
                   </div>
 
-                  <!-- Actions buttons -->
-                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                    @if(!$addr->is_default)
-                      <form action="{{ route('client.profile.address.default', $addr->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-dark btn-sm py-1 px-2.5 rounded-pill" title="Đặt làm địa chỉ nhận hàng mặc định">
-                          <i class="fa-regular fa-star me-1 text-warning"></i> Đặt mặc định
-                        </button>
-                      </form>
-                    @endif
+                </div>
+              @endforeach
+            </div>
+          @endif
+        </div>
+      </div>
 
-                    <button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2.5 rounded-pill" data-bs-toggle="modal" data-bs-target="#editAddressModal{{ $addr->id }}" title="Chỉnh sửa thông tin địa chỉ">
-                      <i class="fa-regular fa-pen-to-square me-1"></i> Sửa
-                    </button>
+      <!-- ========================================================================= -->
+      <!-- TAB 2: PENDING REVIEWS (CHỜ ĐÁNH GIÁ) -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-pending-reviews" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100 flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Sản Phẩm Chờ Đánh Giá</h3>
+              <p class="text-neutral-500 mt-0.5">Chia sẻ cảm nhận thực tế sau khi nhận đồ may đo để nhận điểm thưởng Atelier</p>
+            </div>
+            <span class="px-3 py-1 bg-amber-100 text-amber-900 rounded-full font-bold uppercase text-[10px]">
+              +50 ĐIỂM THƯỞNG / ĐÁNH GIÁ
+            </span>
+          </div>
 
-                    <form action="{{ route('client.profile.address.delete', $addr->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này khỏi sổ địa chỉ?');" class="d-inline">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2.5 rounded-pill" title="Xóa địa chỉ này">
-                        <i class="fa-regular fa-trash-can me-1"></i> Xóa
-                      </button>
-                    </form>
+          <div class="space-y-3">
+            @forelse($pendingReviewItems as $pItem)
+              <div class="p-4 bg-neutral-50 rounded-xl border border-neutral-200 flex items-center justify-between flex-wrap gap-3">
+                <div class="flex items-center gap-3">
+                  <img src="{{ asset($pItem->image ?? ($pItem->product->thumbnail ?? 'assets/img/products/1.png')) }}" alt="{{ $pItem->product_name }}" class="w-14 h-16 rounded-lg border border-neutral-200 object-cover bg-white shrink-0">
+                  <div>
+                    <h4 class="font-semibold text-neutral-900 text-sm line-clamp-1">{{ $pItem->product_name }}</h4>
+                    <p class="text-neutral-500 text-[11px] mt-0.5">
+                      Đơn hàng: <strong class="font-mono text-neutral-800">{{ $pItem->order->order_code ?? '' }}</strong>
+                      @if($pItem->color || $pItem->size)
+                        | Phân loại: {{ $pItem->color ?? '' }} / {{ $pItem->size ?? '' }}
+                      @endif
+                    </p>
+                    <span class="text-neutral-950 font-bold mt-1 block">{{ number_format($pItem->price, 0, ',', '.') }}₫</span>
                   </div>
                 </div>
+                <button type="button" onclick="openQuickReviewModal({{ $pItem->product_id }}, '{{ addslashes($pItem->product_name) }}')" class="px-4 py-2 bg-neutral-950 hover:bg-neutral-800 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5">
+                  <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i> Viết Đánh Giá
+                </button>
+              </div>
+            @empty
+              <div class="text-center py-12 text-neutral-500">
+                <i data-lucide="check-circle" class="w-12 h-12 mx-auto text-emerald-500 mb-2 stroke-1"></i>
+                <p class="font-medium text-neutral-800 text-sm">Tuyệt vời! Bạn đã đánh giá tất cả sản phẩm đã nhận</p>
+                <p class="text-neutral-400 mt-1">Cảm ơn bạn đã luôn đóng góp nhận xét chân thực cho BeeStyle Atelier.</p>
+              </div>
+            @endforelse
+          </div>
+        </div>
+      </div>
 
-                <!-- MODAL CHỈNH SỬA ĐỊA CHỈ NHẬN HÀNG -->
-                <div class="modal fade" id="editAddressModal{{ $addr->id }}" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
-                      <form action="{{ route('client.profile.address.update', $addr->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="modal-header border-bottom p-4">
-                          <h5 class="modal-title fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-map-location-dot text-danger me-2"></i> Chỉnh Sửa Địa Chỉ Giao Hàng
-                          </h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body p-4">
-                          <div class="row g-3">
-                            <div class="col-md-6">
-                              <label class="form-label small fw-semibold text-dark">Họ và tên người nhận <span class="text-danger">*</span></label>
-                              <input type="text" name="recipient_name" class="form-control form-control-sm" value="{{ old('recipient_name', $addr->recipient_name) }}" required>
-                            </div>
-                            <div class="col-md-6">
-                              <label class="form-label small fw-semibold text-dark">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-                              <input type="tel" name="phone" class="form-control form-control-sm" value="{{ old('phone', $addr->phone) }}" required>
-                            </div>
-                            <div class="col-md-4">
-                              <label class="form-label small fw-semibold text-dark">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                              <input type="text" name="city" class="form-control form-control-sm" value="{{ old('city', $addr->city) }}" required>
-                            </div>
-                            <div class="col-md-4">
-                              <label class="form-label small fw-semibold text-dark">Quận / Huyện <span class="text-danger">*</span></label>
-                              <input type="text" name="district" class="form-control form-control-sm" value="{{ old('district', $addr->district) }}" required>
-                            </div>
-                            <div class="col-md-4">
-                              <label class="form-label small fw-semibold text-dark">Phường / Xã</label>
-                              <input type="text" name="ward" class="form-control form-control-sm" value="{{ old('ward', $addr->ward) }}">
-                            </div>
-                            <div class="col-md-8">
-                              <label class="form-label small fw-semibold text-dark">Địa chỉ chi tiết (Số nhà, tên ngõ/đường) <span class="text-danger">*</span></label>
-                              <input type="text" name="address" class="form-control form-control-sm" value="{{ old('address', $addr->address) }}" required>
-                            </div>
-                            <div class="col-md-4">
-                              <label class="form-label small fw-semibold text-dark">Loại địa chỉ</label>
-                              <select name="label" class="form-select form-select-sm">
-                                <option value="Nhà riêng" {{ old('label', $addr->label) === 'Nhà riêng' ? 'selected' : '' }}>Nhà riêng</option>
-                                <option value="Văn phòng" {{ old('label', $addr->label) === 'Văn phòng' ? 'selected' : '' }}>Văn phòng / Công ty</option>
-                                <option value="Khác" {{ old('label', $addr->label) === 'Khác' ? 'selected' : '' }}>Khác</option>
-                              </select>
-                            </div>
-                            <div class="col-12">
-                              <label class="form-label small fw-semibold text-dark">Ghi chú giao hàng</label>
-                              <input type="text" name="notes" class="form-control form-control-sm" value="{{ old('notes', $addr->notes) }}" placeholder="Ví dụ: Giao giờ hành chính, gọi trước...">
-                            </div>
-                            <div class="col-12">
-                              <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="is_default" value="1" id="editDefaultCheck{{ $addr->id }}" {{ $addr->is_default ? 'checked' : '' }}>
-                                <label class="form-check-label small text-dark cursor-pointer fw-semibold" for="editDefaultCheck{{ $addr->id }}">
-                                  Đặt làm địa chỉ nhận hàng mặc định
-                                </label>
-                              </div>
-                            </div>
+      <!-- ========================================================================= -->
+      <!-- TAB 3: MY REVIEWS (ĐÁNH GIÁ CỦA TÔI) -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-my-reviews" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Đánh Giá Của Tôi ({{ $userReviews->count() }})</h3>
+            <p class="text-neutral-500 mt-0.5">Xem lại những nhận xét và góp ý bạn đã gửi tới các nghệ nhân xưởng may</p>
+          </div>
+
+          <div class="space-y-4">
+            @forelse($userReviews as $myRev)
+              <div class="p-4 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-semibold text-neutral-900 text-sm">{{ $myRev->product->name ?? 'Sản phẩm Atelier' }}</h4>
+                    <span class="text-neutral-400 text-[10px]">{{ $myRev->created_at ? $myRev->created_at->format('d/m/Y H:i') : '' }}</span>
+                  </div>
+                  <div class="flex items-center gap-0.5 text-amber-400 text-sm">
+                    @for($i = 1; $i <= 5; $i++)
+                      <span>{{ $i <= $myRev->rating ? '★' : '☆' }}</span>
+                    @endfor
+                  </div>
+                </div>
+                <p class="text-neutral-700 text-xs leading-relaxed italic">"{{ $myRev->comment }}"</p>
+              </div>
+            @empty
+              <div class="text-center py-12 text-neutral-500">
+                <i data-lucide="message-square" class="w-12 h-12 mx-auto text-neutral-300 mb-2 stroke-1"></i>
+                <p class="font-medium text-neutral-800">Bạn chưa gửi đánh giá nào</p>
+              </div>
+            @endforelse
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 4: RETURNS & REFUNDS (RMA) -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-returns" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100 flex justify-between items-center">
+            <div>
+              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Tiến Trình Đổi Trả &amp; Hoàn Tiền</h3>
+              <p class="text-neutral-500 mt-0.5">Theo dõi trạng thái xử lý yêu cầu hoàn tiền và đổi size tận nơi</p>
+            </div>
+            <span class="px-3 py-1 bg-amber-100 text-amber-900 rounded-full font-bold uppercase text-[10px]">
+              CHÍNH SÁCH 30 NGÀY
+            </span>
+          </div>
+
+          @if(!isset($returns) || $returns->isEmpty())
+            <div class="text-center py-12 text-neutral-500">
+              <i data-lucide="rotate-ccw" class="w-12 h-12 mx-auto text-neutral-300 mb-3 stroke-1"></i>
+              <p class="font-medium text-neutral-800 text-sm">Bạn chưa có yêu cầu đổi trả hoặc hoàn tiền nào</p>
+              <p class="text-neutral-400 mt-1 max-w-md mx-auto">
+                Khi nhận được hàng, nếu không vừa size hoặc không ưng ý, bạn có thể bấm nút <strong>"Đổi Trả"</strong> tại từng sản phẩm hoặc <strong>"Đổi Trả / Hoàn Tiền"</strong> của đơn hàng để được hỗ trợ 100% miễn phí.
+              </p>
+            </div>
+          @else
+            <div class="space-y-6">
+              @foreach($returns as $ret)
+                <div class="p-6 rounded-2xl border border-neutral-200 bg-neutral-50/70 space-y-4">
+                  <div class="flex flex-wrap justify-between items-center gap-2 pb-3 border-b border-neutral-200">
+                    <div>
+                      <span class="font-bold text-neutral-950 text-sm">Yêu cầu #RMA-{{ str_pad($ret->id, 5, '0', STR_PAD_LEFT) }}</span>
+                      <span class="text-neutral-400 ml-2">Đơn hàng: <strong>#{{ $ret->order->order_code ?? '' }}</strong></span>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase {{ $ret->status === 'completed' || $ret->status === 'refunded' ? 'bg-emerald-100 text-emerald-800' : ($ret->status === 'rejected' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-900') }}">
+                      {{ $ret->status_label ?? $ret->status }}
+                    </span>
+                  </div>
+
+                  <!-- 4-Step Refund Progress Tracker -->
+                  <div class="p-4 bg-white rounded-xl border border-neutral-200">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-neutral-400 block mb-3">TIẾN TRÌNH XỬ LÝ:</span>
+                    <div class="grid grid-cols-4 gap-2 text-center text-[11px]">
+                      <div class="space-y-1">
+                        <div class="w-7 h-7 mx-auto rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">✓</div>
+                        <span class="font-semibold text-neutral-800 block">1. Đã Gửi</span>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="w-7 h-7 mx-auto rounded-full {{ in_array($ret->status, ['approved', 'received', 'completed', 'refunded']) ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600' }} flex items-center justify-center font-bold text-xs">2</div>
+                        <span class="font-semibold text-neutral-800 block">2. Xưởng Duyệt</span>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="w-7 h-7 mx-auto rounded-full {{ in_array($ret->status, ['received', 'completed', 'refunded']) ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600' }} flex items-center justify-center font-bold text-xs">3</div>
+                        <span class="font-semibold text-neutral-800 block">3. Nhận Hàng</span>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="w-7 h-7 mx-auto rounded-full {{ in_array($ret->status, ['completed', 'refunded']) ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-600' }} flex items-center justify-center font-bold text-xs">4</div>
+                        <span class="font-semibold text-neutral-800 block">4. Hoàn Tất</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-neutral-700">
+                    <div class="space-y-2">
+                      <p><strong>Hình thức:</strong> {{ $ret->type === 'exchange' ? 'Đổi Size / Đổi Màu' : 'Trả Hàng & Hoàn Tiền' }}</p>
+                      <p><strong>Lý do:</strong> {{ $ret->reason }}</p>
+                      
+                      @if($ret->exchange_size || $ret->exchange_color)
+                        <p class="text-amber-800 font-semibold bg-amber-50 p-2 rounded border border-amber-200">
+                          Yêu cầu đổi sang: {{ $ret->exchange_size ? 'Size ' . $ret->exchange_size : '' }} {{ $ret->exchange_color ? 'Màu ' . $ret->exchange_color : '' }}
+                        </p>
+                      @endif
+
+                      <!-- Sản phẩm đổi trả cụ thể -->
+                      @if($ret->orderItem)
+                        <div class="p-2.5 bg-white rounded-xl border border-neutral-200 flex items-center gap-3">
+                          <img src="{{ asset($ret->orderItem->product->primaryImage->image_path ?? $ret->orderItem->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop') }}" class="w-12 h-14 rounded-lg object-cover border border-neutral-200 shrink-0">
+                          <div class="min-w-0 text-xs">
+                            <span class="text-[10px] font-bold uppercase text-amber-800 block">Sản phẩm đổi trả:</span>
+                            <strong class="text-neutral-900 block truncate">{{ $ret->orderItem->product_name }}</strong>
+                            <span class="text-[11px] text-neutral-500">Màu: {{ $ret->orderItem->color ?? 'Chuẩn' }} | Size: {{ $ret->orderItem->size ?? 'M' }} • SL: x{{ $ret->orderItem->quantity }}</span>
                           </div>
                         </div>
-                        <div class="modal-footer border-top bg-light p-3">
-                          <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Hủy Bỏ</button>
-                          <button type="submit" class="btn btn-bee-primary btn-sm rounded-pill px-4 fw-bold shadow-xs">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Cập Nhật
-                          </button>
+                      @else
+                        <div class="p-2 bg-neutral-100 rounded-lg text-[11px] text-neutral-600">
+                          <strong>Phạm vi:</strong> Toàn bộ sản phẩm trong đơn hàng
                         </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              @empty
-                <div class="text-center py-5 bg-light rounded-3 border">
-                  <div class="rounded-circle bg-white shadow-xs d-inline-flex align-items-center justify-content-center p-3 mb-3" style="width: 60px; height: 60px;">
-                    <i class="fa-solid fa-map-location-dot fs-3 text-warning"></i>
-                  </div>
-                  <h6 class="fw-bold text-dark mb-1">Bạn chưa lưu địa chỉ giao hàng nào</h6>
-                  <p class="text-muted small mb-3">Lưu sẵn địa chỉ nhận hàng để thanh toán nhanh hơn khi đặt mua áo polo, sơ mi tại BeeStyle!</p>
-                  <button type="button" class="btn btn-bee-primary btn-sm px-4 rounded-pill fw-semibold" data-bs-toggle="collapse" data-bs-target="#addAddressBox">
-                    <i class="fa-solid fa-plus me-1"></i> Thêm Địa Chỉ Đầu Tiên
-                  </button>
-                </div>
-              @endforelse
-            </div>
-          </div>
-        </div>
+                      @endif
 
-        <!-- TAB 5: LỜI TRI ÂN & ĐẶC QUYỀN KHÁCH HÀNG -->
-        <div class="tab-pane fade" id="tab-vip" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="mb-4 pb-2 border-bottom">
-              <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                <i class="fa-solid fa-heart me-2 text-danger"></i> Tri Ân Khách Hàng &amp; Đặc Quyền Phục Vụ
-              </h5>
-              <p class="text-muted small mb-0">Lời cảm ơn chân thành và cam kết chất lượng dịch vụ từ BeeStyle</p>
-            </div>
+                      @if($ret->customer_notes)
+                        <p class="text-[11px] text-neutral-600 bg-white p-2 rounded-lg border border-neutral-200"><strong>Ghi chú:</strong> {{ $ret->customer_notes }}</p>
+                      @endif
 
-            <!-- Customer Appreciation Status Card -->
-            <div class="p-4 rounded-3 text-white mb-4 position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a, #1e293b); border: 1px solid rgba(245, 158, 11, 0.3);">
-              <div class="row align-items-center">
-                <div class="col-md-8">
-                  <span class="badge bg-warning text-dark fw-bold px-3 py-1 text-uppercase mb-2">HỘI VIÊN THÂN THIẾT</span>
-                  <h3 class="fw-bold text-white mb-1" style="font-family: var(--atino-font-heading);">{{ $user->name }}</h3>
-                  <p class="text-white-50 small mb-0">Hạng tài khoản: <strong class="text-warning">{{ $user->rank ?? 'Thành viên Bạc (Silver)' }}</strong> • Tổng tích lũy mua sắm: <strong class="text-warning">{{ number_format($user->total_spent ?? 0, 0, ',', '.') }}₫</strong></p>
-                </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                  <span class="badge bg-danger px-3 py-2 fs-6 fw-bold rounded-pill shadow-xs">
-                    <i class="fa-solid fa-shield-heart me-1"></i> Khách Hàng Ưu Tiên
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Thank You Letter from BeeStyle -->
-            <div class="p-4 bg-light rounded-3 border mb-4">
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="fa-solid fa-envelope-open-text text-warning fs-4"></i>
-                <h6 class="fw-bold text-dark mb-0 text-uppercase" style="font-family: var(--atino-font-heading);">
-                  Thư Tri Ân Gửi Đến Quý Khách Hàng
-                </h6>
-              </div>
-              <p class="text-secondary small leading-relaxed mb-2" style="font-size: 0.92rem; line-height: 1.65;">
-                Kính gửi Quý khách <strong>{{ $user->name }}</strong>,
-              </p>
-              <p class="text-secondary small leading-relaxed mb-2" style="font-size: 0.92rem; line-height: 1.65;">
-                BeeStyle xin gửi lời cảm ơn chân thành và sâu sắc nhất vì Quý khách đã luôn tin tưởng, lựa chọn các sản phẩm thời trang nam của chúng tôi trong suốt thời gian qua. Sự đồng hành và ủng hộ của Quý khách chính là niềm tự hào to lớn, là động lực để đội ngũ BeeStyle không ngừng nâng tầm chất lượng từ từng đường kim mũi chỉ đến dịch vụ chăm sóc khách hàng tận tâm nhất.
-              </p>
-              <p class="text-secondary small leading-relaxed mb-0" style="font-size: 0.92rem; line-height: 1.65;">
-                Kính chúc Quý khách luôn lịch lãm, tự tin, gặt hái được nhiều thành công trong cuộc sống và luôn có những trải nghiệm mua sắm tuyệt vời tại BeeStyle!
-              </p>
-            </div>
-
-            <!-- 4 Service Commitments -->
-            <h6 class="fw-bold text-dark mb-3">Đặc quyền chăm sóc dành riêng cho bạn:</h6>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
-                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
-                    <i class="fa-solid fa-truck-fast text-warning fs-6"></i>
-                  </div>
-                  <div>
-                    <strong class="text-dark d-block small">Ưu Tiên Giao Hàng Siêu Tốc</strong>
-                    <small class="text-muted">Đơn hàng của hội viên luôn được xử lý đóng gói và vận chuyển ưu tiên hàng đầu.</small>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
-                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
-                    <i class="fa-solid fa-rotate-left text-warning fs-6"></i>
-                  </div>
-                  <div>
-                    <strong class="text-dark d-block small">Đổi Size Tận Nơi Miễn Phí</strong>
-                    <small class="text-muted">Hỗ trợ đổi size tận nhà trong vòng 30 ngày hoàn toàn không phát sinh thêm chi phí.</small>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
-                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
-                    <i class="fa-solid fa-shield-halved text-warning fs-6"></i>
-                  </div>
-                  <div>
-                    <strong class="text-dark d-block small">Bảo Hành Đường May 1 Năm</strong>
-                    <small class="text-muted">Cam kết chất lượng chuẩn may đo xuất khẩu, hỗ trợ bảo hành trọn vẹn 365 ngày.</small>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="p-3 bg-white rounded-3 border h-100 d-flex align-items-start gap-3">
-                  <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
-                    <i class="fa-solid fa-headset text-warning fs-6"></i>
-                  </div>
-                  <div>
-                    <strong class="text-dark d-block small">Hỗ Trợ &amp; Chăm Sóc Riêng 24/7</strong>
-                    <small class="text-muted">Đội ngũ stylist BeeStyle sẵn sàng tư vấn phối đồ và hỗ trợ bất cứ khi nào bạn cần.</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- TAB 6: MY REVIEWS (ĐÁNH GIÁ & NHẬN XÉT CỦA TÔI) -->
-        <div class="tab-pane fade" id="tab-my-reviews" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-              <div>
-                <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                  <i class="fa-solid fa-star me-2 text-warning"></i> Đánh Giá Của Tôi ({{ $user->reviews->count() }})
-                </h5>
-                <p class="text-muted small mb-0">Xem lại và chỉnh sửa các nhận xét sản phẩm bạn đã từng gửi</p>
-              </div>
-              <span class="badge bg-light text-dark fw-semibold border"><i class="fa-solid fa-heart text-danger me-1"></i> Đóng góp ý kiến quý báu</span>
-            </div>
-
-            <div class="d-flex flex-column gap-3">
-              @forelse($user->reviews as $rev)
-                <div class="p-3 bg-light rounded-3 border transition-all hover-lift" id="profile-rev-card-{{ $rev->product_id }}">
-                  <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                    <div class="d-flex align-items-center gap-3">
-                      <img src="{{ asset($rev->product->image ?? '/assets/img/products/1.png') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 48px; height: 48px; object-fit: cover; cursor: pointer;" class="rounded border bg-white" onclick="openQuickReviewModal({{ $rev->product_id }})">
-                      <div>
-                        <strong class="text-dark small d-block" style="cursor: pointer;" onclick="openQuickReviewModal({{ $rev->product_id }})">{{ $rev->product->name ?? 'Sản phẩm' }}</strong>
-                        <small class="text-muted">{{ $rev->created_at ? $rev->created_at->format('d/m/Y H:i') : '' }}</small>
-                      </div>
-                    </div>
-                    <div class="text-end">
-                      <div class="text-warning small mb-1" id="profile-rev-stars-{{ $rev->product_id }}">
-                        @for($i=1; $i<=5; $i++)
-                          <i class="fa-solid fa-star {{ $i <= $rev->rating ? 'text-warning' : 'text-secondary-subtle' }}"></i>
-                        @endfor
-                        <span class="fw-bold text-dark ms-1">({{ $rev->rating }}/5)</span>
-                      </div>
-                      <button type="button" onclick="openQuickReviewModal({{ $rev->product_id }})" class="btn btn-sm btn-outline-dark py-0.5 px-2 fw-bold" style="font-size: 0.72rem;">
-                        <i class="fa-solid fa-pen me-1"></i> Xem / Sửa Đánh Giá
-                      </button>
-                    </div>
-                  </div>
-                  <p class="small text-dark mb-0 fst-italic leading-relaxed p-2 bg-white rounded-2 border" id="profile-rev-comment-{{ $rev->product_id }}">
-                    "{{ $rev->comment }}"
-                  </p>
-
-                  <!-- Photos in Profile Reviews Tab -->
-                  <div class="d-flex gap-2 flex-wrap mt-2 pt-2 border-top {{ empty($rev->images_urls) ? 'd-none' : '' }}" id="profile-rev-photos-{{ $rev->product_id }}">
-                    @if(!empty($rev->images_urls))
-                      @foreach($rev->images_urls as $photoUrl)
-                        <div class="position-relative" style="cursor: pointer;" onclick="openReviewImageLightbox('{{ $photoUrl }}')">
-                          <img src="{{ $photoUrl }}" alt="Ảnh đánh giá" class="rounded border shadow-xs" style="width: 54px; height: 54px; object-fit: cover;">
-                          <span class="position-absolute bottom-0 end-0 bg-dark text-white px-1 py-0.5 rounded-start" style="font-size: 0.6rem; opacity: 0.85;">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
-                          </span>
+                      @if($ret->admin_notes)
+                        <div class="p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-[11px]">
+                          <strong>Ghi chú từ Xưởng may:</strong> {{ $ret->admin_notes }}
                         </div>
-                      @endforeach
-                    @endif
+                      @endif
+                    </div>
+
+                    <div class="space-y-3">
+                      <div class="bg-white p-3.5 rounded-xl border border-neutral-200 space-y-1">
+                        <span class="font-semibold block text-neutral-900">Tài khoản nhận tiền hoàn:</span>
+                        <p class="font-mono text-neutral-900">{{ $ret->bank_name ?? $user->bank_name ?? 'Chưa cung cấp' }} — {{ $ret->bank_account_number ?? $user->bank_account_number ?? '' }}</p>
+                        <p class="text-neutral-500 font-mono text-[11px]">{{ $ret->bank_account_name ?? $user->bank_account_name ?? '' }}</p>
+                        @if($ret->refund_amount)
+                          <p class="mt-2 text-rose-700 font-bold font-serif-luxury text-sm">Số tiền hoàn trả: {{ number_format($ret->refund_amount, 0, ',', '.') }}₫</p>
+                        @endif
+                      </div>
+
+                      <!-- Ảnh minh chứng đã tải lên -->
+                      @if(!empty($ret->image_proofs) && is_array($ret->image_proofs) && count($ret->image_proofs) > 0)
+                        <div class="space-y-1 bg-white p-3 rounded-xl border border-neutral-200">
+                          <span class="text-[10px] uppercase font-bold text-neutral-600 block">Ảnh minh chứng đã gửi ({{ count($ret->image_proofs) }}):</span>
+                          <div class="flex gap-2 overflow-x-auto py-1">
+                            @foreach($ret->image_proofs as $img)
+                              <img src="{{ asset($img) }}" class="w-12 h-14 rounded-lg object-cover border border-neutral-200 shrink-0 cursor-pointer hover:opacity-80 transition-opacity" onclick="window.open('{{ asset($img) }}', '_blank')">
+                            @endforeach
+                          </div>
+                        </div>
+                      @endif
+                    </div>
                   </div>
+
                 </div>
-              @empty
-                <div class="text-center py-5">
-                  <i class="fa-regular fa-comment-dots fs-1 text-muted mb-2"></i>
-                  <h6 class="fw-bold text-dark">Bạn chưa viết đánh giá nào</h6>
-                  <p class="text-muted small mb-3">Sau khi nhận hàng thành công, hãy chia sẻ cảm nhận để giúp BeeStyle ngày một hoàn thiện hơn nhé!</p>
-                  <a href="#tab-orders" data-bs-toggle="pill" data-bs-target="#tab-orders" class="btn btn-bee-primary btn-sm px-4">
-                    Xem Đơn Hàng Của Bạn
-                  </a>
-                </div>
-              @endforelse
+              @endforeach
             </div>
+          @endif
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 5: PROFILE INFO & 2-STEP CONTACT CHANGE -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-profile" class="profile-panel hidden space-y-6">
+        
+        <!-- Basic Info Form -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm">
+          <div class="pb-4 mb-6 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Thông Tin Cá Nhân</h3>
+            <p class="text-xs text-neutral-500 mt-0.5">Cập nhật họ tên, giới tính, ngày sinh và ảnh đại diện</p>
           </div>
+
+          <form action="{{ route('client.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs">
+            @csrf
+            @method('PUT')
+
+            <!-- Avatar Upload -->
+            <div class="flex items-center gap-4">
+              <img id="avatarPreview" src="{{ asset($user->avatar ?? 'assets/img/team/40x40/58.webp') }}" alt="{{ $user->name }}" class="w-16 h-16 rounded-full object-cover border border-neutral-300 shadow-sm">
+              <div>
+                <label class="px-4 py-2 bg-white border border-neutral-300 rounded-lg text-neutral-800 hover:bg-neutral-50 cursor-pointer font-semibold inline-block">
+                  <i data-lucide="camera" class="w-3.5 h-3.5 inline mr-1"></i> Tải ảnh đại diện mới
+                  <input type="file" name="avatar" accept="image/*" class="hidden" onchange="previewAvatar(this)">
+                </label>
+                <p class="text-[11px] text-neutral-400 mt-1">Định dạng PNG, JPG, WEBP tối đa 2MB</p>
+              </div>
+            </div>
+
+            <!-- Full Name -->
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Họ và Tên *</label>
+              <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+            </div>
+
+            <!-- Gender & DOB -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Giới Tính</label>
+                <select name="gender" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+                  <option value="male" {{ old('gender', $user->gender) === 'male' ? 'selected' : '' }}>Nam</option>
+                  <option value="female" {{ old('gender', $user->gender) === 'female' ? 'selected' : '' }}>Nữ</option>
+                  <option value="other" {{ old('gender', $user->gender) === 'other' ? 'selected' : '' }}>Khác</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ngày Sinh</label>
+                <input type="date" name="dob" value="{{ old('dob', $user->dob ? \Carbon\Carbon::parse($user->dob)->format('Y-m-d') : '') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+              </div>
+            </div>
+
+            <button type="submit" class="px-6 py-3 bg-neutral-950 hover:bg-neutral-800 text-white font-semibold uppercase tracking-wider rounded-xl transition-colors shadow">
+              Lưu Thay Đổi Hồ Sơ
+            </button>
+          </form>
         </div>
 
-        <!-- TAB 7: RETURNS & REFUNDS (ĐỔI TRẢ & HOÀN TIỀN CỦA TÔI) -->
-        <div class="tab-pane fade" id="tab-returns" role="tabpanel">
-          <div class="card border-0 shadow-sm p-4" style="border-radius: 16px; background: #ffffff; border: 1px solid var(--atino-border) !important;">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-              <div>
-                <h5 class="fw-bold text-dark mb-1 text-uppercase" style="font-family: var(--atino-font-heading);">
-                  <i class="fa-solid fa-arrow-rotate-left me-2 text-warning"></i> Quản Lý Đổi Trả &amp; Hoàn Tiền ({{ isset($returns) ? $returns->count() : 0 }})
-                </h5>
-                <p class="text-muted small mb-0">Theo dõi tiến trình thẩm định và kết quả xử lý các yêu cầu RMA của bạn</p>
-              </div>
-              <button type="button" onclick="document.getElementById('orders-tab').click()" class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3">
-                <i class="fa-solid fa-plus me-1"></i> Tạo Yêu Cầu Đổi Trả Mới
+        <!-- 2-Step Contact Change with OTP -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100 flex items-center justify-between">
+            <div>
+              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Thay Đổi Email &amp; Số Điện Thoại (2-Bước OTP)</h3>
+              <p class="text-neutral-500 mt-0.5">Bảo vệ tài khoản an toàn với mã xác thực OTP 6 chữ số</p>
+            </div>
+            <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded font-bold uppercase text-[10px]">BẢO MẬT CAO</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="p-4 bg-brand-50 rounded-xl border border-brand-200 space-y-3">
+              <span class="text-neutral-400 font-semibold uppercase text-[10px]">Email hiện tại:</span>
+              <p class="font-bold text-neutral-900 text-sm truncate">{{ $user->email ?? 'Chưa liên kết' }}</p>
+              <button type="button" onclick="openContactModal('email')" class="w-full py-2 bg-white border border-neutral-300 hover:border-neutral-900 text-neutral-800 font-semibold rounded-lg transition-colors">
+                Yêu Cầu Đổi Email Mới
               </button>
             </div>
 
-            <div class="d-flex flex-column gap-3">
-              @forelse($returns ?? [] as $ret)
-                <div class="p-3 bg-light rounded-3 border">
-                  <!-- Header Phiếu RMA -->
-                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pb-2 border-bottom mb-3">
-                    <div>
-                      <span class="small text-muted">Mã phiếu RMA:</span>
-                      <strong class="text-primary font-monospace fs-9">#{{ $ret->return_code }}</strong>
-                      <span class="text-muted small ms-2">({{ $ret->created_at ? $ret->created_at->format('d/m/Y H:i') : '' }})</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="badge bg-dark text-white">{{ $ret->type_label }}</span>
-                      {!! $ret->status_badge !!}
-                    </div>
-                  </div>
-
-                  <!-- Thông tin đơn hàng & Lý do -->
-                  <div class="row g-3 small mb-3">
-                    <div class="col-md-6">
-                      <div class="text-muted mb-1">Đơn hàng liên quan:</div>
-                      @if($ret->order)
-                        <a href="{{ route('client.order-tracking', ['code' => $ret->order->order_code]) }}" class="fw-bold font-monospace text-dark text-decoration-none">
-                          <i class="fa-solid fa-box me-1 text-warning"></i> #{{ $ret->order->order_code }}
-                        </a>
-                      @endif
-                      <div class="mt-2">
-                        <span class="text-muted">Lý do đổi trả:</span>
-                        <strong class="text-danger d-block">{{ $ret->reason }}</strong>
-                      </div>
-                      @if($ret->customer_notes)
-                        <div class="mt-1 text-muted">
-                          <em>"{{ $ret->customer_notes }}"</em>
-                        </div>
-                      @endif
-                    </div>
-
-                    <div class="col-md-6">
-                      @if($ret->type === 'exchange')
-                        <div class="p-2.5 bg-white rounded-2 border">
-                          <span class="text-muted d-block mb-1">Kích cỡ yêu cầu đổi:</span>
-                          <span class="badge bg-warning text-dark fw-bold fs-7">Size {{ $ret->exchange_size ?? 'M' }}</span>
-                          @if($ret->exchange_color)
-                            <span class="badge bg-light text-dark border ms-1">Màu: {{ $ret->exchange_color }}</span>
-                          @endif
-                        </div>
-                      @else
-                        <div class="p-2.5 bg-white rounded-2 border">
-                          <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-muted">Số tiền hoàn trả:</span>
-                            <strong class="text-danger fs-6 font-monospace">{{ number_format($ret->refund_amount, 0, ',', '.') }}₫</strong>
-                          </div>
-                          <div class="small text-muted">
-                            <i class="fa-solid fa-building-columns me-1 text-secondary"></i> {{ $ret->bank_name ?? 'Ngân hàng' }} • <span class="font-monospace text-dark">{{ $ret->bank_account_number ?? '' }}</span>
-                          </div>
-                        </div>
-                      @endif
-
-                      @if(!empty($ret->image_proofs) && is_array($ret->image_proofs))
-                        <div class="d-flex gap-1.5 mt-2 flex-wrap">
-                          @foreach($ret->image_proofs as $pImg)
-                            <a href="{{ asset($pImg) }}" target="_blank">
-                              <img src="{{ asset($pImg) }}" alt="Bằng chứng" class="rounded border" style="width: 44px; height: 44px; object-fit: cover;">
-                            </a>
-                          @endforeach
-                        </div>
-                      @endif
-                    </div>
-                  </div>
-
-                  <!-- 4-STEP TIMELINE TRACKER TRỰC QUAN -->
-                  @php
-                    $rmaSteps = [
-                      1 => '1. Đã gửi yêu cầu',
-                      2 => '2. CSKH đã duyệt',
-                      3 => '3. Kho đã nhận hàng',
-                      4 => '4. Hoàn tất & Hoàn tiền'
-                    ];
-                    $stepMap = ['pending' => 1, 'approved' => 2, 'received' => 3, 'completed' => 4, 'rejected' => 0];
-                    $currentRmaStep = $stepMap[$ret->status] ?? 1;
-                  @endphp
-
-                  @if($ret->status === 'rejected')
-                    <div class="alert alert-danger py-2 px-3 rounded-2 small mb-0 d-flex align-items-center gap-2">
-                      <i class="fa-solid fa-circle-xmark text-danger fs-5"></i>
-                      <div>
-                        <strong>Yêu cầu bị từ chối:</strong> {{ $ret->rejected_reason ?: 'Sản phẩm không đáp ứng đủ điều kiện đổi trả của BeeStyle.' }}
-                      </div>
-                    </div>
-                  @else
-                    <div class="bee-timeline-steps my-3 p-3 bg-white rounded-3 border" style="transform: scale(0.95); transform-origin: center;">
-                      @foreach($rmaSteps as $sNum => $sLbl)
-                        <div class="bee-timeline-step {{ $currentRmaStep > $sNum ? 'completed' : ($currentRmaStep == $sNum ? 'active' : '') }}">
-                          <div class="bee-timeline-step-icon">
-                            @if($currentRmaStep > $sNum)
-                              <i class="fa-solid fa-check"></i>
-                            @else
-                              {{ $sNum }}
-                            @endif
-                          </div>
-                          <div class="bee-timeline-step-label">{{ $sLbl }}</div>
-                        </div>
-                      @endforeach
-                    </div>
-                  @endif
-
-                  @if($ret->admin_notes)
-                    <div class="mt-2 p-2 bg-info-subtle text-info rounded-2 small d-flex align-items-center gap-2">
-                      <i class="fa-solid fa-message text-primary"></i>
-                      <span class="text-dark"><strong>CSKH BeeStyle phản hồi:</strong> {{ $ret->admin_notes }}</span>
-                    </div>
-                  @endif
-                </div>
-              @empty
-                <div class="text-center py-5">
-                  <i class="fa-solid fa-rotate-left fs-1 text-muted mb-2"></i>
-                  <h6 class="fw-bold text-dark">Bạn chưa có yêu cầu đổi trả nào</h6>
-                  <p class="text-muted small mb-3">BeeStyle hỗ trợ đổi size và hoàn tiền trong vòng 7 ngày cho mọi đơn hàng.</p>
-                  <button type="button" onclick="document.getElementById('orders-tab').click()" class="btn btn-bee-primary btn-sm px-4">
-                    Xem Đơn Hàng Của Bạn
-                  </button>
-                </div>
-              @endforelse
+            <div class="p-4 bg-brand-50 rounded-xl border border-brand-200 space-y-3">
+              <span class="text-neutral-400 font-semibold uppercase text-[10px]">Số điện thoại hiện tại:</span>
+              <p class="font-bold text-neutral-900 text-sm">{{ $user->phone ?? 'Chưa liên kết' }}</p>
+              <button type="button" onclick="openContactModal('phone')" class="w-full py-2 bg-white border border-neutral-300 hover:border-neutral-900 text-neutral-800 font-semibold rounded-lg transition-colors">
+                Yêu Cầu Đổi Số Điện Thoại
+              </button>
             </div>
           </div>
         </div>
 
       </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 6: BANK ACCOUNT -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-bank" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Tài Khoản Ngân Hàng Nhận Hoàn Tiền</h3>
+            <p class="text-neutral-500 mt-0.5">Dùng để nhận tiền hoàn trả khi thực hiện đổi trả sản phẩm tại xưởng may</p>
+          </div>
+
+          <form action="{{ route('client.profile.bank') }}" method="POST" class="space-y-4">
+            @csrf
+            @method('PUT')
+
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ngân Hàng (NAPAS / VietQR) *</label>
+              <select name="bank_name" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+                <option value="" disabled selected>-- Chọn ngân hàng --</option>
+                <option value="Techcombank" {{ old('bank_name', $user->bank_name) === 'Techcombank' ? 'selected' : '' }}>Techcombank (Ngân hàng Kỹ Thương)</option>
+                <option value="Vietcombank" {{ old('bank_name', $user->bank_name) === 'Vietcombank' ? 'selected' : '' }}>Vietcombank (Ngân hàng TMCP Ngoại Thương)</option>
+                <option value="MB Bank" {{ old('bank_name', $user->bank_name) === 'MB Bank' ? 'selected' : '' }}>MB Bank (Ngân hàng Quân Đội)</option>
+                <option value="ACB" {{ old('bank_name', $user->bank_name) === 'ACB' ? 'selected' : '' }}>ACB (Ngân hàng Á Châu)</option>
+                <option value="VPBank" {{ old('bank_name', $user->bank_name) === 'VPBank' ? 'selected' : '' }}>VPBank (Ngân hàng Việt Nam Thịnh Vượng)</option>
+                <option value="BIDV" {{ old('bank_name', $user->bank_name) === 'BIDV' ? 'selected' : '' }}>BIDV (Ngân hàng Đầu tư & Phát triển)</option>
+                <option value="VietinBank" {{ old('bank_name', $user->bank_name) === 'VietinBank' ? 'selected' : '' }}>VietinBank (Ngân hàng Công Thương)</option>
+                <option value="TPBank" {{ old('bank_name', $user->bank_name) === 'TPBank' ? 'selected' : '' }}>TPBank (Ngân hàng Tiên Phong)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Số Tài Khoản *</label>
+                <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $user->bank_account_number) }}" required placeholder="Ví dụ: 0987654321..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+              </div>
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Tên Chủ Tài Khoản (IN HOA) *</label>
+                <input type="text" name="bank_account_name" value="{{ old('bank_account_name', $user->bank_account_name) }}" required placeholder="NGUYEN XUAN BAC" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs uppercase font-mono text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+              </div>
+            </div>
+
+            <button type="submit" class="px-6 py-3 bg-neutral-950 hover:bg-neutral-800 text-white font-semibold uppercase tracking-wider rounded-xl transition-colors shadow">
+              Cập Nhật Tài Khoản Ngân Hàng
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 7: PASSWORD -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-password" class="profile-panel hidden space-y-4">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="pb-4 mb-6 border-b border-neutral-100">
+            <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Bảo Mật &amp; Đổi Mật Khẩu</h3>
+            <p class="text-neutral-500 mt-0.5">Yêu cầu tối thiểu 8 ký tự để bảo vệ tài khoản an toàn</p>
+          </div>
+
+          <form action="{{ route('client.profile.password') }}" method="POST" class="space-y-4 max-w-lg">
+            @csrf
+            @method('PUT')
+
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Mật Khẩu Hiện Tại *</label>
+              <input type="password" name="current_password" required placeholder="Nhập mật khẩu cũ..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+            </div>
+
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Mật Khẩu Mới *</label>
+              <input type="password" name="password" id="new_profile_pass" required placeholder="Tối thiểu 8 ký tự..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+            </div>
+
+            <div>
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Xác Nhận Mật Khẩu Mới *</label>
+              <input type="password" name="password_confirmation" required placeholder="Nhập lại mật khẩu mới..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
+            </div>
+
+            <div class="pt-2">
+              <label class="flex items-start gap-2.5 cursor-pointer text-neutral-700">
+                <input type="checkbox" name="revoke_other_sessions" value="1" checked class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900">
+                <span><strong>Đăng xuất khỏi tất cả thiết bị khác</strong></span>
+              </label>
+            </div>
+
+            <button type="submit" class="px-6 py-3 bg-neutral-950 hover:bg-neutral-800 text-white font-semibold uppercase tracking-wider rounded-xl transition-colors shadow">
+              Xác Nhận Đổi Mật Khẩu
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 8: ADDRESS BOOK -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-addresses" class="profile-panel hidden space-y-6">
+        <div class="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm text-xs">
+          <div class="flex justify-between items-center pb-4 mb-6 border-b border-neutral-100">
+            <div>
+              <h3 class="font-serif-luxury text-2xl font-bold text-neutral-900">Sổ Địa Chỉ Giao Hàng</h3>
+              <p class="text-neutral-500 mt-0.5">Quản lý các địa chỉ nhận hàng để thanh toán thuận tiện</p>
+            </div>
+            <button type="button" onclick="toggleAddAddressForm()" class="px-4 py-2 bg-neutral-950 text-white font-semibold rounded-lg hover:bg-neutral-800 transition-colors flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Thêm Địa Chỉ
+            </button>
+          </div>
+
+          <!-- Add Address Form -->
+          <div id="addAddressFormBox" class="hidden p-5 bg-brand-50 rounded-xl border border-brand-200 mb-6 animate-fade-in">
+            <h4 class="font-bold text-neutral-900 uppercase tracking-wider text-[11px] mb-4">Thêm Địa Chỉ Nhận Hàng Mới</h4>
+            <form action="{{ route('client.profile.address.store') }}" method="POST" class="space-y-4">
+              @csrf
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Tên Người Nhận *</label>
+                  <input type="text" name="receiver_name" required value="{{ old('receiver_name', $user->name) }}" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                </div>
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Số Điện Thoại *</label>
+                  <input type="tel" name="receiver_phone" required value="{{ old('receiver_phone', $user->phone) }}" placeholder="0987654321" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1">Địa Chỉ Cụ Thể (Số nhà, Tên đường) *</label>
+                <input type="text" name="detailed_address" required placeholder="Ví dụ: 88 Lê Lợi..." class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Tỉnh/Thành Phố</label>
+                  <input type="text" name="province_name" value="Hà Nội" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                </div>
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Quận/Huyện</label>
+                  <input type="text" name="district_name" value="Cầu Giấy" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                </div>
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Phường/Xã</label>
+                  <input type="text" name="ward_name" value="Dịch Vọng" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" name="is_default" value="1" checked class="w-4 h-4 rounded text-neutral-900 focus:ring-neutral-900">
+                  <span>Đặt làm địa chỉ nhận hàng mặc định</span>
+                </label>
+                <div class="flex gap-2">
+                  <button type="button" onclick="toggleAddAddressForm()" class="px-4 py-2 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-100">Hủy</button>
+                  <button type="submit" class="px-5 py-2 bg-neutral-950 text-white rounded-lg hover:bg-neutral-800">Lưu Địa Chỉ</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Address Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @forelse($addresses as $addr)
+              <div class="p-4 rounded-xl border {{ $addr->is_default ? 'border-neutral-950 bg-neutral-50/70' : 'border-neutral-200 bg-white' }} space-y-2 flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-start mb-1">
+                    <span class="font-bold text-neutral-900 text-sm">{{ $addr->receiver_name }}</span>
+                    @if($addr->is_default)
+                      <span class="px-2 py-0.5 bg-neutral-900 text-white rounded text-[10px] font-bold">MẶC ĐỊNH</span>
+                    @endif
+                  </div>
+                  <span class="text-neutral-500 block mb-1">{{ $addr->receiver_phone }}</span>
+                  <p class="text-neutral-700 leading-relaxed">{{ $addr->detail_address }}, {{ $addr->ward_name }}, {{ $addr->district_name }}, {{ $addr->province_name }}</p>
+                </div>
+
+                <div class="pt-3 border-t border-neutral-200 flex justify-end gap-2">
+                  @if(!$addr->is_default)
+                    <form action="{{ route('client.profile.address.default', $addr->id) }}" method="POST">
+                      @csrf
+                      @method('PUT')
+                      <button type="submit" class="text-neutral-600 hover:text-black font-semibold text-[11px]">Đặt Mặc Định</button>
+                    </form>
+                  @endif
+                  <form action="{{ route('client.profile.address.destroy', $addr->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa địa chỉ này?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="text-rose-600 hover:text-rose-800 font-semibold text-[11px] ml-2">Xóa</button>
+                  </form>
+                </div>
+              </div>
+            @empty
+              <div class="col-span-2 text-center py-8 text-neutral-400">
+                Chưa có địa chỉ nào trong sổ tay.
+              </div>
+            @endforelse
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 9: VIP & PRIVILEGES -->
+      <!-- ========================================================================= -->
+      <div id="tab-panel-vip" class="profile-panel hidden space-y-4">
+        <div class="bg-neutral-950 text-white p-8 rounded-2xl shadow-xl relative overflow-hidden">
+          <span class="text-amber-400 text-xs tracking-[0.4em] uppercase font-semibold block mb-2">ATELIER PRIVÉ 2026</span>
+          <h3 class="font-serif-luxury text-3xl font-light mb-3">Đặc Quyền Hội Viên</h3>
+          <p class="text-xs text-neutral-400 font-light leading-relaxed max-w-xl mb-6">
+            Với mỗi 100.000₫ mua sắm tại BeeStyle, bạn tích lũy được 10 điểm thưởng. Điểm thưởng có thể quy đổi trực tiếp thành mã giảm giá hoặc nhận vé mời riêng tại các sự kiện Haute Couture.
+          </p>
+
+          <!-- VIP Progress Bar -->
+          <div class="p-4 bg-neutral-900 rounded-xl border border-neutral-800 mb-6 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-neutral-300">Cấp bậc hiện tại: <strong class="text-amber-400">{{ $tierName }}</strong></span>
+              <span class="text-neutral-400 text-[11px]">Mục tiêu tiếp theo: <strong class="text-white">{{ $nextTierName }}</strong></span>
+            </div>
+            <div class="w-full bg-neutral-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%;"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-neutral-400">
+              <span>Đã chi tiêu: {{ number_format($totalSpent, 0, ',', '.') }}₫</span>
+              @if($neededMore > 0)
+                <span>Cần thêm: {{ number_format($neededMore, 0, ',', '.') }}₫</span>
+              @else
+                <span class="text-amber-400 font-semibold">Đã đạt hạng cao nhất</span>
+              @endif
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            <div class="p-4 bg-neutral-900 rounded-xl border border-neutral-800">
+              <span class="font-serif-luxury text-2xl text-amber-400 font-bold block">{{ number_format($user->points ?? 150) }}</span>
+              <span class="text-[10px] uppercase text-neutral-400 tracking-wider">Điểm Tích Lũy</span>
+            </div>
+            <div class="p-4 bg-neutral-900 rounded-xl border border-neutral-800">
+              <span class="font-serif-luxury text-2xl text-white font-bold block">15%</span>
+              <span class="text-[10px] uppercase text-neutral-400 tracking-wider">Chiết Khấu VIP</span>
+            </div>
+            <div class="p-4 bg-neutral-900 rounded-xl border border-neutral-800">
+              <span class="font-serif-luxury text-2xl text-white font-bold block">0₫</span>
+              <span class="text-[10px] uppercase text-neutral-400 tracking-wider">Freeship Vĩnh Viễn</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+
+  </div>
+</main>
+
+<!-- ========================================================================= -->
+<!-- MODALS -->
+<!-- ========================================================================= -->
+
+<!-- 1. MODAL ĐỔI TRẢ (RMA) -->
+<div id="returnOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white max-w-lg w-full rounded-2xl p-6 sm:p-8 shadow-2xl border border-neutral-200 animate-fade-in text-xs max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
+      <div>
+        <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Yêu Cầu Đổi Trả / Hoàn Tiền (RMA)</h3>
+        <p class="text-[11px] text-neutral-500" id="returnModalOrderCode">Đơn hàng #BS-000</p>
+      </div>
+      <button onclick="closeReturnModal()" class="text-neutral-400 hover:text-black text-lg">&times;</button>
+    </div>
+
+    <form id="returnOrderForm" method="POST" enctype="multipart/form-data" class="space-y-4">
+      @csrf
+
+      <!-- Khối Chọn Sản Phẩm Cần Đổi Trả (Kèm Ảnh Minh Họa, Tên, Phân Loại, Giá) -->
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <label class="block font-semibold uppercase text-neutral-700">1. Chọn Sản Phẩm Cần Đổi Trả / Hoàn Tiền *</label>
+          <span id="returnSelectedItemBadge" class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">Toàn bộ đơn hàng</span>
+        </div>
+        <div id="returnOrderItemsList" class="space-y-2 max-h-52 overflow-y-auto pr-1 border border-neutral-200 rounded-xl p-2 bg-neutral-50/60">
+          <!-- Populated dynamically by JS with thumbnail images, names, colors, sizes, prices -->
+        </div>
+      </div>
+      
+      <!-- Hình thức mong muốn -->
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1.5">2. Hình Thức Mong Muốn *</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
+            <input type="radio" name="type" value="return_refund" checked onchange="toggleReturnTypeFields('return_refund')" class="text-neutral-900">
+            <span><strong>Trả Hàng &amp; Hoàn Tiền</strong></span>
+          </label>
+          <label class="p-3 border rounded-xl flex items-center gap-2 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
+            <input type="radio" name="type" value="exchange" onchange="toggleReturnTypeFields('exchange')" class="text-neutral-900">
+            <span><strong>Đổi Size / Đổi Màu</strong></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tùy chọn đổi size / màu nếu chọn Đổi hàng -->
+      <div id="exchangeFieldsBox" class="hidden p-3 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
+        <span class="font-bold text-amber-900 uppercase text-[10px] block">Yêu Cầu Đổi Size / Đổi Màu Cụ Thể:</span>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" name="exchange_size" placeholder="Size mong muốn (VD: L, XL, 41...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+          <input type="text" name="exchange_color" placeholder="Màu mong muốn (VD: Đen, Trắng...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+        </div>
+      </div>
+
+      <!-- Lý do đổi trả -->
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">3. Lý Do Đổi Trả *</label>
+        <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
+          <option value="" disabled selected>-- Chọn lý do đổi trả --</option>
+          <option value="Mặc không vừa kích cỡ (Yêu cầu đổi sang size khác)">Mặc không vừa kích cỡ (Yêu cầu đổi size)</option>
+          <option value="Sản phẩm bị lỗi vải, rách hoặc bung chỉ từ xưởng">Sản phẩm bị lỗi chỉ/vải từ xưởng</option>
+          <option value="Giao sai mẫu, sai màu hoặc sai kích thước">Giao sai mẫu hoặc sai màu</option>
+          <option value="Sản phẩm không đúng với hình ảnh và mô tả">Sản phẩm không giống mô tả</option>
+          <option value="Lý do khác">Lý do khác</option>
+        </select>
+      </div>
+
+      <!-- Mô tả chi tiết -->
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">4. Mô Tả Chi Tiết Vấn Đề (Tùy chọn)</label>
+        <textarea name="customer_notes" rows="2" placeholder="Ghi chú chi tiết về tình trạng sản phẩm, yêu cầu đổi size/màu mong muốn..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950"></textarea>
+      </div>
+
+      <!-- BẮT BUỘC: Upload Hình Ảnh Minh Chứng -->
+      <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
+            <i data-lucide="camera" class="w-4 h-4 text-amber-700"></i>
+            <span>5. Ảnh Minh Chứng Sản Phẩm / Tem Mác <span class="text-rose-600">* (Bắt buộc)</span></span>
+          </label>
+          <span class="text-[10px] text-amber-800 font-semibold">1 - 5 ảnh (Tối đa 8MB/ảnh)</span>
+        </div>
+        <p class="text-[11px] text-neutral-500 leading-tight">
+          Vui lòng chụp rõ tem mác Atelier, toàn cảnh sản phẩm và vị trí lỗi (nếu có).
+        </p>
+        <input type="file" id="returnImageProofsInput" name="image_proofs[]" multiple accept="image/jpeg,image/png,image/jpg,image/webp" required onchange="handleReturnImagesPreview(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-neutral-800 cursor-pointer">
+        <div id="returnImagesPreviewList" class="flex gap-2 flex-wrap empty:hidden pt-1"></div>
+      </div>
+
+      <!-- TÙY CHỌN: Upload Video Clip Unbox -->
+      <div class="p-3 bg-neutral-50 rounded-xl border border-neutral-200 space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
+            <i data-lucide="video" class="w-4 h-4 text-neutral-700"></i>
+            <span>6. Video Clip Unbox Mở Hộp (Tùy chọn)</span>
+          </label>
+          <span class="text-[10px] text-neutral-500">Tối đa 50MB (MP4, MOV)</span>
+        </div>
+        <input type="file" id="returnVideoUnboxInput" name="video_unbox" accept="video/mp4,video/mov,video/avi,video/webm" onchange="handleReturnVideoPreview(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-800 file:text-white hover:file:bg-neutral-700 cursor-pointer">
+        <div id="returnVideoPreviewBox" class="hidden p-2 bg-neutral-900 text-white rounded-lg flex items-center justify-between text-xs">
+          <span id="returnVideoPreviewName" class="truncate max-w-[260px] font-mono text-[11px]">video.mp4</span>
+          <button type="button" onclick="removeReturnVideo()" class="text-rose-400 hover:text-white font-bold ml-2">Xóa ✕</button>
+        </div>
+      </div>
+
+      <!-- Thông tin ngân hàng nhận tiền hoàn -->
+      <div id="returnBankInfoBox" class="p-3 bg-brand-50 rounded-xl border border-brand-200 space-y-2">
+        <span class="font-bold text-neutral-900 uppercase text-[10px] block">7. Thông Tin Nhận Tiền Hoàn:</span>
+        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Vietcombank' }}" placeholder="Tên Ngân Hàng (VD: Vietcombank, MB Bank...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+        <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" placeholder="Số Tài Khoản Ngân Hàng" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs font-mono">
+        <input type="text" name="bank_account_name" value="{{ $user->bank_account_name ?? $user->name }}" placeholder="Tên Chủ Tài Khoản (IN HOA)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs uppercase">
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2">
+        <i data-lucide="check-circle" class="w-4 h-4"></i>
+        <span>Gửi Yêu Cầu Hoàn Tiền / Đổi Trả</span>
+      </button>
+    </form>
   </div>
 </div>
 
-<!-- QUICK REVIEW MODAL CHO KHÁCH HÀNG TỰ ĐÁNH GIÁ SẢN PHẨM -->
-<div class="modal fade" id="quickReviewModal" tabindex="-1" aria-labelledby="quickReviewModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width: 540px;">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-      <!-- Modal Header -->
-      <div class="modal-header border-0 text-white p-3.5" style="background: linear-gradient(135deg, #111827 0%, #1e293b 100%);">
-        <div class="d-flex align-items-center gap-2">
-          <i class="fa-solid fa-star text-warning fs-5"></i>
-          <div>
-            <h6 class="modal-title fw-bold text-white mb-0" id="quickReviewModalLabel">Đánh Giá Sản Phẩm Của Bạn</h6>
-            <small class="text-white-50" style="font-size: 0.75rem;">Chia sẻ cảm nhận thực tế sau khi nhận hàng để giúp cộng đồng mua sắm</small>
-          </div>
+<!-- 2. MODAL HỦY ĐƠN HÀNG -->
+<div id="cancelOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
+    <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
+      <h3 class="font-serif-luxury text-xl font-bold text-rose-600" id="cancelModalOrderCode">Hủy Đơn Hàng</h3>
+      <button onclick="closeCancelModal()" class="text-neutral-400 hover:text-black">&times;</button>
+    </div>
+
+    <form id="cancelOrderForm" method="POST" class="space-y-4">
+      @csrf
+      <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px]">
+        Khi xác nhận hủy đơn, hệ thống sẽ tự động hoàn lại số lượng tồn kho và mã giảm giá cho bạn.
+      </div>
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Hủy Đơn *</label>
+        <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5">
+          <option value="Tôi muốn đổi địa chỉ nhận hàng">Tôi muốn đổi địa chỉ nhận hàng</option>
+          <option value="Tôi muốn thay đổi Size hoặc Màu sắc áo">Tôi muốn thay đổi Size hoặc Màu sắc áo</option>
+          <option value="Tôi đổi ý, không có nhu cầu mua nữa">Tôi đổi ý, không có nhu cầu mua nữa</option>
+          <option value="Lý do khác">Lý do khác</option>
+        </select>
+      </div>
+      <button type="submit" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-wider rounded-xl transition-colors shadow">
+        Xác Nhận Hủy Đơn
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 3. MODAL ĐÁNH GIÁ NHANH -->
+<div id="quickReviewModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
+    <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
+      <div>
+        <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Đánh Giá Sản Phẩm</h3>
+        <p class="text-[11px] text-neutral-500 line-clamp-1" id="quickReviewProductName">Tên sản phẩm</p>
+      </div>
+      <button onclick="closeQuickReviewModal()" class="text-neutral-400 hover:text-black">&times;</button>
+    </div>
+
+    <form id="quickReviewForm" method="POST" enctype="multipart/form-data" class="space-y-4">
+      @csrf
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Số Sao Đánh Giá *</label>
+        <div class="flex items-center gap-2 text-2xl text-neutral-300">
+          <input type="hidden" name="rating" id="quickRatingInput" value="5" required>
+          @for($i = 1; $i <= 5; $i++)
+            <button type="button" onclick="setQuickModalRating({{ $i }})" class="hover:text-amber-400 quick-rating-star text-amber-400" data-star="{{ $i }}">
+              ★
+            </button>
+          @endfor
+          <span id="quickRatingLabel" class="text-xs text-neutral-600 font-semibold ml-2">Tuyệt vời (5/5 sao)</span>
         </div>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <form id="quickReviewForm" method="POST" enctype="multipart/form-data">
-        @csrf
-        <input type="hidden" id="qrProductId" name="product_id" value="">
-        <div class="modal-body p-4 bg-light">
-          <!-- Alert Box -->
-          <div id="quickReviewAlert" class="alert d-none py-2 px-3 mb-3 rounded-3 small"></div>
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Nội Dung Nhận Xét *</label>
+        <textarea name="comment" rows="4" required placeholder="Chia sẻ cảm nhận về form áo, chất liệu vải..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-xs focus:outline-none focus:border-neutral-950"></textarea>
+      </div>
 
-          <!-- Product Card Preview -->
-          <div class="p-3 bg-white rounded-3 border d-flex align-items-center gap-3 mb-3.5 shadow-xs">
-            <img id="qrProdImg" src="" alt="product" class="rounded border shadow-xs" style="width: 58px; height: 58px; object-fit: cover;">
-            <div class="flex-grow-1 min-w-0">
-              <h6 class="fw-bold text-dark mb-1 text-truncate small" id="qrProdName">Tên sản phẩm</h6>
-              <div class="text-danger fw-bold small" id="qrProdPrice">0₫</div>
-            </div>
-          </div>
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Ảnh Chụp Thực Tế</label>
+        <input type="file" name="images[]" multiple accept="image/*" class="text-xs text-neutral-500 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-neutral-200">
+      </div>
 
-          <!-- Star Rating Interactive Selector -->
-          <div class="p-3 bg-white rounded-3 border mb-3.5 text-center shadow-xs">
-            <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.78rem;">
-              Chất lượng sản phẩm &amp; mức độ hài lòng:
-            </label>
-            <div class="d-flex justify-content-center gap-2 my-2" id="qrStarsContainer">
-              @for($i = 1; $i <= 5; $i++)
-                <i class="fa-solid fa-star fs-3 cursor-pointer qr-star-item text-warning" data-rating="{{ $i }}" style="cursor: pointer; transition: transform 0.15s, color 0.15s;" onmouseover="hoverQrStars({{ $i }})" onmouseout="resetQrStars()" onclick="selectQrRating({{ $i }})"></i>
-              @endfor
-            </div>
-            <input type="hidden" name="rating" id="qrRatingInput" value="5">
-            <div class="small fw-bold text-warning" id="qrRatingLabel">Tuyệt vời (5/5 sao)</div>
-          </div>
+      <button type="submit" class="w-full py-3 bg-neutral-950 hover:bg-neutral-800 text-white font-semibold uppercase tracking-wider rounded-xl transition-colors shadow">
+        Gửi Đánh Giá Ngay
+      </button>
+    </form>
+  </div>
+</div>
 
-          <!-- Review Comment Textarea -->
-          <div class="mb-3.5">
-            <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.78rem;">
-              <i class="fa-solid fa-pen-nib text-warning me-1"></i> Nhận xét chi tiết của bạn: <span class="text-danger">*</span>
-            </label>
-            <textarea name="comment" id="qrCommentInput" class="form-control rounded-3" rows="3" placeholder="Chia sẻ cảm nhận về chất vải, form dáng, đường may, độ co giãn khi mặc..." required minlength="4" maxlength="1000" style="font-size: 0.88rem; resize: none;"></textarea>
-          </div>
+<!-- 4. MODAL TỪ CHỐI NHẬN HÀNG (CHUYỂN HOÀN) -->
+<div id="profileRejectOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
+    <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
+      <h3 class="font-serif-luxury text-xl font-bold text-rose-600" id="rejectModalOrderTitle">Từ Chối Nhận Hàng</h3>
+      <button onclick="closeProfileRejectModal()" class="text-neutral-400 hover:text-black">&times;</button>
+    </div>
 
-          <!-- Image Upload Input -->
-          <div>
-            <label class="form-label small fw-bold text-dark text-uppercase mb-1" style="font-size: 0.78rem;">
-              <i class="fa-solid fa-camera text-warning me-1"></i> Tải ảnh chụp thực tế (tối đa 5 ảnh):
-            </label>
-            <input type="file" name="review_images[]" id="qrImagesInput" class="form-control form-control-sm rounded-3" multiple accept="image/*" onchange="previewQrImages(this)">
-            <div id="qrImagesPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
-          </div>
+    <form id="profileRejectOrderForm" method="POST" enctype="multipart/form-data" class="space-y-4">
+      @csrf
+      <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px]">
+        Bưu tá sẽ lập biên bản và chuyển hoàn kiện hàng về kho tổng BeeStyle. Tồn kho và voucher sẽ được tự động hoàn lại.
+      </div>
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Không Nhận *</label>
+        <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5">
+          <option value="" disabled selected>-- Chọn lý do từ chối --</option>
+          <option value="Hộp/Thùng hàng bị móp méo, rách vỡ">Hộp/Thùng hàng bị móp méo, rách vỡ</option>
+          <option value="Bưu tá không hỗ trợ đồng kiểm tra hàng">Bưu tá không hỗ trợ đồng kiểm</option>
+          <option value="Giao sai mẫu mã, sai màu sắc hoặc kích cỡ">Giao sai mẫu mã hoặc kích cỡ</option>
+          <option value="Sản phẩm bị lỗi may mặc hoặc hư hỏng">Sản phẩm bị lỗi vải/may mặc</option>
+          <option value="Thời gian giao quá trễ, không còn nhu cầu">Giao quá trễ so với dự kiến</option>
+          <option value="Lý do khác">Lý do khác</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold uppercase text-neutral-700 mb-1">Ghi chú cụ thể</label>
+        <textarea name="notes" rows="2" placeholder="Ghi chú chi tiết..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2"></textarea>
+      </div>
+      <button type="submit" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-wider rounded-xl transition-colors shadow">
+        Xác Nhận Không Nhận (Chuyển Hoàn)
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- 5. MODAL OTP 2-BƯỚC THAY ĐỔI EMAIL / SĐT -->
+<div id="contactOtpModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white max-w-md w-full rounded-2xl p-6 sm:p-8 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
+    <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
+      <h3 class="font-serif-luxury text-xl font-bold text-neutral-900" id="contactModalTitle">Thay Đổi Thông Tin Liên Hệ</h3>
+      <button onclick="closeContactModal()" class="text-neutral-400 hover:text-black">&times;</button>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="contactStep1">
+      <p class="text-neutral-600 mb-4" id="contactStep1Desc">Vui lòng nhập địa chỉ mới để nhận mã xác thực OTP 6 chữ số.</p>
+      <form onsubmit="handleRequestContactOtp(event)" class="space-y-4">
+        <input type="hidden" id="contactType" value="email">
+        <div>
+          <label class="block font-semibold uppercase text-neutral-700 mb-1" id="contactInputLabel">Email Mới</label>
+          <input type="text" id="contactNewValue" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
         </div>
+        <button type="submit" id="requestOtpBtn" class="w-full py-3 bg-neutral-950 hover:bg-neutral-800 text-white font-semibold uppercase tracking-wider rounded-xl transition-colors">
+          Gửi Mã Xác Thực OTP
+        </button>
+      </form>
+    </div>
 
-        <div class="modal-footer border-0 p-3 bg-white justify-content-between">
-          <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-pill" data-bs-dismiss="modal">Hủy bỏ</button>
-          <button type="submit" id="qrSubmitBtn" class="btn btn-bee-primary btn-sm px-4 fw-bold rounded-pill">
-            <i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI
-          </button>
+    <!-- Step 2 -->
+    <div id="contactStep2" class="hidden">
+      <p class="text-neutral-600 mb-4">Mã OTP đã được gửi. Vui lòng nhập đúng 6 chữ số để hoàn tất:</p>
+      <form onsubmit="handleConfirmContactOtp(event)" class="space-y-4">
+        <div>
+          <label class="block font-semibold uppercase text-neutral-700 mb-1">Mã OTP 6 Chữ Số</label>
+          <input type="text" id="contactOtpCode" maxlength="6" required placeholder="123456" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 text-center text-lg font-mono font-bold tracking-widest focus:outline-none focus:border-neutral-950">
         </div>
+        <button type="submit" id="confirmOtpBtn" class="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold uppercase tracking-wider rounded-xl transition-colors">
+          Xác Nhận Thay Đổi
+        </button>
       </form>
     </div>
   </div>
 </div>
 
+@endsection
+
 @push('scripts')
+@php
+  $ordersJsonData = $orders->map(function($o) {
+    return [
+      'id' => $o->id,
+      'code' => $o->order_code,
+      'total_amount' => $o->total_amount,
+      'items' => $o->items->map(function($it) {
+        return [
+          'id' => $it->id,
+          'product_id' => $it->product_id,
+          'name' => $it->product_name,
+          'color' => $it->color,
+          'size' => $it->size,
+          'quantity' => $it->quantity,
+          'price' => $it->price,
+          'subtotal' => $it->price * $it->quantity,
+          'thumbnail' => asset($it->product->primaryImage->image_path ?? $it->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop'),
+        ];
+      })
+    ];
+  });
+@endphp
 <script>
-  let currentQrRating = 5;
-  const qrRatingLabels = {
-    1: 'Rất tệ (1/5 sao)',
-    2: 'Không hài lòng (2/5 sao)',
-    3: 'Bình thường (3/5 sao)',
-    4: 'Hài lòng (4/5 sao)',
-    5: 'Tuyệt vời (5/5 sao)'
-  };
+  const userOrdersData = @json($ordersJsonData);
 
-  function selectQrRating(rating) {
-    currentQrRating = rating;
-    document.getElementById('qrRatingInput').value = rating;
-    document.getElementById('qrRatingLabel').textContent = qrRatingLabels[rating] || (rating + '/5 sao');
-    updateQrStarsDisplay(rating);
+  function switchProfileTab(tabName) {
+    document.querySelectorAll('.profile-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.profile-tab-btn').forEach(b => {
+      b.classList.remove('bg-neutral-950', 'text-white', 'font-semibold');
+      b.classList.add('text-neutral-700', 'hover:bg-neutral-50', 'font-medium');
+      const badge = b.querySelector('.rounded-full');
+      if (badge && !badge.classList.contains('bg-rose-100')) {
+        badge.className = 'px-2 py-0.5 bg-neutral-100 text-neutral-600 rounded-full text-[10px]';
+      }
+    });
+
+    const targetPanel = document.getElementById(`tab-panel-${tabName}`);
+    const targetBtn = document.getElementById(`tab-btn-${tabName}`);
+    if (targetPanel) targetPanel.classList.remove('hidden');
+    if (targetBtn) {
+      targetBtn.classList.remove('text-neutral-700', 'hover:bg-neutral-50', 'font-medium');
+      targetBtn.classList.add('bg-neutral-950', 'text-white', 'font-semibold');
+      const badge = targetBtn.querySelector('.rounded-full');
+      if (badge) {
+        badge.className = 'px-2 py-0.5 bg-neutral-800 text-white rounded-full text-[10px] font-bold';
+      }
+    }
   }
 
-  function hoverQrStars(rating) {
-    updateQrStarsDisplay(rating);
-    document.getElementById('qrRatingLabel').textContent = qrRatingLabels[rating] || (rating + '/5 sao');
+  // Handle URL query parameter ?tab=...
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab) {
+      switchProfileTab(tab);
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  });
+
+  function toggleAddAddressForm() {
+    document.getElementById('addAddressFormBox')?.classList.toggle('hidden');
   }
 
-  function resetQrStars() {
-    updateQrStarsDisplay(currentQrRating);
-    document.getElementById('qrRatingLabel').textContent = qrRatingLabels[currentQrRating] || (currentQrRating + '/5 sao');
+  function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('avatarPreview').src = e.target.result;
+        document.getElementById('sidebarAvatarPreview').src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
   }
 
-  function updateQrStarsDisplay(rating) {
-    document.querySelectorAll('.qr-star-item').forEach(star => {
-      const starRating = parseInt(star.getAttribute('data-rating'));
-      if (starRating <= rating) {
-        star.classList.remove('text-secondary-subtle');
-        star.classList.add('text-warning');
+  // RMA Return Modal
+  let selectedReturnFiles = [];
+
+  function openReturnModal(orderId, orderCode, totalAmount, preselectedItemId = null) {
+    document.getElementById('returnModalOrderCode').textContent = `Đơn hàng #${orderCode} (Tổng: ${Number(totalAmount).toLocaleString('vi-VN')}₫)`;
+    document.getElementById('returnOrderForm').action = `/don-hang/${orderId}/yeu-cau-doi-tra`;
+
+    // Find order in JSON
+    const order = userOrdersData.find(o => o.id === orderId);
+    const itemsListContainer = document.getElementById('returnOrderItemsList');
+    const badge = document.getElementById('returnSelectedItemBadge');
+
+    if (order && itemsListContainer) {
+      itemsListContainer.innerHTML = '';
+
+      // Option 0: Toàn bộ đơn hàng (if multiple items)
+      if (order.items && order.items.length > 1) {
+        const isAllChecked = !preselectedItemId;
+        const allCard = document.createElement('label');
+        allCard.className = `p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${isAllChecked ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-neutral-200 hover:border-neutral-300'}`;
+        allCard.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <input type="radio" name="order_item_id" value="" ${isAllChecked ? 'checked' : ''} onchange="handleReturnItemSelected(this, 'Toàn bộ đơn hàng', ${order.total_amount})" class="text-neutral-900">
+            <div class="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-700 shrink-0">
+              <i data-lucide="package" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <strong class="text-xs text-neutral-900 block">Toàn bộ đơn hàng (${order.items.length} sản phẩm)</strong>
+              <span class="text-[10px] text-neutral-400">Yêu cầu đổi trả cho tất cả các món trong đơn #${order.code}</span>
+            </div>
+          </div>
+          <span class="font-serif-luxury font-bold text-neutral-900 text-xs">${Number(order.total_amount).toLocaleString('vi-VN')}₫</span>
+        `;
+        itemsListContainer.appendChild(allCard);
+      }
+
+      // Each product item
+      (order.items || []).forEach(it => {
+        const isChecked = (preselectedItemId && it.id === preselectedItemId) || (order.items.length === 1);
+        const itemCard = document.createElement('label');
+        itemCard.className = `p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${isChecked ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-neutral-200 hover:border-neutral-300'}`;
+        itemCard.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0 pr-2">
+            <input type="radio" name="order_item_id" value="${it.id}" ${isChecked ? 'checked' : ''} onchange="handleReturnItemSelected(this, '${it.name.replace(/'/g, "\\'")}', ${it.subtotal})" class="text-neutral-900 shrink-0">
+            <img src="${it.thumbnail}" class="w-10 h-12 rounded object-cover border border-neutral-200 shrink-0">
+            <div class="min-w-0">
+              <strong class="text-xs text-neutral-900 block truncate">${it.name}</strong>
+              <span class="text-[11px] text-neutral-500">Màu: ${it.color || 'Chuẩn'} | Size: ${it.size || 'M'} • SL: x${it.quantity}</span>
+            </div>
+          </div>
+          <span class="font-serif-luxury font-bold text-neutral-900 text-xs shrink-0">${Number(it.subtotal).toLocaleString('vi-VN')}₫</span>
+        `;
+        itemsListContainer.appendChild(itemCard);
+      });
+
+      // Update badge text
+      if (preselectedItemId) {
+        const selItem = order.items.find(it => it.id === preselectedItemId);
+        if (badge && selItem) {
+          badge.textContent = `${selItem.name} (${Number(selItem.subtotal).toLocaleString('vi-VN')}₫)`;
+        }
       } else {
-        star.classList.remove('text-warning');
-        star.classList.add('text-secondary-subtle');
+        if (badge) {
+          badge.textContent = (order.items && order.items.length > 1) ? `Toàn bộ đơn hàng (${Number(order.total_amount).toLocaleString('vi-VN')}₫)` : `${order.items[0]?.name} (${Number(order.items[0]?.subtotal).toLocaleString('vi-VN')}₫)`;
+        }
+      }
+    }
+
+    // Reset uploads
+    selectedReturnFiles = [];
+    const previewContainer = document.getElementById('returnImagesPreviewList');
+    if (previewContainer) previewContainer.innerHTML = '';
+    const imgInput = document.getElementById('returnImageProofsInput');
+    if (imgInput) imgInput.value = '';
+    removeReturnVideo();
+    toggleReturnTypeFields('return_refund');
+
+    document.getElementById('returnOrderModal').classList.remove('hidden');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  function handleReturnItemSelected(radio, label, amount) {
+    const badge = document.getElementById('returnSelectedItemBadge');
+    if (badge) {
+      badge.textContent = `${label} (${Number(amount).toLocaleString('vi-VN')}₫)`;
+    }
+    // Update active highlight on all item cards in the container
+    document.querySelectorAll('#returnOrderItemsList label').forEach(lbl => {
+      const r = lbl.querySelector('input[type="radio"]');
+      if (r && r.checked) {
+        lbl.className = 'p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-amber-50/80 border-amber-300 ring-1 ring-amber-300';
+      } else {
+        lbl.className = 'p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-white border-neutral-200 hover:border-neutral-300';
+      }
+    });
+  }
+  function closeReturnModal() {
+    document.getElementById('returnOrderModal').classList.add('hidden');
+  }
+
+  function toggleReturnTypeFields(type) {
+    const exchangeBox = document.getElementById('exchangeFieldsBox');
+    if (exchangeBox) {
+      if (type === 'exchange') {
+        exchangeBox.classList.remove('hidden');
+      } else {
+        exchangeBox.classList.add('hidden');
+      }
+    }
+  }
+
+  function handleReturnImagesPreview(input) {
+    if (!input.files || input.files.length === 0) return;
+
+    Array.from(input.files).forEach(f => {
+      if (selectedReturnFiles.length < 5) {
+        selectedReturnFiles.push(f);
+      }
+    });
+
+    renderReturnImagesList();
+  }
+
+  function renderReturnImagesList() {
+    const container = document.getElementById('returnImagesPreviewList');
+    const input = document.getElementById('returnImageProofsInput');
+    if (!container || !input) return;
+
+    // Sync input files with DataTransfer
+    try {
+      const dt = new DataTransfer();
+      selectedReturnFiles.forEach(f => dt.items.add(f));
+      input.files = dt.files;
+    } catch(e) {}
+
+    container.innerHTML = '';
+    selectedReturnFiles.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const wrap = document.createElement('div');
+        wrap.className = 'relative w-16 h-20 rounded-lg border border-neutral-300 overflow-hidden shrink-0 group shadow-sm bg-neutral-100';
+        wrap.innerHTML = `
+          <img src="${e.target.result}" class="w-full h-full object-cover">
+          <button type="button" onclick="removeReturnImage(${idx})" class="absolute top-1 right-1 bg-neutral-900/80 hover:bg-neutral-950 text-white w-4 h-4 flex items-center justify-center text-[10px] rounded-full opacity-90 transition-opacity">✕</button>
+        `;
+        container.appendChild(wrap);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removeReturnImage(index) {
+    selectedReturnFiles.splice(index, 1);
+    renderReturnImagesList();
+  }
+
+  function handleReturnVideoPreview(input) {
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const previewBox = document.getElementById('returnVideoPreviewBox');
+    const nameEl = document.getElementById('returnVideoPreviewName');
+    if (!previewBox || !nameEl) return;
+
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    nameEl.textContent = `${file.name} (${sizeMB} MB)`;
+    previewBox.classList.remove('hidden');
+  }
+
+  function removeReturnVideo() {
+    const input = document.getElementById('returnVideoUnboxInput');
+    const previewBox = document.getElementById('returnVideoPreviewBox');
+    if (input) input.value = '';
+    if (previewBox) previewBox.classList.add('hidden');
+  }
+
+  // Cancel Order Modal
+  function openCancelModal(orderId, orderCode) {
+    document.getElementById('cancelModalOrderCode').textContent = `Hủy Đơn Hàng #${orderCode}`;
+    document.getElementById('cancelOrderForm').action = `/don-hang/${orderId}/huy`;
+    document.getElementById('cancelOrderModal').classList.remove('hidden');
+  }
+  function closeCancelModal() {
+    document.getElementById('cancelOrderModal').classList.add('hidden');
+  }
+
+  // Quick Review Modal
+  function openQuickReviewModal(productId, productName) {
+    document.getElementById('quickReviewProductName').textContent = productName;
+    document.getElementById('quickReviewForm').action = `/san-pham/${productId}/danh-gia`;
+    document.getElementById('quickReviewModal').classList.remove('hidden');
+  }
+  function closeQuickReviewModal() {
+    document.getElementById('quickReviewModal').classList.add('hidden');
+  }
+
+  function setQuickModalRating(star) {
+    document.getElementById('quickRatingInput').value = star;
+    const labels = {
+      1: 'Rất tệ (1/5 sao)',
+      2: 'Chưa hài lòng (2/5 sao)',
+      3: 'Bình thường (3/5 sao)',
+      4: 'Hài lòng (4/5 sao)',
+      5: 'Tuyệt vời (5/5 sao)'
+    };
+    document.getElementById('quickRatingLabel').textContent = labels[star] || `${star}/5 sao`;
+    document.querySelectorAll('.quick-rating-star').forEach(btn => {
+      const s = parseInt(btn.getAttribute('data-star'));
+      if (s <= star) {
+        btn.classList.add('text-amber-400');
+        btn.classList.remove('text-neutral-300');
+      } else {
+        btn.classList.remove('text-amber-400');
+        btn.classList.add('text-neutral-300');
       }
     });
   }
 
-  function previewQrImages(input) {
-    const previewContainer = document.getElementById('qrImagesPreview');
-    previewContainer.innerHTML = '';
-    if (input.files && input.files.length > 0) {
-      Array.from(input.files).slice(0, 5).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.className = 'rounded border shadow-xs';
-          img.style.width = '52px';
-          img.style.height = '52px';
-          img.style.objectFit = 'cover';
-          previewContainer.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+  // Reject Order from Profile
+  function openProfileRejectModal(orderCode) {
+    document.getElementById('rejectModalOrderTitle').textContent = `Từ Chối Nhận Hàng #${orderCode}`;
+    document.getElementById('profileRejectOrderForm').action = `{{ url('/don-hang/tra-cuu') }}/${orderCode}/tu-choi-nhan`;
+    document.getElementById('profileRejectOrderModal').classList.remove('hidden');
+  }
+  function closeProfileRejectModal() {
+    document.getElementById('profileRejectOrderModal').classList.add('hidden');
   }
 
-  function openQuickReviewModal(productId) {
-    const modalEl = document.getElementById('quickReviewModal');
-    const alertBox = document.getElementById('quickReviewAlert');
-    if (alertBox) alertBox.classList.add('d-none');
-
-    // Fetch product review data
-    fetch(`/san-pham/${productId}/danh-gia-chi-tiet`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.product) {
-          document.getElementById('qrProductId').value = data.product.id;
-          document.getElementById('qrProdName').textContent = data.product.name;
-          document.getElementById('qrProdPrice').textContent = data.product.price;
-          document.getElementById('qrProdImg').src = data.product.image;
-
-          // If user already reviewed, prefill
-          if (data.user_review) {
-            selectQrRating(data.user_review.rating || 5);
-            document.getElementById('qrCommentInput').value = data.user_review.comment || '';
-            document.getElementById('quickReviewModalLabel').textContent = 'Cập Nhật Đánh Giá Của Bạn';
-            document.getElementById('qrSubmitBtn').innerHTML = '<i class="fa-solid fa-check me-1"></i> CẬP NHẬT ĐÁNH GIÁ';
-          } else {
-            selectQrRating(5);
-            document.getElementById('qrCommentInput').value = '';
-            document.getElementById('quickReviewModalLabel').textContent = 'Đánh Giá Sản Phẩm Của Bạn';
-            document.getElementById('qrSubmitBtn').innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI';
-          }
-
-          document.getElementById('qrImagesPreview').innerHTML = '';
-          document.getElementById('qrImagesInput').value = '';
-
-          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-          modal.show();
-        } else {
-          window.location.href = `/san-pham/${productId}#reviews`;
-        }
-      })
-      .catch(err => {
-        window.location.href = `/san-pham/${productId}#reviews`;
-      });
+  // 2-Step Contact Change Modals
+  function openContactModal(type) {
+    document.getElementById('contactType').value = type;
+    document.getElementById('contactModalTitle').textContent = type === 'email' ? 'Thay Đổi Địa Chỉ Email' : 'Thay Đổi Số Điện Thoại';
+    document.getElementById('contactInputLabel').textContent = type === 'email' ? 'Địa Chỉ Email Mới' : 'Số Điện Thoại Mới';
+    document.getElementById('contactNewValue').placeholder = type === 'email' ? 'user@example.com' : '0987654321';
+    document.getElementById('contactStep1').classList.remove('hidden');
+    document.getElementById('contactStep2').classList.add('hidden');
+    document.getElementById('contactOtpModal').classList.remove('hidden');
+  }
+  function closeContactModal() {
+    document.getElementById('contactOtpModal').classList.add('hidden');
   }
 
-  function toggleRmaFields(type, orderId) {
-    const exchangeFields = document.getElementById('exchangeFields' + orderId);
-    const refundBankFields = document.getElementById('refundBankFields' + orderId);
-    if (type === 'exchange') {
-      if (exchangeFields) exchangeFields.classList.remove('d-none');
-      if (refundBankFields) refundBankFields.classList.add('d-none');
-    } else {
-      if (exchangeFields) exchangeFields.classList.add('d-none');
-      if (refundBankFields) refundBankFields.classList.remove('d-none');
-    }
-  }
+  function handleRequestContactOtp(e) {
+    e.preventDefault();
+    const type = document.getElementById('contactType').value;
+    const value = document.getElementById('contactNewValue').value.trim();
+    const btn = document.getElementById('requestOtpBtn');
+    btn.disabled = true;
+    btn.textContent = 'Đang gửi mã OTP...';
 
-  document.addEventListener("DOMContentLoaded", function () {
-    // Review Form AJAX Submit Handler
-    const reviewForm = document.getElementById('quickReviewForm');
-    if (reviewForm) {
-      reviewForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const pId = document.getElementById('qrProductId').value;
-        if (!pId) return;
-
-        const submitBtn = document.getElementById('qrSubmitBtn');
-        const alertBox = document.getElementById('quickReviewAlert');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang gửi đánh giá...';
-
-        const formData = new FormData(this);
-
-        fetch(`/san-pham/${pId}/danh-gia`, {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '{{ csrf_token() }}',
-            'Accept': 'application/json'
-          },
-          body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI';
-
-          if (data.success) {
-            if (alertBox) {
-              alertBox.className = 'alert alert-success border-0 py-2.5 px-3 rounded-3 mb-3 small';
-              alertBox.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> ${data.message || 'Cảm ơn bạn đã gửi đánh giá thành công!'}`;
-              alertBox.classList.remove('d-none');
-            }
-
-            // Update button on order list
-            const btnEl = document.getElementById('order-btn-review-' + pId);
-            if (btnEl) {
-              btnEl.className = 'btn btn-sm btn-outline-success py-0.5 px-2 mt-1 fw-bold text-nowrap';
-              btnEl.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Xem / Sửa Đánh Giá';
-            }
-
-            setTimeout(() => {
-              const modalEl = document.getElementById('quickReviewModal');
-              if (modalEl) {
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-              }
-            }, 1200);
-          } else {
-            if (alertBox) {
-              alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
-              alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> ${data.message || 'Có lỗi xảy ra khi gửi đánh giá.'}`;
-              alertBox.classList.remove('d-none');
-            }
-          }
-        })
-        .catch(err => {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ CỦA TÔI';
-          if (alertBox) {
-            alertBox.className = 'alert alert-danger border-0 py-2.5 px-3 rounded-3 mb-3 small';
-            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Có lỗi xảy ra khi kết nối máy chủ.';
-            alertBox.classList.remove('d-none');
-          }
-        });
-      });
-    }
-
-    // 1. Kiểm tra query param ?tab= hoặc URL hash #
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get('tab');
-    const hash = window.location.hash;
-
-    const tabMap = {
-      'orders': 'orders-tab',
-      'returns': 'returns-tab',
-      'profile': 'edit-profile-tab',
-      'bank': 'bank-tab',
-      'password': 'password-tab',
-      'addresses': 'addresses-tab',
-      'vip': 'rewards-tab',
-      'reviews': 'my-reviews-tab',
-      '#tab-orders': 'orders-tab',
-      '#tab-returns': 'returns-tab',
-      '#tab-profile': 'edit-profile-tab',
-      '#tab-bank': 'bank-tab',
-      '#tab-password': 'password-tab',
-      '#tab-addresses': 'addresses-tab',
-      '#tab-vip': 'rewards-tab',
-      '#tab-my-reviews': 'my-reviews-tab'
-    };
-
-    let targetTabId = null;
-    if (tabParam && tabMap[tabParam]) {
-      targetTabId = tabMap[tabParam];
-    } else if (hash && tabMap[hash]) {
-      targetTabId = tabMap[hash];
-    }
-
-    // 2. Nếu có lỗi validation của form thì tự động mở tab tương ứng
-    @if(isset($errors) && ($errors->has('current_password') || $errors->has('password')))
-      targetTabId = 'password-tab';
-    @elseif(isset($errors) && ($errors->has('bank_name') || $errors->has('bank_account_number') || $errors->has('bank_account_name') || $errors->has('bank_branch')))
-      targetTabId = 'bank-tab';
-    @elseif(isset($errors) && ($errors->has('recipient_name') || $errors->has('address') || $errors->has('city')))
-      targetTabId = 'addresses-tab';
-    @endif
-
-    if (targetTabId) {
-      const tabButton = document.getElementById(targetTabId);
-      if (tabButton) {
-        const tabTrigger = new bootstrap.Tab(tabButton);
-        tabTrigger.show();
+    fetch('{{ route("client.profile.contact.request") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify({ type: type, value: value })
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.textContent = 'Gửi Mã Xác Thực OTP';
+      if (data.success) {
+        alert(data.message || 'Mã OTP đã được gửi!');
+        document.getElementById('contactStep1').classList.add('hidden');
+        document.getElementById('contactStep2').classList.remove('hidden');
+      } else {
+        alert(data.message || 'Có lỗi xảy ra.');
       }
-    }
-  });
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.textContent = 'Gửi Mã Xác Thực OTP';
+      alert('Không thể kết nối máy chủ.');
+    });
+  }
+
+  function handleConfirmContactOtp(e) {
+    e.preventDefault();
+    const type = document.getElementById('contactType').value;
+    const otp = document.getElementById('contactOtpCode').value.trim();
+    const btn = document.getElementById('confirmOtpBtn');
+    btn.disabled = true;
+    btn.textContent = 'Đang xác thực...';
+
+    fetch('{{ route("client.profile.contact.confirm") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify({ type: type, otp: otp })
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.textContent = 'Xác Nhận Thay Đổi';
+      if (data.success) {
+        alert(data.message || 'Đã cập nhật thông tin thành công!');
+        window.location.reload();
+      } else {
+        alert(data.message || 'Mã OTP không chính xác.');
+      }
+    })
+    .catch(() => {
+      btn.disabled = false;
+      btn.textContent = 'Xác Nhận Thay Đổi';
+      alert('Không thể kết nối máy chủ.');
+    });
+  }
 </script>
 @endpush
-
-@endsection
-
