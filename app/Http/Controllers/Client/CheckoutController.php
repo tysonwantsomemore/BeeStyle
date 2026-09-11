@@ -124,7 +124,7 @@ class CheckoutController extends Controller
                 }
 
                 if (!empty($item['deal_id'])) {
-                    $deal = \App\Models\DailyDeal::where('id', $item['deal_id'])->where('status', 'active')->first();
+                    $deal = \App\Models\DailyDeal::where('id', $item['deal_id'])->where('is_active', true)->first();
                     if ($deal) {
                         $itemPrice = (int)$deal->deal_price;
                     }
@@ -134,7 +134,7 @@ class CheckoutController extends Controller
 
             $verifiedDiscount = 0;
             if ($cartData['coupon']) {
-                $couponDb = Coupon::where('code', $cartData['coupon']->code)->where('status', 'active')->first();
+                $couponDb = Coupon::where('code', $cartData['coupon']->code)->where('is_active', true)->first();
                 if ($couponDb && $couponDb->isValidForOrder($verifiedSubtotal)) {
                     $verifiedDiscount = $couponDb->calculateDiscount($verifiedSubtotal);
                 }

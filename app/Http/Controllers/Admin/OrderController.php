@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\OrderReturn;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
@@ -671,5 +672,80 @@ class OrderController extends Controller
         $order->update($updateData);
 
         return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công ({$order->status_label})! Dữ liệu đã đồng bộ theo thời gian thực.");
+    }
+
+    /**
+     * Quản trị viên duyệt và xác nhận đã chuyển khoản hoàn tiền cho khách
+     */
+    public function approveRefund(Request $request, $id)
+    {
+        $order = Order::with('items')->findOrFail($id);
+        $orderReturn = OrderReturn::where('order_id', $order->id)->latest()->first();
+
+        DB::transaction(function () use ($order, $orderReturn, $request) {
+            $now = now();
+
+            if ($orderReturn) {
+                $orderReturn->update([
+                    'status' => 'completed',
+                    'completed_at' => $now,
+                    'admin_notes' => $request->input('admin_notes', 'Quản trị viên đã xác nhận hoàn tiền thành công vào tài khoản của khách hàng.'),
+                ]);
+            }
+
+            // Hoàn kho nếu chưa hoàn kho
+            if ($order->shipping_status !== 'cancelled') {
+                foreach ($order->items as $item) {
+                    if ($item->product_id) {
+                        Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                        $prod = Product::find($item->product_id);
+                        if ($prod && $prod->sold_count >= $item->quantity) {
+                            $prod->decrement('sold_count', $item->quantity);
+                        }
+
+                        if (!empty($item->color) && !empty($item->size)) {
+                            ProductVariant::where('product_id', $item->product_id)
+                                ->where('color', $item->color)
+                                ->where('size', $item->size)
+                                ->increment('stock', $item->quantity);
+                        }
+                    }
+                }
+            }
+
+            $order->update([
+                'payment_status' => 'refunded',
+                'shipping_status' => 'cancelled',
+                'status_step' => 0,
+                'admin_notes' => ($order->admin_notes ? $order->admin_notes . " | " : "") . "[Đã hoàn tiền lúc {$now->format('d/m/Y H:i')}]",
+            ]);
+        });
+
+        return back()->with('success', "Đã duyệt và xác nhận HOÀN TIỀN thành công cho đơn hàng #{$order->order_code}!");
+    }
+
+    /**
+     * Quản trị viên từ chối yêu cầu hoàn tiền
+     */
+    public function rejectRefund(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        $orderReturn = OrderReturn::where('order_id', $order->id)->latest()->first();
+
+        $reason = $request->input('rejected_reason', 'Yêu cầu hoàn tiền không hợp lệ hoặc sản phẩm không đủ điều kiện đổi trả.');
+
+        if ($orderReturn) {
+            $orderReturn->update([
+                'status' => 'rejected',
+                'rejected_at' => now(),
+                'rejected_reason' => $reason,
+            ]);
+        }
+
+        $order->update([
+            'admin_notes' => ($order->admin_notes ? $order->admin_notes . " | " : "") . "[Từ chối hoàn tiền: {$reason}]",
+        ]);
+
+        return back()->with('warning', "Đã từ chối yêu cầu hoàn tiền cho đơn hàng #{$order->order_code}. Lý do: {$reason}");
     }
 }

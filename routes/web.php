@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route; 
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +71,12 @@ Route::name('auth.')->group(function () {
     // Đăng ký
     Route::get('/dang-ky', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/dang-ky', [AuthController::class, 'register'])->name('register.post');
+
+    // Quên mật khẩu & Đặt lại mật khẩu
+    Route::get('/quen-mat-khau', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+    Route::post('/quen-mat-khau', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/dat-lai-mat-khau/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+    Route::post('/dat-lai-mat-khau', [AuthController::class, 'resetPassword'])->name('password.update');
 
     // Đăng xuất
     Route::post('/dang-xuat', [AuthController::class, 'logout'])->name('logout');
@@ -150,6 +156,7 @@ Route::name('client.')->group(function () {
     Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
     Route::post('/tra-cuu-don-hang/{code}/da-nhan-hang', [OrderTrackingController::class, 'confirmDelivered'])->name('order-tracking.confirm-delivered');
     Route::post('/tra-cuu-don-hang/{code}/khong-nhan-hang', [OrderTrackingController::class, 'rejectDelivery'])->name('order-tracking.reject-delivery');
+    Route::post('/tra-cuu-don-hang/{code}/huy-hang-hoan-tien', [OrderTrackingController::class, 'requestRefund'])->name('order-tracking.request-refund');
 
     // Cổng Tra Cứu Vận Đơn Bưu Tá Trực Tuyến (GHTK, GHN, Viettel Post...)
     Route::get('/tra-cuu-van-don/{code?}', [OrderTrackingController::class, 'carrierTracking'])->name('carrier-tracking');
@@ -322,6 +329,8 @@ Route::prefix('admin')
 
         Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        Route::post('/orders/{id}/approve-refund', [AdminOrderController::class, 'approveRefund'])->name('orders.approveRefund');
+        Route::post('/orders/{id}/reject-refund', [AdminOrderController::class, 'rejectRefund'])->name('orders.rejectRefund');
 
         /*
         |--------------------------------------------------------------------------

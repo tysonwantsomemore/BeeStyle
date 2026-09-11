@@ -32,7 +32,7 @@
           <div class="mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <label class="form-label small fw-semibold text-dark mb-0">Mật khẩu <span class="text-danger">*</span></label>
-              <a href="#" class="small text-danger text-decoration-none">Quên mật khẩu?</a>
+              <a href="{{ route('auth.password.request') }}" class="small text-danger text-decoration-none">Quên mật khẩu?</a>
             </div>
             <div class="input-group">
               <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>

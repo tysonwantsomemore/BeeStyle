@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderReturn;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderTrackingController extends Controller
 {
@@ -293,6 +295,199 @@ class OrderTrackingController extends Controller
 
         return redirect()->route('client.order-tracking', ['code' => $code])
             ->with('warning', $msg);
+    }
+
+    /**
+     * Khách hàng gửi yêu cầu Hủy hàng & Hoàn tiền khi đơn hàng giao đến nơi
+     */
+    public function requestRefund(Request $request, $code)
+    {
+        $order = Order::with('items')->where('order_code', $code)->firstOrFail();
+
+        // Kiểm tra quyền sở hữu đơn hàng nếu đã đăng nhập và đơn có user_id
+        if (Auth::check() && $order->user_id && $order->user_id !== Auth::id()) {
+            abort(403, 'Bạn không có quyền thực hiện thao tác này trên đơn hàng.');
+        }
+
+        // Kiểm tra xem đã có yêu cầu hoàn tiền đang chờ duyệt chưa
+        $existingReturn = OrderReturn::where('order_id', $order->id)
+            ->whereIn('status', ['pending', 'approved', 'received'])
+            ->first();
+        if ($existingReturn) {
+            return back()->with('info', "Đơn hàng #{$code} đã có yêu cầu hoàn tiền #{$existingReturn->return_code} đang được xử lý.");
+        }
+
+        $validated = $request->validate([
+            'type' => 'required|string|in:return_refund,refund_only,exchange',
+            'order_item_id' => 'nullable|integer',
+            'exchange_size' => 'nullable|string|max:50',
+            'exchange_color' => 'nullable|string|max:50',
+            'reason' => 'required|string|max:255',
+            'customer_notes' => 'nullable|string|max:1000',
+            'refund_method' => 'nullable|string|in:bank,voucher',
+            'bank_name' => 'nullable|string|max:100',
+            'bank_account_number' => 'nullable|string|max:50',
+            'bank_account_name' => 'nullable|string|max:150',
+            'bank_branch' => 'nullable|string|max:150',
+            'image_proofs' => 'nullable|array|max:5',
+            'image_proofs.*' => 'image|mimes:jpeg,png,jpg,webp|max:8192',
+        ], [
+            'type.required' => 'Vui lòng chọn hình thức hoàn tiền hoặc đổi hàng.',
+            'reason.required' => 'Vui lòng chọn lý do yêu cầu đổi trả.',
+            'image_proofs.*.image' => 'File tải lên phải là hình ảnh (JPEG, PNG, WEBP).',
+            'image_proofs.*.max' => 'Dung lượng mỗi ảnh không vượt quá 8MB.',
+        ]);
+
+        $imageUrls = [];
+        if ($request->hasFile('image_proofs')) {
+            foreach ($request->file('image_proofs') as $image) {
+                $path = $image->store('returns/images', 'public');
+                $imageUrls[] = '/storage/' . $path;
+            }
+        }
+
+        // Tính số tiền hoàn: nếu là đổi hàng thì refund_amount = 0; nếu hoàn tiền thì lấy tổng tiền/tiền cọc
+        $refundAmount = $order->total_amount;
+        if ($order->is_deposit_required && $order->payment_status === 'deposit_paid') {
+            $refundAmount = $order->deposit_amount;
+        }
+        if ($validated['type'] === 'exchange') {
+            $refundAmount = 0;
+        }
+
+        $prefix = match ($validated['type']) {
+            'exchange' => 'EXC-',
+            'refund_only' => 'CAN-',
+            default => 'REF-',
+        };
+        $returnCode = $prefix . date('Ymd') . '-' . strtoupper(Str::random(5));
+        $userId = $order->user_id ?? Auth::id();
+
+        DB::transaction(function () use ($order, $validated, $imageUrls, $refundAmount, $returnCode, $userId) {
+            // 1. Tạo bản ghi OrderReturn
+            OrderReturn::create([
+                'return_code' => $returnCode,
+                'order_id' => $order->id,
+                'user_id' => $userId,
+                'order_item_id' => $validated['order_item_id'] ?? null,
+                'type' => $validated['type'],
+                'reason' => $validated['reason'],
+                'customer_notes' => $validated['customer_notes'] ?? null,
+                'image_proofs' => $imageUrls,
+                'exchange_size' => $validated['exchange_size'] ?? null,
+                'exchange_color' => $validated['exchange_color'] ?? null,
+                'refund_amount' => $refundAmount,
+                'refund_method' => $validated['refund_method'] ?? 'bank',
+                'bank_name' => $validated['bank_name'] ?? null,
+                'bank_account_number' => $validated['bank_account_number'] ?? null,
+                'bank_account_name' => !empty($validated['bank_account_name']) ? mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8') : null,
+                'bank_branch' => $validated['bank_branch'] ?? null,
+                'status' => 'pending',
+            ]);
+
+            // 2. Cập nhật trạng thái đơn hàng
+            $isPrePaid = in_array($order->payment_status, ['paid', 'deposit_paid']);
+            $actionLabel = match ($validated['type']) {
+                'exchange' => 'Đổi Hàng (Size/Màu)',
+                'refund_only' => 'Từ Chối Nhận Hàng',
+                default => 'Trả Hàng Hoàn Tiền',
+            };
+            $cancelReason = "Khách hàng gửi yêu cầu {$actionLabel} [{$returnCode}]: " . $validated['reason'];
+            if (!empty($validated['exchange_size'])) {
+                $cancelReason .= " (Đổi sang Size: " . $validated['exchange_size'] . ")";
+            }
+
+            $updateData = [
+                'cancel_reason' => $cancelReason,
+                'cancelled_by' => 'customer_refund',
+                'cancelled_at' => now(),
+            ];
+
+            // Nếu là từ chối nhận lúc shipper giao (hoặc hủy đơn khi chưa hoàn tất):
+            if ($validated['type'] === 'refund_only' || in_array($order->shipping_status, ['shipping', 'delivered'])) {
+                $updateData['shipping_status'] = 'cancelled';
+                $updateData['status_step'] = 0;
+                $updateData['payment_status'] = $isPrePaid ? 'refund_pending' : 'cancelled';
+
+                // Hoàn lại tồn kho cho sản phẩm
+                foreach ($order->items as $item) {
+                    if ($item->product_id) {
+                        Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                        $prod = Product::find($item->product_id);
+                        if ($prod && $prod->sold_count >= $item->quantity) {
+                            $prod->decrement('sold_count', $item->quantity);
+                        }
+
+                        if (!empty($item->color) && !empty($item->size)) {
+                            ProductVariant::where('product_id', $item->product_id)
+                                ->where('color', $item->color)
+                                ->where('size', $item->size)
+                                ->increment('stock', $item->quantity);
+                        }
+                    }
+                }
+
+                // Khôi phục coupon
+                if ($order->coupon_code) {
+                    $coupon = Coupon::where('code', $order->coupon_code)->first();
+                    if ($coupon && $coupon->used_count > 0) {
+                        $coupon->decrement('used_count');
+                    }
+                }
+            } else {
+                // Đơn hàng đã completed:
+                if ($validated['type'] === 'return_refund' && $isPrePaid) {
+                    $updateData['payment_status'] = 'refund_pending';
+                }
+                // Nếu là exchange (đổi hàng): không đổi shipping_status thành cancelled mà giữ completed
+                if ($validated['type'] === 'exchange') {
+                    unset($updateData['cancelled_by']);
+                    unset($updateData['cancelled_at']);
+                }
+            }
+
+            if (!empty($imageUrls[0])) {
+                $updateData['delivery_proof_image'] = $imageUrls[0];
+                $updateData['delivery_proof_note'] = "Ảnh khách hàng đính kèm khi yêu cầu {$actionLabel}";
+                $updateData['delivery_proof_at'] = now();
+            }
+
+            $order->update($updateData);
+
+            // Lưu STK vào tài khoản user nếu có
+            if (Auth::check() && !empty($validated['bank_name']) && !empty($validated['bank_account_number'])) {
+                Auth::user()->update([
+                    'bank_name' => $validated['bank_name'],
+                    'bank_account_number' => trim($validated['bank_account_number']),
+                    'bank_account_name' => mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8'),
+                    'bank_branch' => $validated['bank_branch'] ? trim($validated['bank_branch']) : null,
+                ]);
+            }
+        });
+
+        if ($validated['type'] === 'exchange') {
+            $msg = "Đã gửi yêu cầu ĐỔI HÀNG (Size/Màu) thành công [Mã: {$returnCode}]! CSKH BeeStyle sẽ liên hệ xác nhận và điều phối shipper giao sản phẩm mới tận nhà cho bạn trong 24-48h.";
+        } elseif ($validated['type'] === 'refund_only') {
+            $msg = "Đã ghi nhận yêu cầu TỪ CHỐI NHẬN HÀNG [Mã: {$returnCode}]. Kiện hàng sẽ được bưu tá chuyển hoàn về kho BeeStyle.";
+        } else {
+            $msg = "Đã gửi yêu cầu TRẢ HÀNG & HOÀN TIỀN thành công [Mã: {$returnCode}]! CSKH BeeStyle sẽ liên hệ hướng dẫn thu hồi sản phẩm và hoàn tiền vào tài khoản ngân hàng của bạn.";
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'order_code' => $order->order_code,
+                'return_code' => $returnCode,
+            ]);
+        }
+
+        if ($request->filled('from_profile') || str_contains(url()->previous(), 'tai-khoan')) {
+            return redirect()->route('client.profile', ['tab' => 'returns'])->with('success', $msg);
+        }
+
+        return redirect()->route('client.order-tracking', ['code' => $code])
+            ->with('success', $msg);
     }
 }
 
