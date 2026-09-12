@@ -133,6 +133,24 @@
     .card {
       border: 1px solid #e2e8f0;
     }
+    /* Modal Backdrop & Opaque Contrast Enhancement */
+    .modal-backdrop {
+      background-color: #0b1120 !important;
+    }
+    .modal-backdrop.show {
+      opacity: 0.65 !important;
+      backdrop-filter: blur(2px);
+    }
+    .modal-content {
+      background-color: var(--phoenix-body-bg, #ffffff) !important;
+      border: 1px solid var(--phoenix-border-color, #e2e8f0) !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35) !important;
+    }
+    [data-bs-theme="dark"] .modal-content,
+    .dark .modal-content {
+      background-color: #141824 !important;
+      border-color: #2b3040 !important;
+    }
   </style>
 
   @stack('styles')
