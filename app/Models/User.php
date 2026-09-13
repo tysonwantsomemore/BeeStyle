@@ -48,6 +48,7 @@ class User extends Authenticatable
         'avatar_url',
         'actual_total_spent',
         'is_verified',
+        'rank',
     ];
 
     /**
@@ -85,6 +86,39 @@ class User extends Authenticatable
         }
 
         return (int) ($this->total_spent ?? 0);
+    }
+
+    /**
+     * Hạng thành viên tính theo tổng chi tiêu thực tế (Đồng bộ 100% giữa Admin và Client)
+     */
+    public function getRankAttribute(): string
+    {
+        $spent = $this->actual_total_spent;
+        if ($spent >= 10000000) {
+            return 'VIP Kim Cương';
+        }
+        if ($spent >= 5000000) {
+            return 'VIP Vàng';
+        }
+        if ($spent >= 2000000) {
+            return 'Hội Viên Bạc';
+        }
+        return 'Thành Viên Đồng';
+    }
+
+    public function getRankBadgeClassAttribute(): string
+    {
+        $spent = $this->actual_total_spent;
+        if ($spent >= 10000000) {
+            return 'badge-phoenix-warning';
+        }
+        if ($spent >= 5000000) {
+            return 'badge-phoenix-primary';
+        }
+        if ($spent >= 2000000) {
+            return 'badge-phoenix-info';
+        }
+        return 'badge-phoenix-secondary';
     }
 
     protected function casts(): array

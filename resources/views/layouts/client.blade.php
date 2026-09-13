@@ -120,6 +120,10 @@
     nav a:hover::after, nav a.active::after {
       width: 100%;
     }
+    .main-nav-link::after,
+    .main-nav-tab::after {
+      display: none !important;
+    }
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -205,18 +209,36 @@
           </div>
         </a>
 
-        <!-- Main Desktop Navigation Links (Nằm ngay cạnh Logo) -->
-        <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-xs tracking-[0.16em] uppercase font-semibold text-neutral-700">
-          <a href="{{ route('client.home') }}" class="hover:text-black transition-colors py-2 flex items-center gap-1 {{ request()->routeIs('client.home') ? 'active text-neutral-950 font-bold text-amber-700' : '' }}">
-            <span>Trang Chủ</span>
+        <!-- Main Desktop Navigation (5 NÚT BẰNG NHAU NẰM NGANG CHUẨN LUXURY THỜI TRANG - KHÔNG BO VIỀN) -->
+        <nav class="hidden md:flex items-center gap-0 lg:gap-1 text-xs uppercase tracking-[0.14em] select-none">
+          <!-- 1. TRANG CHỦ -->
+          @php
+            $isHomeActive = request()->routeIs('client.home') && !request()->has('category') && !request()->has('q');
+          @endphp
+          <a href="{{ route('client.home') }}" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 {{ $isHomeActive ? 'text-neutral-950 font-bold' : 'text-neutral-600 hover:text-neutral-950 font-medium' }}">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Trang Chủ
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 {{ $isHomeActive ? 'w-full bg-neutral-950' : 'w-0 group-hover/item:w-full bg-neutral-950' }}"></span>
+            </span>
           </a>
           
-          <!-- ZARA MEGA MENU TRIGGER (SẢN PHẨM) -->
-          <div class="relative group/mega py-2">
-            <a href="{{ route('client.products.index') }}" class="hover:text-black transition-colors flex items-center gap-1 font-semibold text-neutral-900 {{ request()->routeIs('client.products.*') ? 'text-amber-800' : '' }}">
-              <span>Sản Phẩm</span>
-              <i data-lucide="chevron-down" class="w-3 h-3 group-hover/mega:rotate-180 transition-transform duration-300 text-neutral-400"></i>
+          <!-- 2. SẢN PHẨM (ZARA MEGA MENU TRIGGER) -->
+          @php
+            $isProductsActive = request()->routeIs('client.products.*') || request()->has('category');
+          @endphp
+          <div class="relative group/mega h-full flex items-center">
+            <a href="{{ route('client.products.index') }}" 
+               class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 {{ $isProductsActive ? 'text-neutral-950 font-bold' : 'text-neutral-600 hover:text-neutral-950 font-medium' }}">
+              <span class="relative py-1 inline-flex items-center gap-1 tracking-[0.14em] text-[11px] lg:text-xs">
+                <span>Sản Phẩm</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 group-hover/mega:rotate-180 transition-transform duration-300 {{ $isProductsActive ? 'text-neutral-950' : 'text-neutral-400 group-hover/item:text-neutral-950' }}"></i>
+                <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 {{ $isProductsActive ? 'w-full bg-neutral-950' : 'w-0 group-hover/item:w-full bg-neutral-950' }}"></span>
+              </span>
             </a>
+
+            <!-- Invisible hover bridge -->
+            <div class="absolute top-full left-0 w-full h-4 pointer-events-auto"></div>
 
             <!-- Dark backdrop overlay -->
             <div class="fixed inset-0 top-[65px] bg-neutral-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none z-40"></div>
@@ -313,9 +335,32 @@
             </div>
           </div>
 
-          <a href="{{ route('client.home') }}#collections" class="hover:text-black transition-colors py-2">Bộ Sưu Tập</a>
-          <a href="{{ route('client.home') }}#lookbook" class="hover:text-black transition-colors py-2">Lookbook</a>
-          <a href="{{ route('client.home') }}#about" class="hover:text-black transition-colors py-2">Về BeeStyle</a>
+          <!-- 3. BỘ SƯU TẬP -->
+          <a href="{{ route('client.home') }}#collections" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 text-neutral-600 hover:text-neutral-950 font-medium">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Bộ Sưu Tập
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 w-0 group-hover/item:w-full bg-neutral-950"></span>
+            </span>
+          </a>
+
+          <!-- 4. LOOKBOOK -->
+          <a href="{{ route('client.home') }}#lookbook" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 text-neutral-600 hover:text-neutral-950 font-medium">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Lookbook
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 w-0 group-hover/item:w-full bg-neutral-950"></span>
+            </span>
+          </a>
+
+          <!-- 5. VỀ BEESTYLE -->
+          <a href="{{ route('client.home') }}#about" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 text-neutral-600 hover:text-neutral-950 font-medium">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Về BeeStyle
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 w-0 group-hover/item:w-full bg-neutral-950"></span>
+            </span>
+          </a>
         </nav>
       </div>
 
@@ -532,7 +577,9 @@
               <span>Flash Sale Ngày</span>
               <span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px]">HOT</span>
             </a>
+            <a href="{{ route('client.home') }}#collections" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Bộ Sưu Tập</a>
             <a href="{{ route('client.home') }}#lookbook" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Lookbook Editorial</a>
+            <a href="{{ route('client.home') }}#about" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Về BeeStyle</a>
             <a href="{{ route('client.order-tracking') }}" class="py-2 text-amber-700 flex items-center gap-2">
               <i data-lucide="package" class="w-4 h-4"></i> Tra cứu đơn hàng
             </a>
@@ -952,12 +999,12 @@
   <!-- ========================================================================= -->
   @php
     $activeDeliveringOrder = isset($deliveringOrders) && $deliveringOrders->isNotEmpty() ? $deliveringOrders->first() : null;
-    $activePendingReview = isset($pendingReviewItems) && $pendingReviewItems->isNotEmpty() ? $pendingReviewItems->first() : null;
+    $activePendingReview = isset($unnotifiedReviewItems) && $unnotifiedReviewItems->isNotEmpty() ? $unnotifiedReviewItems->first() : (isset($pendingReviewItems) && $pendingReviewItems->isNotEmpty() ? $pendingReviewItems->first() : null);
   @endphp
 
   @if($activeDeliveringOrder)
-    <!-- THÔNG BÁO NỔI: BƯU TÁ ĐÃ GIAO HÀNG THÀNH CÔNG (CẦN XÁC NHẬN HOẶC HOÀN TRẢ) -->
-    <div id="floatingDeliveryAlert" data-order-code="{{ $activeDeliveringOrder->order_code }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-emerald-500 p-4 animate-fade-in transition-all duration-300">
+    <!-- THÔNG BÁO NỔI: BƯU TÁ ĐÃ GIAO HÀNG THÀNH CÔNG (CHỈ HIỂN THỊ ĐÚNG 1 LẦN DUY NHẤT) -->
+    <div id="floatingDeliveryAlert" data-order-code="{{ $activeDeliveringOrder->order_code }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-emerald-500 p-4 animate-fade-in transition-all duration-300" style="display: none;">
       <div class="flex items-start justify-between gap-3 mb-2.5">
         <div class="flex items-center gap-2">
           <span class="relative flex h-3 w-3">
@@ -995,12 +1042,27 @@
         </a>
       </div>
     </div>
+    <script>
+      (function() {
+        const orderCode = '{{ $activeDeliveringOrder->order_code }}';
+        const key = 'delivery_notif_shown_' + orderCode;
+        // Chỉ hiện thông báo xác nhận đã nhận hàng ĐÚNG 1 LẦN DUY NHẤT
+        if (!localStorage.getItem(key) && !sessionStorage.getItem('dismissed_delivery_alert_' + orderCode)) {
+          const el = document.getElementById('floatingDeliveryAlert');
+          if (el) {
+            el.style.display = 'block';
+            // Đánh dấu ngay lập tức đã hiển thị 1 lần để các lần tải trang sau không hiện lại
+            localStorage.setItem(key, '1');
+          }
+        }
+      })();
+    </script>
   @elseif($activePendingReview)
-    <!-- THÔNG BÁO NỔI: NHẮC NHỞ ĐÁNH GIÁ SẢN PHẨM NHẬN VOUCHER -->
+    <!-- THÔNG BÁO NỔI: NHẮC NHỞ ĐÁNH GIÁ SẢN PHẨM NHẬN VOUCHER (CHỈ HIỆN 1 LẦN) -->
     @php
       $flRevThumb = asset($activePendingReview->image ?? ($activePendingReview->product->thumbnail ?? 'assets/img/products/1.png'));
     @endphp
-    <div id="floatingReviewAlert" data-review-id="rev_{{ $activePendingReview->id }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-amber-400 p-4 animate-fade-in transition-all duration-300">
+    <div id="floatingReviewAlert" data-review-id="rev_{{ $activePendingReview->id }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-amber-400 p-4 animate-fade-in transition-all duration-300" style="display: none;">
       <div class="flex items-start justify-between gap-3 mb-2">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
@@ -1029,6 +1091,19 @@
         </button>
       </div>
     </div>
+    <script>
+      (function() {
+        const revId = 'rev_{{ $activePendingReview->id }}';
+        const key = 'review_notif_shown_' + revId;
+        if (!localStorage.getItem(key) && !sessionStorage.getItem('dismissed_review_alert_' + revId)) {
+          const el = document.getElementById('floatingReviewAlert');
+          if (el) {
+            el.style.display = 'block';
+            localStorage.setItem(key, '1');
+          }
+        }
+      })();
+    </script>
   @endif
 
   <!-- ========================================================================= -->
@@ -1607,14 +1682,20 @@
 
     function closeFloatingDeliveryAlert(orderCode) {
       const el = document.getElementById('floatingDeliveryAlert');
-      if (el) el.classList.add('hidden');
-      if (orderCode) sessionStorage.setItem('dismissed_delivery_alert_' + orderCode, '1');
+      if (el) el.remove();
+      if (orderCode) {
+        localStorage.setItem('delivery_notif_shown_' + orderCode, '1');
+        sessionStorage.setItem('dismissed_delivery_alert_' + orderCode, '1');
+      }
     }
 
     function closeFloatingReviewAlert(reviewId) {
       const el = document.getElementById('floatingReviewAlert');
-      if (el) el.classList.add('hidden');
-      if (reviewId) sessionStorage.setItem('dismissed_review_alert_' + reviewId, '1');
+      if (el) el.remove();
+      if (reviewId) {
+        localStorage.setItem('review_notif_shown_' + reviewId, '1');
+        sessionStorage.setItem('dismissed_review_alert_' + reviewId, '1');
+      }
     }
 
     // Xác nhận đã nhận hàng qua AJAX (Dùng cho chuông thông báo & thông báo nổi)
@@ -1650,7 +1731,9 @@
         }
 
         if (data.success) {
-          // Ẩn thông báo nổi
+          // Lưu cờ đã xử lý và ẩn thông báo nổi
+          localStorage.setItem('delivery_notif_shown_' + orderCode, '1');
+          sessionStorage.setItem('dismissed_delivery_alert_' + orderCode, '1');
           const fl = document.getElementById('floatingDeliveryAlert');
           if (fl) fl.remove();
 

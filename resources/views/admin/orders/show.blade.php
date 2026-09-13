@@ -210,26 +210,91 @@
 
 <!-- VISUAL ORDER FULFILLMENT STEPPER -->
 <div class="card border-0 shadow-sm mb-4 d-print-none">
-  <div class="card-header border-bottom border-translucent bg-body-emphasis d-flex justify-content-between align-items-center">
-    <h6 class="fw-bold text-body-emphasis mb-0">
-      <i class="fa-solid fa-truck-ramp-box me-2 text-primary"></i> Quy Trình Xử Lý &amp; Vận Chuyển Đơn Hàng
-    </h6>
-    <span class="badge badge-phoenix badge-phoenix-secondary">Bước {{ $order->status_step ?? 1 }}/6</span>
+  <div class="card-header border-bottom border-translucent bg-body-emphasis d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h6 class="fw-bold text-body-emphasis mb-0 d-flex align-items-center gap-2">
+        <i class="fa-solid fa-truck-ramp-box text-primary"></i>
+        <span>Quy Trình Xử Lý &amp; Vận Chuyển Đơn Hàng (6 Bước Chuẩn TMĐT)</span>
+      </h6>
+      <small class="text-body-tertiary fs-11">Nhấn vào từng bước để xem mốc thời gian chi tiết, người xử lý hoặc chuyển bước nhanh</small>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge badge-phoenix badge-phoenix-primary fs-11">
+        <i class="fa-solid fa-signal me-1"></i> Bước {{ $order->shipping_status === 'cancelled' ? 'Hủy' : ($order->status_step ?? 1) }}/6
+      </span>
+      <span class="badge badge-phoenix {{ $order->shipping_status === 'completed' ? 'badge-phoenix-success' : ($order->shipping_status === 'cancelled' ? 'badge-phoenix-danger' : 'badge-phoenix-warning') }} fs-11">
+        {{ $order->status_label }}
+      </span>
+    </div>
   </div>
 
   @php
     $steps = [
-      1 => ['code' => 'pending', 'label' => '1. Chờ Xác Nhận', 'icon' => 'fa-clipboard-list', 'desc' => 'Đơn hàng mới tạo', 'time' => $order->created_at],
-      2 => ['code' => 'confirmed', 'label' => '2. Đã Xác Nhận', 'icon' => 'fa-clipboard-check', 'desc' => 'Đã duyệt thông tin', 'time' => $order->confirmed_at],
-      3 => ['code' => 'processing', 'label' => '3. Đang Đóng Gói', 'icon' => 'fa-box-open', 'desc' => 'Kho nhặt hàng & gói', 'time' => $order->processing_at],
-      4 => ['code' => 'shipping', 'label' => '4. Đang Giao Hàng', 'icon' => 'fa-truck-fast', 'desc' => 'Bưu tá vận chuyển', 'time' => $order->shipping_at],
-      5 => ['code' => 'delivered', 'label' => '5. Đã Giao Hàng', 'icon' => 'fa-handshake', 'desc' => 'Khách nhận kiểm tra', 'time' => $order->delivered_at],
-      6 => ['code' => 'completed', 'label' => '6. Hoàn Tất', 'icon' => 'fa-circle-check', 'desc' => 'Thành công', 'time' => $order->completed_at],
+      1 => [
+        'code' => 'pending',
+        'label' => '1. Chờ Xác Nhận',
+        'desc' => 'Đơn hàng mới tạo',
+        'icon' => 'fa-clipboard-list',
+        'time' => $order->created_at,
+        'actor_short' => 'Khách đặt',
+        'actor' => 'Khách hàng: ' . $order->customer_name . ' (' . ($order->customer_phone ?: 'SĐT') . ')',
+        'detail' => 'Khách hàng đặt đơn hàng trực tuyến qua website. Hệ thống ghi nhận và cấp mã #' . $order->order_code . '.',
+      ],
+      2 => [
+        'code' => 'confirmed',
+        'label' => '2. Đã Xác Nhận',
+        'desc' => 'Đã duyệt thông tin',
+        'icon' => 'fa-clipboard-check',
+        'time' => $order->confirmed_at,
+        'actor_short' => 'Admin duyệt',
+        'actor' => 'Quản trị viên BeeStyle',
+        'detail' => 'Quản trị viên đã kiểm tra thông tin người nhận, xác thực số điện thoại và duyệt đơn hàng vào quy trình xử lý.',
+      ],
+      3 => [
+        'code' => 'processing',
+        'label' => '3. Đang Đóng Gói',
+        'desc' => 'Kho nhặt hàng & gói',
+        'icon' => 'fa-box-open',
+        'time' => $order->processing_at,
+        'actor_short' => 'Kho gói hàng',
+        'actor' => 'Thủ kho xuất hàng BeeStyle',
+        'detail' => 'Thủ kho đã nhặt đủ ' . $order->items->count() . ' sản phẩm (' . $order->items->sum('quantity') . ' món), kiểm tra chất lượng (QC) và đóng gói bưu kiện niêm phong.',
+      ],
+      4 => [
+        'code' => 'shipping',
+        'label' => '4. Đang Giao Hàng',
+        'desc' => 'Bưu tá vận chuyển',
+        'icon' => 'fa-truck-fast',
+        'time' => $order->shipping_at,
+        'actor_short' => 'Bưu tá ' . ($order->shipping_carrier ? (str_contains($order->shipping_carrier, 'GHTK') ? 'GHTK' : (str_contains($order->shipping_carrier, 'GHN') ? 'GHN' : 'Vận chuyển')) : 'GHTK'),
+        'actor' => ($order->shipping_carrier ?: 'Giao Hàng Tiết Kiệm (GHTK)') . ' (Mã: ' . ($order->tracking_code ?: 'Chưa tạo') . ')',
+        'detail' => 'Bưu tá đã quét mã nhận kiện hàng tại kho và đang vận chuyển tới địa chỉ nhận: ' . $order->shipping_address . '.',
+      ],
+      5 => [
+        'code' => 'delivered',
+        'label' => '5. Đã Giao Hàng',
+        'desc' => 'Khách nhận kiểm tra',
+        'icon' => 'fa-handshake',
+        'time' => $order->delivered_at,
+        'actor_short' => 'Khách đã nhận',
+        'actor' => 'Bưu tá phát hàng & Khách lấy hàng',
+        'detail' => 'Bưu tá đã giao hàng thành công đến tay khách hàng. Khách đã kiểm tra kiện hàng còn nguyên tem niêm phong và thanh toán COD (có ảnh POD xác nhận).',
+      ],
+      6 => [
+        'code' => 'completed',
+        'label' => '6. Hoàn Tất',
+        'desc' => 'Thành công',
+        'icon' => 'fa-circle-check',
+        'time' => $order->completed_at,
+        'actor_short' => 'Hoàn tất',
+        'actor' => 'Khách xác nhận & Hệ thống đối soát',
+        'detail' => 'Đơn hàng hoàn tất thành công. Tiền hàng đã đối soát thu đủ, điểm thưởng tích lũy và tổng chi tiêu đã cộng vào tài khoản thành viên.',
+      ],
     ];
     $currentStep = $order->shipping_status === 'cancelled' ? 0 : ($order->status_step ?? 1);
   @endphp
 
-  <div class="card-body">
+  <div class="card-body p-3 p-md-4">
     @if(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
       <div class="alert alert-danger py-3 px-4 rounded d-flex align-items-center gap-3 mb-0" style="background: #fff5f5; border: 1.5px solid #ef4444;">
         <i class="fa-solid fa-truck-arrow-right fs-2 text-danger"></i>
@@ -258,27 +323,143 @@
         </div>
       </div>
     @else
-      <div class="row g-2 text-center position-relative my-2">
+      <!-- 6-STEP INTERACTIVE CLICKABLE CARDS -->
+      <div class="row g-2.5 text-center my-1">
         @foreach($steps as $sIndex => $sData)
           @php
             $isDone = $currentStep >= $sIndex;
             $isCurrent = $currentStep === $sIndex;
+            $hasTime = !empty($sData['time']);
           @endphp
-          <div class="col-2">
-            <div class="d-flex flex-column align-items-center">
-              <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm mb-2"
-                   style="width: 42px; height: 42px; font-size: 1rem; 
+          <div class="col-12 col-sm-6 col-md-4 col-xl-2">
+            <div class="card h-100 p-2.5 text-center position-relative step-clickable-card {{ $isCurrent ? 'border-primary shadow-sm bg-primary-subtle' : ($isDone ? 'border-success-subtle bg-body-emphasis' : 'border-dashed bg-body-tertiary opacity-75') }}"
+                 style="cursor: pointer; transition: all 0.2s ease-in-out; border-width: {{ $isCurrent ? '2px' : '1px' }};"
+                 data-bs-toggle="modal" data-bs-target="#stepDetailModal{{ $sIndex }}"
+                 title="Nhấn vào bước này để xem chi tiết thời gian & chuyển trạng thái">
+              
+              <!-- Badge Step Number & Status Icon -->
+              <div class="d-flex justify-content-between align-items-center mb-1.5">
+                <span class="badge {{ $isCurrent ? 'bg-primary text-white' : ($isDone ? 'bg-success text-white' : 'bg-secondary-subtle text-body-tertiary') }} rounded-pill font-monospace fs-11 px-2 py-0.5">
+                  #{{ $sIndex }}
+                </span>
+                @if($isDone && !$isCurrent)
+                  <span class="text-success fs-10 fw-bold"><i class="fa-solid fa-circle-check"></i> Xong</span>
+                @elseif($isCurrent)
+                  <span class="text-primary fs-10 fw-bold"><i class="fa-solid fa-spinner fa-spin"></i> Hiện tại</span>
+                @else
+                  <span class="text-body-tertiary fs-11"><i class="fa-regular fa-clock"></i> Chờ</span>
+                @endif
+              </div>
+
+              <!-- Main Step Icon -->
+              <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center shadow-xs mb-2"
+                   style="width: 44px; height: 44px; font-size: 1.1rem; 
                           background-color: {{ $isCurrent ? '#3874ff' : ($isDone ? '#25b003' : 'var(--phoenix-gray-200)') }}; 
                           color: {{ $isDone || $isCurrent ? '#ffffff' : 'var(--phoenix-gray-600)' }};">
                 <i class="fa-solid {{ $sData['icon'] }}"></i>
               </div>
-              <span class="fw-bold text-truncate d-block fs-10" style="color: {{ $isCurrent ? '#3874ff' : ($isDone ? '#25b003' : 'var(--phoenix-gray-600)') }};">
+
+              <!-- Label & Description -->
+              <div class="fw-bold text-truncate fs-10 mb-0.5 {{ $isCurrent ? 'text-primary' : ($isDone ? 'text-success' : 'text-body-emphasis') }}">
                 {{ $sData['label'] }}
-              </span>
-              <small class="text-body-tertiary d-none d-md-block fs-11">{{ $sData['desc'] }}</small>
+              </div>
+              <small class="text-body-tertiary fs-11 text-truncate d-block mb-2">{{ $sData['desc'] }}</small>
+
+              <!-- EXACT DATE AND TIME BOX -->
+              <div class="mt-auto p-1.5 rounded border {{ $isDone ? 'border-success-subtle bg-success-subtle bg-opacity-25' : ($isCurrent ? 'border-primary-subtle bg-white' : 'border-dashed bg-body-emphasis') }}">
+                @if($hasTime)
+                  <div class="fw-bold font-monospace fs-11 text-body-emphasis d-flex align-items-center justify-content-center gap-1">
+                    <i class="fa-regular fa-calendar-check text-success"></i>
+                    <span>{{ $sData['time']->format('d/m/Y') }}</span>
+                  </div>
+                  <div class="font-monospace fs-10 fw-bold text-success d-flex align-items-center justify-content-center gap-1">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>{{ $sData['time']->format('H:i:s') }}</span>
+                  </div>
+                  <div class="fs-11 text-truncate mt-0.5" title="{{ $sData['actor'] }}">
+                    <span class="badge {{ $isDone ? 'badge-phoenix-success' : 'badge-phoenix-primary' }} fs-11 py-0.5 px-1.5">
+                      {{ $sData['actor_short'] }}
+                    </span>
+                  </div>
+                @elseif($isCurrent)
+                  <div class="fw-bold text-primary fs-11">
+                    <i class="fa-solid fa-spinner fa-spin me-1"></i> Đang thực hiện
+                  </div>
+                  <small class="text-muted fs-11">Nhấn để cập nhật</small>
+                @else
+                  <div class="text-body-tertiary fs-11 font-monospace">
+                    <i class="fa-regular fa-hourglass me-1"></i> Chưa thực hiện
+                  </div>
+                  <small class="text-body-quaternary fs-11">Nhấn để chuyển</small>
+                @endif
+              </div>
+
+              <div class="mt-1 fs-11 text-primary text-opacity-75">
+                <i class="fa-solid fa-hand-pointer me-1"></i>Chi tiết
+              </div>
             </div>
           </div>
         @endforeach
+      </div>
+
+      <!-- AUDIT TRAIL / TIMELINE NHẬT KÝ CHI TIẾT 6 BƯỚC -->
+      <div class="mt-3 p-3 rounded-3 bg-body-tertiary border border-translucent">
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-translucent flex-wrap gap-2">
+          <div class="fw-bold fs-10 text-body-emphasis d-flex align-items-center gap-1.5">
+            <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+            <span>Nhật Ký Hành Trình &amp; Mốc Giờ Xác Nhận Từng Bước</span>
+          </div>
+          <span class="fs-11 text-body-tertiary">
+            <i class="fa-solid fa-shield-check text-success me-1"></i>Đồng bộ xuyên suốt Admin &amp; Storefront Khách Hàng
+          </span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-sm table-borderless fs-10 mb-0 align-middle">
+            <tbody>
+              @foreach($steps as $sIndex => $sData)
+                @php
+                  $isDone = $currentStep >= $sIndex;
+                  $isCurrent = $currentStep === $sIndex;
+                @endphp
+                <tr class="{{ $isCurrent ? 'bg-primary-subtle bg-opacity-25 rounded' : '' }}">
+                  <td style="width: 28px;" class="text-center ps-1">
+                    @if($isDone)
+                      <i class="fa-solid fa-circle-check text-success fs-9"></i>
+                    @elseif($isCurrent)
+                      <i class="fa-solid fa-circle-dot text-primary fa-fade fs-9"></i>
+                    @else
+                      <i class="fa-regular fa-circle text-body-tertiary fs-11"></i>
+                    @endif
+                  </td>
+                  <td style="width: 170px;" class="fw-bold {{ $isCurrent ? 'text-primary' : ($isDone ? 'text-success' : 'text-body-tertiary') }}">
+                    <i class="fa-solid {{ $sData['icon'] }} me-1"></i> {{ $sData['label'] }}
+                  </td>
+                  <td style="width: 190px;" class="font-monospace">
+                    @if(!empty($sData['time']))
+                      <strong class="text-body-emphasis">{{ $sData['time']->format('d/m/Y H:i:s') }}</strong>
+                      <small class="text-muted d-block fs-11">({{ $sData['time']->diffForHumans() }})</small>
+                    @else
+                      <span class="text-body-tertiary fst-italic">Chưa ghi nhận thời gian</span>
+                    @endif
+                  </td>
+                  <td class="text-body-emphasis">
+                    <span class="badge {{ $isDone ? 'badge-phoenix-success' : 'badge-phoenix-secondary' }} fs-11 me-1">
+                      {{ $sData['actor_short'] }}
+                    </span>
+                    <span>{{ $sData['actor'] }}</span>
+                    <small class="text-body-tertiary d-block fs-11 mt-0.5">{{ $sData['detail'] }}</small>
+                  </td>
+                  <td style="width: 110px;" class="text-end pe-1">
+                    <button type="button" class="btn btn-xs btn-phoenix-primary py-0.5 px-2 fs-11 rounded" data-bs-toggle="modal" data-bs-target="#stepDetailModal{{ $sIndex }}">
+                      <i class="fa-solid fa-circle-info me-1"></i> Xem
+                    </button>
+                  </td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
       </div>
     @endif
 
@@ -286,7 +467,7 @@
     @if($order->shipping_status !== 'cancelled' && $order->shipping_status !== 'completed')
       <div class="pt-3 mt-3 border-top border-translucent d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div class="fs-10 text-body-tertiary">
-          <i class="fa-solid fa-bolt text-warning me-1"></i> Thao tác nhanh chuyển bước:
+          <i class="fa-solid fa-bolt text-warning me-1"></i> Thao tác nhanh chuyển bước kế tiếp:
         </div>
         <div class="d-flex gap-2 flex-wrap">
           @if($order->shipping_status === 'pending')
@@ -294,7 +475,7 @@
               @csrf
               <input type="hidden" name="shipping_status" value="confirmed">
               <button type="submit" class="btn btn-sm btn-primary fw-bold shadow-xs">
-                <i class="fa-solid fa-check me-1"></i> Bước 2: Xác Nhận Đơn Hàng
+                <i class="fa-solid fa-check me-1"></i> Bước 2: Xác Nhận Đơn Hàng Ngay
               </button>
             </form>
           @elseif($order->shipping_status === 'confirmed')
@@ -537,6 +718,78 @@
                 <a href="{{ $order->delivery_proof_url }}" target="_blank" class="text-success text-decoration-underline font-monospace">Xem ảnh lưu trữ kho</a>
               </div>
             @endif
+          </div>
+
+          <!-- TÙY CHỈNH MỐC THỜI GIAN NGÀY GIỜ CÁC BƯỚC (NÂNG CAO) -->
+          <div class="accordion mb-3" id="accordionOrderTimestamps">
+            <div class="accordion-item border border-translucent rounded-3 overflow-hidden">
+              <h2 class="accordion-header" id="headingTimestamps">
+                <button class="accordion-button collapsed py-2 px-3 fs-9 fw-bold bg-body-tertiary text-body-emphasis" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTimestamps" aria-expanded="false" aria-controls="collapseTimestamps">
+                  <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>
+                  <span>Tùy Chỉnh Mốc Thời Gian Xác Nhận Từng Bước (Ngày &amp; Giờ Thực Tế)</span>
+                  <span class="badge badge-phoenix badge-phoenix-secondary fs-11 ms-2">Nâng cao</span>
+                </button>
+              </h2>
+              <div id="collapseTimestamps" class="accordion-collapse collapse" aria-labelledby="headingTimestamps" data-bs-parent="#accordionOrderTimestamps">
+                <div class="accordion-body p-3 bg-body-emphasis">
+                  <p class="fs-10 text-body-tertiary mb-3">
+                    <i class="fa-solid fa-circle-info text-info me-1"></i>
+                    Hệ thống sẽ <strong>tự động ghi nhận ngày giờ hiện tại</strong> khi bạn chuyển bước. Nếu cần điều chỉnh hoặc đối soát lại thời gian quá khứ, bạn có thể điền ngày giờ cụ thể bên dưới:
+                  </p>
+                  
+                  <div class="row g-2.5">
+                    <div class="col-md-6">
+                      <label class="form-label fs-10 fw-semibold text-body-emphasis">
+                        <i class="fa-solid fa-calendar-check text-primary me-1"></i> 2. Giờ Admin Xác Nhận:
+                      </label>
+                      <input type="datetime-local" name="confirmed_at" class="form-control form-control-sm font-monospace fs-10" 
+                             value="{{ $order->confirmed_at ? $order->confirmed_at->format('Y-m-d\TH:i') : '' }}">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fs-10 fw-semibold text-body-emphasis">
+                        <i class="fa-solid fa-box-open text-warning me-1"></i> 3. Giờ Kho Đóng Gói:
+                      </label>
+                      <input type="datetime-local" name="processing_at" class="form-control form-control-sm font-monospace fs-10" 
+                             value="{{ $order->processing_at ? $order->processing_at->format('Y-m-d\TH:i') : '' }}">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fs-10 fw-semibold text-body-emphasis">
+                        <i class="fa-solid fa-truck-fast text-info me-1"></i> 4. Giờ Bưu Tá Nhận Giao:
+                      </label>
+                      <input type="datetime-local" name="shipping_at" class="form-control form-control-sm font-monospace fs-10" 
+                             value="{{ $order->shipping_at ? $order->shipping_at->format('Y-m-d\TH:i') : '' }}">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fs-10 fw-semibold text-body-emphasis">
+                        <i class="fa-solid fa-handshake text-success me-1"></i> 5. Giờ Khách Lấy / Giao Xong (POD):
+                      </label>
+                      <input type="datetime-local" name="delivered_at" class="form-control form-control-sm font-monospace fs-10" 
+                             value="{{ $order->delivered_at ? $order->delivered_at->format('Y-m-d\TH:i') : '' }}">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label fs-10 fw-semibold text-body-emphasis">
+                        <i class="fa-solid fa-circle-check text-success me-1"></i> 6. Giờ Hoàn Tất Đơn:
+                      </label>
+                      <input type="datetime-local" name="completed_at" class="form-control form-control-sm font-monospace fs-10" 
+                             value="{{ $order->completed_at ? $order->completed_at->format('Y-m-d\TH:i') : '' }}">
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end">
+                      <div class="form-check fs-10 mb-1">
+                        <input class="form-check-input" type="checkbox" name="reset_steps" value="1" id="resetStepsCheck">
+                        <label class="form-check-label text-danger fw-semibold" for="resetStepsCheck">
+                          Reset lại các mốc giờ sau nếu chuyển ngược về Chờ xác nhận
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="mb-3">
@@ -919,6 +1172,187 @@
     </div>
   </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- 6 STEP DETAIL MODALS (XEM CHI TIẾT MỐC THỜI GIAN & THAO TÁC TỪNG BƯỚC) -->
+<!-- ========================================================================= -->
+@foreach($steps as $sIndex => $sData)
+  @php
+    $isDone = $currentStep >= $sIndex;
+    $isCurrent = $currentStep === $sIndex;
+  @endphp
+  <div class="modal fade" id="stepDetailModal{{ $sIndex }}" tabindex="-1" aria-labelledby="stepDetailModalLabel{{ $sIndex }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header border-bottom border-translucent {{ $isCurrent ? 'bg-primary text-white' : ($isDone ? 'bg-success text-white' : 'bg-body-tertiary text-body-emphasis') }} py-3 px-4">
+          <div class="d-flex align-items-center gap-2.5">
+            <div class="rounded-circle bg-white {{ $isCurrent ? 'text-primary' : ($isDone ? 'text-success' : 'text-body-tertiary') }} d-flex align-items-center justify-content-center shadow-xs" style="width: 36px; height: 36px; min-width: 36px;">
+              <i class="fa-solid {{ $sData['icon'] }}"></i>
+            </div>
+            <div>
+              <h6 class="modal-title fw-bold mb-0 {{ $isDone || $isCurrent ? 'text-white' : 'text-body-emphasis' }}" id="stepDetailModalLabel{{ $sIndex }}">
+                Chi Tiết Bước {{ $sIndex }}: {{ $sData['label'] }}
+              </h6>
+              <small class="{{ $isDone || $isCurrent ? 'text-white text-opacity-85' : 'text-body-tertiary' }} fs-11">
+                {{ $sData['desc'] }} • Đơn hàng #{{ $order->order_code }}
+              </small>
+            </div>
+          </div>
+          <button type="button" class="btn-close {{ $isDone || $isCurrent ? 'btn-close-white' : '' }}" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <!-- Status Banner -->
+          <div class="alert {{ $isCurrent ? 'alert-primary' : ($isDone ? 'alert-success' : 'alert-secondary') }} py-2.5 px-3 rounded-3 fs-10 d-flex align-items-center justify-content-between mb-3 border-0">
+            <span class="fw-bold">
+              @if($isDone && !$isCurrent)
+                <i class="fa-solid fa-circle-check text-success me-1"></i> Bước này đã hoàn thành
+              @elseif($isCurrent)
+                <i class="fa-solid fa-circle-dot text-primary fa-fade me-1"></i> Đơn hàng đang ở bước này
+              @else
+                <i class="fa-regular fa-clock text-body-tertiary me-1"></i> Bước này đang chờ thực hiện
+              @endif
+            </span>
+            <span class="badge {{ $isCurrent ? 'bg-primary text-white' : ($isDone ? 'bg-success text-white' : 'bg-secondary text-white') }} font-monospace">
+              Bước {{ $sIndex }}/6
+            </span>
+          </div>
+
+          <!-- Time & Details Card -->
+          <div class="card border border-translucent rounded-3 p-3 bg-body-tertiary mb-3">
+            <div class="d-flex flex-column gap-2.5 fs-10">
+              
+              <!-- EXACT TIMESTAMP -->
+              <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-translucent">
+                <span class="text-body-tertiary"><i class="fa-regular fa-clock me-1 text-primary"></i> Mốc thời gian xác nhận:</span>
+                <div class="text-end">
+                  @if(!empty($sData['time']))
+                    <strong class="font-monospace text-success fs-9 d-block">{{ $sData['time']->format('d/m/Y H:i:s') }}</strong>
+                    <small class="text-body-tertiary fs-11">({{ $sData['time']->diffForHumans() }})</small>
+                  @else
+                    <span class="text-body-tertiary fst-italic">Chưa ghi nhận ngày giờ</span>
+                  @endif
+                </div>
+              </div>
+
+              <!-- ACTOR / OPERATOR -->
+              <div class="d-flex justify-content-between align-items-center pb-2 border-bottom border-translucent">
+                <span class="text-body-tertiary"><i class="fa-solid fa-user-check me-1 text-info"></i> Người/Bộ phận thực hiện:</span>
+                <strong class="text-body-emphasis text-end">{{ $sData['actor'] }}</strong>
+              </div>
+
+              <!-- STEP DESCRIPTION / ACTIONS -->
+              <div>
+                <span class="text-body-tertiary d-block mb-1"><i class="fa-solid fa-circle-info me-1 text-warning"></i> Nội dung xử lý:</span>
+                <div class="p-2.5 bg-body-emphasis rounded border border-translucent text-body-emphasis fs-10 leading-relaxed">
+                  {{ $sData['detail'] }}
+                </div>
+              </div>
+
+              <!-- SPECIFIC INFO FOR STEP 4 (CARRIER & TRACKING) -->
+              @if($sIndex == 4 && $order->tracking_code)
+                <div class="p-2.5 bg-primary-subtle rounded border border-primary-subtle">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-body-secondary fw-semibold">Đối tác vận chuyển:</span>
+                    <strong class="text-primary">{{ $order->shipping_carrier ?: 'GHTK' }}</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-body-secondary fw-semibold">Mã vận đơn bưu tá:</span>
+                    <strong class="font-monospace text-primary fs-9">{{ $order->tracking_code }}</strong>
+                  </div>
+                  @if($order->tracking_url)
+                    <a href="{{ $order->tracking_url }}" target="_blank" class="btn btn-xs btn-primary w-100 fw-bold py-1">
+                      <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Mở Trang Tra Cứu Bưu Kiện (GHTK Hub)
+                    </a>
+                  @endif
+                </div>
+              @endif
+
+              <!-- SPECIFIC INFO FOR STEP 5 (POD DELIVERY PROOF) -->
+              @if($sIndex == 5)
+                <div class="p-2.5 bg-success-subtle rounded border border-success-subtle">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-body-secondary fw-semibold">Thời gian khách lấy / giao hàng:</span>
+                    <strong class="font-monospace text-success">{{ $order->delivered_at ? $order->delivered_at->format('d/m/Y H:i:s') : 'Chờ xác nhận' }}</strong>
+                  </div>
+                  @if($order->delivery_proof_url)
+                    <div class="mt-2 text-center">
+                      <img src="{{ $order->delivery_proof_url }}" alt="Bằng chứng giao hàng" class="img-fluid rounded border mb-2" style="max-height: 120px; object-fit: cover;">
+                      <div class="small fst-italic text-muted">"{{ $order->delivery_proof_note ?: 'Khách đã nhận kiện hàng nguyên tem niêm phong.' }}"</div>
+                    </div>
+                  @endif
+                </div>
+              @endif
+
+              <!-- SPECIFIC INFO FOR STEP 6 (PAYMENT & TOTAL) -->
+              @if($sIndex == 6)
+                <div class="p-2.5 bg-body-emphasis rounded border border-translucent">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-body-secondary fw-semibold">Trạng thái thanh toán:</span>
+                    <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-warning text-dark' }}">{{ $order->payment_status_label }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-body-secondary fw-semibold">Tổng tiền thanh toán:</span>
+                    <strong class="font-monospace text-danger fs-8">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong>
+                  </div>
+                </div>
+              @endif
+
+            </div>
+          </div>
+
+          <!-- FAST ACTIONS INSIDE MODAL -->
+          <div class="d-flex gap-2 justify-content-end flex-wrap pt-2 border-top border-translucent">
+            @if($sIndex == 1 && $order->shipping_status !== 'pending')
+              <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn chuyển lại đơn hàng về Bước 1: Chờ Xác Nhận?');">
+                @csrf
+                <input type="hidden" name="shipping_status" value="pending">
+                <button type="submit" class="btn btn-outline-warning btn-sm">
+                  <i class="fa-solid fa-rotate-left me-1"></i> Chuyển Về Bước 1 (Chờ Duyệt)
+                </button>
+              </form>
+            @elseif($sIndex == 2 && $order->shipping_status === 'pending')
+              <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="shipping_status" value="confirmed">
+                <button type="submit" class="btn btn-primary btn-sm fw-bold">
+                  <i class="fa-solid fa-check me-1"></i> Duyệt Đơn Hàng (Bước 2)
+                </button>
+              </form>
+            @elseif($sIndex == 3 && in_array($order->shipping_status, ['pending', 'confirmed']))
+              <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="shipping_status" value="processing">
+                <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark">
+                  <i class="fa-solid fa-box-open me-1"></i> Cho Kho Đóng Gói (Bước 3)
+                </button>
+              </form>
+            @elseif($sIndex == 4 && in_array($order->shipping_status, ['pending', 'confirmed', 'processing']))
+              <button type="button" class="btn btn-info btn-sm fw-bold text-white" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#dispatchCarrierModal">
+                <i class="fa-solid fa-truck-fast me-1"></i> Bàn Giao Bưu Tá (Bước 4)
+              </button>
+            @elseif($sIndex == 5 && in_array($order->shipping_status, ['shipping', 'processing']))
+              <button type="button" class="btn btn-success btn-sm fw-bold" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal">
+                <i class="fa-solid fa-camera me-1"></i> Bưu Tá Báo Giao (POD - Bước 5)
+              </button>
+            @elseif($sIndex == 6 && in_array($order->shipping_status, ['delivered', 'shipping']))
+              <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="shipping_status" value="completed">
+                <input type="hidden" name="payment_status" value="paid">
+                <button type="submit" class="btn btn-success btn-sm fw-bold">
+                  <i class="fa-solid fa-circle-check me-1"></i> Hoàn Tất Đơn Hàng (Bước 6)
+                </button>
+              </form>
+            @endif
+
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+@endforeach
 
 @push('scripts')
 <script>
