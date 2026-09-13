@@ -1255,10 +1255,16 @@
             const icon = btn.querySelector('svg, i');
             if (isFav) {
               btn.classList.add('text-rose-600');
-              if (icon) icon.classList.add('fill-rose-500', 'text-rose-500');
+              if (icon) {
+                icon.classList.add('fill-rose-500', 'text-rose-500');
+                icon.classList.remove('text-neutral-400', 'text-neutral-500', 'text-neutral-600');
+              }
             } else {
               btn.classList.remove('text-rose-600');
-              if (icon) icon.classList.remove('fill-rose-500', 'text-rose-500');
+              if (icon) {
+                icon.classList.remove('fill-rose-500', 'text-rose-500');
+                icon.classList.add('text-neutral-400');
+              }
             }
           });
 
@@ -1287,6 +1293,8 @@
         iconHtml = '<i data-lucide="heart" class="w-4 h-4 text-rose-500 fill-rose-500 shrink-0"></i>';
       } else if (type === 'success') {
         iconHtml = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>';
+      } else if (type === 'coupon') {
+        iconHtml = '<i data-lucide="ticket" class="w-4 h-4 text-amber-400 shrink-0"></i>';
       }
 
       toast.innerHTML = `
@@ -1429,6 +1437,22 @@
       document.getElementById('qvmSoldCount').textContent = (data.sold_count || 0).toLocaleString('vi-VN');
       document.getElementById('qvmProductPrice').textContent = data.price_formatted || '0₫';
       document.getElementById('qvmProductImage').src = data.image || '';
+
+      // Hiển thị danh sách ảnh xem trước thumbnails nếu có
+      const thumbContainer = document.getElementById('qvmThumbnailsContainer');
+      if (thumbContainer) {
+        if (data.gallery && data.gallery.length > 1) {
+          thumbContainer.innerHTML = data.gallery.map((gImg, gIdx) => `
+            <button type="button" onclick="document.getElementById('qvmProductImage').src='${gImg}'; this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('ring-2','ring-neutral-950')); this.classList.add('ring-2','ring-neutral-950');" class="w-10 h-12 rounded-lg overflow-hidden border border-neutral-200 shrink-0 transition-all ${gIdx === 0 ? 'ring-2 ring-neutral-950' : 'opacity-70 hover:opacity-100'}">
+              <img src="${gImg}" alt="Thumb" class="w-full h-full object-cover">
+            </button>
+          `).join('');
+          thumbContainer.classList.remove('hidden');
+        } else {
+          thumbContainer.innerHTML = '';
+          thumbContainer.classList.add('hidden');
+        }
+      }
 
       const discBadge = document.getElementById('qvmDiscountBadge');
       if (discBadge) {

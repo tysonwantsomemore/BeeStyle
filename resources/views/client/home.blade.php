@@ -522,13 +522,16 @@
         @forelse($collectionItems as $item)
           @php
             $minPrice = $item->variants->min('price') ?? $item->price ?? 0;
-            $primaryImg = $item->primaryImage->image_path ?? $item->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop';
+            $primaryImg = $item->primaryImage->image_path ?? ($item->image ?? ($item->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop'));
             if (!str_starts_with($primaryImg, 'http')) {
               $primaryImg = asset($primaryImg);
             }
             $isFav = in_array($item->id, $wishlistIds ?? []);
             $hasDiscount = ($item->original_price && $item->original_price > $minPrice);
             $discPct = $hasDiscount ? round((($item->original_price - $minPrice) / $item->original_price) * 100) : 0;
+            $pRating = round((float)($item->rating ?: 5.0), 1);
+            $pSold = (int)($item->sold_count ?: 0);
+            $fullStars = floor($pRating);
           @endphp
 
           <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300">
@@ -543,7 +546,7 @@
                       onclick="toggleWishlist({{ $item->id }}, this)" 
                       class="btn-wishlist-{{ $item->id }} absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-md flex items-center justify-center text-neutral-600 hover:text-rose-600 shadow-sm transition-all active:scale-90 cursor-pointer {{ $isFav ? 'text-rose-600' : '' }}" 
                       title="Thêm vào yêu thích">
-                <i class="fa-solid fa-heart text-xs {{ $isFav ? 'text-rose-500' : '' }}"></i>
+                <i class="fa-solid fa-heart text-xs {{ $isFav ? 'text-rose-500' : 'text-neutral-400' }}"></i>
               </button>
 
               <!-- Left Status Badges -->
@@ -582,8 +585,12 @@
                 </a>
                 
                 <div class="flex items-center gap-1.5 text-xs text-amber-500 font-semibold mt-1.5">
-                  <span>★★★★★</span>
-                  <span class="text-[11px] text-neutral-500 font-medium">5.0 (100+ bán)</span>
+                  <div class="flex items-center gap-0.5 text-amber-400">
+                    @for($st = 1; $st <= 5; $st++)
+                      <i class="fa-solid fa-star text-[10px] {{ $st <= $fullStars ? 'text-amber-400' : 'text-neutral-300' }}"></i>
+                    @endfor
+                  </div>
+                  <span class="text-[11px] text-neutral-600 font-medium">{{ number_format($pRating, 1) }} ({{ $pSold > 0 ? (number_format($pSold, 0, ',', '.') . ' đã bán') : 'Mới' }})</span>
                 </div>
               </div>
 
@@ -755,8 +762,8 @@
                     <i class="fa-solid fa-star {{ $s <= ($rev->rating ?? 5) ? 'text-amber-500' : 'text-neutral-300' }} text-xs"></i>
                   @endfor
                 </div>
-                <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
-                  <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã mua hàng
                 </span>
               </div>
               <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4 line-clamp-3">
@@ -764,9 +771,13 @@
               </p>
             </div>
             <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">
-                {{ substr($rev->user->name ?? 'KH', 0, 2) }}
-              </div>
+              @if(!empty($rev->user?->avatar))
+                <img src="{{ $rev->user->avatar_url }}" alt="{{ $rev->user->name }}" class="w-10 h-10 rounded-full object-cover border border-amber-300 shadow-xs">
+              @else
+                <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm shadow-xs">
+                  {{ mb_strtoupper(mb_substr($rev->user->name ?? 'KH', 0, 2, 'UTF-8')) }}
+                </div>
+              @endif
               <div class="min-w-0">
                 <strong class="text-xs text-neutral-950 block truncate">{{ $rev->user->name ?? 'Khách Hàng Thân Thiết' }}</strong>
                 <span class="text-[11px] text-neutral-500 font-medium block truncate">{{ $rev->product->name ?? 'Sản phẩm Atelier' }}</span>
@@ -779,8 +790,8 @@
           <div>
             <div class="flex items-center justify-between mb-3">
               <div class="text-amber-500 text-sm">★★★★★</div>
-              <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
-                <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+              <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã mua hàng
               </span>
             </div>
             <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
@@ -788,7 +799,7 @@
             </p>
           </div>
           <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">MH</div>
+            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm shadow-xs">MH</div>
             <div>
               <strong class="text-xs text-neutral-950 block">Nguyễn Minh Hoàng</strong>
               <span class="text-[11px] text-neutral-500 font-medium">Sơ Mi Lụa Atelier • TP. Hồ Chí Minh</span>
@@ -800,8 +811,8 @@
           <div>
             <div class="flex items-center justify-between mb-3">
               <div class="text-amber-500 text-sm">★★★★★</div>
-              <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
-                <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+              <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã mua hàng
               </span>
             </div>
             <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
@@ -809,7 +820,7 @@
             </p>
           </div>
           <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">TA</div>
+            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm shadow-xs">TA</div>
             <div>
               <strong class="text-xs text-neutral-950 block">Trần Tuấn Anh (KTS)</strong>
               <span class="text-[11px] text-neutral-500 font-medium">Blazer Peak Lapel • Hà Nội</span>
@@ -821,8 +832,8 @@
           <div>
             <div class="flex items-center justify-between mb-3">
               <div class="text-amber-500 text-sm">★★★★★</div>
-              <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
-                <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+              <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Đã mua hàng
               </span>
             </div>
             <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
@@ -830,7 +841,7 @@
             </p>
           </div>
           <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">QH</div>
+            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm shadow-xs">QH</div>
             <div>
               <strong class="text-xs text-neutral-950 block">Lê Quang Huy (Designer)</strong>
               <span class="text-[11px] text-neutral-500 font-medium">Polo Dệt Tổ Ong • Đà Nẵng</span>
