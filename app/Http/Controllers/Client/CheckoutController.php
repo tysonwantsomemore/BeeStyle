@@ -30,22 +30,25 @@ class CheckoutController extends Controller
 
         $user = Auth::user();
         $addresses = $user ? $user->addresses : collect();
-        $defaultAddress = $user ? ($user->defaultAddress ?? $addresses->first()) : null;
+        $defaultAddress = $user ? ($user->defaultAddress ?? $addresses->firstWhere('is_default', true) ?? $addresses->first()) : null;
         $depositInfo = CartService::checkDepositPolicy($cartData['items'], $cartData['total'], $user);
 
         $coupons = Coupon::where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>=', now());
+                    ->orWhere('expires_at', '>=', now());
             })
             ->where(function ($q) {
                 $q->whereNull('start_date')
-                  ->orWhere('start_date', '<=', now());
+                    ->orWhere('start_date', '<=', now());
             })
             ->orderBy('min_order_value', 'asc')
             ->get();
 
         return view('client.checkout', [
+            'user' => $user,
+            'addresses' => $addresses,
+            'defaultAddress' => $defaultAddress,
             'cartItems' => $cartData['items'],
             'cartCount' => $cartData['count'],
             'subtotal' => $cartData['subtotal'],
@@ -55,9 +58,6 @@ class CheckoutController extends Controller
             'appliedCoupon' => $cartData['coupon'],
             'coupons' => $coupons,
             'depositInfo' => $depositInfo,
-            'user' => $user,
-            'addresses' => $addresses,
-            'defaultAddress' => $defaultAddress,
         ]);
     }
 
@@ -143,7 +143,7 @@ class CheckoutController extends Controller
             $verifiedShipping = (int)$cartData['shipping'];
             $verifiedTotal = max(0, $verifiedSubtotal - $verifiedDiscount + $verifiedShipping);
 
-            // Xác định payment_status: MoMo cần đợi webhook/callback, COD & VietQR là chưa trả, còn lại tùy cấu hình
+            // Xác định payment_status: MoMo cần đợi webhook/callback, COD & VietQR là chưa trả
             $paymentStatus = match ($validated['payment_method']) {
                 'momo' => 'PENDING_PAYMENT',
                 'cod', 'vietqr', 'online', 'zalopay' => 'unpaid',
@@ -178,7 +178,7 @@ class CheckoutController extends Controller
                 'payment_status' => $paymentStatus,
                 'shipping_status' => 'pending',
                 'shipping_carrier' => 'Giao Hàng Tiết Kiệm (GHTK)',
-                'tracking_code' => 'GHTK-' . strtoupper(\Illuminate\Support\Str::random(8)),
+                'tracking_code' => 'GHTK-' . strtoupper(Str::random(8)),
                 'status_step' => 1,
                 'subtotal' => $verifiedSubtotal,
                 'discount_amount' => $verifiedDiscount,
@@ -233,7 +233,7 @@ class CheckoutController extends Controller
                     $prod->increment('sold_count', $item['quantity']);
                 }
 
-                // Cập nhật số lượng đã bán của chương trình Ưu Đãi Trong Ngày (Daily Deal)
+                // Cập nhật số lượng đã bán của Daily Deal
                 if (!empty($item['deal_id'])) {
                     $deal = \App\Models\DailyDeal::find($item['deal_id']);
                     if ($deal) {
@@ -255,12 +255,10 @@ class CheckoutController extends Controller
             // Xóa sạch giỏ hàng trong session sau khi hoàn tất đặt hàng
             CartService::clear();
 
-            // Nếu chọn Thanh toán Online (Napas / Visa) -> Chuyển sang Cổng Online Gateway
             if ($validated['payment_method'] === 'online') {
                 return redirect()->route('client.checkout.online', ['code' => $orderCode]);
             }
 
-            // Nếu chọn Thanh toán trực tuyến qua MoMo -> Tạo giao dịch và chuyển hướng Deep Link / payUrl
             if ($validated['payment_method'] === 'momo') {
                 $momoService = app(MomoService::class);
                 $momoResult = $momoService->createPayment($order);
@@ -289,7 +287,6 @@ class CheckoutController extends Controller
                     ->with('error', $momoResult['message'] ?? 'Không thể khởi tạo giao dịch MoMo Sandbox. Vui lòng thử lại sau giây lát.');
             }
 
-            // Nếu chọn Ví ZaloPay -> Chuyển sang Cổng Thanh Toán ZaloPay Gateway
             if ($validated['payment_method'] === 'zalopay') {
                 return redirect()->route('client.checkout.zalopay', ['code' => $orderCode]);
             }
@@ -311,7 +308,7 @@ class CheckoutController extends Controller
     public function onlineGateway($code)
     {
         $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
-        
+
         if ($order->payment_status === 'paid') {
             return redirect()->route('client.order-tracking', ['code' => $code])
                 ->with('success', "Đơn hàng #{$code} đã được thanh toán thành công!");
@@ -330,7 +327,7 @@ class CheckoutController extends Controller
     public function onlineSuccess($code)
     {
         $order = Order::where('order_code', $code)->firstOrFail();
-        
+
         $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
         if ($isDeposit) {
             $order->update([
@@ -409,7 +406,6 @@ class CheckoutController extends Controller
 
     /**
      * Khởi tạo và chuyển hướng người dùng sang Cổng Thanh Toán MoMo Sandbox
-     * Hỗ trợ thanh toán lại (Retry) kể cả khi đơn đã bị hủy trước đó
      */
     public function momoRedirectSandbox($code)
     {
@@ -420,9 +416,7 @@ class CheckoutController extends Controller
                 ->with('success', "Đơn hàng #{$code} đã được thanh toán thành công!");
         }
 
-        // Nếu đơn hàng đã bị hủy, kiểm tra lại tồn kho trước khi cho phép thanh toán lại
         if ($order->shipping_status === 'cancelled' || strtoupper((string)$order->payment_status) === 'CANCELLED') {
-            // Kiểm tra tồn kho từng sản phẩm
             foreach ($order->items as $item) {
                 $prod = Product::find($item->product_id);
                 if (!$prod || $prod->stock < $item->quantity) {
@@ -442,7 +436,6 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Tái đặt chỗ kho hàng
             DB::beginTransaction();
             try {
                 foreach ($order->items as $item) {
@@ -483,7 +476,7 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Xử lý MoMo Sandbox Callback (Khách hàng quay lại từ cổng MoMo)
+     * Xử lý MoMo Sandbox Callback
      */
     public function momoCallback(Request $request)
     {
@@ -507,7 +500,6 @@ class CheckoutController extends Controller
         $resultCode = (int)$request->input('resultCode', -1);
         $message = $request->input('message', 'Giao dịch không thành công');
 
-        // MoMo resultCode 0 = Thành công
         if ($resultCode === 0) {
             $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
             if ($isDeposit) {
@@ -546,13 +538,12 @@ class CheckoutController extends Controller
                 ->with('success', $successMsg);
         }
 
-        // Khách hàng hủy giao dịch trên MoMo hoặc giao dịch thất bại
         return redirect()->route('client.checkout.momo', ['code' => $order->order_code])
             ->with('error', "Giao dịch MoMo chưa hoàn tất hoặc bạn đã hủy ({$message}). Bạn có thể quét mã thanh toán lại hoặc chọn phương thức khác.");
     }
 
     /**
-     * Xử lý MoMo Sandbox IPN Webhook (MoMo gửi thông báo trạng thái bất đồng bộ)
+     * Xử lý MoMo Sandbox IPN Webhook
      */
     public function momoIpn(Request $request)
     {
@@ -561,7 +552,6 @@ class CheckoutController extends Controller
 
         $momoService = app(MomoService::class);
 
-        // Kiểm tra chữ ký số từ MoMo
         if (!$momoService->verifySignature($data)) {
             Log::warning("MoMo Sandbox IPN Signature Verification Failed", $data);
             return response()->json(['resultCode' => 11007, 'message' => 'Chữ ký không hợp lệ'], 400);
@@ -603,7 +593,6 @@ class CheckoutController extends Controller
             }
         }
 
-        // Phản hồi cho MoMo IPN (HTTP 204 No Content theo chuẩn MoMo v2)
         return response()->noContent();
     }
 
@@ -632,7 +621,7 @@ class CheckoutController extends Controller
     public function zalopaySuccess($code)
     {
         $order = Order::where('order_code', $code)->firstOrFail();
-        
+
         $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
         if ($isDeposit) {
             $order->update([
@@ -684,7 +673,6 @@ class CheckoutController extends Controller
                     'cancel_reason' => 'Đơn hàng tự động hủy do hết hạn thời gian chờ thanh toán (10 phút)',
                 ]);
 
-                // Hoàn trả số lượng tồn kho sản phẩm & biến thể
                 foreach ($order->items as $item) {
                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
                     Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
@@ -697,7 +685,6 @@ class CheckoutController extends Controller
                     }
                 }
 
-                // Hoàn lại lượt dùng coupon nếu có
                 if ($order->coupon_code) {
                     $coupon = Coupon::where('code', $order->coupon_code)->first();
                     if ($coupon && $coupon->used_count > 0) {
@@ -745,7 +732,7 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Tự động nhận diện & khớp lệnh chuyển khoản (Webhook / Realtime Banking Auto-Match)
+     * Tự động nhận diện & khớp lệnh chuyển khoản
      */
     public function autoConfirmTransfer($code)
     {

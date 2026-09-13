@@ -14,8 +14,14 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $from = $this->date($request->query('from'), now()->startOfMonth());
-        $to = $this->date($request->query('to'), now())->endOfDay();
+        // Default to the newest month containing orders so a newly opened report
+        // does not appear empty merely because the current month has no orders.
+        $latestOrderAt = Order::max('created_at');
+        $defaultPeriod = $latestOrderAt ? Carbon::parse($latestOrderAt) : now();
+
+        $from = $this->date($request->query('from'), $defaultPeriod->copy()->startOfMonth());
+        $toFallback = $defaultPeriod->isCurrentMonth() ? now() : $defaultPeriod->copy()->endOfMonth();
+        $to = $this->date($request->query('to'), $toFallback)->endOfDay();
         if ($from->gt($to)) [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
 
         $orders = Order::whereBetween('created_at', [$from, $to]);

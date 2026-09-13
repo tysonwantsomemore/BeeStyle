@@ -197,6 +197,3 @@ class ReviewController extends Controller
         return back()->with('success', 'Đã xóa đánh giá thành công và cập nhật lại điểm đánh giá sản phẩm!');
     }
 }
-
-
-

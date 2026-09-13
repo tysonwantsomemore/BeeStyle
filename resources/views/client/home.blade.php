@@ -1,6 +1,6 @@
 @extends('layouts.client')
 
-@section('title', 'BEESTYLE — Contemporary Fashion & Studio • BST Sartorial 2026')
+@section('title', 'BEESTYLE — Thời Trang Nam Cao Cấp • BST Sartorial 2026')
 
 @section('content')
 <!-- ========================================================================= -->
@@ -14,7 +14,7 @@
 
   <div class="relative z-10 max-w-5xl mx-auto px-6 text-center text-white flex flex-col items-center py-16">
     <!-- Brand Tag Badge -->
-    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-bold uppercase tracking-[0.25em] mb-5 backdrop-blur-md shadow-sm animate-fade-in">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/20 border border-amber-400/50 text-amber-300 text-xs font-bold uppercase tracking-[0.25em] mb-5 backdrop-blur-md shadow-sm">
       <i class="fa-solid fa-gem text-amber-400"></i> BEESTYLE ATELIER 2026
     </div>
 
@@ -69,7 +69,7 @@
 <!-- ========================================================================= -->
 <!-- 2. STORE VALUE PROPOSITION / HIGHLIGHTS BAR -->
 <!-- ========================================================================= -->
-<section class="w-full bg-white border-b border-neutral-200 py-10 px-6 shadow-xs">
+<section class="w-full bg-white border-b border-neutral-200 py-8 px-6 shadow-xs">
   <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
     
     <div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-neutral-50 transition-colors">
@@ -116,85 +116,87 @@
 </section>
 
 <!-- ========================================================================= -->
-<!-- 3. FEATURED COLLECTIONS GRID -->
+<!-- 3. KHO VOUCHER & ĐẶC QUYỀN ƯU ĐÃI (VOUCHER HUB) -->
 <!-- ========================================================================= -->
-<section id="collections" class="w-full py-20 px-6 max-w-7xl mx-auto">
-  <div class="text-center max-w-2xl mx-auto mb-14">
-    <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-bold block mb-2">BỘ SƯU TẬP ĐỘC BẢN 2026</span>
-    <h2 class="font-serif-luxury text-3xl md:text-5xl text-neutral-950 font-medium">
-      Danh Mục Tuyển Chọn
-    </h2>
-    <p class="text-xs md:text-sm text-neutral-600 font-medium mt-3">
-      Trang phục may đo chuẩn phong cách Ý, chế tác từ lụa tơ tằm nguyên bản và sợi tự nhiên bền vững
-    </p>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    
-    <!-- Collection 1: Sơ Mi Lụa & May Đo -->
-    <a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
-      <img src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop" alt="Thời Trang Nam Beestyle" class="absolute inset-0 w-full h-full object-cover">
-      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
-      <div class="relative z-10 text-white">
-        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">ATELIER TAILORING</span>
-        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Sơ Mi Lụa Nam</h3>
-        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">Sơ mi lụa tơ tằm dệt tay, cổ ép keo Đức và khuy xà cừ tự nhiên.</p>
-        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
-          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
-        </span>
+@if(isset($coupons) && $coupons->isNotEmpty())
+<section class="w-full bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 text-white py-12 px-6 border-b border-neutral-800">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 mb-8 pb-4 border-b border-neutral-800">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-2 border border-amber-400/30">
+          <i class="fa-solid fa-ticket"></i> ĐẶC QUYỀN MUA SẮM
+        </div>
+        <h2 class="font-serif-luxury text-2xl sm:text-3xl md:text-4xl text-white font-medium">
+          Kho Voucher &amp; Mã Giảm Giá Hôm Nay
+        </h2>
       </div>
-    </a>
+      <span class="text-xs text-neutral-400 font-medium">
+        Nhấn sao chép để nhận ưu đãi ngay khi thanh toán
+      </span>
+    </div>
 
-    <!-- Collection 2: Blazer & Áo Khoác -->
-    <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
-      <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop" alt="Blazer May Đo Beestyle" class="absolute inset-0 w-full h-full object-cover">
-      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
-      <div class="relative z-10 text-white">
-        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">ITALIAN SARTORIAL</span>
-        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Blazer May Đo Chuẩn Ý</h3>
-        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">Phom suông hiện đại, đệm vai tự nhiên tôn trọn vóc dáng nam tính.</p>
-        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
-          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
-        </span>
-      </div>
-    </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      @foreach($coupons as $coupon)
+        @php
+          $isPercent = ($coupon->discount_type ?? 'percent') === 'percent';
+          $valText = $isPercent ? ($coupon->discount_value . '%') : (number_format($coupon->discount_value, 0, ',', '.') . '₫');
+        @endphp
+        <div class="relative bg-neutral-900/90 border border-neutral-700/80 rounded-2xl p-4 flex flex-col justify-between hover:border-amber-400/60 transition-all group shadow-md overflow-hidden">
+          <!-- Ambient ticket notches -->
+          <div class="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-neutral-950 rounded-full border border-neutral-700"></div>
+          <div class="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 bg-neutral-950 rounded-full border border-neutral-700"></div>
 
-    <!-- Collection 3: Polo Luxury Cotton -->
-    <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
-      <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=800&auto=format&fit=crop" alt="Polo Nam Luxury" class="absolute inset-0 w-full h-full object-cover">
-      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
-      <div class="relative z-10 text-white">
-        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">PREMIUM COTTON</span>
-        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Polo Dệt Tổ Ong</h3>
-        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">100% Sợi Cotton chải kỹ kháng khuẩn, giữ phom cổ bẻ thẳng thớm.</p>
-        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
-          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
-        </span>
-      </div>
-    </a>
+          <div class="pl-2">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="px-2.5 py-1 rounded-lg bg-amber-400 text-neutral-950 font-black text-xs uppercase tracking-wide">
+                GIẢM {{ $valText }}
+              </span>
+              @if($coupon->expires_at)
+                <span class="text-[10px] text-neutral-400 font-mono">
+                  HSD: {{ \Carbon\Carbon::parse($coupon->expires_at)->format('d/m/Y') }}
+                </span>
+              @else
+                <span class="text-[10px] text-amber-300 font-mono">Vô thời hạn</span>
+              @endif
+            </div>
 
-    <!-- Collection 4: Áo Thun Streetwear Boxy -->
-    <a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
-      <img src="https://images.unsplash.com/photo-1614252369475-531eba835eb1?q=80&w=800&auto=format&fit=crop" alt="Áo Thun Nam" class="absolute inset-0 w-full h-full object-cover">
-      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
-      <div class="relative z-10 text-white">
-        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">STREETWEAR 250GSM</span>
-        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Áo Phông Foam Boxy</h3>
-        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">Định lượng Heavyweight dày dặn, phom suông rộng thoải mái cá tính.</p>
-        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
-          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
-        </span>
-      </div>
-    </a>
+            <h4 class="font-bold text-white text-sm line-clamp-1 mb-1">{{ $coupon->title ?? ('Mã giảm giá ' . $coupon->code) }}</h4>
+            
+            <div class="text-[11px] text-neutral-400 space-y-0.5 mb-4">
+              @if($coupon->min_order_value > 0)
+                <p>• Đơn tối thiểu: <strong class="text-neutral-200">{{ number_format($coupon->min_order_value, 0, ',', '.') }}₫</strong></p>
+              @else
+                <p>• Áp dụng cho mọi giá trị đơn</p>
+              @endif
+              @if($coupon->max_discount_value > 0)
+                <p>• Giảm tối đa: <strong class="text-neutral-200">{{ number_format($coupon->max_discount_value, 0, ',', '.') }}₫</strong></p>
+              @endif
+            </div>
+          </div>
 
+          <div class="pt-3 border-t border-dashed border-neutral-800 flex items-center justify-between gap-2 pl-2">
+            <div class="font-mono font-bold text-amber-400 text-xs tracking-wider bg-neutral-950 px-2.5 py-1.5 rounded-lg border border-neutral-800">
+              {{ $coupon->code }}
+            </div>
+            <button type="button" 
+                    onclick="copyCouponCode('{{ $coupon->code }}', this)" 
+                    class="btn-copy-code px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-bold uppercase rounded-lg transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-copy text-[11px]"></i>
+              <span>Lưu Mã</span>
+            </button>
+          </div>
+        </div>
+      @endforeach
+    </div>
   </div>
 </section>
+@endif
 
 <!-- ========================================================================= -->
-<!-- FLASH SALE GIỜ VÀNG (REALTIME DAILY DEALS) -->
+<!-- 4. FLASH SALE GIỜ VÀNG (REALTIME DAILY DEALS) -->
 <!-- ========================================================================= -->
 @if(isset($runningDailyDeals) && $runningDailyDeals->isNotEmpty())
-<section class="w-full max-w-7xl mx-auto px-6 mb-20" id="flash-sale-section">
+<section class="w-full max-w-7xl mx-auto px-6 my-16" id="flash-sale-section">
   <!-- Flash Sale Header Container -->
   <div class="rounded-3xl bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 border border-neutral-800 p-6 md:p-8 shadow-2xl relative overflow-hidden">
     
@@ -261,9 +263,19 @@
         @endphp
         <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300">
           
-          <!-- Image Container with Discount Badge -->
-          <a href="{{ route('client.products.show', $p->id) }}" class="relative aspect-[3/4] bg-neutral-100 overflow-hidden block">
-            <img src="{{ $img }}" alt="{{ $p->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+          <!-- Image Container with Discount Badge & Wishlist Heart -->
+          <div class="relative aspect-[3/4] bg-neutral-100 overflow-hidden block">
+            <a href="{{ route('client.products.show', $p->id) }}" class="block w-full h-full">
+              <img src="{{ $img }}" alt="{{ $p->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+            </a>
+
+            <!-- Wishlist Heart Button -->
+            <button type="button" 
+                    onclick="toggleWishlist({{ $p->id }}, this)" 
+                    class="btn-wishlist-{{ $p->id }} absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-md flex items-center justify-center text-neutral-600 hover:text-rose-600 shadow-sm transition-all active:scale-90 cursor-pointer {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-600' : '' }}" 
+                    title="Thêm vào yêu thích">
+              <i class="fa-solid fa-heart text-xs {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-500' : '' }}"></i>
+            </button>
             
             <!-- Top Badges -->
             <div class="absolute top-2.5 left-2.5 flex flex-col gap-1.5 pointer-events-none">
@@ -277,7 +289,7 @@
                 Tiết kiệm {{ number_format($savings, 0, ',', '.') }}₫
               </span>
             @endif
-          </a>
+          </div>
 
           <!-- Details -->
           <div class="p-4 flex flex-col justify-between flex-grow">
@@ -339,7 +351,7 @@
     <div class="relative z-10 mt-8 pt-6 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-300">
       <div class="flex items-center gap-2">
         <i class="fa-solid fa-ticket text-amber-400 text-sm"></i>
-        <span>Nhập mã <strong class="text-amber-400 font-mono bg-neutral-900 px-2 py-0.5 rounded border border-amber-400/40 cursor-pointer" onclick="copyCouponTopBar('BEESTYLE15')">BEESTYLE15</strong> giảm thêm 15% khi thanh toán!</span>
+        <span>Nhập mã <strong class="text-amber-400 font-mono bg-neutral-900 px-2 py-0.5 rounded border border-amber-400/40 cursor-pointer" onclick="copyCouponCode('BEESTYLE15')">BEESTYLE15</strong> giảm thêm 15% khi thanh toán!</span>
       </div>
       <a href="{{ route('client.daily-deals.index') }}" class="inline-flex items-center gap-2 font-bold text-amber-400 hover:text-white transition-colors uppercase tracking-wider text-xs">
         <span>Xem tất cả ưu đãi trong ngày</span>
@@ -352,7 +364,284 @@
 @endif
 
 <!-- ========================================================================= -->
-<!-- 4. EDITORIAL LOOKBOOK SECTION -->
+<!-- 5. FEATURED COLLECTIONS GRID -->
+<!-- ========================================================================= -->
+<section id="collections" class="w-full py-16 px-6 max-w-7xl mx-auto">
+  <div class="text-center max-w-2xl mx-auto mb-12">
+    <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-bold block mb-2">BỘ SƯU TẬP ĐỘC BẢN 2026</span>
+    <h2 class="font-serif-luxury text-3xl md:text-5xl text-neutral-950 font-medium">
+      Danh Mục Tuyển Chọn
+    </h2>
+    <p class="text-xs md:text-sm text-neutral-600 font-medium mt-3">
+      Trang phục may đo chuẩn phong cách Ý, chế tác từ lụa tơ tằm nguyên bản và sợi tự nhiên bền vững
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    
+    <!-- Collection 1: Sơ Mi Lụa & May Đo -->
+    <a href="{{ route('client.products.index', ['category' => 'ao-so-mi-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
+      <img src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop" alt="Thời Trang Nam Beestyle" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
+      <div class="relative z-10 text-white">
+        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">ATELIER TAILORING</span>
+        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Sơ Mi Lụa Nam</h3>
+        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">Sơ mi lụa tơ tằm dệt tay, cổ ép keo Đức và khuy xà cừ tự nhiên.</p>
+        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
+          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
+        </span>
+      </div>
+    </a>
+
+    <!-- Collection 2: Blazer & Áo Khoác -->
+    <a href="{{ route('client.products.index', ['category' => 'ao-khoac-blazer-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
+      <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop" alt="Blazer May Đo Beestyle" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
+      <div class="relative z-10 text-white">
+        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">ITALIAN SARTORIAL</span>
+        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Blazer May Đo Chuẩn Ý</h3>
+        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">Phom suông hiện đại, đệm vai tự nhiên tôn trọn vóc dáng nam tính.</p>
+        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
+          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
+        </span>
+      </div>
+    </a>
+
+    <!-- Collection 3: Polo Luxury Cotton -->
+    <a href="{{ route('client.products.index', ['category' => 'ao-polo-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
+      <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=800&auto=format&fit=crop" alt="Polo Nam Luxury" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
+      <div class="relative z-10 text-white">
+        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">PREMIUM COTTON</span>
+        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Polo Dệt Tổ Ong</h3>
+        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">100% Sợi Cotton chải kỹ kháng khuẩn, giữ phom cổ bẻ thẳng thớm.</p>
+        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
+          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
+        </span>
+      </div>
+    </a>
+
+    <!-- Collection 4: Áo Thun Streetwear Boxy -->
+    <a href="{{ route('client.products.index', ['category' => 'ao-thun-nam']) }}" class="collection-card group relative h-[480px] rounded-2xl overflow-hidden shadow-lg flex flex-col justify-end p-7">
+      <img src="https://images.unsplash.com/photo-1614252369475-531eba835eb1?q=80&w=800&auto=format&fit=crop" alt="Áo Thun Nam" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+      <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-950/50 to-transparent"></div>
+      <div class="relative z-10 text-white">
+        <span class="text-[11px] tracking-[0.3em] uppercase text-amber-300 font-bold block mb-1">STREETWEAR 250GSM</span>
+        <h3 class="font-serif-luxury text-2xl font-bold mb-2 text-white drop-shadow-sm">Áo Phông Foam Boxy</h3>
+        <p class="text-xs text-neutral-200 font-normal mb-4 line-clamp-2 drop-shadow-sm">Định lượng Heavyweight dày dặn, phom suông rộng thoải mái cá tính.</p>
+        <span class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-amber-300 group-hover:text-amber-200 transition-colors">
+          Khám Phá Bộ Sưu Tập <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1.5 transition-transform"></i>
+        </span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- 6. INTERACTIVE CURATED PRODUCT SHOWCASE (TABBED COLLECTIONS) -->
+<!-- ========================================================================= -->
+<section class="w-full py-20 px-6 max-w-7xl mx-auto" id="curated-products-hub">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-6 border-b border-neutral-200">
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
+        <i class="fa-solid fa-sparkles text-amber-600"></i> KHÁM PHÁ THEO PHONG CÁCH
+      </div>
+      <h2 class="font-serif-luxury text-3xl md:text-5xl text-neutral-950 font-medium">
+        Tuyển Tập Sản Phẩm Nam
+      </h2>
+      <p class="text-xs md:text-sm text-neutral-600 font-medium mt-2">
+        Tuyển chọn những phom áo lịch lãm, hiện đại và chuẩn mực dành riêng cho phái mạnh
+      </p>
+    </div>
+    
+    <a href="{{ route('client.products.index') }}" class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-neutral-950 hover:text-amber-800 transition-colors pb-1 border-b border-neutral-950 hover:border-amber-800 shrink-0">
+      <span>Xem Tất Cả Sản Phẩm</span>
+      <i class="fa-solid fa-arrow-right text-xs"></i>
+    </a>
+  </div>
+
+  <!-- Interactive Filter Tabs Bar -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar scroll-smooth">
+    <button type="button" 
+            onclick="switchProductTab('featured', this)" 
+            class="product-tab-btn active px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all shadow-sm bg-neutral-950 text-white cursor-pointer flex items-center gap-2">
+      <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+      <span>Tuyển Chọn Nổi Bật</span>
+    </button>
+    <button type="button" 
+            onclick="switchProductTab('bestseller', this)" 
+            class="product-tab-btn px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all bg-neutral-100 text-neutral-700 hover:bg-neutral-200 cursor-pointer flex items-center gap-2">
+      <i class="fa-solid fa-fire text-rose-500 text-xs"></i>
+      <span>Bán Chạy Nhất</span>
+    </button>
+    <button type="button" 
+            onclick="switchProductTab('new', this)" 
+            class="product-tab-btn px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all bg-neutral-100 text-neutral-700 hover:bg-neutral-200 cursor-pointer flex items-center gap-2">
+      <i class="fa-solid fa-sparkles text-amber-500 text-xs"></i>
+      <span>Hàng Mới Về</span>
+    </button>
+    <button type="button" 
+            onclick="switchProductTab('polo', this)" 
+            class="product-tab-btn px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all bg-neutral-100 text-neutral-700 hover:bg-neutral-200 cursor-pointer flex items-center gap-2">
+      <span>Áo Polo Nam</span>
+    </button>
+    <button type="button" 
+            onclick="switchProductTab('shirt', this)" 
+            class="product-tab-btn px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all bg-neutral-100 text-neutral-700 hover:bg-neutral-200 cursor-pointer flex items-center gap-2">
+      <span>Áo Sơ Mi Lụa</span>
+    </button>
+    <button type="button" 
+            onclick="switchProductTab('blazer', this)" 
+            class="product-tab-btn px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all bg-neutral-100 text-neutral-700 hover:bg-neutral-200 cursor-pointer flex items-center gap-2">
+      <span>Blazer &amp; Áo Khoác</span>
+    </button>
+    <button type="button" 
+            onclick="switchProductTab('thun', this)" 
+            class="product-tab-btn px-5 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all bg-neutral-100 text-neutral-700 hover:bg-neutral-200 cursor-pointer flex items-center gap-2">
+      <span>Áo Phông / Thun</span>
+    </button>
+  </div>
+
+  <!-- Tab Panels -->
+  @php
+    $tabCollections = [
+      'featured'   => ($featuredProducts->isNotEmpty() ? $featuredProducts : $products)->take(8),
+      'bestseller' => ($bestSellers->isNotEmpty() ? $bestSellers : $products)->take(8),
+      'new'        => ($newArrivals->isNotEmpty() ? $newArrivals : $products)->take(8),
+      'polo'       => ($poloSpotlight->isNotEmpty() ? $poloSpotlight : $products)->take(8),
+      'shirt'      => ($shirtSpotlight->isNotEmpty() ? $shirtSpotlight : $products)->take(8),
+      'blazer'     => ($blazerSpotlight->isNotEmpty() ? $blazerSpotlight : $products)->take(8),
+      'thun'       => ($thunSpotlight->isNotEmpty() ? $thunSpotlight : $products)->take(8),
+    ];
+  @endphp
+
+  @foreach($tabCollections as $tabKey => $collectionItems)
+    <div id="tab-panel-{{ $tabKey }}" class="product-tab-panel {{ $loop->first ? '' : 'hidden' }} transition-opacity duration-300">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        @forelse($collectionItems as $item)
+          @php
+            $minPrice = $item->variants->min('price') ?? $item->price ?? 0;
+            $primaryImg = $item->primaryImage->image_path ?? $item->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop';
+            if (!str_starts_with($primaryImg, 'http')) {
+              $primaryImg = asset($primaryImg);
+            }
+            $isFav = in_array($item->id, $wishlistIds ?? []);
+            $hasDiscount = ($item->original_price && $item->original_price > $minPrice);
+            $discPct = $hasDiscount ? round((($item->original_price - $minPrice) / $item->original_price) * 100) : 0;
+          @endphp
+
+          <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300">
+            <!-- Thumbnail Container -->
+            <div class="aspect-[3/4] relative bg-neutral-100 overflow-hidden block">
+              <a href="{{ route('client.products.show', $item->id) }}" class="block w-full h-full">
+                <img src="{{ $primaryImg }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
+              </a>
+
+              <!-- Wishlist Heart Button -->
+              <button type="button" 
+                      onclick="toggleWishlist({{ $item->id }}, this)" 
+                      class="btn-wishlist-{{ $item->id }} absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-md flex items-center justify-center text-neutral-600 hover:text-rose-600 shadow-sm transition-all active:scale-90 cursor-pointer {{ $isFav ? 'text-rose-600' : '' }}" 
+                      title="Thêm vào yêu thích">
+                <i class="fa-solid fa-heart text-xs {{ $isFav ? 'text-rose-500' : '' }}"></i>
+              </button>
+
+              <!-- Left Status Badges -->
+              <div class="absolute top-2.5 left-2.5 flex flex-col gap-1.5 pointer-events-none">
+                @if($discPct > 0)
+                  <span class="px-2 py-0.5 bg-rose-600 text-white text-[10px] tracking-widest uppercase font-black rounded shadow">
+                    -{{ $discPct }}%
+                  </span>
+                @elseif($item->is_new)
+                  <span class="px-2 py-0.5 bg-neutral-950 text-white text-[10px] tracking-widest uppercase font-bold rounded shadow">
+                    MỚI
+                  </span>
+                @else
+                  <span class="px-2 py-0.5 bg-amber-400 text-neutral-950 text-[10px] tracking-widest uppercase font-black rounded shadow">
+                    HOT
+                  </span>
+                @endif
+              </div>
+
+              <!-- Quick View hover action -->
+              <div class="absolute inset-0 bg-neutral-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-3 pointer-events-none">
+                <span class="w-full py-2 bg-white/95 text-neutral-950 text-xs font-bold tracking-wider uppercase rounded-xl shadow-lg text-center backdrop-blur-xs">
+                  Xem Chi Tiết
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Content Body -->
+            <div class="p-4 md:p-5 flex flex-col flex-grow justify-between">
+              <div>
+                <span class="text-[10px] tracking-widest uppercase text-amber-700 font-bold block mb-1">
+                  {{ $item->category->name ?? 'Beestyle Studio' }}
+                </span>
+                <a href="{{ route('client.products.show', $item->id) }}" class="font-serif-luxury text-sm md:text-base font-bold text-neutral-950 hover:text-amber-800 transition-colors line-clamp-2 leading-snug">
+                  {{ $item->name }}
+                </a>
+                
+                <div class="flex items-center gap-1.5 text-xs text-amber-500 font-semibold mt-1.5">
+                  <span>★★★★★</span>
+                  <span class="text-[11px] text-neutral-500 font-medium">5.0 (100+ bán)</span>
+                </div>
+              </div>
+
+              <!-- Price & Actions -->
+              <div class="mt-4 pt-3 border-t border-neutral-100 flex flex-col gap-3">
+                <div class="flex items-baseline justify-between gap-1 flex-wrap">
+                  <span class="font-serif-luxury text-base md:text-lg font-black text-neutral-950">
+                    {{ number_format($minPrice, 0, ',', '.') }}₫
+                  </span>
+                  @if($item->original_price && $item->original_price > $minPrice)
+                    <span class="text-xs text-neutral-400 line-through font-medium">
+                      {{ number_format($item->original_price, 0, ',', '.') }}₫
+                    </span>
+                  @endif
+                </div>
+
+                <!-- 2 Action Buttons -->
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" 
+                          onclick="openQuickVariantModal({{ $item->id }}, false, this)" 
+                          class="w-full py-2 px-1 bg-neutral-950 hover:bg-neutral-800 text-white text-[11px] font-bold uppercase rounded-xl flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer" 
+                          title="Thêm vào giỏ hàng">
+                    <i class="fa-solid fa-cart-plus text-[10px]"></i>
+                    <span class="truncate">Thêm Giỏ</span>
+                  </button>
+                  <button type="button" 
+                          onclick="openQuickVariantModal({{ $item->id }}, true, this)" 
+                          class="w-full py-2 px-1 bg-amber-400 hover:bg-amber-500 text-neutral-950 text-[11px] font-black uppercase rounded-xl flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer" 
+                          title="Mua ngay — Thanh toán tức thì">
+                    <i class="fa-solid fa-bolt text-[10px]"></i>
+                    <span class="truncate">Mua Ngay</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        @empty
+          <div class="col-span-full text-center py-16 text-neutral-500 text-sm font-medium bg-neutral-50 rounded-2xl border border-neutral-200">
+            <i class="fa-solid fa-shirt text-2xl text-neutral-400 mb-2 block"></i>
+            Đang cập nhật các mẫu thiết kế mới nhất cho bộ sưu tập này...
+          </div>
+        @endforelse
+      </div>
+    </div>
+  @endforeach
+
+  <!-- Section Bottom CTA -->
+  <div class="text-center mt-12">
+    <a href="{{ route('client.products.index') }}" class="inline-flex items-center gap-2 px-8 py-4 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-[0.2em] rounded-xl transition-all shadow-xl">
+      <span>Xem Toàn Bộ {{ $products->count() > 0 ? 'Hơn 500+' : '' }} Tác Phẩm May Đo</span>
+      <i class="fa-solid fa-arrow-right text-xs text-amber-400"></i>
+    </a>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- 7. EDITORIAL LOOKBOOK SECTION -->
 <!-- ========================================================================= -->
 <section id="lookbook" class="w-full bg-neutral-950 text-white py-24 px-6">
   <div class="max-w-7xl mx-auto">
@@ -407,110 +696,42 @@
 </section>
 
 <!-- ========================================================================= -->
-<!-- 5. DYNAMIC FEATURED PRODUCTS FROM DATABASE -->
+<!-- 8. BRAND PARTNERS SHOWCASE -->
 <!-- ========================================================================= -->
-<section class="w-full py-24 px-6 max-w-7xl mx-auto">
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-14">
-    <div>
-      <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-bold block mb-2">TUYỂN TẬP CAO CẤP</span>
-      <h2 class="font-serif-luxury text-3xl md:text-5xl text-neutral-950 font-medium">
-        Sản Phẩm Đang Được Yêu Thích
+@if(isset($brands) && $brands->isNotEmpty())
+<section class="w-full bg-white border-b border-neutral-200 py-16 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center max-w-xl mx-auto mb-10">
+      <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-bold block mb-2">ĐỐI TÁC THƯƠNG HIỆU</span>
+      <h2 class="font-serif-luxury text-2xl sm:text-3xl text-neutral-950 font-medium">
+        Các Thương Hiệu Đồng Hành
       </h2>
     </div>
-    <a href="{{ route('client.products.index') }}" class="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-neutral-900 hover:text-amber-700 transition-colors">
-      <span>Xem Tất Cả Sản Phẩm</span>
-      <i class="fa-solid fa-arrow-right text-xs"></i>
-    </a>
-  </div>
 
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-    @php
-      $displayProducts = $featuredProducts->isNotEmpty() ? $featuredProducts : $products;
-    @endphp
-
-    @forelse($displayProducts->take(8) as $item)
-      @php
-        $minPrice = $item->variants->min('price') ?? $item->price ?? 0;
-        $primaryImg = $item->primaryImage->image_path ?? $item->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop';
-        if (!str_starts_with($primaryImg, 'http')) {
-          $primaryImg = asset($primaryImg);
-        }
-      @endphp
-      <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-        <!-- Thumbnail -->
-        <a href="{{ route('client.products.show', $item->id) }}" class="aspect-[3/4] relative bg-neutral-100 overflow-hidden block">
-          <img src="{{ $primaryImg }}" alt="{{ $item->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-          
-          @if($item->is_new)
-            <span class="absolute top-3 left-3 px-2.5 py-1 bg-neutral-950 text-white text-[10px] tracking-widest uppercase font-bold rounded-md shadow-sm">MỚI</span>
-          @else
-            <span class="absolute top-3 left-3 px-2.5 py-1 bg-amber-400 text-neutral-950 text-[10px] tracking-widest uppercase font-black rounded-md shadow-sm">BÁN CHẠY</span>
-          @endif
-
-          <div class="absolute inset-0 bg-neutral-950/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-4">
-            <span class="w-full py-2.5 bg-white text-neutral-950 text-xs font-bold tracking-wider uppercase rounded-xl shadow-lg text-center hover:bg-amber-400 transition-colors">Xem Chi Tiết</span>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 items-center">
+      @foreach($brands as $brand)
+        <a href="{{ route('client.brands.show', $brand->slug) }}" class="group p-5 rounded-2xl bg-neutral-50 hover:bg-white border border-neutral-200 hover:border-amber-400/60 hover:shadow-lg transition-all flex flex-col items-center justify-center text-center">
+          <div class="w-14 h-14 rounded-xl bg-white border border-neutral-200 flex items-center justify-center p-2 mb-3 group-hover:scale-105 transition-transform overflow-hidden">
+            @if($brand->has_logo)
+              <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="max-h-full max-w-full object-contain">
+            @else
+              <span class="font-bold text-neutral-800 text-sm">{{ substr($brand->name, 0, 2) }}</span>
+            @endif
           </div>
+          <span class="text-xs font-bold text-neutral-800 group-hover:text-amber-800 transition-colors truncate max-w-full">
+            {{ $brand->name }}
+          </span>
         </a>
-
-        <!-- Body -->
-        <div class="p-5 flex flex-col flex-grow justify-between">
-          <div>
-            <span class="text-[11px] tracking-wider uppercase text-amber-800 font-bold block mb-1">
-              {{ $item->category->name ?? 'Beestyle Studio' }}
-            </span>
-            <a href="{{ route('client.products.show', $item->id) }}" class="font-serif-luxury text-base font-bold text-neutral-950 hover:text-amber-700 transition-colors line-clamp-2 leading-snug">
-              {{ $item->name }}
-            </a>
-            <div class="flex items-center gap-1.5 text-xs text-amber-500 font-semibold mt-1.5">
-              <span>★★★★★</span>
-              <span class="text-[11px] text-neutral-600 font-medium">(5.0 • Đã bán 120+)</span>
-            </div>
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-neutral-100 flex flex-col gap-2.5">
-            <div class="flex items-baseline justify-between">
-              <span class="font-serif-luxury text-lg font-black text-neutral-950">
-                {{ number_format($minPrice, 0, ',', '.') }}₫
-              </span>
-              @if($item->original_price && $item->original_price > $minPrice)
-                <span class="text-xs text-neutral-500 line-through">
-                  {{ number_format($item->original_price, 0, ',', '.') }}₫
-                </span>
-              @endif
-            </div>
-
-            <!-- Cặp nút Thêm Giỏ & Mua Ngay -->
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button" 
-                      onclick="openQuickVariantModal({{ $item->id }}, false, this)" 
-                      class="w-full py-2 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer" 
-                      title="Thêm vào giỏ hàng">
-                <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
-                <span class="truncate">Thêm Giỏ</span>
-              </button>
-              <button type="button" 
-                      onclick="openQuickVariantModal({{ $item->id }}, true, this)" 
-                      class="w-full py-2 bg-amber-400 hover:bg-amber-500 text-neutral-950 text-xs font-black uppercase tracking-wider rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer" 
-                      title="Mua ngay — Thanh toán tức thì">
-                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                <span class="truncate">Mua Ngay</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    @empty
-      <div class="col-span-4 text-center py-12 text-neutral-600 text-sm font-medium">
-        Đang cập nhật các tác phẩm may đo mới nhất...
-      </div>
-    @endforelse
+      @endforeach
+    </div>
   </div>
 </section>
+@endif
 
 <!-- ========================================================================= -->
-<!-- 6. SOCIAL PROOF & VERIFIED REVIEWS -->
+<!-- 9. SOCIAL PROOF & CUSTOMER REVIEWS -->
 <!-- ========================================================================= -->
-<section class="w-full bg-neutral-50 border-y border-neutral-200 py-20 px-6">
+<section class="w-full bg-neutral-50 border-b border-neutral-200 py-20 px-6">
   <div class="max-w-7xl mx-auto">
     <div class="text-center max-w-2xl mx-auto mb-14">
       <span class="text-xs tracking-[0.4em] uppercase text-amber-800 font-bold block mb-2">ĐÁNH GIÁ TỪ QUÝ KHÁCH HÀNG</span>
@@ -524,74 +745,105 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white p-7 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-amber-500 text-sm">★★★★★</div>
-            <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
-              <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
-            </span>
+      @if(isset($reviews) && $reviews->isNotEmpty())
+        @foreach($reviews->take(3) as $rev)
+          <div class="bg-white p-7 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-amber-500 text-sm">
+                  @for($s = 1; $s <= 5; $s++)
+                    <i class="fa-solid fa-star {{ $s <= ($rev->rating ?? 5) ? 'text-amber-500' : 'text-neutral-300' }} text-xs"></i>
+                  @endfor
+                </div>
+                <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
+                  <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+                </span>
+              </div>
+              <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4 line-clamp-3">
+                "{{ $rev->comment }}"
+              </p>
+            </div>
+            <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">
+                {{ substr($rev->user->name ?? 'KH', 0, 2) }}
+              </div>
+              <div class="min-w-0">
+                <strong class="text-xs text-neutral-950 block truncate">{{ $rev->user->name ?? 'Khách Hàng Thân Thiết' }}</strong>
+                <span class="text-[11px] text-neutral-500 font-medium block truncate">{{ $rev->product->name ?? 'Sản phẩm Atelier' }}</span>
+              </div>
+            </div>
           </div>
-          <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
-            "Chất vải lụa tơ tằm cực kỳ thoáng mát và sang trọng. Tôi mặc dự tiệc cưới ai cũng khen phom áo đứng dáng và chuẩn mực. Đóng gói rất chu đáo như một hộp quà cao cấp!"
-          </p>
-        </div>
-        <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">MH</div>
+        @endforeach
+      @else
+        <div class="bg-white p-7 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between">
           <div>
-            <strong class="text-xs text-neutral-950 block">Nguyễn Minh Hoàng</strong>
-            <span class="text-[11px] text-neutral-500 font-medium">Sơ Mi Lụa Atelier • TP. Hồ Chí Minh</span>
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-amber-500 text-sm">★★★★★</div>
+              <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
+                <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+              </span>
+            </div>
+            <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
+              "Chất vải lụa tơ tằm cực kỳ thoáng mát và sang trọng. Tôi mặc dự tiệc cưới ai cũng khen phom áo đứng dáng và chuẩn mực. Đóng gói rất chu đáo như một hộp quà cao cấp!"
+            </p>
+          </div>
+          <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">MH</div>
+            <div>
+              <strong class="text-xs text-neutral-950 block">Nguyễn Minh Hoàng</strong>
+              <span class="text-[11px] text-neutral-500 font-medium">Sơ Mi Lụa Atelier • TP. Hồ Chí Minh</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="bg-white p-7 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-amber-500 text-sm">★★★★★</div>
-            <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
-              <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
-            </span>
-          </div>
-          <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
-            "Áo Blazer may đo chuẩn Ý, đệm vai tự nhiên tôn dáng. Lần đầu tôi mua online mà vừa vặn như được thợ đo trực tiếp. Dịch vụ tư vấn size cực kỳ nhiệt tình."
-          </p>
-        </div>
-        <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">TA</div>
+        <div class="bg-white p-7 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between">
           <div>
-            <strong class="text-xs text-neutral-950 block">Trần Tuấn Anh (KTS)</strong>
-            <span class="text-[11px] text-neutral-500 font-medium">Blazer Peak Lapel • Hà Nội</span>
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-amber-500 text-sm">★★★★★</div>
+              <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
+                <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+              </span>
+            </div>
+            <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
+              "Áo Blazer may đo chuẩn Ý, đệm vai tự nhiên tôn dáng. Lần đầu tôi mua online mà vừa vặn như được thợ đo trực tiếp. Dịch vụ tư vấn size cực kỳ nhiệt tình."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">TA</div>
+            <div>
+              <strong class="text-xs text-neutral-950 block">Trần Tuấn Anh (KTS)</strong>
+              <span class="text-[11px] text-neutral-500 font-medium">Blazer Peak Lapel • Hà Nội</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="bg-white p-7 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="text-amber-500 text-sm">★★★★★</div>
-            <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
-              <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
-            </span>
-          </div>
-          <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
-            "Chính sách đổi size tận nhà của BeeStyle quá chuyên nghiệp. Bưu tá mang áo size mới đến tận cửa để tôi thử và thu hồi size cũ không hề tính thêm phí."
-          </p>
-        </div>
-        <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">QH</div>
+        <div class="bg-white p-7 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between">
           <div>
-            <strong class="text-xs text-neutral-950 block">Lê Quang Huy (Designer)</strong>
-            <span class="text-[11px] text-neutral-500 font-medium">Polo Dệt Tổ Ong • Đà Nẵng</span>
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-amber-500 text-sm">★★★★★</div>
+              <span class="badge bg-success-subtle text-success text-[10px] font-bold px-2 py-0.5 rounded-full border border-success-subtle">
+                <i class="fa-solid fa-circle-check me-1"></i> Đã mua hàng
+              </span>
+            </div>
+            <p class="text-xs md:text-sm text-neutral-700 font-normal leading-relaxed italic mb-4">
+              "Chính sách đổi size tận nhà của BeeStyle quá chuyên nghiệp. Bưu tá mang áo size mới đến tận cửa để tôi thử và thu hồi size cũ không hề tính thêm phí."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-neutral-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-sm">QH</div>
+            <div>
+              <strong class="text-xs text-neutral-950 block">Lê Quang Huy (Designer)</strong>
+              <span class="text-[11px] text-neutral-500 font-medium">Polo Dệt Tổ Ong • Đà Nẵng</span>
+            </div>
           </div>
         </div>
-      </div>
+      @endif
     </div>
   </div>
 </section>
 
 <!-- ========================================================================= -->
-<!-- 7. BRAND STORY SECTION -->
+<!-- 10. BRAND STORY SECTION -->
 <!-- ========================================================================= -->
 <section id="about" class="w-full bg-white py-24 px-6">
   <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -612,18 +864,18 @@
         Mỗi chiếc áo sơ mi lụa, blazer hay polo đều được người nghệ nhân dồn trọn tâm huyết, mang đến cho bạn trải nghiệm mặc êm ái, thanh lịch và tự tin trong mọi khoảnh khắc.
       </p>
 
-      <div class="grid grid-cols-3 gap-6 pt-6 border-t border-neutral-200 text-center">
+      <div class="grid grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-neutral-200 text-center">
         <div class="p-3 bg-neutral-50 rounded-2xl border border-neutral-200">
-          <span class="font-serif-luxury text-3xl md:text-4xl text-neutral-950 font-black block text-amber-600">100%</span>
-          <span class="text-[11px] tracking-wider uppercase text-neutral-700 font-bold mt-1 block">Chất liệu tự nhiên</span>
+          <span class="font-serif-luxury text-2xl sm:text-4xl text-neutral-950 font-black block text-amber-600">100%</span>
+          <span class="text-[10px] sm:text-[11px] tracking-wider uppercase text-neutral-700 font-bold mt-1 block">Chất liệu tự nhiên</span>
         </div>
         <div class="p-3 bg-neutral-50 rounded-2xl border border-neutral-200">
-          <span class="font-serif-luxury text-3xl md:text-4xl text-neutral-950 font-black block text-amber-600">12+</span>
-          <span class="text-[11px] tracking-wider uppercase text-neutral-700 font-bold mt-1 block">Nghệ nhân Atelier</span>
+          <span class="font-serif-luxury text-2xl sm:text-4xl text-neutral-950 font-black block text-amber-600">12+</span>
+          <span class="text-[10px] sm:text-[11px] tracking-wider uppercase text-neutral-700 font-bold mt-1 block">Nghệ nhân Atelier</span>
         </div>
         <div class="p-3 bg-neutral-50 rounded-2xl border border-neutral-200">
-          <span class="font-serif-luxury text-3xl md:text-4xl text-neutral-950 font-black block text-amber-600">30 Ngày</span>
-          <span class="text-[11px] tracking-wider uppercase text-neutral-700 font-bold mt-1 block">Đổi trả tại nhà</span>
+          <span class="font-serif-luxury text-2xl sm:text-4xl text-neutral-950 font-black block text-amber-600">30 Ngày</span>
+          <span class="text-[10px] sm:text-[11px] tracking-wider uppercase text-neutral-700 font-bold mt-1 block">Đổi trả tại nhà</span>
         </div>
       </div>
     </div>
@@ -632,7 +884,7 @@
 </section>
 
 <!-- ========================================================================= -->
-<!-- 8. VIP MEMBER NEWSLETTER -->
+<!-- 11. VIP MEMBER NEWSLETTER -->
 <!-- ========================================================================= -->
 <section class="w-full bg-neutral-950 text-white py-20 px-6 text-center">
   <div class="max-w-2xl mx-auto">
@@ -646,7 +898,7 @@
 
     <form onsubmit="handleNewsletter(event)" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
       <input type="email" id="newsletter-email" placeholder="Nhập địa chỉ email của bạn..." required class="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3.5 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-amber-400 flex-grow shadow-inner">
-      <button type="submit" class="px-7 py-3.5 bg-amber-400 text-neutral-950 text-xs tracking-widest uppercase font-bold hover:bg-amber-300 transition-colors rounded-xl shadow-lg shrink-0">
+      <button type="submit" class="px-7 py-3.5 bg-amber-400 text-neutral-950 text-xs tracking-widest uppercase font-bold hover:bg-amber-300 transition-colors rounded-xl shadow-lg shrink-0 cursor-pointer">
         Đăng Ký Ngay
       </button>
     </form>
@@ -656,23 +908,68 @@
 
 @push('scripts')
 <script>
-  function handleNewsletter(e) {
-    e.preventDefault();
-    const email = document.getElementById('newsletter-email').value;
-    alert(`Cảm ơn bạn (${email}) đã đăng ký nhận tin BeeStyle Privé! Mã BEESTYLE15 đã sẵn sàng sử dụng.`);
-    document.getElementById('newsletter-email').value = '';
+  // Chuyển đổi qua lại giữa các tab bộ sưu tập trên trang chủ
+  function switchProductTab(tabKey, btnEl) {
+    // Cập nhật giao diện nút tab
+    document.querySelectorAll('.product-tab-btn').forEach(btn => {
+      btn.classList.remove('active', 'bg-neutral-950', 'text-white', 'shadow-sm');
+      btn.classList.add('bg-neutral-100', 'text-neutral-700');
+    });
+    if (btnEl) {
+      btnEl.classList.add('active', 'bg-neutral-950', 'text-white', 'shadow-sm');
+      btnEl.classList.remove('bg-neutral-100', 'text-neutral-700');
+    }
+
+    // Hiển thị panel tương ứng
+    document.querySelectorAll('.product-tab-panel').forEach(panel => {
+      panel.classList.add('hidden');
+    });
+    const targetPanel = document.getElementById('tab-panel-' + tabKey);
+    if (targetPanel) {
+      targetPanel.classList.remove('hidden');
+    }
+
+    // Re-init Lucide icons nếu có
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   }
 
-  function copyCouponTopBar(code) {
+  // Sao chép mã voucher nhanh kèm thông báo
+  function copyCouponCode(code, btnEl) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(code).then(() => {
-        alert('Đã sao chép mã ưu đãi ' + code + ' thành công! Hãy dán mã vào bước thanh toán.');
+        if (typeof showGlobalToast === 'function') {
+          showGlobalToast(`Đã sao chép mã ${code}! Nhập tại bước thanh toán để nhận ưu đãi.`, 'coupon');
+        } else {
+          alert(`Đã sao chép mã ưu đãi ${code}!`);
+        }
+        if (btnEl) {
+          const originalText = btnEl.innerHTML;
+          btnEl.innerHTML = '<i class="fa-solid fa-check text-[11px]"></i> Đã Lưu';
+          btnEl.classList.add('bg-emerald-500', 'text-white');
+          setTimeout(() => {
+            btnEl.innerHTML = originalText;
+            btnEl.classList.remove('bg-emerald-500', 'text-white');
+          }, 2000);
+        }
       }).catch(() => {
         prompt('Mã ưu đãi của bạn:', code);
       });
     } else {
       prompt('Mã ưu đãi của bạn:', code);
     }
+  }
+
+  function handleNewsletter(e) {
+    e.preventDefault();
+    const email = document.getElementById('newsletter-email').value;
+    if (typeof showGlobalToast === 'function') {
+      showGlobalToast(`Cảm ơn bạn (${email}) đã đăng ký! Mã BEESTYLE15 đã sẵn sàng sử dụng.`, 'success');
+    } else {
+      alert(`Cảm ơn bạn (${email}) đã đăng ký nhận tin BeeStyle Privé! Mã BEESTYLE15 đã sẵn sàng sử dụng.`);
+    }
+    document.getElementById('newsletter-email').value = '';
   }
 
   // Khởi chạy đồng hồ đếm ngược Flash Sale thời gian thực

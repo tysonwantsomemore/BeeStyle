@@ -59,6 +59,42 @@ class OrderReturn extends Model
         return $this->belongsTo(OrderItem::class);
     }
 
+    /**
+     * Danh sách ma trận các trạng thái hợp lệ tiếp theo được phép chuyển từ trạng thái hiện tại (State Machine)
+     */
+    public function getAllowedNextStatuses(): array
+    {
+        $transitions = [
+            'pending'   => ['approved', 'rejected'],
+            'approved'  => ['received', 'rejected'],
+            'received'  => ['completed', 'rejected'],
+            'completed' => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái
+            'rejected'  => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái
+        ];
+
+        return $transitions[$this->status] ?? [];
+    }
+
+    /**
+     * Kiểm tra xem phiếu đổi trả có được phép chuyển sang trạng thái mới hay không
+     */
+    public function canTransitionTo(string $newStatus): bool
+    {
+        if ($this->status === $newStatus) {
+            return true; // Giữ nguyên trạng thái hiện tại (cho phép update ghi chú)
+        }
+
+        return in_array($newStatus, $this->getAllowedNextStatuses(), true);
+    }
+
+    /**
+     * Kiểm tra xem phiếu đổi trả đã ở trạng thái kết thúc (hoàn tất hoặc từ chối) hay chưa
+     */
+    public function isFinalStatus(): bool
+    {
+        return in_array($this->status, ['completed', 'rejected'], true);
+    }
+
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {

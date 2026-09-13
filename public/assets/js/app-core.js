@@ -1083,8 +1083,22 @@ window.BeeCore = {
             </div>
           </div>
         `;
-  renderAuthStatus: function() {
-    // Rely on Laravel Blade server-side auth rendering
+      } else {
+        area.innerHTML = `
+          <button onclick="BeeCore.openAuthModal('login')" class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider hover:text-amber-800 transition-colors">
+            <i data-lucide="user" class="w-4 h-4"></i>
+            <span>Đăng Nhập</span>
+          </button>
+        `;
+      }
+    });
+    lucide.createIcons();
+  },
+
+  toggleUserDropdown: function(e) {
+    e?.stopPropagation();
+    const drop = document.getElementById('user-dropdown-menu');
+    if (drop) drop.classList.toggle('hidden');
   },
 
   openAuthModal: function(mode = 'login') {
@@ -1152,183 +1166,6 @@ window.BeeCore = {
     if (typeof ProductDetail !== 'undefined' && ProductDetail.updateFavIcon) {
       ProductDetail.updateFavIcon();
     }
-  },
-
-  // ================= PROFILE & PASSWORD OPERATIONS =================
-  openProfileModal: function(tab = 'info') {
-    if (!this.currentUser) {
-      this.showToast('Vui lòng đăng nhập để xem thông tin tài khoản!', 'error');
-      this.openAuthModal('login');
-      return;
-    }
-    const modal = document.getElementById('profile-modal');
-    if (!modal) return;
-
-    // Populate user profile data in fields
-    const u = this.currentUser;
-    const fnInput = document.getElementById('profile-fullname');
-    const emInput = document.getElementById('profile-email');
-    const phInput = document.getElementById('profile-phone');
-    const gdInput = document.getElementById('profile-gender');
-    const bdInput = document.getElementById('profile-birthday');
-    const adInput = document.getElementById('profile-address');
-    const adDetail = document.getElementById('profile-address-detail');
-    const bnInput = document.getElementById('profile-bank-name');
-    const baInput = document.getElementById('profile-bank-account');
-    const buInput = document.getElementById('profile-user-bank-name');
-
-    if (fnInput) fnInput.value = u.fullname || '';
-    if (emInput) emInput.value = u.email || '';
-    if (phInput) phInput.value = u.phone_number || u.phone || '';
-    if (gdInput) gdInput.value = u.gender || 'male';
-    if (bdInput) bdInput.value = u.birthday || '1995-08-15';
-    if (adInput) adInput.value = u.address || '88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh';
-    if (adDetail) adDetail.value = u.address || '88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh';
-    if (bnInput) bnInput.value = u.bank_name || 'Vietcombank';
-    if (baInput) baInput.value = u.bank_account || '0071001234567';
-    if (buInput) buInput.value = u.user_bank_name || (u.fullname || '').toUpperCase();
-
-    // Summary elements
-    const avatarEl = document.getElementById('profile-avatar-letter');
-    const nameEl = document.getElementById('profile-display-name');
-    const tierEl = document.getElementById('profile-display-tier');
-
-    if (avatarEl) avatarEl.innerText = u.fullname ? u.fullname.charAt(0).toUpperCase() : 'U';
-    if (nameEl) nameEl.innerText = u.fullname || 'Thành viên Beestyle';
-    if (tierEl) tierEl.innerText = u.tier || 'VIP Gold';
-
-    // Render my orders tab
-    this.renderProfileOrders();
-
-    // Switch to requested tab
-    this.switchProfileTab(tab);
-
-    modal.classList.remove('hidden');
-    lucide.createIcons();
-  },
-
-  closeProfileModal: function() {
-    document.getElementById('profile-modal')?.classList.add('hidden');
-  },
-
-  switchProfileTab: function(tabName) {
-    const tabs = ['info', 'password', 'orders', 'address'];
-    tabs.forEach(t => {
-      const btn = document.getElementById(`profile-tab-btn-${t}`);
-      const pane = document.getElementById(`profile-tab-pane-${t}`);
-      if (btn) {
-        if (t === tabName) {
-          btn.className = 'w-full text-left px-4 py-3 rounded-lg bg-neutral-900 text-white font-semibold text-xs flex items-center gap-2.5 transition-all shadow-sm';
-        } else {
-          btn.className = 'w-full text-left px-4 py-3 rounded-lg text-neutral-600 hover:bg-neutral-100 font-medium text-xs flex items-center gap-2.5 transition-all';
-        }
-      }
-      if (pane) {
-        if (t === tabName) {
-          pane.classList.remove('hidden');
-        } else {
-          pane.classList.add('hidden');
-        }
-      }
-    });
-    lucide.createIcons();
-  },
-
-  updateProfile: function(e) {
-    e?.preventDefault();
-    if (!this.currentUser) return;
-
-    const fullname = document.getElementById('profile-fullname')?.value?.trim();
-    const phone = document.getElementById('profile-phone')?.value?.trim();
-    const gender = document.getElementById('profile-gender')?.value;
-    const birthday = document.getElementById('profile-birthday')?.value;
-    const address = document.getElementById('profile-address')?.value?.trim() || document.getElementById('profile-address-detail')?.value?.trim();
-    const bank_name = document.getElementById('profile-bank-name')?.value?.trim();
-    const bank_account = document.getElementById('profile-bank-account')?.value?.trim();
-    const user_bank_name = document.getElementById('profile-user-bank-name')?.value?.trim();
-
-    if (!fullname) {
-      this.showToast('Vui lòng nhập họ và tên!', 'error');
-      return;
-    }
-
-    this.currentUser.fullname = fullname;
-    this.currentUser.phone = phone;
-    this.currentUser.phone_number = phone;
-    this.currentUser.gender = gender;
-    this.currentUser.birthday = birthday;
-    if (address) this.currentUser.address = address;
-    if (bank_name) this.currentUser.bank_name = bank_name;
-    if (bank_account) this.currentUser.bank_account = bank_account;
-    if (user_bank_name) this.currentUser.user_bank_name = user_bank_name;
-
-    this.saveUser();
-    this.showToast('Cập nhật hồ sơ tài khoản thành công!');
-
-    // Update displays in header and profile modal summary
-    this.renderAuthStatus();
-    const nameEl = document.getElementById('profile-display-name');
-    const avatarEl = document.getElementById('profile-avatar-letter');
-    if (nameEl) nameEl.innerText = fullname;
-    if (avatarEl) avatarEl.innerText = fullname.charAt(0).toUpperCase();
-  },
-
-  changePassword: function(e) {
-    e?.preventDefault();
-    if (!this.currentUser) return;
-
-    const currentPass = document.getElementById('pwd-current')?.value;
-    const newPass = document.getElementById('pwd-new')?.value;
-    const confirmPass = document.getElementById('pwd-confirm')?.value;
-
-    const storedPass = this.currentUser.password || '123456';
-
-    if (currentPass !== storedPass) {
-      this.showToast('Mật khẩu hiện tại không chính xác!', 'error');
-      return;
-    }
-
-    if (!newPass || newPass.length < 6) {
-      this.showToast('Mật khẩu mới phải chứa ít nhất 6 ký tự!', 'error');
-      return;
-    }
-
-    if (newPass !== confirmPass) {
-      this.showToast('Xác nhận mật khẩu mới không trùng khớp!', 'error');
-      return;
-    }
-
-    if (newPass === currentPass) {
-      this.showToast('Mật khẩu mới không được giống mật khẩu cũ!', 'error');
-      return;
-    }
-
-    this.currentUser.password = newPass;
-    this.currentUser.is_change_password = 1;
-    this.saveUser();
-
-    // Clear password inputs
-    const p1 = document.getElementById('pwd-current');
-    const p2 = document.getElementById('pwd-new');
-    const p3 = document.getElementById('pwd-confirm');
-    if (p1) p1.value = '';
-    if (p2) p2.value = '';
-    if (p3) p3.value = '';
-
-    this.showToast('Đổi mật khẩu thành công! Hãy ghi nhớ mật khẩu mới.');
-  },
-
-  togglePasswordVisibility: function(inputId, iconBtn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    if (input.type === 'password') {
-      input.type = 'text';
-      iconBtn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4 text-neutral-600"></i>';
-    } else {
-      input.type = 'password';
-      iconBtn.innerHTML = '<i data-lucide="eye" class="w-4 h-4 text-neutral-400"></i>';
-    }
-    lucide.createIcons();
   },
 
   // ================= VERIFIED BUYER, REVIEW & ORDER HELPERS =================

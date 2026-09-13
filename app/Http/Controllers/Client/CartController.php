@@ -104,9 +104,17 @@ class CartController extends Controller
         return back()->with('success', $result['message']);
     }
 
-    public function remove(Request $request, $key)
+    public function remove(Request $request, $key = null)
     {
-        $result = CartService::remove($key);
+        $cartKey = $key ?? $request->input('cart_key') ?? $request->input('key');
+        if (!$cartKey) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Không tìm thấy sản phẩm cần xóa.'], 422);
+            }
+            return back()->with('error', 'Không tìm thấy sản phẩm cần xóa.');
+        }
+
+        $result = CartService::remove($cartKey);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(array_merge($result, [
@@ -134,13 +142,15 @@ class CartController extends Controller
         return redirect()->route('client.cart')->with('success', 'Đã xóa toàn bộ sản phẩm trong giỏ hàng!');
     }
 
+    // FIX: đổi field validate từ "code" sang "coupon_code" để khớp với body
+    // mà blade JS gửi lên: JSON.stringify({ coupon_code: code }).
     public function applyCoupon(Request $request)
     {
         $request->validate([
-            'code' => 'required|string',
+            'coupon_code' => 'required|string',
         ]);
 
-        $result = CartService::applyCoupon($request->code);
+        $result = CartService::applyCoupon($request->coupon_code);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(array_merge($result, [

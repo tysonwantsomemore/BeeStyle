@@ -549,9 +549,7 @@
         </div>
 
       </div>
-
     </div>
-
     <!-- Mobile Navigation Drawer -->
     <div id="mobile-nav" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden">
       <div class="w-4/5 max-w-sm h-full bg-white p-6 flex flex-col justify-between shadow-2xl animate-fade-in">
@@ -997,112 +995,127 @@
   <!-- ========================================================================= -->
   <!-- FLOATING DELIVERY / REVIEW NOTIFICATION ALERT (GÓC MÀN HÌNH) -->
   <!-- ========================================================================= -->
+  <!-- ========================================================================= -->
+  <!-- THÔNG BÁO 1 LẦN: ĐƠN HÀNG GIAO THÀNH CÔNG & MỜI KHÁCH HÀNG TỰ ĐÁNH GIÁ -->
+  <!-- ========================================================================= -->
   @php
-    $activeDeliveringOrder = isset($deliveringOrders) && $deliveringOrders->isNotEmpty() ? $deliveringOrders->first() : null;
-    $activePendingReview = isset($unnotifiedReviewItems) && $unnotifiedReviewItems->isNotEmpty() ? $unnotifiedReviewItems->first() : (isset($pendingReviewItems) && $pendingReviewItems->isNotEmpty() ? $pendingReviewItems->first() : null);
+    $activeDeliveredNotice = $deliveredNoticeOrder ?? null;
+    $activeDeliveredItem = $activeDeliveredNotice && $activeDeliveredNotice->items->isNotEmpty() ? $activeDeliveredNotice->items->first() : null;
   @endphp
 
-  @if($activeDeliveringOrder)
-    <!-- THÔNG BÁO NỔI: BƯU TÁ ĐÃ GIAO HÀNG THÀNH CÔNG (CHỈ HIỂN THỊ ĐÚNG 1 LẦN DUY NHẤT) -->
-    <div id="floatingDeliveryAlert" data-order-code="{{ $activeDeliveringOrder->order_code }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-emerald-500 p-4 animate-fade-in transition-all duration-300" style="display: none;">
+  @if($activeDeliveredNotice && $activeDeliveredItem)
+    @php
+      $flOrderCode = $activeDeliveredNotice->order_code;
+      $flOrderId = $activeDeliveredNotice->id;
+      $flProductId = $activeDeliveredItem->product_id ?? 1;
+      $flProductName = $activeDeliveredItem->product_name ?? 'Sản phẩm BeeStyle';
+      $flProductImg = asset($activeDeliveredItem->image ?? ($activeDeliveredItem->product->primaryImage->image_path ?? ($activeDeliveredItem->product->thumbnail ?? 'assets/img/products/1.png')));
+    @endphp
+
+    <div id="floatingDeliveredReviewAlert" data-order-code="{{ $flOrderCode }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-emerald-500 p-4 animate-fade-in transition-all duration-300" style="display: none;">
       <div class="flex items-start justify-between gap-3 mb-2.5">
         <div class="flex items-center gap-2">
           <span class="relative flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
           </span>
-          <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2 py-0.5 rounded-md">Bưu tá đã phát kiện hàng</span>
+          <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-0.5 rounded-md">
+            🎉 Đơn hàng đã giao thành công
+          </span>
         </div>
-        <button type="button" onclick="closeFloatingDeliveryAlert('{{ $activeDeliveringOrder->order_code }}')" class="text-neutral-400 hover:text-neutral-900 p-1" title="Đóng thông báo">
+        <button type="button" onclick="closeDeliveredReviewAlert('{{ $flOrderCode }}', {{ $flOrderId }})" class="text-neutral-400 hover:text-neutral-900 p-1" title="Đóng thông báo">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      @php
-        $flFirstItem = $activeDeliveringOrder->items->first();
-        $flItemThumb = asset($flFirstItem->image ?? ($flFirstItem->product->thumbnail ?? 'assets/img/products/1.png'));
-        $flItemName = $flFirstItem->product_name ?? 'Sản phẩm BeeStyle';
-        $flProductId = $flFirstItem->product_id ?? 1;
-      @endphp
-      <div class="flex items-center gap-3 mb-3 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200">
-        <img src="{{ $flItemThumb }}" alt="{{ $flItemName }}" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0 bg-white">
+      <div class="flex items-center gap-3 mb-2.5 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200">
+        <img src="{{ $flProductImg }}" alt="{{ $flProductName }}" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0 bg-white">
         <div class="min-w-0 flex-grow">
-          <h4 class="text-xs font-bold text-neutral-900 truncate">Kiện hàng #{{ $activeDeliveringOrder->order_code }}</h4>
-          <p class="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">Bưu tá đã giao bưu phẩm đến bạn. Vui lòng kiểm tra và xác nhận nhận hàng hoặc đổi trả nếu có lỗi.</p>
+          <div class="flex items-center justify-between gap-1">
+            <h4 class="text-xs font-bold text-neutral-900 truncate">Kiện hàng #{{ $flOrderCode }}</h4>
+            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">Đã nhận hàng</span>
+          </div>
+          <p class="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">Bưu tá đã phát bưu phẩm thành công. BeeStyle kính mời bạn <strong>tự đánh giá sản phẩm</strong> để chia sẻ cảm nhận chân thực về chất liệu &amp; phom dáng!</p>
         </div>
       </div>
 
+      <div class="mb-3 px-2 py-1 bg-amber-50/80 rounded-lg border border-amber-200 text-[10px] text-amber-900 flex items-center gap-1.5">
+        <i data-lucide="pen-tool" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
+        <span>Đánh giá do chính bạn tự viết &amp; gửi — Nhận ngay Voucher ưu đãi 10%</span>
+      </div>
+
       <div class="flex items-center gap-2">
-        <button type="button" id="flConfirmDeliveredBtn" onclick="confirmDeliveredAjax('{{ $activeDeliveringOrder->order_code }}', {{ $flProductId }}, '{{ addslashes($flItemName) }}', '{{ addslashes($flItemThumb) }}')" class="flex-1 py-2 px-3 bg-neutral-950 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-          <span>Đã Nhận Hàng</span>
+        <!-- Nút Tự Đánh Giá Ngay: Mở modal cho khách tự tay chọn sao và nhập nhận xét -->
+        <button type="button" 
+                onclick="triggerCustomerSelfReview({{ $flProductId }}, '{{ addslashes($flProductName) }}', '{{ addslashes($flProductImg) }}', '{{ $flOrderCode }}', {{ $flOrderId }})" 
+                class="flex-1 py-2 px-3 bg-amber-400 hover:bg-amber-300 text-neutral-950 rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+          <i data-lucide="star" class="w-4 h-4 fill-neutral-950"></i>
+          <span>Tự Đánh Giá Ngay</span>
         </button>
-        <a href="{{ route('client.order-tracking', ['code' => $activeDeliveringOrder->order_code]) }}#carrierTrackingPassSection" class="py-2 px-3 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition-colors text-center whitespace-nowrap">
-          Đổi Trả / Hoàn Tiền
+
+        <!-- Nút Đổi trả nếu cần -->
+        <a href="{{ route('client.order-tracking', ['code' => $flOrderCode]) }}#carrierTrackingPassSection" class="py-2 px-2.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition-colors text-center whitespace-nowrap">
+          Đổi Trả
         </a>
-      </div>
-    </div>
-    <script>
-      (function() {
-        const orderCode = '{{ $activeDeliveringOrder->order_code }}';
-        const key = 'delivery_notif_shown_' + orderCode;
-        // Chỉ hiện thông báo xác nhận đã nhận hàng ĐÚNG 1 LẦN DUY NHẤT
-        if (!localStorage.getItem(key) && !sessionStorage.getItem('dismissed_delivery_alert_' + orderCode)) {
-          const el = document.getElementById('floatingDeliveryAlert');
-          if (el) {
-            el.style.display = 'block';
-            // Đánh dấu ngay lập tức đã hiển thị 1 lần để các lần tải trang sau không hiện lại
-            localStorage.setItem(key, '1');
-          }
-        }
-      })();
-    </script>
-  @elseif($activePendingReview)
-    <!-- THÔNG BÁO NỔI: NHẮC NHỞ ĐÁNH GIÁ SẢN PHẨM NHẬN VOUCHER (CHỈ HIỆN 1 LẦN) -->
-    @php
-      $flRevThumb = asset($activePendingReview->image ?? ($activePendingReview->product->thumbnail ?? 'assets/img/products/1.png'));
-    @endphp
-    <div id="floatingReviewAlert" data-review-id="rev_{{ $activePendingReview->id }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-amber-400 p-4 animate-fade-in transition-all duration-300" style="display: none;">
-      <div class="flex items-start justify-between gap-3 mb-2">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-          <span class="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">Tặng Voucher Ưu Đãi 10%</span>
-        </div>
-        <button type="button" onclick="closeFloatingReviewAlert('rev_{{ $activePendingReview->id }}')" class="text-neutral-400 hover:text-neutral-900 p-1" title="Đóng thông báo">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
 
-      <div class="flex items-center gap-3 mb-3 bg-amber-50/50 p-2.5 rounded-xl border border-amber-200">
-        <img src="{{ $flRevThumb }}" alt="{{ $activePendingReview->product_name }}" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0 bg-white">
-        <div class="min-w-0 flex-grow">
-          <h4 class="text-xs font-bold text-neutral-900 truncate">Chia sẻ cảm nhận của bạn</h4>
-          <p class="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">Sản phẩm "{{ $activePendingReview->product_name }}" dùng tốt chứ? Đánh giá ngay để nhận Voucher nhé!</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button type="button" onclick="openGlobalReviewModal({{ $activePendingReview->product_id }}, '{{ addslashes($activePendingReview->product_name) }}', '{{ addslashes($flRevThumb) }}', '{{ $activePendingReview->order->order_code ?? '' }}')" class="flex-1 py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5">
-          <i data-lucide="star" class="w-4 h-4 fill-white"></i>
-          <span>Đánh Giá Ngay (Tặng Voucher)</span>
-        </button>
-        <button type="button" onclick="closeFloatingReviewAlert('rev_{{ $activePendingReview->id }}')" class="py-2 px-3 text-neutral-500 hover:text-neutral-900 text-xs font-medium">
+        <!-- Nút Để sau: Đóng thông báo mà KHÔNG tự ý tạo đánh giá -->
+        <button type="button" onclick="closeDeliveredReviewAlert('{{ $flOrderCode }}', {{ $flOrderId }})" class="py-2 px-2 text-neutral-500 hover:text-neutral-900 text-xs font-medium">
           Để sau
         </button>
       </div>
     </div>
+
     <script>
       (function() {
-        const revId = 'rev_{{ $activePendingReview->id }}';
-        const key = 'review_notif_shown_' + revId;
-        if (!localStorage.getItem(key) && !sessionStorage.getItem('dismissed_review_alert_' + revId)) {
-          const el = document.getElementById('floatingReviewAlert');
+        const orderCode = '{{ $flOrderCode }}';
+        const orderId = {{ $flOrderId }};
+        const key = 'delivered_review_notif_seen_' + orderCode;
+
+        // Chỉ hiển thị thông báo ĐÚNG 1 LẦN DUY NHẤT
+        if (!localStorage.getItem(key) && !sessionStorage.getItem('dismissed_delivered_alert_' + orderCode)) {
+          const el = document.getElementById('floatingDeliveredReviewAlert');
           if (el) {
             el.style.display = 'block';
+            // Lưu cờ client-side để không lặp lại khi tải trang tiếp theo
             localStorage.setItem(key, '1');
+
+            // Đồng bộ trạng thái review_notified lên CSDL để thông báo đúng 1 lần
+            fetch('{{ route("client.reviews.dismissNotification") }}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+              },
+              body: JSON.stringify({ order_ids: [orderId] })
+            }).catch(err => console.log('Sync notice error:', err));
           }
         }
       })();
+
+      function closeDeliveredReviewAlert(orderCode, orderId) {
+        const el = document.getElementById('floatingDeliveredReviewAlert');
+        if (el) el.remove();
+        localStorage.setItem('delivered_review_notif_seen_' + orderCode, '1');
+        sessionStorage.setItem('dismissed_delivered_alert_' + orderCode, '1');
+
+        if (orderId) {
+          fetch('{{ route("client.reviews.dismissNotification") }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ order_ids: [orderId] })
+          }).catch(err => console.log('Dismiss sync:', err));
+        }
+      }
+
+      function triggerCustomerSelfReview(productId, productName, productImg, orderCode, orderId) {
+        closeDeliveredReviewAlert(orderCode, orderId);
+        openGlobalReviewModal(productId, productName, productImg, orderCode);
+      }
     </script>
   @endif
 
@@ -1219,9 +1232,9 @@
 
     // Toggle Wishlist toàn trang
     function toggleWishlist(productId, btnEl) {
-      if (!IS_AUTHENTICATED) {
-        requireAuthPrompt('lưu sản phẩm vào danh sách yêu thích');
-        return;
+      if (btnEl) {
+        btnEl.classList.add('scale-125');
+        setTimeout(() => btnEl.classList.remove('scale-125'), 200);
       }
 
       fetch('{{ route("client.wishlist.toggle") }}', {

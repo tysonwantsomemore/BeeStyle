@@ -110,6 +110,13 @@
             <span class="absolute top-3 left-3 px-2 py-0.5 bg-neutral-900 text-white text-[10px] tracking-widest uppercase font-semibold rounded">MỚI</span>
           @endif
 
+          <button type="button" 
+                  onclick="toggleWishlist({{ $p->id }}, this)" 
+                  class="btn-wishlist-{{ $p->id }} absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-md flex items-center justify-center text-neutral-600 hover:text-rose-600 shadow-sm transition-all active:scale-90 cursor-pointer {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-600' : '' }}" 
+                  title="Thêm vào yêu thích">
+            <i class="fa-solid fa-heart text-xs {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-500' : '' }}"></i>
+          </button>
+
           <div class="absolute inset-0 bg-neutral-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-4">
             <span class="px-5 py-2.5 bg-white text-neutral-950 text-xs font-semibold tracking-wider uppercase rounded shadow-lg">Khám Phá Chi Tiết</span>
           </div>

@@ -1079,6 +1079,17 @@
         btn.classList.add('bg-white/90', 'text-neutral-700');
         btn.setAttribute('title', 'Thêm vào yêu thích');
       }
+
+      if (data.count !== undefined) {
+        const badge = document.getElementById('wishlistCountBadge');
+        if (badge) {
+          badge.textContent = data.count;
+          badge.classList.toggle('hidden', data.count <= 0);
+        }
+      }
+      if (typeof showGlobalToast === 'function') {
+        showGlobalToast(data.message || (data.is_favorite ? 'Đã thêm vào yêu thích' : 'Đã gỡ khỏi yêu thích'), data.is_favorite ? 'heart' : 'info');
+      }
     })
     .catch(err => console.error('Lỗi cập nhật wishlist:', err));
   }

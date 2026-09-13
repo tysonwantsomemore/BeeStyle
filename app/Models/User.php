@@ -77,7 +77,7 @@ class User extends Authenticatable
      */
     public function getActualTotalSpentAttribute(): int
     {
-        if (array_key_exists('actual_total_spent', $this->attributes)) {
+        if (array_key_exists('actual_total_spent', $this->attributes) && !is_null($this->attributes['actual_total_spent'])) {
             return (int) $this->attributes['actual_total_spent'];
         }
 
@@ -135,6 +135,7 @@ class User extends Authenticatable
             'total_spent'            => 'integer',
         ];
     }
+
 
     public function getIsVerifiedAttribute(): bool
     {

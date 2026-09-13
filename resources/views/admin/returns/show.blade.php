@@ -138,7 +138,7 @@
     @endif
 
     <!-- QUICK ACTION BUTTONS -->
-    @if($return->status !== 'completed' && $return->status !== 'rejected')
+    @if(!$return->isFinalStatus())
       <div class="pt-3 mt-3 border-top border-translucent d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div class="fs-10 text-body-tertiary">
           <i class="fa-solid fa-bolt text-warning me-1"></i> Chuyển nhanh tiến trình RMA:
@@ -346,25 +346,57 @@
       <div class="card-body">
         <form action="{{ route('admin.returns.updateStatus', $return->id) }}" method="POST">
           @csrf
-          <div class="mb-3">
-            <label class="form-label fs-9 fw-semibold">Trạng thái phiếu:</label>
-            <select name="status" class="form-select">
-              <option value="pending" {{ $return->status === 'pending' ? 'selected' : '' }}>1. Chờ duyệt yêu cầu</option>
-              <option value="approved" {{ $return->status === 'approved' ? 'selected' : '' }}>2. Đã duyệt (Chờ khách gửi hàng về kho)</option>
-              <option value="received" {{ $return->status === 'received' ? 'selected' : '' }}>3. Kho đã nhận hàng &amp; kiểm tra</option>
-              <option value="completed" {{ $return->status === 'completed' ? 'selected' : '' }}>4. Hoàn tất xử lý (Hoàn tiền / Đổi size)</option>
-              <option value="rejected" {{ $return->status === 'rejected' ? 'selected' : '' }}>0. Từ chối yêu cầu</option>
-            </select>
-          </div>
+
+          @if($return->isFinalStatus())
+            <div class="alert alert-subtle-{{ $return->status === 'completed' ? 'success' : 'danger' }} d-flex align-items-center gap-2 py-2 px-3 mb-3 fs-10 rounded">
+              <i class="fa-solid fa-lock text-{{ $return->status === 'completed' ? 'success' : 'danger' }} fs-9"></i>
+              <div>
+                <strong>Tiến trình RMA đã kết thúc ({{ $return->status_label }}):</strong> 
+                Trạng thái phiếu đổi trả đã được khóa an toàn để bảo vệ số liệu hoàn tiền, đơn đổi mới và tồn kho.
+              </div>
+            </div>
+          @endif
 
           <div class="mb-3">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="restock" value="1" id="restockCheck" checked>
-              <label class="form-check-label fs-10 text-body-tertiary" for="restockCheck">
-                Tự động cộng lại số lượng vào kho hàng khi hoàn tất
-              </label>
-            </div>
+            <label class="form-label fs-9 fw-semibold">Trạng thái phiếu:</label>
+            @php
+              $allReturnStatuses = [
+                'pending'   => '1. Chờ duyệt yêu cầu',
+                'approved'  => '2. Đã duyệt (Chờ khách gửi hàng về kho)',
+                'received'  => '3. Kho đã nhận hàng & kiểm tra QC',
+                'completed' => '4. Hoàn tất xử lý (Hoàn tiền / Đổi size)',
+                'rejected'  => '0. Từ chối yêu cầu',
+              ];
+            @endphp
+            <select name="status" class="form-select" {{ $return->isFinalStatus() ? 'disabled' : '' }}>
+              @foreach($allReturnStatuses as $optKey => $optLabel)
+                @php
+                  $isCurrent = $return->status === $optKey;
+                  $canSelect = $isCurrent || $return->canTransitionTo($optKey);
+                @endphp
+                <option value="{{ $optKey }}" {{ $isCurrent ? 'selected' : '' }} {{ !$canSelect ? 'disabled class=text-muted' : '' }}>
+                  {{ $optLabel }} {{ !$canSelect ? '(Đã khóa/không hợp lệ)' : ($isCurrent ? '— [Hiện tại]' : '') }}
+                </option>
+              @endforeach
+            </select>
+            @if($return->isFinalStatus())
+              <input type="hidden" name="status" value="{{ $return->status }}">
+            @endif
+            <small class="text-body-tertiary fs-11 mt-1 d-block">
+              <i class="fa-solid fa-shield-halved text-primary me-1"></i> Hệ thống tự động khóa các bước trước đó theo quy tắc vận hành TMĐT 1 chiều.
+            </small>
           </div>
+
+          @if(!$return->isFinalStatus())
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="restock" value="1" id="restockCheck" checked>
+                <label class="form-check-label fs-10 text-body-tertiary" for="restockCheck">
+                  Tự động cộng lại số lượng vào kho hàng khi hoàn tất
+                </label>
+              </div>
+            </div>
+          @endif
 
           <div class="mb-3">
             <label class="form-label fs-9 fw-semibold">Ghi chú nội bộ:</label>
