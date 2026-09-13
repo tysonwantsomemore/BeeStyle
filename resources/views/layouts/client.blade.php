@@ -120,6 +120,10 @@
     nav a:hover::after, nav a.active::after {
       width: 100%;
     }
+    .main-nav-link::after,
+    .main-nav-tab::after {
+      display: none !important;
+    }
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -205,18 +209,36 @@
           </div>
         </a>
 
-        <!-- Main Desktop Navigation Links (Nằm ngay cạnh Logo) -->
-        <nav class="hidden md:flex items-center gap-6 lg:gap-7 text-xs tracking-[0.16em] uppercase font-semibold text-neutral-700">
-          <a href="{{ route('client.home') }}" class="hover:text-black transition-colors py-2 flex items-center gap-1 {{ request()->routeIs('client.home') ? 'active text-neutral-950 font-bold text-amber-700' : '' }}">
-            <span>Trang Chủ</span>
+        <!-- Main Desktop Navigation (5 NÚT BẰNG NHAU NẰM NGANG CHUẨN LUXURY THỜI TRANG - KHÔNG BO VIỀN) -->
+        <nav class="hidden md:flex items-center gap-0 lg:gap-1 text-xs uppercase tracking-[0.14em] select-none">
+          <!-- 1. TRANG CHỦ -->
+          @php
+            $isHomeActive = request()->routeIs('client.home') && !request()->has('category') && !request()->has('q');
+          @endphp
+          <a href="{{ route('client.home') }}" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 {{ $isHomeActive ? 'text-neutral-950 font-bold' : 'text-neutral-600 hover:text-neutral-950 font-medium' }}">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Trang Chủ
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 {{ $isHomeActive ? 'w-full bg-neutral-950' : 'w-0 group-hover/item:w-full bg-neutral-950' }}"></span>
+            </span>
           </a>
           
-          <!-- ZARA MEGA MENU TRIGGER (SẢN PHẨM) -->
-          <div class="relative group/mega py-2">
-            <a href="{{ route('client.products.index') }}" class="hover:text-black transition-colors flex items-center gap-1 font-semibold text-neutral-900 {{ request()->routeIs('client.products.*') ? 'text-amber-800' : '' }}">
-              <span>Sản Phẩm</span>
-              <i data-lucide="chevron-down" class="w-3 h-3 group-hover/mega:rotate-180 transition-transform duration-300 text-neutral-400"></i>
+          <!-- 2. SẢN PHẨM (ZARA MEGA MENU TRIGGER) -->
+          @php
+            $isProductsActive = request()->routeIs('client.products.*') || request()->has('category');
+          @endphp
+          <div class="relative group/mega h-full flex items-center">
+            <a href="{{ route('client.products.index') }}" 
+               class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 {{ $isProductsActive ? 'text-neutral-950 font-bold' : 'text-neutral-600 hover:text-neutral-950 font-medium' }}">
+              <span class="relative py-1 inline-flex items-center gap-1 tracking-[0.14em] text-[11px] lg:text-xs">
+                <span>Sản Phẩm</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 group-hover/mega:rotate-180 transition-transform duration-300 {{ $isProductsActive ? 'text-neutral-950' : 'text-neutral-400 group-hover/item:text-neutral-950' }}"></i>
+                <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 {{ $isProductsActive ? 'w-full bg-neutral-950' : 'w-0 group-hover/item:w-full bg-neutral-950' }}"></span>
+              </span>
             </a>
+
+            <!-- Invisible hover bridge -->
+            <div class="absolute top-full left-0 w-full h-4 pointer-events-auto"></div>
 
             <!-- Dark backdrop overlay -->
             <div class="fixed inset-0 top-[65px] bg-neutral-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 invisible group-hover/mega:opacity-100 group-hover/mega:visible pointer-events-none z-40"></div>
@@ -313,9 +335,32 @@
             </div>
           </div>
 
-          <a href="{{ route('client.home') }}#collections" class="hover:text-black transition-colors py-2">Bộ Sưu Tập</a>
-          <a href="{{ route('client.home') }}#lookbook" class="hover:text-black transition-colors py-2">Lookbook</a>
-          <a href="{{ route('client.home') }}#about" class="hover:text-black transition-colors py-2">Về BeeStyle</a>
+          <!-- 3. BỘ SƯU TẬP -->
+          <a href="{{ route('client.home') }}#collections" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 text-neutral-600 hover:text-neutral-950 font-medium">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Bộ Sưu Tập
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 w-0 group-hover/item:w-full bg-neutral-950"></span>
+            </span>
+          </a>
+
+          <!-- 4. LOOKBOOK -->
+          <a href="{{ route('client.home') }}#lookbook" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 text-neutral-600 hover:text-neutral-950 font-medium">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Lookbook
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 w-0 group-hover/item:w-full bg-neutral-950"></span>
+            </span>
+          </a>
+
+          <!-- 5. VỀ BEESTYLE -->
+          <a href="{{ route('client.home') }}#about" 
+             class="main-nav-link group/item relative w-[92px] lg:w-[104px] xl:w-[116px] h-11 flex items-center justify-center text-center transition-colors duration-200 text-neutral-600 hover:text-neutral-950 font-medium">
+            <span class="relative py-1 tracking-[0.14em] text-[11px] lg:text-xs">
+              Về BeeStyle
+              <span class="absolute bottom-0 left-0 h-[2px] transition-all duration-300 w-0 group-hover/item:w-full bg-neutral-950"></span>
+            </span>
+          </a>
         </nav>
       </div>
 
@@ -505,60 +550,6 @@
 
       </div>
     </div>
-
-    <!-- 2. MAIN FOOTER CONTENT -->
-    <div class="container pt-5">
-      <div class="row g-4 pb-5 border-bottom" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-        <!-- Brand Info -->
-        <div class="col-lg-4 col-md-6 pe-lg-4">
-          <a href="{{ route('client.home') }}" class="beestyle-logo logo-light mb-3 d-inline-flex align-items-center text-decoration-none">
-            <span class="logo-badge me-2" style="background: #f59e0b; color: #111; padding: 6px 10px; border-radius: 10px;"><i class="fa-solid fa-gem"></i></span>
-            <span class="fs-4 fw-bolder tracking-wide text-white">BEE<span class="brand-highlight text-warning">STYLE</span></span>
-          </a>
-          <p class="text-secondary small mb-3 leading-relaxed">
-            Thương hiệu thời trang áo nam cao cấp hàng đầu Việt Nam. Định hình phong cách lịch lãm, hiện đại và trẻ trung cho phái mạnh với chất liệu sợi tự nhiên tuyển chọn vượt trội.
-          </p>
-          <div class="d-flex flex-column gap-2 text-secondary small mb-3">
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-location-dot text-warning" style="width: 18px;"></i>
-              <span>Tầng 5, Tòa Nhà BeeStyle Center, Q. Cầu Giấy, Hà Nội</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-phone text-warning" style="width: 18px;"></i>
-              <span>Hotline đặt hàng: <strong class="text-white">1900 8888</strong> (08:00 - 22:00)</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <i class="fa-solid fa-envelope text-warning" style="width: 18px;"></i>
-              <span>Email: <strong class="text-white">cskh@beestyle.vn</strong></span>
-            </div>
-          </div>
-          <div class="d-flex gap-2 pt-1">
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="Instagram"><i class="fa-brands fa-instagram text-danger"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-            <a href="#" class="btn btn-sm btn-dark border border-secondary border-opacity-25 text-white rounded-circle d-flex align-items-center justify-content-center hover-scale" style="width: 38px; height: 38px; background: rgba(255,255,255,0.06);" title="YouTube"><i class="fa-brands fa-youtube text-danger"></i></a>
-          </div>
-        </div>
-
-        <!-- Quick Links -->
-        <div class="col-lg-2 col-md-6 col-6">
-          <h6 class="text-white fw-bold mb-3 text-uppercase position-relative pb-2" style="font-family: var(--atino-font-heading); font-size: 0.9rem; letter-spacing: 0.5px;">
-            DANH MỤC ÁO NAM
-            <span class="position-absolute bottom-0 start-0 bg-warning" style="width: 32px; height: 2px;"></span>
-          </h6>
-          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary">
-            <li><a href="{{ route('client.categories.show', 'ao-polo-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Polo Nam</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-so-mi-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Sơ Mi Công Sở</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-phong-tshirt-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Phông (T-Shirt)</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-khoac-blazer-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Khoác &amp; Blazer</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-thun-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thun Nam Basic</a></li>
-            <li><a href="{{ route('client.categories.show', 'ao-thu-dong-nam') }}" class="text-secondary text-decoration-none hover-warning transition-all"><i class="fa-solid fa-angle-right me-1.5 text-warning small"></i> Áo Thu Đông Cao Cấp</a></li>
-            <li><a href="{{ route('client.categories.index') }}" class="text-warning text-decoration-none hover-warning fw-semibold transition-all"><i class="fa-solid fa-grid-2 me-1.5 small"></i> Xem tất cả danh mục &rarr;</a></li>
-          </ul>
-        </div>
-
-    </div>
-
     <!-- Mobile Navigation Drawer -->
     <div id="mobile-nav" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden">
       <div class="w-4/5 max-w-sm h-full bg-white p-6 flex flex-col justify-between shadow-2xl animate-fade-in">
@@ -584,7 +575,9 @@
               <span>Flash Sale Ngày</span>
               <span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px]">HOT</span>
             </a>
+            <a href="{{ route('client.home') }}#collections" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Bộ Sưu Tập</a>
             <a href="{{ route('client.home') }}#lookbook" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Lookbook Editorial</a>
+            <a href="{{ route('client.home') }}#about" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Về BeeStyle</a>
             <a href="{{ route('client.order-tracking') }}" class="py-2 text-amber-700 flex items-center gap-2">
               <i data-lucide="package" class="w-4 h-4"></i> Tra cứu đơn hàng
             </a>
@@ -1002,85 +995,128 @@
   <!-- ========================================================================= -->
   <!-- FLOATING DELIVERY / REVIEW NOTIFICATION ALERT (GÓC MÀN HÌNH) -->
   <!-- ========================================================================= -->
+  <!-- ========================================================================= -->
+  <!-- THÔNG BÁO 1 LẦN: ĐƠN HÀNG GIAO THÀNH CÔNG & MỜI KHÁCH HÀNG TỰ ĐÁNH GIÁ -->
+  <!-- ========================================================================= -->
   @php
-    $activeDeliveringOrder = isset($deliveringOrders) && $deliveringOrders->isNotEmpty() ? $deliveringOrders->first() : null;
-    $activePendingReview = isset($pendingReviewItems) && $pendingReviewItems->isNotEmpty() ? $pendingReviewItems->first() : null;
+    $activeDeliveredNotice = $deliveredNoticeOrder ?? null;
+    $activeDeliveredItem = $activeDeliveredNotice && $activeDeliveredNotice->items->isNotEmpty() ? $activeDeliveredNotice->items->first() : null;
   @endphp
 
-  @if($activeDeliveringOrder)
-    <!-- THÔNG BÁO NỔI: BƯU TÁ ĐÃ GIAO HÀNG THÀNH CÔNG (CẦN XÁC NHẬN HOẶC HOÀN TRẢ) -->
-    <div id="floatingDeliveryAlert" data-order-code="{{ $activeDeliveringOrder->order_code }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-emerald-500 p-4 animate-fade-in transition-all duration-300">
+  @if($activeDeliveredNotice && $activeDeliveredItem)
+    @php
+      $flOrderCode = $activeDeliveredNotice->order_code;
+      $flOrderId = $activeDeliveredNotice->id;
+      $flProductId = $activeDeliveredItem->product_id ?? 1;
+      $flProductName = $activeDeliveredItem->product_name ?? 'Sản phẩm BeeStyle';
+      $flProductImg = asset($activeDeliveredItem->image ?? ($activeDeliveredItem->product->primaryImage->image_path ?? ($activeDeliveredItem->product->thumbnail ?? 'assets/img/products/1.png')));
+    @endphp
+
+    <div id="floatingDeliveredReviewAlert" data-order-code="{{ $flOrderCode }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-emerald-500 p-4 animate-fade-in transition-all duration-300" style="display: none;">
       <div class="flex items-start justify-between gap-3 mb-2.5">
         <div class="flex items-center gap-2">
           <span class="relative flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
           </span>
-          <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2 py-0.5 rounded-md">Bưu tá đã phát kiện hàng</span>
+          <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-0.5 rounded-md">
+            🎉 Đơn hàng đã giao thành công
+          </span>
         </div>
-        <button type="button" onclick="closeFloatingDeliveryAlert('{{ $activeDeliveringOrder->order_code }}')" class="text-neutral-400 hover:text-neutral-900 p-1" title="Đóng thông báo">
+        <button type="button" onclick="closeDeliveredReviewAlert('{{ $flOrderCode }}', {{ $flOrderId }})" class="text-neutral-400 hover:text-neutral-900 p-1" title="Đóng thông báo">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      @php
-        $flFirstItem = $activeDeliveringOrder->items->first();
-        $flItemThumb = asset($flFirstItem->image ?? ($flFirstItem->product->thumbnail ?? 'assets/img/products/1.png'));
-        $flItemName = $flFirstItem->product_name ?? 'Sản phẩm BeeStyle';
-        $flProductId = $flFirstItem->product_id ?? 1;
-      @endphp
-      <div class="flex items-center gap-3 mb-3 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200">
-        <img src="{{ $flItemThumb }}" alt="{{ $flItemName }}" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0 bg-white">
+      <div class="flex items-center gap-3 mb-2.5 bg-neutral-50 p-2.5 rounded-xl border border-neutral-200">
+        <img src="{{ $flProductImg }}" alt="{{ $flProductName }}" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0 bg-white">
         <div class="min-w-0 flex-grow">
-          <h4 class="text-xs font-bold text-neutral-900 truncate">Kiện hàng #{{ $activeDeliveringOrder->order_code }}</h4>
-          <p class="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">Bưu tá đã giao bưu phẩm đến bạn. Vui lòng kiểm tra và xác nhận nhận hàng hoặc đổi trả nếu có lỗi.</p>
+          <div class="flex items-center justify-between gap-1">
+            <h4 class="text-xs font-bold text-neutral-900 truncate">Kiện hàng #{{ $flOrderCode }}</h4>
+            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">Đã nhận hàng</span>
+          </div>
+          <p class="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">Bưu tá đã phát bưu phẩm thành công. BeeStyle kính mời bạn <strong>tự đánh giá sản phẩm</strong> để chia sẻ cảm nhận chân thực về chất liệu &amp; phom dáng!</p>
         </div>
       </div>
 
+      <div class="mb-3 px-2 py-1 bg-amber-50/80 rounded-lg border border-amber-200 text-[10px] text-amber-900 flex items-center gap-1.5">
+        <i data-lucide="pen-tool" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
+        <span>Đánh giá do chính bạn tự viết &amp; gửi — Nhận ngay Voucher ưu đãi 10%</span>
+      </div>
+
       <div class="flex items-center gap-2">
-        <button type="button" id="flConfirmDeliveredBtn" onclick="confirmDeliveredAjax('{{ $activeDeliveringOrder->order_code }}', {{ $flProductId }}, '{{ addslashes($flItemName) }}', '{{ addslashes($flItemThumb) }}')" class="flex-1 py-2 px-3 bg-neutral-950 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-          <span>Đã Nhận Hàng</span>
+        <!-- Nút Tự Đánh Giá Ngay: Mở modal cho khách tự tay chọn sao và nhập nhận xét -->
+        <button type="button" 
+                onclick="triggerCustomerSelfReview({{ $flProductId }}, '{{ addslashes($flProductName) }}', '{{ addslashes($flProductImg) }}', '{{ $flOrderCode }}', {{ $flOrderId }})" 
+                class="flex-1 py-2 px-3 bg-amber-400 hover:bg-amber-300 text-neutral-950 rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+          <i data-lucide="star" class="w-4 h-4 fill-neutral-950"></i>
+          <span>Tự Đánh Giá Ngay</span>
         </button>
-        <a href="{{ route('client.order-tracking', ['code' => $activeDeliveringOrder->order_code]) }}#carrierTrackingPassSection" class="py-2 px-3 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition-colors text-center whitespace-nowrap">
-          Đổi Trả / Hoàn Tiền
+
+        <!-- Nút Đổi trả nếu cần -->
+        <a href="{{ route('client.order-tracking', ['code' => $flOrderCode]) }}#carrierTrackingPassSection" class="py-2 px-2.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition-colors text-center whitespace-nowrap">
+          Đổi Trả
         </a>
-      </div>
-    </div>
-  @elseif($activePendingReview)
-    <!-- THÔNG BÁO NỔI: NHẮC NHỞ ĐÁNH GIÁ SẢN PHẨM NHẬN VOUCHER -->
-    @php
-      $flRevThumb = asset($activePendingReview->image ?? ($activePendingReview->product->thumbnail ?? 'assets/img/products/1.png'));
-    @endphp
-    <div id="floatingReviewAlert" data-review-id="rev_{{ $activePendingReview->id }}" class="fixed bottom-5 left-4 sm:left-6 z-40 max-w-sm sm:max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl border-2 border-amber-400 p-4 animate-fade-in transition-all duration-300">
-      <div class="flex items-start justify-between gap-3 mb-2">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-          <span class="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">Tặng Voucher Ưu Đãi 10%</span>
-        </div>
-        <button type="button" onclick="closeFloatingReviewAlert('rev_{{ $activePendingReview->id }}')" class="text-neutral-400 hover:text-neutral-900 p-1" title="Đóng thông báo">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
 
-      <div class="flex items-center gap-3 mb-3 bg-amber-50/50 p-2.5 rounded-xl border border-amber-200">
-        <img src="{{ $flRevThumb }}" alt="{{ $activePendingReview->product_name }}" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0 bg-white">
-        <div class="min-w-0 flex-grow">
-          <h4 class="text-xs font-bold text-neutral-900 truncate">Chia sẻ cảm nhận của bạn</h4>
-          <p class="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">Sản phẩm "{{ $activePendingReview->product_name }}" dùng tốt chứ? Đánh giá ngay để nhận Voucher nhé!</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button type="button" onclick="openGlobalReviewModal({{ $activePendingReview->product_id }}, '{{ addslashes($activePendingReview->product_name) }}', '{{ addslashes($flRevThumb) }}', '{{ $activePendingReview->order->order_code ?? '' }}')" class="flex-1 py-2 px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5">
-          <i data-lucide="star" class="w-4 h-4 fill-white"></i>
-          <span>Đánh Giá Ngay (Tặng Voucher)</span>
-        </button>
-        <button type="button" onclick="closeFloatingReviewAlert('rev_{{ $activePendingReview->id }}')" class="py-2 px-3 text-neutral-500 hover:text-neutral-900 text-xs font-medium">
+        <!-- Nút Để sau: Đóng thông báo mà KHÔNG tự ý tạo đánh giá -->
+        <button type="button" onclick="closeDeliveredReviewAlert('{{ $flOrderCode }}', {{ $flOrderId }})" class="py-2 px-2 text-neutral-500 hover:text-neutral-900 text-xs font-medium">
           Để sau
         </button>
       </div>
     </div>
+
+    <script>
+      (function() {
+        const orderCode = '{{ $flOrderCode }}';
+        const orderId = {{ $flOrderId }};
+        const key = 'delivered_review_notif_seen_' + orderCode;
+
+        // Chỉ hiển thị thông báo ĐÚNG 1 LẦN DUY NHẤT
+        if (!localStorage.getItem(key) && !sessionStorage.getItem('dismissed_delivered_alert_' + orderCode)) {
+          const el = document.getElementById('floatingDeliveredReviewAlert');
+          if (el) {
+            el.style.display = 'block';
+            // Lưu cờ client-side để không lặp lại khi tải trang tiếp theo
+            localStorage.setItem(key, '1');
+
+            // Đồng bộ trạng thái review_notified lên CSDL để thông báo đúng 1 lần
+            fetch('{{ route("client.reviews.dismissNotification") }}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+              },
+              body: JSON.stringify({ order_ids: [orderId] })
+            }).catch(err => console.log('Sync notice error:', err));
+          }
+        }
+      })();
+
+      function closeDeliveredReviewAlert(orderCode, orderId) {
+        const el = document.getElementById('floatingDeliveredReviewAlert');
+        if (el) el.remove();
+        localStorage.setItem('delivered_review_notif_seen_' + orderCode, '1');
+        sessionStorage.setItem('dismissed_delivered_alert_' + orderCode, '1');
+
+        if (orderId) {
+          fetch('{{ route("client.reviews.dismissNotification") }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ order_ids: [orderId] })
+          }).catch(err => console.log('Dismiss sync:', err));
+        }
+      }
+
+      function triggerCustomerSelfReview(productId, productName, productImg, orderCode, orderId) {
+        closeDeliveredReviewAlert(orderCode, orderId);
+        openGlobalReviewModal(productId, productName, productImg, orderCode);
+      }
+    </script>
   @endif
 
   <!-- ========================================================================= -->
@@ -1196,9 +1232,9 @@
 
     // Toggle Wishlist toàn trang
     function toggleWishlist(productId, btnEl) {
-      if (!IS_AUTHENTICATED) {
-        requireAuthPrompt('lưu sản phẩm vào danh sách yêu thích');
-        return;
+      if (btnEl) {
+        btnEl.classList.add('scale-125');
+        setTimeout(() => btnEl.classList.remove('scale-125'), 200);
       }
 
       fetch('{{ route("client.wishlist.toggle") }}', {
@@ -1219,10 +1255,16 @@
             const icon = btn.querySelector('svg, i');
             if (isFav) {
               btn.classList.add('text-rose-600');
-              if (icon) icon.classList.add('fill-rose-500', 'text-rose-500');
+              if (icon) {
+                icon.classList.add('fill-rose-500', 'text-rose-500');
+                icon.classList.remove('text-neutral-400', 'text-neutral-500', 'text-neutral-600');
+              }
             } else {
               btn.classList.remove('text-rose-600');
-              if (icon) icon.classList.remove('fill-rose-500', 'text-rose-500');
+              if (icon) {
+                icon.classList.remove('fill-rose-500', 'text-rose-500');
+                icon.classList.add('text-neutral-400');
+              }
             }
           });
 
@@ -1251,6 +1293,8 @@
         iconHtml = '<i data-lucide="heart" class="w-4 h-4 text-rose-500 fill-rose-500 shrink-0"></i>';
       } else if (type === 'success') {
         iconHtml = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>';
+      } else if (type === 'coupon') {
+        iconHtml = '<i data-lucide="ticket" class="w-4 h-4 text-amber-400 shrink-0"></i>';
       }
 
       toast.innerHTML = `
@@ -1393,6 +1437,22 @@
       document.getElementById('qvmSoldCount').textContent = (data.sold_count || 0).toLocaleString('vi-VN');
       document.getElementById('qvmProductPrice').textContent = data.price_formatted || '0₫';
       document.getElementById('qvmProductImage').src = data.image || '';
+
+      // Hiển thị danh sách ảnh xem trước thumbnails nếu có
+      const thumbContainer = document.getElementById('qvmThumbnailsContainer');
+      if (thumbContainer) {
+        if (data.gallery && data.gallery.length > 1) {
+          thumbContainer.innerHTML = data.gallery.map((gImg, gIdx) => `
+            <button type="button" onclick="document.getElementById('qvmProductImage').src='${gImg}'; this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('ring-2','ring-neutral-950')); this.classList.add('ring-2','ring-neutral-950');" class="w-10 h-12 rounded-lg overflow-hidden border border-neutral-200 shrink-0 transition-all ${gIdx === 0 ? 'ring-2 ring-neutral-950' : 'opacity-70 hover:opacity-100'}">
+              <img src="${gImg}" alt="Thumb" class="w-full h-full object-cover">
+            </button>
+          `).join('');
+          thumbContainer.classList.remove('hidden');
+        } else {
+          thumbContainer.innerHTML = '';
+          thumbContainer.classList.add('hidden');
+        }
+      }
 
       const discBadge = document.getElementById('qvmDiscountBadge');
       if (discBadge) {
@@ -1659,14 +1719,20 @@
 
     function closeFloatingDeliveryAlert(orderCode) {
       const el = document.getElementById('floatingDeliveryAlert');
-      if (el) el.classList.add('hidden');
-      if (orderCode) sessionStorage.setItem('dismissed_delivery_alert_' + orderCode, '1');
+      if (el) el.remove();
+      if (orderCode) {
+        localStorage.setItem('delivery_notif_shown_' + orderCode, '1');
+        sessionStorage.setItem('dismissed_delivery_alert_' + orderCode, '1');
+      }
     }
 
     function closeFloatingReviewAlert(reviewId) {
       const el = document.getElementById('floatingReviewAlert');
-      if (el) el.classList.add('hidden');
-      if (reviewId) sessionStorage.setItem('dismissed_review_alert_' + reviewId, '1');
+      if (el) el.remove();
+      if (reviewId) {
+        localStorage.setItem('review_notif_shown_' + reviewId, '1');
+        sessionStorage.setItem('dismissed_review_alert_' + reviewId, '1');
+      }
     }
 
     // Xác nhận đã nhận hàng qua AJAX (Dùng cho chuông thông báo & thông báo nổi)
@@ -1702,7 +1768,9 @@
         }
 
         if (data.success) {
-          // Ẩn thông báo nổi
+          // Lưu cờ đã xử lý và ẩn thông báo nổi
+          localStorage.setItem('delivery_notif_shown_' + orderCode, '1');
+          sessionStorage.setItem('dismissed_delivery_alert_' + orderCode, '1');
           const fl = document.getElementById('floatingDeliveryAlert');
           if (fl) fl.remove();
 

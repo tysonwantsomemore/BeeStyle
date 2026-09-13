@@ -18,7 +18,8 @@
   <div class="bg-white rounded-2xl border border-neutral-200 p-8 md:p-10 mb-12 shadow-sm flex flex-col md:flex-row items-center gap-8">
     <div class="w-24 h-24 rounded-2xl bg-neutral-50 border border-neutral-200 flex items-center justify-center p-3 shrink-0 shadow-sm">
       @if(!empty($brand->logo))
-        <img src="{{ asset($brand->logo) }}" alt="{{ $brand->name }}" class="max-h-full max-w-full object-contain">
+        <img src="{{ asset($brand->logo) }}" alt="" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling?.classList.remove('hidden');">
+        <i data-lucide="crown" class="w-12 h-12 text-amber-600 hidden"></i>
       @else
         <i data-lucide="crown" class="w-12 h-12 text-amber-600"></i>
       @endif
@@ -47,9 +48,17 @@
         }
       @endphp
       <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all">
-        <a href="{{ route('client.products.show', $p->id) }}" class="aspect-[3/4] bg-neutral-100 overflow-hidden block">
-          <img src="{{ $primaryImg }}" alt="{{ $p->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-        </a>
+        <div class="aspect-[3/4] bg-neutral-100 overflow-hidden relative block">
+          <a href="{{ route('client.products.show', $p->id) }}" class="block w-full h-full">
+            <img src="{{ $primaryImg }}" alt="{{ $p->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+          </a>
+          <button type="button" 
+                  onclick="toggleWishlist({{ $p->id }}, this)" 
+                  class="btn-wishlist-{{ $p->id }} absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-md flex items-center justify-center text-neutral-600 hover:text-rose-600 shadow-sm transition-all active:scale-90 cursor-pointer {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-600' : '' }}" 
+                  title="Thêm vào yêu thích">
+            <i class="fa-solid fa-heart text-xs {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-500' : '' }}"></i>
+          </button>
+        </div>
         <div class="p-4 flex flex-col justify-between flex-grow">
           <div>
             <span class="text-[10px] tracking-widest uppercase text-neutral-400 font-semibold block mb-1">{{ $p->category->name ?? 'Beestyle' }}</span>

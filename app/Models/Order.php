@@ -163,10 +163,10 @@ class Order extends Model
     public function getAllowedNextStatuses(): array
     {
         $transitions = [
-            'pending'    => ['confirmed', 'cancelled'],
-            'confirmed'  => ['processing', 'cancelled'],
-            'processing' => ['shipping', 'cancelled'],
-            'shipping'   => ['delivered', 'cancelled'],
+            'pending'    => ['confirmed', 'processing', 'cancelled'],
+            'confirmed'  => ['processing', 'shipping', 'cancelled'],
+            'processing' => ['shipping', 'delivered', 'cancelled'],
+            'shipping'   => ['delivered', 'completed', 'cancelled'],
             'delivered'  => ['completed'],
             'completed'  => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái
             'cancelled'  => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái

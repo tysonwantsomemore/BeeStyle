@@ -441,16 +441,23 @@
     </div>
   </div>
 
-  @if($deals->hasPages())
-    <div class="card-footer border-top border-translucent py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <div class="fs-9 text-body-tertiary">
-        Hiển thị từ <span class="fw-semibold text-body-emphasis">{{ $deals->firstItem() }}</span> đến <span class="fw-semibold text-body-emphasis">{{ $deals->lastItem() }}</span> trong tổng số <span class="fw-semibold text-body-emphasis">{{ $deals->total() }}</span> ưu đãi
-      </div>
-      <div>
-        {{ $deals->links() }}
-      </div>
+  <!-- CARD FOOTER: PHÂN TRANG & THỐNG KÊ BẢNG DỮ LIỆU -->
+  <div class="card-footer border-top border-translucent py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 bg-body-emphasis">
+    <div class="fs-9 text-body-tertiary">
+      @if($deals->total() > 0)
+        Hiển thị từ <span class="fw-semibold text-body-emphasis">{{ $deals->firstItem() }}</span> đến <span class="fw-semibold text-body-emphasis">{{ $deals->lastItem() }}</span> trong tổng số <span class="fw-semibold text-body-emphasis">{{ $deals->total() }}</span> chiến dịch ưu đãi
+        <span class="ms-2 badge badge-phoenix badge-phoenix-danger fs-11">● {{ $runningDealsCount }} đang chạy</span>
+        <span class="ms-1 badge badge-phoenix badge-phoenix-warning fs-11">● {{ $todayDealsCount }} hôm nay</span>
+      @else
+        <span>Tổng cộng: <strong class="text-body-emphasis">0</strong> ưu đãi</span>
+      @endif
     </div>
-  @endif
+    @if($deals->hasPages())
+      <div>
+        {{ $deals->appends(request()->query())->links('pagination::bootstrap-5') }}
+      </div>
+    @endif
+  </div>
 </div>
 
 <!-- ========================================================================= -->
@@ -1135,6 +1142,7 @@
     </div>
   </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
@@ -1251,4 +1259,3 @@
   });
 </script>
 @endpush
-@endsection

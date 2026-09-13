@@ -144,7 +144,7 @@ Route::name('client.')->group(function () {
     Route::get('/gio-hang', [CartController::class, 'index'])->name('cart');
     Route::post('/gio-hang/them', [CartController::class, 'add'])->name('cart.add');
     Route::post('/gio-hang/cap-nhat', [CartController::class, 'update'])->name('cart.update');
-    Route::post('/gio-hang/xoa', [CartController::class, 'remove'])->name('cart.remove');
+    Route::match(['delete', 'post'], '/gio-hang/xoa/{key?}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/gio-hang/luu-tam/{key}', [CartController::class, 'saveForLater'])->name('cart.saveForLater');
     Route::post('/gio-hang/xoa-tat-ca', [CartController::class, 'clear'])->name('cart.clear');
 
@@ -163,6 +163,7 @@ Route::name('client.')->group(function () {
     Route::post('/tra-cuu-don-hang/{code}/xac-nhan-thanh-toan', [OrderTrackingController::class, 'confirmTransfer'])->name('order-tracking.confirm-transfer');
     Route::post('/tra-cuu-don-hang/{code}/da-nhan-hang', [OrderTrackingController::class, 'confirmDelivered'])->name('order-tracking.confirm-delivered');
     Route::post('/tra-cuu-don-hang/{code}/khong-nhan-hang', [OrderTrackingController::class, 'rejectDelivery'])->name('order-tracking.reject-delivery');
+    Route::post('/don-hang/tra-cuu/{code}/tu-choi-nhan', [OrderTrackingController::class, 'rejectDelivery']);
     Route::post('/tra-cuu-don-hang/{code}/huy-hang-hoan-tien', [OrderTrackingController::class, 'requestRefund'])->name('order-tracking.request-refund');
 
     // Cổng Tra Cứu Vận Đơn Bưu Tá Trực Tuyến (GHTK, GHN, Viettel Post...)
@@ -189,6 +190,7 @@ Route::name('client.')->group(function () {
         // Đánh giá sản phẩm đã mua
         Route::post('/san-pham/{id}/danh-gia', [ReviewController::class, 'store'])->name('products.review');
         Route::post('/danh-dau-thong-bao-danh-gia', [ReviewController::class, 'dismissNotification'])->name('reviews.dismissNotification');
+        Route::post('/danh-gia/dismiss-notification', [ReviewController::class, 'dismissNotification'])->name('reviews.dismiss-notification');
 
         /*
         |--------------------------------------------------------------------------
@@ -288,6 +290,7 @@ Route::prefix('admin')
         Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
         Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create');
         Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+        Route::get('/products/{id}', [AdminProductController::class, 'show'])->name('products.show');
         Route::get('/products/{id}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{id}', [AdminProductController::class, 'destroy'])->name('products.destroy');

@@ -31,7 +31,8 @@
           <div class="flex items-center gap-4 mb-4">
             <div class="w-16 h-16 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center p-2 shrink-0">
               @if(!empty($brand->logo))
-                <img src="{{ asset($brand->logo) }}" alt="{{ $brand->name }}" class="max-h-full max-w-full object-contain">
+                <img src="{{ asset($brand->logo) }}" alt="" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling?.classList.remove('hidden');">
+                <i data-lucide="crown" class="w-8 h-8 text-amber-600 hidden"></i>
               @else
                 <i data-lucide="crown" class="w-8 h-8 text-amber-600"></i>
               @endif

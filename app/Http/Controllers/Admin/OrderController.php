@@ -497,6 +497,12 @@ class OrderController extends Controller
             'delivery_proof_file' => 'nullable|file|image|max:10240',
             'delivery_proof_image' => 'nullable|string|max:255',
             'delivery_proof_note' => 'nullable|string|max:1000',
+            'confirmed_at' => 'nullable|date',
+            'processing_at' => 'nullable|date',
+            'shipping_at' => 'nullable|date',
+            'delivered_at' => 'nullable|date',
+            'completed_at' => 'nullable|date',
+            'reset_steps' => 'nullable|boolean',
         ]);
 
         $stepMap = [
@@ -646,29 +652,96 @@ class OrderController extends Controller
         $stepStatus = $validated['shipping_status'];
         $now = now();
 
-        if ($stepStatus === 'confirmed') {
-            if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
-        } elseif ($stepStatus === 'processing') {
-            if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
-            if (!$order->processing_at) $updateData['processing_at'] = $now;
-        } elseif ($stepStatus === 'shipping') {
-            if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
-            if (!$order->processing_at) $updateData['processing_at'] = $now;
-            if (!$order->shipping_at) $updateData['shipping_at'] = $now;
-        } elseif ($stepStatus === 'delivered') {
-            if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
-            if (!$order->processing_at) $updateData['processing_at'] = $now;
-            if (!$order->shipping_at) $updateData['shipping_at'] = $now;
-            if (!$order->delivered_at) $updateData['delivered_at'] = $now;
-        } elseif ($stepStatus === 'completed') {
-            if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
-            if (!$order->processing_at) $updateData['processing_at'] = $now;
-            if (!$order->shipping_at) $updateData['shipping_at'] = $now;
-            if (!$order->delivered_at) $updateData['delivered_at'] = $now;
-            if (!$order->completed_at) $updateData['completed_at'] = $now;
+        // Hỗ trợ gán mốc thời gian tùy chỉnh nếu quản trị viên nhập từ giao diện
+        if ($request->filled('confirmed_at')) {
+            $updateData['confirmed_at'] = Carbon::parse($request->input('confirmed_at'));
+        }
+        if ($request->filled('processing_at')) {
+            $updateData['processing_at'] = Carbon::parse($request->input('processing_at'));
+        }
+        if ($request->filled('shipping_at')) {
+            $updateData['shipping_at'] = Carbon::parse($request->input('shipping_at'));
+        }
+        if ($request->filled('delivered_at')) {
+            $updateData['delivered_at'] = Carbon::parse($request->input('delivered_at'));
+        }
+        if ($request->filled('completed_at')) {
+            $updateData['completed_at'] = Carbon::parse($request->input('completed_at'));
         }
 
-        if ($paymentStatus === 'paid' && !$order->paid_at) {
+        // Tự động gán mốc thời gian tuần tự theo bước nếu chưa có
+        if ($stepStatus === 'pending') {
+            if ($request->boolean('reset_steps')) {
+                $updateData['confirmed_at'] = null;
+                $updateData['processing_at'] = null;
+                $updateData['shipping_at'] = null;
+                $updateData['delivered_at'] = null;
+                $updateData['completed_at'] = null;
+                $updateData['delivery_proof_at'] = null;
+            }
+        } elseif ($stepStatus === 'confirmed') {
+            if (empty($updateData['confirmed_at']) && !$order->confirmed_at) {
+                $updateData['confirmed_at'] = $now;
+            }
+        } elseif ($stepStatus === 'processing') {
+            if (empty($updateData['confirmed_at']) && !$order->confirmed_at) {
+                $updateData['confirmed_at'] = $now;
+            }
+            if (empty($updateData['processing_at']) && !$order->processing_at) {
+                $updateData['processing_at'] = $now;
+            }
+        } elseif ($stepStatus === 'shipping') {
+            if (empty($updateData['confirmed_at']) && !$order->confirmed_at) {
+                $updateData['confirmed_at'] = $now;
+            }
+            if (empty($updateData['processing_at']) && !$order->processing_at) {
+                $updateData['processing_at'] = $now;
+            }
+            if (empty($updateData['shipping_at']) && !$order->shipping_at) {
+                $updateData['shipping_at'] = $now;
+            }
+        } elseif ($stepStatus === 'delivered') {
+            if (empty($updateData['confirmed_at']) && !$order->confirmed_at) {
+                $updateData['confirmed_at'] = $now;
+            }
+            if (empty($updateData['processing_at']) && !$order->processing_at) {
+                $updateData['processing_at'] = $now;
+            }
+            if (empty($updateData['shipping_at']) && !$order->shipping_at) {
+                $updateData['shipping_at'] = $now;
+            }
+            if (empty($updateData['delivered_at']) && !$order->delivered_at) {
+                $updateData['delivered_at'] = $now;
+            }
+            if ($order->payment_method === 'cod') {
+                $paymentStatus = 'paid';
+                $updateData['payment_status'] = 'paid';
+                $updateData['paid_at'] = $now;
+            }
+        } elseif ($stepStatus === 'completed') {
+            if (empty($updateData['confirmed_at']) && !$order->confirmed_at) {
+                $updateData['confirmed_at'] = $now;
+            }
+            if (empty($updateData['processing_at']) && !$order->processing_at) {
+                $updateData['processing_at'] = $now;
+            }
+            if (empty($updateData['shipping_at']) && !$order->shipping_at) {
+                $updateData['shipping_at'] = $now;
+            }
+            if (empty($updateData['delivered_at']) && !$order->delivered_at) {
+                $updateData['delivered_at'] = $now;
+            }
+            if (empty($updateData['completed_at']) && !$order->completed_at) {
+                $updateData['completed_at'] = $now;
+            }
+            if ($paymentStatus !== 'paid') {
+                $paymentStatus = 'paid';
+                $updateData['payment_status'] = 'paid';
+                $updateData['paid_at'] = $now;
+            }
+        }
+
+        if ($paymentStatus === 'paid' && !$order->paid_at && empty($updateData['paid_at'])) {
             $updateData['paid_at'] = $now;
         }
 

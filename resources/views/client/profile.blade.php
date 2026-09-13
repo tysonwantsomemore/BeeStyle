@@ -1614,7 +1614,7 @@
   // Reject Order from Profile
   function openProfileRejectModal(orderCode) {
     document.getElementById('rejectModalOrderTitle').textContent = `Từ Chối Nhận Hàng #${orderCode}`;
-    document.getElementById('profileRejectOrderForm').action = `{{ url('/don-hang/tra-cuu') }}/${orderCode}/tu-choi-nhan`;
+    document.getElementById('profileRejectOrderForm').action = `{{ url('/tra-cuu-don-hang') }}/${encodeURIComponent(orderCode)}/khong-nhan-hang`;
     document.getElementById('profileRejectOrderModal').classList.remove('hidden');
   }
   function closeProfileRejectModal() {

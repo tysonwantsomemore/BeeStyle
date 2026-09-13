@@ -61,6 +61,13 @@ class AppServiceProvider extends ServiceProvider
                     ->latest()
                     ->get();
 
+                // Đơn hàng vừa giao thành công đến khách hàng (hoặc đã hoàn tất) cần thông báo 1 lần
+                $deliveredNoticeOrder = $user->orders()->with(['items.product'])
+                    ->whereIn('shipping_status', ['delivered', 'completed'])
+                    ->where('review_notified', false)
+                    ->latest('updated_at')
+                    ->first();
+
                 // 1. ƯU TIÊN HÀNG ĐẦU: Thông báo đơn hàng bưu tá vừa phát tới nơi (Cần xác nhận nhận hàng hoặc đổi trả)
                 foreach ($deliveringOrders as $dOrder) {
                     $allShopNotifications->push([
@@ -173,6 +180,9 @@ class AppServiceProvider extends ServiceProvider
                 'deliveringOrders' => $deliveringOrders,
                 'pendingReviewOrders' => $pendingReviewOrders,
                 'allShopNotifications' => $allShopNotifications,
+                'deliveredNoticeOrder' => $deliveredNoticeOrder ?? null,
+                'wishlistCount' => \App\Services\WishlistService::count(),
+                'wishlistIds' => \App\Services\WishlistService::getWishlistIds(),
             ]);
         });
     }

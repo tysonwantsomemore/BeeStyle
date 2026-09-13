@@ -104,15 +104,17 @@ class CartController extends Controller
         return back()->with('success', $result['message']);
     }
 
-    // FIX: bỏ tham số route {key}. Route giờ không còn {key} trong URI nữa —
-    // giá trị key được lấy từ trường "cart_key" trong JSON body mà blade JS gửi lên.
-    public function remove(Request $request)
+    public function remove(Request $request, $key = null)
     {
-        $request->validate([
-            'cart_key' => 'required|string',
-        ]);
+        $cartKey = $key ?? $request->input('cart_key') ?? $request->input('key');
+        if (!$cartKey) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Không tìm thấy sản phẩm cần xóa.'], 422);
+            }
+            return back()->with('error', 'Không tìm thấy sản phẩm cần xóa.');
+        }
 
-        $result = CartService::remove($request->cart_key);
+        $result = CartService::remove($cartKey);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(array_merge($result, [

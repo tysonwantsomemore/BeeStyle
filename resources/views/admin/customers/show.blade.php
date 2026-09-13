@@ -114,7 +114,7 @@
     <div class="card border-0 shadow-sm text-center mb-4">
       <div class="card-body p-4">
         <div class="position-relative mx-auto mb-3" style="width: 80px; height: 80px;">
-          <img class="rounded-circle border border-2 border-translucent object-fit-cover w-100 h-100 shadow-sm" src="{{ asset($customer->avatar ?? '/assets/img/team/40x40/58.webp') }}" alt="{{ $customer->name }}">
+          <img class="rounded-circle border border-2 border-translucent object-fit-cover w-100 h-100 shadow-sm" src="{{ $customer->avatar_url }}" alt="{{ $customer->name }}">
           <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-warning text-dark p-1 border border-translucent">
             <i class="fa-solid fa-crown fs-11"></i>
           </span>
@@ -124,7 +124,7 @@
         <p class="text-body-tertiary fs-10 mb-3">{{ $customer->email }}</p>
 
         <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
-          <span class="badge badge-phoenix badge-phoenix-warning fs-10">
+          <span class="badge badge-phoenix {{ $customer->rank_badge_class ?? 'badge-phoenix-warning' }} fs-10">
             <i class="fa-solid fa-award me-1"></i> {{ $customer->rank }}
           </span>
           <span class="badge badge-phoenix badge-phoenix-success fs-10">
@@ -139,7 +139,7 @@
           </div>
           <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
             <span class="text-body-tertiary">Số điện thoại:</span>
-            <strong class="text-body-emphasis">{{ $customer->phone ?? 'Chưa cập nhật' }}</strong>
+            <strong class="text-body-emphasis">{{ $customer->phone ?: ($customer->defaultAddress->phone ?? $customer->addresses->first()->phone ?? 'Chưa cập nhật') }}</strong>
           </div>
           <div class="d-flex justify-content-between py-1.5 border-bottom border-translucent">
             <span class="text-body-tertiary">Giới tính:</span>
@@ -163,7 +163,11 @@
           </div>
           <div class="d-flex justify-content-between py-1.5">
             <span class="text-body-tertiary">Địa chỉ nhận hàng:</span>
-            <strong class="text-body-emphasis text-end" style="max-width: 180px;">{{ $customer->address ? ($customer->address . ', ' . $customer->district . ', ' . $customer->city) : 'Chưa cập nhật' }}</strong>
+            @php
+              $primaryAddress = $customer->defaultAddress ?: $customer->addresses->first();
+              $fullCustomerAddr = $customer->address ? ($customer->address . ($customer->district ? ', ' . $customer->district : '') . ($customer->city ? ', ' . $customer->city : '')) : ($primaryAddress ? ($primaryAddress->address . ($primaryAddress->ward ? ', ' . $primaryAddress->ward : '') . ($primaryAddress->district ? ', ' . $primaryAddress->district : '') . ($primaryAddress->city ? ', ' . $primaryAddress->city : '')) : 'Chưa cập nhật');
+            @endphp
+            <strong class="text-body-emphasis text-end" style="max-width: 180px;">{{ $fullCustomerAddr }}</strong>
           </div>
         </div>
       </div>
@@ -222,7 +226,7 @@
                         <div class="d-flex align-items-center gap-1 flex-wrap" style="max-width: 240px;">
                           @foreach($order->items->take(2) as $it)
                             <div class="d-flex align-items-center gap-1 p-1 bg-body-tertiary rounded border border-translucent">
-                              <img src="{{ $it->image ? asset($it->image) : asset('/assets/img/products/1.png') }}" alt="{{ $it->product_name }}" style="width: 28px; height: 28px; object-fit: cover;" class="rounded bg-body-emphasis">
+                              <img src="{{ $it->image ? asset($it->image) : asset($it->product->thumbnail ?? 'assets/img/products/1.png') }}" alt="{{ $it->product_name }}" style="width: 28px; height: 28px; object-fit: cover;" class="rounded bg-body-emphasis">
                               <span class="text-body-emphasis text-truncate fs-11" style="max-width: 80px;">{{ $it->product_name }}</span>
                             </div>
                           @endforeach
@@ -376,7 +380,7 @@
                 <div class="p-3 bg-body-tertiary rounded border border-translucent">
                   <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-2">
-                      <img src="{{ $rev->product ? asset($rev->product->image) : asset('/assets/img/products/1.png') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 36px; height: 36px; object-fit: cover;" class="rounded border border-translucent bg-body-emphasis">
+                      <img src="{{ $rev->product ? asset($rev->product->thumbnail) : asset('assets/img/products/1.png') }}" alt="{{ $rev->product->name ?? '' }}" style="width: 36px; height: 36px; object-fit: cover;" class="rounded border border-translucent bg-body-emphasis">
                       <div>
                         <strong class="text-body-emphasis fs-10 d-block">{{ $rev->product->name ?? 'Sản phẩm' }}</strong>
                         <small class="text-body-tertiary fs-11">{{ $rev->created_at ? $rev->created_at->format('d/m/Y') : '' }}</small>

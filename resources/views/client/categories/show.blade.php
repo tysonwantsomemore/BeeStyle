@@ -40,9 +40,17 @@
         }
       @endphp
       <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all">
-        <a href="{{ route('client.products.show', $p->id) }}" class="aspect-[3/4] bg-neutral-100 overflow-hidden block">
-          <img src="{{ $primaryImg }}" alt="{{ $p->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-        </a>
+        <div class="aspect-[3/4] bg-neutral-100 overflow-hidden relative block">
+          <a href="{{ route('client.products.show', $p->id) }}" class="block w-full h-full">
+            <img src="{{ $primaryImg }}" alt="{{ $p->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+          </a>
+          <button type="button" 
+                  onclick="toggleWishlist({{ $p->id }}, this)" 
+                  class="btn-wishlist-{{ $p->id }} absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white backdrop-blur-md flex items-center justify-center text-neutral-600 hover:text-rose-600 shadow-sm transition-all active:scale-90 cursor-pointer {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-600' : '' }}" 
+                  title="Thêm vào yêu thích">
+            <i class="fa-solid fa-heart text-xs {{ in_array($p->id, $wishlistIds ?? []) ? 'text-rose-500' : '' }}"></i>
+          </button>
+        </div>
         <div class="p-4 flex flex-col justify-between flex-grow">
           <div>
             <span class="text-[10px] tracking-widest uppercase text-neutral-400 font-semibold block mb-1">{{ $p->category->name ?? 'Beestyle' }}</span>

@@ -11,10 +11,17 @@
     </div>
     <p class="text-body-tertiary mb-0">Cập nhật thông tin chi tiết, giá bán và thuộc tính sản phẩm</p>
   </div>
-  <div class="col-auto">
+  <div class="col-auto d-flex align-items-center gap-2">
     <a href="{{ route('admin.products.index') }}" class="btn btn-phoenix-secondary">
       <i class="fa-solid fa-arrow-left me-1"></i> Quay Lại
     </a>
+    <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn sản phẩm này cùng toàn bộ biến thể và hình ảnh? Hành động này không thể hoàn tác!');" class="d-inline">
+      @csrf
+      @method('DELETE')
+      <button type="submit" class="btn btn-phoenix-danger">
+        <i class="fa-regular fa-trash-can me-1"></i> Xóa Sản Phẩm
+      </button>
+    </form>
   </div>
 </div>
 
@@ -176,8 +183,14 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label fs-9 fw-semibold">Số lượng trong kho</label>
-            <input type="number" name="stock" class="form-control" value="{{ old('stock', $product->stock) }}" required>
+            <label class="form-label fs-9 fw-semibold">Số lượng trong kho (Cái) <span class="text-danger">*</span></label>
+            <input type="number" name="stock" id="productEditStockInput" class="form-control fw-bold" value="{{ old('stock', $product->stock) }}" required min="0">
+            <div class="d-flex gap-1.5 flex-wrap mt-2">
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="document.getElementById('productEditStockInput').value = 100">100 cái</button>
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="document.getElementById('productEditStockInput').value = 500">500 cái</button>
+              <button type="button" class="btn btn-phoenix-primary btn-xs py-0.5 px-2 fs-10 fw-bold" onclick="document.getElementById('productEditStockInput').value = 1000"><i class="fa-solid fa-bolt me-1"></i>1.000 cái</button>
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="document.getElementById('productEditStockInput').value = 2000">2.000 cái</button>
+            </div>
           </div>
 
           <div class="mb-3">

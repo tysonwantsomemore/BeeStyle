@@ -10,6 +10,8 @@ use App\Models\ProductVariant;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -188,14 +190,18 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'short_description' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
+            'specifications' => 'nullable|array',
+            'specifications.*' => 'nullable|string',
             'colors' => 'nullable|array',
             'colors.*' => 'string',
             'sizes' => 'nullable|array',
             'sizes.*' => 'string',
+            'variant_stock' => 'nullable|array',
             'is_featured' => 'nullable|boolean',
             'is_best_seller' => 'nullable|boolean',
             'is_new' => 'nullable|boolean',
             'status' => 'nullable|string|in:active,inactive',
+            'save_action' => 'nullable|string|in:save_index,save_new',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:4096',
             'image_url' => 'nullable|string',
             'gallery_images' => 'nullable|array',
@@ -230,9 +236,35 @@ class ProductController extends Controller
         }
 
         $colors = $request->input('colors', ['Đen', 'Trắng']);
+        if (empty($colors)) {
+            $colors = ['Đen', 'Trắng'];
+        }
         $sizes = $request->input('sizes', ['S', 'M', 'L', 'XL']);
+        if (empty($sizes)) {
+            $sizes = ['S', 'M', 'L', 'XL'];
+        }
+
         $stock = (int)$validated['stock'];
         $status = $validated['status'] ?? 'active';
+
+        // Lọc thông số kỹ thuật (specifications)
+        $rawSpecs = $request->input('specifications', []);
+        $specifications = [];
+        if (is_array($rawSpecs)) {
+            foreach ($rawSpecs as $k => $v) {
+                if (!empty(trim((string)$v))) {
+                    $specifications[trim($k)] = trim((string)$v);
+                }
+            }
+        }
+        if (empty($specifications)) {
+            $specifications = [
+                'Phom dáng' => 'Regular fit / Slimfit tôn dáng',
+                'Chất liệu' => 'Cotton Compact cao cấp / Thoáng khí',
+                'Xuất xứ' => 'Việt Nam (Tiêu chuẩn xuất khẩu chất lượng cao)',
+                'Bảo hành' => 'Đổi size miễn phí trong 30 ngày',
+            ];
+        }
 
         $product = Product::create([
             'name' => $validated['name'],
@@ -251,8 +283,9 @@ class ProductController extends Controller
             'reviews_count' => 0,
             'short_description' => $validated['short_description'] ?? null,
             'description' => $validated['description'] ?? null,
-            'colors' => $colors,
-            'sizes' => $sizes,
+            'specifications' => $specifications,
+            'colors' => array_values($colors),
+            'sizes' => array_values($sizes),
             'is_featured' => $request->boolean('is_featured'),
             'is_best_seller' => $request->boolean('is_best_seller'),
             'is_new' => $request->boolean('is_new', true),
@@ -283,27 +316,79 @@ class ProductController extends Controller
             }
         }
 
-        // Tự động tạo các biến thể tương ứng cho màu và size
+        // Bảng màu hex mã hoá chân thực cho các swatches hiển thị trên website
+        $colorMap = [
+            'Đen' => '#111827',
+            'Trắng' => '#FFFFFF',
+            'Xanh Navy' => '#1E3A8A',
+            'Xám Tro' => '#6B7280',
+            'Xám Ghi' => '#9CA3AF',
+            'Beige' => '#E5D9C5',
+            'Be sữa' => '#F5EBE0',
+            'Nâu Cafe' => '#78350F',
+            'Nâu' => '#593B2B',
+            'Xanh Rêu' => '#365314',
+            'Xanh Mint' => '#6EE7B7',
+            'Đỏ Đô' => '#881337',
+            'Rượu Vang' => '#4A0E17',
+            'Vàng Cát' => '#FDE047',
+            'Hồng Pastel' => '#F472B6',
+            'Cam Đất' => '#C2410C',
+        ];
+
+        // Tự động tạo các biến thể tương ứng cho từng cặp (Màu, Size)
         $totalVariants = max(1, count($colors) * count($sizes));
-        $variantStock = max(1, (int)floor($stock / $totalVariants));
+        $baseStock = (int)floor($stock / $totalVariants);
+        $remainder = $stock % $totalVariants;
+        $variantStocksInput = $request->input('variant_stock', []);
 
         foreach ($colors as $color) {
+            $colorTrim = trim($color);
+            $colorCode = $colorMap[$colorTrim] ?? '#1F2937';
             foreach ($sizes as $size) {
+                $sizeTrim = trim($size);
+                $varSku = $product->sku . '-' . strtoupper(Str::slug($colorTrim)) . '-' . strtoupper(Str::slug($sizeTrim));
+                
+                $vStock = $baseStock;
+                if (isset($variantStocksInput[$varSku]) && is_numeric($variantStocksInput[$varSku])) {
+                    $vStock = max(0, (int)$variantStocksInput[$varSku]);
+                } elseif ($remainder > 0) {
+                    $vStock += 1;
+                    $remainder--;
+                }
+
                 ProductVariant::create([
                     'product_id' => $product->id,
-                    'sku' => $product->sku . '-' . Str::slug($color) . '-' . $size,
-                    'color' => $color,
-                    'size' => $size,
+                    'sku' => $varSku,
+                    'color' => $colorTrim,
+                    'color_code' => $colorCode,
+                    'size' => $sizeTrim,
                     'price' => $product->price,
                     'original_price' => $product->original_price,
-                    'stock' => $variantStock,
+                    'stock' => $vStock,
                     'image' => $imagePath,
                     'status' => 'active',
                 ]);
             }
         }
 
-        return redirect()->route('admin.products.index')->with('success', 'Thêm mới sản phẩm và sinh các biến thể thành công!');
+        // Đồng bộ chuẩn xác tổng tồn kho sản phẩm từ tổng tồn kho các biến thể
+        $product->syncStockFromVariants();
+
+        $saveAction = $request->input('save_action', 'save_index');
+        $msg = 'Thêm mới sản phẩm "' . $product->name . '" (SKU: ' . $product->sku . ') với ' . $product->variants()->count() . ' biến thể thành công!';
+
+        if ($saveAction === 'save_new') {
+            return redirect()->route('admin.products.create')->with('success', $msg . ' Bạn có thể tiếp tục thêm sản phẩm tiếp theo.');
+        }
+
+        return redirect()->route('admin.products.index')->with('success', $msg);
+    }
+
+    public function show($id)
+    {
+        $product = Product::with(['category', 'brand', 'variants', 'images', 'reviews.user'])->findOrFail($id);
+        return view('admin.products.show', compact('product'));
     }
 
     public function edit($id)
@@ -442,14 +527,45 @@ class ProductController extends Controller
             }
         }
 
+        // Đồng bộ tổng tồn kho sản phẩm từ các biến thể
+        $product->syncStockFromVariants();
+
         return redirect()->route('admin.products.index')->with('success', 'Cập nhật thông tin sản phẩm và biến thể thành công!');
     }
 
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $product->delete();
-        return redirect()->route('admin.products.index')->with('success', 'Đã xóa sản phẩm thành công!');
+        try {
+            $product = Product::with(['images', 'variants'])->findOrFail($id);
+
+            // Dọn dẹp tệp ảnh đại diện vật lý nếu được upload lưu trong public storage
+            if (!empty($product->image) && str_contains($product->image, 'storage/')) {
+                $relPath = preg_replace('/^\/?storage\//', '', $product->image);
+                if (Storage::disk('public')->exists($relPath)) {
+                    Storage::disk('public')->delete($relPath);
+                }
+            }
+
+            // Dọn dẹp các tệp ảnh gallery trong public storage
+            foreach ($product->images as $img) {
+                if (!empty($img->image_path) && str_contains($img->image_path, 'storage/')) {
+                    $relGalleryPath = preg_replace('/^\/?storage\//', '', $img->image_path);
+                    if (Storage::disk('public')->exists($relGalleryPath)) {
+                        Storage::disk('public')->delete($relGalleryPath);
+                    }
+                }
+            }
+
+            $productName = $product->name;
+            $productSku = $product->sku;
+
+            // Xóa sản phẩm: Cơ chế cascade foreign key của DB tự động xóa variants, gallery, reviews
+            $product->delete();
+
+            return redirect()->route('admin.products.index')->with('success', "Đã xóa vĩnh viễn sản phẩm \"{$productName}\" (#{$productSku}) và các biến thể liên quan!");
+        } catch (\Exception $e) {
+            return redirect()->route('admin.products.index')->with('error', 'Có lỗi xảy ra khi xóa sản phẩm: ' . $e->getMessage());
+        }
     }
 
     public function toggleStatus($id)
