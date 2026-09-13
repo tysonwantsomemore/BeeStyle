@@ -114,16 +114,123 @@
       color: #64748b !important;
       opacity: 0.9;
     }
+    /* =======================================================
+       BỘ GIAO DIỆN THANH MENU QUẢN TRỊ (SIDEBAR HIGH-CONTRAST)
+       TỐI ƯU MÀU NỀN & MÀU CHỮ CỰC KỲ DỄ NHÌN, RÕ NÉT, SANG TRỌNG
+       ======================================================= */
+    .navbar-vertical {
+      background: #0f172a !important; /* Nền xanh than chì cao cấp (Dark Slate) */
+      border-right: 1px solid #1e293b !important;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12) !important;
+    }
+    .navbar-vertical .navbar-vertical-content {
+      background: #0f172a !important;
+    }
+    
+    /* Logo thương hiệu */
+    .navbar-vertical .brand-logo-text div:first-child {
+      color: #ffffff !important;
+      font-size: 0.95rem;
+    }
+    .navbar-vertical .brand-logo-text div:last-child {
+      color: #94a3b8 !important;
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Tiêu đề từng nhóm phân loại trong Menu */
     .navbar-vertical .navbar-vertical-label {
       font-weight: 800;
       text-transform: uppercase;
       font-size: 0.68rem;
       letter-spacing: 0.08em;
-      color: #64748b !important;
+      color: #94a3b8 !important; /* Chữ xám bạc sáng rõ ràng trên nền tối */
       margin-top: 1.25rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
       padding-left: 1rem;
     }
+
+    /* Các liên kết Menu (Nav links) */
+    .navbar-vertical .navbar-nav .nav-link {
+      color: #cbd5e1 !important; /* Màu xám trắng sáng ngà, tương phản cao, cực kỳ dễ đọc */
+      font-weight: 600;
+      font-size: 0.84rem;
+      padding: 0.55rem 0.85rem;
+      margin: 2px 8px;
+      border-radius: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .navbar-vertical .navbar-nav .nav-link .nav-link-text {
+      color: #cbd5e1 !important;
+      transition: color 0.2s ease;
+    }
+    .navbar-vertical .navbar-nav .nav-link .nav-link-icon,
+    .navbar-vertical .navbar-nav .nav-link [data-feather] {
+      color: #94a3b8 !important;
+      width: 17px;
+      height: 17px;
+      margin-right: 0.65rem;
+      transition: color 0.2s ease;
+    }
+
+    /* Hiệu ứng khi rê chuột (Hover) */
+    .navbar-vertical .navbar-nav .nav-link:hover {
+      background-color: #1e293b !important;
+      color: #ffffff !important;
+      transform: translateX(2px);
+    }
+    .navbar-vertical .navbar-nav .nav-link:hover .nav-link-text {
+      color: #ffffff !important;
+    }
+    .navbar-vertical .navbar-nav .nav-link:hover .nav-link-icon,
+    .navbar-vertical .navbar-nav .nav-link:hover [data-feather] {
+      color: #f59e0b !important; /* Icon sáng màu vàng hổ phách */
+    }
+
+    /* Mục đang được chọn (Active Menu Item) */
+    .navbar-vertical .navbar-nav .nav-link.active {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+      color: #ffffff !important;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+    }
+    .navbar-vertical .navbar-nav .nav-link.active .nav-link-text {
+      color: #ffffff !important;
+      font-weight: 700;
+    }
+    .navbar-vertical .navbar-nav .nav-link.active .nav-link-icon,
+    .navbar-vertical .navbar-nav .nav-link.active [data-feather] {
+      color: #ffffff !important;
+    }
+
+    /* Nút thu gọn menu ở chân Sidebar */
+    .navbar-vertical-footer {
+      background-color: #0b1120 !important;
+      border-top: 1px solid #1e293b !important;
+    }
+    .navbar-vertical-footer .navbar-vertical-toggle {
+      color: #94a3b8 !important;
+    }
+    .navbar-vertical-footer .navbar-vertical-toggle:hover {
+      color: #ffffff !important;
+      background-color: #1e293b !important;
+    }
+
+    /* Nút Xem Cửa Hàng Web ở cuối sidebar */
+    .navbar-vertical .btn-phoenix-primary {
+      background-color: rgba(245, 158, 11, 0.12) !important;
+      border: 1px solid rgba(245, 158, 11, 0.4) !important;
+      color: #f59e0b !important;
+      font-weight: 700;
+    }
+    .navbar-vertical .btn-phoenix-primary:hover {
+      background-color: #f59e0b !important;
+      color: #ffffff !important;
+    }
+    .navbar-vertical .btn-phoenix-primary [data-feather] {
+      color: inherit !important;
+    }
+
     .badge-phoenix {
       font-weight: 700;
       font-size: 0.72rem;
@@ -360,6 +467,66 @@
         <!-- ICONS & USER ACCOUNT MENU -->
         <ul class="navbar-nav navbar-nav-icons flex-row align-items-center gap-2">
           
+          <!-- CHUÔNG THÔNG BÁO ĐƠN HÀNG MỚI (NOTIFICATION CENTER) -->
+          @php
+            $unreadOrders = \App\Models\Order::where('shipping_status', 'pending')->latest()->take(5)->get();
+            $pendingOrdersCount = \App\Models\Order::where('shipping_status', 'pending')->count();
+          @endphp
+          <li class="nav-item dropdown">
+            <a class="nav-link px-2 position-relative" id="navbarDropdownNotification" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-bs-auto-close="outside" title="Thông báo đơn hàng mới">
+              <span class="d-block" style="height:20px;width:20px;"><span data-feather="bell" style="height:20px;width:20px;"></span></span>
+              @if($pendingOrdersCount > 0)
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-11" style="margin-top: 6px; margin-left: -6px;">
+                  {{ $pendingOrdersCount > 99 ? '99+' : $pendingOrdersCount }}
+                  <span class="visually-hidden">đơn mới</span>
+                </span>
+              @endif
+            </a>
+            <div class="dropdown-menu dropdown-menu-end navbar-dropdown-caret py-0 shadow border mt-2" aria-labelledby="navbarDropdownNotification" style="width: 340px; max-width: 90vw;">
+              <div class="card border-0">
+                <div class="card-header bg-body-emphasis border-bottom border-translucent py-2.5 px-3 d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fa-solid fa-bell text-warning fs-9"></span>
+                    <h6 class="mb-0 text-body-emphasis fw-bold fs-9">Đơn Hàng Chờ Xử Lý</h6>
+                  </div>
+                  <span class="badge badge-phoenix {{ $pendingOrdersCount > 0 ? 'badge-phoenix-danger' : 'badge-phoenix-success' }} fs-10">
+                    {{ $pendingOrdersCount }} đơn mới
+                  </span>
+                </div>
+                <div class="card-body p-0 overflow-auto scrollbar" style="max-height: 19rem;">
+                  @forelse($unreadOrders as $notifOrder)
+                    <a href="{{ route('admin.orders.show', $notifOrder->id) }}" class="d-flex align-items-start gap-2.5 p-3 border-bottom border-translucent text-decoration-none hover-bg-light transition-all">
+                      <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-cart-shopping fs-9"></i>
+                      </div>
+                      <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex justify-content-between align-items-center mb-0.5">
+                          <strong class="font-monospace text-primary fs-10">{{ $notifOrder->order_code ?? ('#' . $notifOrder->id) }}</strong>
+                          <small class="text-body-tertiary fs-11">{{ $notifOrder->created_at ? $notifOrder->created_at->diffForHumans() : '' }}</small>
+                        </div>
+                        <div class="text-truncate text-body-emphasis fs-10 fw-semibold">{{ $notifOrder->user->name ?? $notifOrder->customer_name ?? 'Khách mua hàng' }}</div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                          <span class="text-danger fw-bold fs-10">{{ number_format($notifOrder->total_amount, 0, ',', '.') }}₫</span>
+                          <span class="badge badge-phoenix badge-phoenix-warning fs-11">Chờ duyệt</span>
+                        </div>
+                      </div>
+                    </a>
+                  @empty
+                    <div class="text-center py-4 text-body-tertiary">
+                      <i class="fa-regular fa-circle-check text-success fs-4 mb-2 d-block"></i>
+                      <p class="mb-0 fs-10">Tuyệt vời! Toàn bộ đơn hàng đã được xử lý.</p>
+                    </div>
+                  @endforelse
+                </div>
+                <div class="card-footer bg-body-emphasis text-center py-2 px-3 border-top border-translucent">
+                  <a href="{{ route('admin.orders.index', ['status' => 'pending']) }}" class="btn btn-sm btn-link text-primary fs-10 fw-bold p-0 text-decoration-none">
+                    Xem toàn bộ đơn hàng chờ duyệt <i class="fa-solid fa-arrow-right ms-1"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </li>
+
           <!-- CHUYỂN ĐỔI CHẾ ĐỘ SÁNG / TỐI (DARK / LIGHT THEME) -->
           <li class="nav-item">
             <div class="theme-control-toggle feather-icon-wait px-2">

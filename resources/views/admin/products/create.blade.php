@@ -494,14 +494,25 @@
           <div>
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
               <div>
-                <span class="fs-9 fw-bold text-dark d-block">
-                  <i class="fa-solid fa-table-cells text-warning me-1"></i> Ma Trận Biến Thể Tự Sinh (Variant Matrix)
-                </span>
-                <span class="fs-10 text-muted">Hệ thống sẽ tự động tạo các bản ghi kho độc lập cho từng mã</span>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="fs-9 fw-bold text-dark d-block">
+                    <i class="fa-solid fa-table-cells text-warning me-1"></i> Ma Trận Biến Thể Tự Sinh (Variant Matrix)
+                  </span>
+                  <span class="badge badge-phoenix badge-phoenix-success fs-11" id="distributeNoticeBadge">
+                    <i class="fa-solid fa-check me-1"></i>Tự động chia đều
+                  </span>
+                </div>
+                <span class="fs-10 text-muted">Hệ thống luôn tự động chia đều tồn kho cân đối cho từng màu sắc và kích cỡ</span>
               </div>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-phoenix-secondary btn-xs py-1 px-2 fs-10" onclick="distributeStockEqually()">
-                  <i class="fa-solid fa-calculator me-1"></i>Chia Đều Tồn Kho
+              <div class="d-flex gap-1.5 flex-wrap">
+                <button type="button" class="btn btn-phoenix-warning btn-xs py-1 px-2 fs-10 fw-bold" onclick="setEachVariantStock(1000)" title="Cài đặt tất cả các biến thể đều có 1.000 sản phẩm">
+                  <i class="fa-solid fa-bolt me-1"></i>Đặt Mỗi Mẫu = 1.000 Cái
+                </button>
+                <button type="button" class="btn btn-phoenix-primary btn-xs py-1 px-2 fs-10" onclick="setEachVariantStock(100)" title="Cài đặt tất cả các biến thể đều có 100 sản phẩm">
+                  <i class="fa-solid fa-layer-group me-1"></i>Đặt Mỗi Mẫu = 100 Cái
+                </button>
+                <button type="button" class="btn btn-phoenix-secondary btn-xs py-1 px-2 fs-10" onclick="distributeStockEqually()" title="Chia đều tổng số lượng tồn kho cho các biến thể">
+                  <i class="fa-solid fa-calculator me-1"></i>Chia Đều Tổng Kho
                 </button>
               </div>
             </div>
@@ -645,13 +656,22 @@
                      name="stock" 
                      id="productStockInput" 
                      class="form-control fs-8 fw-bold text-dark" 
-                     value="{{ old('stock', 100) }}" 
+                     value="{{ old('stock', 1000) }}" 
                      required 
                      min="0" 
+                     placeholder="Ví dụ: 1000"
                      oninput="handleStockChange(this.value)">
-              <span class="input-group-text fs-9">Cái</span>
+              <span class="input-group-text fs-9 fw-semibold">Cái</span>
             </div>
-            <span class="fs-10 text-muted mt-1 d-block">Tồn kho sẽ tự động chia đều cho các biến thể bên dưới</span>
+            <!-- Nút chọn nhanh số lượng tồn kho -->
+            <div class="d-flex gap-1.5 flex-wrap mt-2">
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="setQuickStock(100)">100 cái</button>
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="setQuickStock(500)">500 cái</button>
+              <button type="button" class="btn btn-phoenix-primary btn-xs py-0.5 px-2 fs-10 fw-bold active" onclick="setQuickStock(1000)"><i class="fa-solid fa-bolt me-1"></i>1.000 cái</button>
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="setQuickStock(2000)">2.000 cái</button>
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="setQuickStock(5000)">5.000 cái</button>
+            </div>
+            <span class="fs-10 text-muted mt-1.5 d-block">Tồn kho sẽ tự động chia đều cho các biến thể bên dưới</span>
           </div>
 
           <!-- Trạng thái kinh doanh (Radio cards) -->
@@ -864,6 +884,7 @@
     renderSizeChips();
     renderVariantMatrix();
     handlePriceCalculation();
+    updateStockStatusOnly(parseInt(document.getElementById('productStockInput').value) || 1000);
     updatePreviewCard();
   });
 
@@ -1156,13 +1177,39 @@
                    value="${initialStock}" 
                    min="0" 
                    class="form-control form-control-sm text-end fw-bold fs-9 font-monospace d-inline-block py-0 px-2" 
-                   style="width: 75px;" 
+                   style="width: 95px; min-width: 90px;" 
                    oninput="recalcTotalStockFromMatrix()">
           </td>
         `;
         tbody.appendChild(tr);
       });
     });
+
+    const badge = document.getElementById('distributeNoticeBadge');
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-check me-1"></i>Đang chia đều: ~${baseStockPerVar.toLocaleString('vi-VN')} cái/mẫu (Tổng: ${totalStock.toLocaleString('vi-VN')} cái)`;
+      badge.className = 'badge badge-phoenix badge-phoenix-success fs-11';
+    }
+  }
+
+  // Cài đặt nhanh tổng số lượng kho (VD: 100, 500, 1.000, 2.000 cái)
+  function setQuickStock(amount) {
+    const input = document.getElementById('productStockInput');
+    if (input) {
+      input.value = amount;
+      handleStockChange(amount);
+    }
+  }
+
+  // Đặt số lượng cố định cho từng biến thể (VD: Mỗi mẫu = 1.000 cái)
+  function setEachVariantStock(amount) {
+    const inputs = document.querySelectorAll('input[name^="variant_stock"]');
+    if (inputs.length === 0) return;
+
+    inputs.forEach(inp => {
+      inp.value = amount;
+    });
+    recalcTotalStockFromMatrix();
   }
 
   function distributeStockEqually() {
@@ -1182,6 +1229,12 @@
       }
       inp.value = val;
     });
+
+    const badge = document.getElementById('distributeNoticeBadge');
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-check me-1"></i>Đang chia đều: ~${base.toLocaleString('vi-VN')} cái/mẫu (Tổng: ${totalStock.toLocaleString('vi-VN')} cái)`;
+      badge.className = 'badge badge-phoenix badge-phoenix-success fs-11';
+    }
   }
 
   function recalcTotalStockFromMatrix() {
@@ -1190,59 +1243,38 @@
       sum += parseInt(inp.value) || 0;
     });
     document.getElementById('productStockInput').value = sum;
-    handleStockChange(sum);
-    updatePreviewCard();
-  }
+    updateStockStatusOnly(sum);
 
-  // 8. Tính toán giá bán, chiết khấu & tồn kho
-  function handlePriceCalculation() {
-    const price = parseInt(document.getElementById('productPriceInput').value) || 0;
-    const originalPrice = parseInt(document.getElementById('productOriginalPriceInput').value) || 0;
-
-    document.getElementById('formattedPriceText').innerText = price.toLocaleString('vi-VN') + ' VNĐ';
-
-    let discount = 0;
-    let savings = 0;
-    if (originalPrice > price && originalPrice > 0) {
-      savings = originalPrice - price;
-      discount = Math.round((savings / originalPrice) * 100);
-    }
-
-    const badge = document.getElementById('discountBadge');
-    if (discount > 0) {
-      badge.innerText = `Giảm ${discount}%`;
-      badge.className = 'badge bg-danger text-white fw-bold';
-      document.getElementById('savingsAmountText').innerText = `Tiết kiệm: ${savings.toLocaleString('vi-VN')} ₫`;
-    } else {
-      badge.innerText = 'Giá chuẩn';
-      badge.className = 'badge bg-secondary-subtle text-secondary fw-semibold';
-      document.getElementById('savingsAmountText').innerText = 'Không có chiết khấu';
+    const badge = document.getElementById('distributeNoticeBadge');
+    if (badge) {
+      badge.innerHTML = `<i class="fa-solid fa-pen me-1"></i>Tùy chỉnh: Tổng ${sum.toLocaleString('vi-VN')} cái`;
+      badge.className = 'badge badge-phoenix badge-phoenix-info fs-11';
     }
 
     updatePreviewCard();
-  }
-
-  function applyDiscountPercent(pct) {
-    const originalPrice = parseInt(document.getElementById('productOriginalPriceInput').value) || 499000;
-    const newPrice = Math.round(originalPrice * (1 - pct / 100) / 1000) * 1000;
-    document.getElementById('productPriceInput').value = newPrice;
-    handlePriceCalculation();
   }
 
   function handleStockChange(val) {
     const stock = parseInt(val) || 0;
+    updateStockStatusOnly(stock);
+    distributeStockEqually();
+    updatePreviewCard();
+  }
+
+  function updateStockStatusOnly(stock) {
     const textEl = document.getElementById('stockStatusText');
+    if (!textEl) return;
+    const formatted = stock.toLocaleString('vi-VN');
     if (stock <= 0) {
       textEl.innerText = 'Hết hàng (Cần nhập)';
       textEl.className = 'fs-10 text-danger fw-bold';
     } else if (stock <= 5) {
-      textEl.innerText = 'Cảnh báo: Sắp hết kho';
+      textEl.innerText = 'Cảnh báo: Sắp hết kho (' + formatted + ' cái)';
       textEl.className = 'fs-10 text-warning-emphasis fw-bold';
     } else {
-      textEl.innerText = 'Kho dồi dào (' + stock + ' cái)';
+      textEl.innerText = 'Kho dồi dào (' + formatted + ' cái)';
       textEl.className = 'fs-10 text-success fw-bold';
     }
-    updatePreviewCard();
   }
 
   // 9. Quản lý Trạng Thái (Active / Inactive)

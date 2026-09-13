@@ -10,6 +10,8 @@ use App\Models\ProductVariant;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -383,6 +385,12 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', $msg);
     }
 
+    public function show($id)
+    {
+        $product = Product::with(['category', 'brand', 'variants', 'images', 'reviews.user'])->findOrFail($id);
+        return view('admin.products.show', compact('product'));
+    }
+
     public function edit($id)
     {
         $product = Product::with(['variants', 'images'])->findOrFail($id);
@@ -527,9 +535,37 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
-        $product->delete();
-        return redirect()->route('admin.products.index')->with('success', 'Đã xóa sản phẩm thành công!');
+        try {
+            $product = Product::with(['images', 'variants'])->findOrFail($id);
+
+            // Dọn dẹp tệp ảnh đại diện vật lý nếu được upload lưu trong public storage
+            if (!empty($product->image) && str_contains($product->image, 'storage/')) {
+                $relPath = preg_replace('/^\/?storage\//', '', $product->image);
+                if (Storage::disk('public')->exists($relPath)) {
+                    Storage::disk('public')->delete($relPath);
+                }
+            }
+
+            // Dọn dẹp các tệp ảnh gallery trong public storage
+            foreach ($product->images as $img) {
+                if (!empty($img->image_path) && str_contains($img->image_path, 'storage/')) {
+                    $relGalleryPath = preg_replace('/^\/?storage\//', '', $img->image_path);
+                    if (Storage::disk('public')->exists($relGalleryPath)) {
+                        Storage::disk('public')->delete($relGalleryPath);
+                    }
+                }
+            }
+
+            $productName = $product->name;
+            $productSku = $product->sku;
+
+            // Xóa sản phẩm: Cơ chế cascade foreign key của DB tự động xóa variants, gallery, reviews
+            $product->delete();
+
+            return redirect()->route('admin.products.index')->with('success', "Đã xóa vĩnh viễn sản phẩm \"{$productName}\" (#{$productSku}) và các biến thể liên quan!");
+        } catch (\Exception $e) {
+            return redirect()->route('admin.products.index')->with('error', 'Có lỗi xảy ra khi xóa sản phẩm: ' . $e->getMessage());
+        }
     }
 
     public function toggleStatus($id)

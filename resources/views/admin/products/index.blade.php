@@ -191,7 +191,7 @@
                 <div class="d-flex align-items-center gap-2">
                   <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" style="width: 40px; height: 40px; object-fit: contain;" class="rounded border border-translucent bg-body-emphasis">
                   <div>
-                    <a href="{{ route('client.products.show', $product->id) }}" target="_blank" class="fw-bold text-body-emphasis text-decoration-none d-block text-truncate fs-9" style="max-width: 200px;">
+                    <a href="{{ route('admin.products.show', $product->id) }}" class="fw-bold text-body-emphasis text-decoration-none d-block text-truncate fs-9" style="max-width: 200px;" title="Xem chi tiết: {{ $product->name }}">
                       {{ $product->name }}
                     </a>
                     <small class="text-body-tertiary fs-10">{{ $product->variants->count() }} biến thể màu/size</small>
@@ -243,11 +243,21 @@
                   @endif
                 </form>
               </td>
-              <td class="text-end pe-3 py-2">
+              <td class="text-end pe-3 py-2 text-nowrap">
                 <div class="d-flex align-items-center justify-content-end gap-1">
+                  <!-- Nút Xem chi tiết sản phẩm -->
+                  <a href="{{ route('admin.products.show', $product->id) }}" class="btn btn-sm btn-phoenix-info py-1 px-2 fs-10" title="Xem chi tiết sản phẩm">
+                    <i class="fa-solid fa-eye me-1"></i> Xem
+                  </a>
+                  <!-- Nút Xem ngoài Web (Tab mới) -->
+                  <a href="{{ route('client.products.show', $product->id) }}" target="_blank" class="btn btn-sm btn-phoenix-secondary py-1 px-1.5 fs-10" title="Xem trên giao diện khách hàng (Mở tab mới)">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                  </a>
+                  <!-- Nút Sửa -->
                   <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-phoenix-primary py-1 px-2 fs-10" title="Chỉnh sửa sản phẩm">
                     <i class="fa-solid fa-pen-to-square me-1"></i> Sửa
                   </a>
+                  <!-- Nút Xóa -->
                   <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi hệ thống?');" class="d-inline">
                     @csrf
                     @method('DELETE')

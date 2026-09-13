@@ -319,11 +319,8 @@ class ProductController extends Controller
             $userReview = \App\Models\Review::where('product_id', $id)->where('user_id', $user->id)->first();
         }
 
-        // Kiểm tra Deal / Flash Sale đang hoạt động
+        // Kiểm tra Deal / Flash Sale đang hoạt động thực tế trong khung giờ vàng
         $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
-        if (!$runningDeal) {
-            $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->forToday()->first();
-        }
 
         return view('client.products.show', compact(
             'product',
