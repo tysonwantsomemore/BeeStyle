@@ -76,7 +76,13 @@ class Brand extends Model
     public function getHasLogoAttribute(): bool
     {
         $raw = trim($this->logo ?? '', " \t\n\r\0\x0B'\"");
-        return !empty($raw);
+        if (empty($raw)) {
+            return false;
+        }
+        if (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://')) {
+            return true;
+        }
+        return file_exists(public_path(ltrim($raw, '/\\')));
     }
 
     public function getHasBannerAttribute(): bool

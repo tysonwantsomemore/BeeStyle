@@ -713,21 +713,49 @@
       <h2 class="font-serif-luxury text-2xl sm:text-3xl text-neutral-950 font-medium">
         Các Thương Hiệu Đồng Hành
       </h2>
+      <p class="text-xs text-neutral-500 font-medium mt-2">
+        Các dòng sản phẩm may đo độc quyền và phong cách thời trang nam chuẩn mực tại BeeStyle Atelier
+      </p>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 items-center">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-5xl mx-auto">
       @foreach($brands as $brand)
-        <a href="{{ route('client.brands.show', $brand->slug) }}" class="group p-5 rounded-2xl bg-neutral-50 hover:bg-white border border-neutral-200 hover:border-amber-400/60 hover:shadow-lg transition-all flex flex-col items-center justify-center text-center">
-          <div class="w-14 h-14 rounded-xl bg-white border border-neutral-200 flex items-center justify-center p-2 mb-3 group-hover:scale-105 transition-transform overflow-hidden">
+        @php
+          $brandTagline = match($brand->slug) {
+            'beestyle-signature' => 'May Đo Haute Atelier',
+            'bee-luxury-line' => 'Sartorial & Lụa Ý',
+            'bee-urban-casual' => 'Smart Casual Đương Đại',
+            'bee-sport-tech' => 'Active Co Giãn 4 Chiều',
+            default => 'Dòng Sản Phẩm Cao Cấp',
+          };
+        @endphp
+        <a href="{{ route('client.brands.show', $brand->slug) }}" class="group p-6 rounded-2xl bg-neutral-50 hover:bg-white border border-neutral-200 hover:border-amber-400 hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-between text-center">
+          <div class="w-20 h-20 rounded-2xl bg-white border border-neutral-200/80 shadow-xs flex items-center justify-center p-2.5 mb-4 group-hover:scale-105 group-hover:border-amber-300 transition-all overflow-hidden shrink-0">
             @if($brand->has_logo)
-              <img src="{{ $brand->logo_url }}" alt="{{ $brand->name }}" class="max-h-full max-w-full object-contain">
+              <img src="{{ $brand->logo_url }}" alt="" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="w-full h-full rounded-xl bg-neutral-900 text-amber-300 items-center justify-center font-bold text-base uppercase" style="display: none;">
+                {{ mb_substr($brand->name, 0, 2, 'UTF-8') }}
+              </div>
             @else
-              <span class="font-bold text-neutral-800 text-sm">{{ substr($brand->name, 0, 2) }}</span>
+              <div class="w-full h-full rounded-xl bg-neutral-900 text-amber-300 flex items-center justify-center font-bold text-base uppercase">
+                {{ mb_substr($brand->name, 0, 2, 'UTF-8') }}
+              </div>
             @endif
           </div>
-          <span class="text-xs font-bold text-neutral-800 group-hover:text-amber-800 transition-colors truncate max-w-full">
-            {{ $brand->name }}
-          </span>
+          
+          <div class="w-full">
+            <h4 class="text-xs sm:text-sm font-bold text-neutral-950 group-hover:text-amber-800 transition-colors line-clamp-1">
+              {{ $brand->name }}
+            </h4>
+            <span class="text-[11px] text-neutral-500 font-medium block mt-1">
+              {{ $brandTagline }}
+            </span>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-neutral-200/60 w-full flex items-center justify-center gap-1.5 text-[11px] font-semibold text-neutral-600 group-hover:text-amber-800 transition-colors">
+            <span>Khám phá bộ sưu tập</span>
+            <i class="fa-solid fa-arrow-right text-[9px] group-hover:translate-x-1 transition-transform"></i>
+          </div>
         </a>
       @endforeach
     </div>
