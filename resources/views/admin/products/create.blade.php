@@ -209,9 +209,8 @@
               <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Áo Polo Nam')">+ Áo Polo</button>
               <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Áo Sơ Mi Lụa')">+ Áo Sơ Mi</button>
               <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Blazer May Đo')">+ Áo Blazer</button>
-              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Áo Thun Form Boxy')">+ Áo Thun</button>
-              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Quần Âu Sartorial')">+ Quần Âu</button>
-              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Áo Len Dệt Thu Đông')">+ Thu Đông</button>
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Áo Phông Form Boxy')">+ Áo Phông</button>
+              <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="insertNamePrefix('Áo Thu Đông Nam')">+ Thu Đông</button>
             </div>
 
             <!-- Đường dẫn Slug xem trước -->
@@ -455,13 +454,12 @@
               <div class="d-flex gap-1.5">
                 <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="applySizePreset(['S', 'M', 'L', 'XL'])">Form Chuẩn (S-XL)</button>
                 <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="applySizePreset(['S', 'M', 'L', 'XL', 'XXL', '3XL'])">Đủ Dải (S-3XL)</button>
-                <button type="button" class="btn btn-phoenix-secondary btn-xs py-0.5 px-2 fs-10" onclick="applySizePreset(['29', '30', '31', '32', '33'])">Quần Âu (29-33)</button>
               </div>
             </div>
 
             <!-- Preset Size Buttons -->
             <div class="d-flex flex-wrap gap-2 mb-3" id="sizeButtonsContainer">
-              @foreach(['S', 'M', 'L', 'XL', 'XXL', '3XL', '28', '29', '30', '31', '32', '33', '39', '40', '41', '42'] as $s)
+              @foreach(['S', 'M', 'L', 'XL', 'XXL', '3XL', 'Freesize'] as $s)
                 <button type="button" 
                         class="btn btn-sm btn-outline-secondary px-2.5 py-1 fs-9 fw-bold size-pill-btn {{ in_array($s, ['S', 'M', 'L', 'XL']) ? 'btn-dark text-white border-dark active' : '' }}" 
                         data-size="{{ $s }}" 
@@ -887,6 +885,58 @@
     updateStockStatusOnly(parseInt(document.getElementById('productStockInput').value) || 1000);
     updatePreviewCard();
   });
+
+  // Xử lý tính toán giá bán thực tế, giá gốc niêm yết và chiết khấu
+  function handlePriceCalculation() {
+    const priceInput = document.getElementById('productPriceInput');
+    const origPriceInput = document.getElementById('productOriginalPriceInput');
+    
+    const price = parseInt(priceInput ? priceInput.value : 0) || 0;
+    const origPrice = parseInt(origPriceInput ? origPriceInput.value : 0) || 0;
+    
+    const formattedPriceEl = document.getElementById('formattedPriceText');
+    if (formattedPriceEl) {
+      formattedPriceEl.innerText = price.toLocaleString('vi-VN') + ' VNĐ';
+    }
+    
+    const savingsEl = document.getElementById('savingsAmountText');
+    const discountBadgeEl = document.getElementById('discountBadge');
+    
+    if (origPrice > price && price > 0) {
+      const savings = origPrice - price;
+      const pct = Math.round((savings / origPrice) * 100);
+      if (savingsEl) savingsEl.innerText = 'Tiết kiệm: ' + savings.toLocaleString('vi-VN') + ' ₫';
+      if (discountBadgeEl) {
+        discountBadgeEl.innerText = 'Giảm ' + pct + '%';
+        discountBadgeEl.className = 'badge bg-danger-subtle text-danger fw-bold';
+      }
+    } else {
+      if (savingsEl) savingsEl.innerText = 'Không giảm giá';
+      if (discountBadgeEl) {
+        discountBadgeEl.innerText = 'Giá chuẩn';
+        discountBadgeEl.className = 'badge bg-secondary-subtle text-secondary fw-bold';
+      }
+    }
+    
+    updatePreviewCard();
+  }
+
+  function applyDiscountPercent(pct) {
+    const origPriceInput = document.getElementById('productOriginalPriceInput');
+    const priceInput = document.getElementById('productPriceInput');
+    
+    let origPrice = parseInt(origPriceInput ? origPriceInput.value : 0) || 0;
+    if (origPrice <= 0) {
+      const price = parseInt(priceInput ? priceInput.value : 0) || 0;
+      origPrice = price > 0 ? price : 500000;
+      if (origPriceInput) origPriceInput.value = origPrice;
+    }
+    
+    const discountedPrice = Math.round(origPrice * (1 - (pct / 100)));
+    if (priceInput) priceInput.value = discountedPrice;
+    
+    handlePriceCalculation();
+  }
 
   // 2. Tự động sinh Slug & đếm ký tự tiêu đề
   function handleNameInput(val) {

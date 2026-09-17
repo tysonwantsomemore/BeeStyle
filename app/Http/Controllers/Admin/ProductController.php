@@ -229,9 +229,9 @@ class ProductController extends Controller
             : ('BS-' . strtoupper(Str::random(6)));
 
         $price = (float)$validated['price'];
-        $originalPrice = isset($validated['original_price']) ? (float)$validated['original_price'] : null;
+        $originalPrice = (isset($validated['original_price']) && (float)$validated['original_price'] > 0) ? (float)$validated['original_price'] : $price;
         $discountPercent = 0;
-        if ($originalPrice && $originalPrice > $price) {
+        if ($originalPrice > $price) {
             $discountPercent = round((($originalPrice - $price) / $originalPrice) * 100);
         }
 
@@ -448,9 +448,9 @@ class ProductController extends Controller
             : $product->sku;
 
         $price = (float)$validated['price'];
-        $originalPrice = isset($validated['original_price']) ? (float)$validated['original_price'] : null;
+        $originalPrice = (isset($validated['original_price']) && (float)$validated['original_price'] > 0) ? (float)$validated['original_price'] : $price;
         $discountPercent = 0;
-        if ($originalPrice && $originalPrice > $price) {
+        if ($originalPrice > $price) {
             $discountPercent = round((($originalPrice - $price) / $originalPrice) * 100);
         }
 
@@ -505,26 +505,70 @@ class ProductController extends Controller
 
         // Bổ sung hoặc cập nhật các biến thể theo màu & size
         if (!empty($colors) && !empty($sizes)) {
-            $variantStock = max(1, (int)floor($product->stock / (count($colors) * count($sizes))));
+            $colorMap = [
+                'Đen' => '#111827',
+                'Trắng' => '#FFFFFF',
+                'Xanh Navy' => '#1E3A8A',
+                'Xám Tro' => '#6B7280',
+                'Xám Ghi' => '#9CA3AF',
+                'Beige' => '#E5D9C5',
+                'Be sữa' => '#F5EBE0',
+                'Nâu Cafe' => '#78350F',
+                'Nâu' => '#593B2B',
+                'Xanh Rêu' => '#365314',
+                'Xanh Mint' => '#6EE7B7',
+                'Đỏ Đô' => '#881337',
+                'Vàng Cát' => '#FDE047',
+            ];
+
+            $variantStocksInput = $request->input('variant_stock', []);
+            $totalVariants = max(1, count($colors) * count($sizes));
+            $baseStockPerVar = max(0, (int)floor($product->stock / $totalVariants));
+            $remainder = $product->stock % $totalVariants;
+
+            $validVariantIds = [];
+
             foreach ($colors as $color) {
+                $colorTrim = trim($color);
+                $colorCode = $colorMap[$colorTrim] ?? '#1F2937';
+
                 foreach ($sizes as $size) {
-                    ProductVariant::firstOrCreate(
+                    $sizeTrim = trim($size);
+                    $varSku = $product->sku . '-' . strtoupper(Str::slug($colorTrim)) . '-' . strtoupper(Str::slug($sizeTrim));
+                    
+                    $vStock = $baseStockPerVar;
+                    if (isset($variantStocksInput[$varSku]) && is_numeric($variantStocksInput[$varSku])) {
+                        $vStock = max(0, (int)$variantStocksInput[$varSku]);
+                    } elseif ($remainder > 0) {
+                        $vStock += 1;
+                        $remainder--;
+                    }
+
+                    $variant = ProductVariant::updateOrCreate(
                         [
                             'product_id' => $product->id,
-                            'color' => $color,
-                            'size' => $size,
+                            'color' => $colorTrim,
+                            'size' => $sizeTrim,
                         ],
                         [
-                            'sku' => $product->sku . '-' . Str::slug($color) . '-' . $size,
+                            'sku' => $varSku,
+                            'color_code' => $colorCode,
                             'price' => $product->price,
                             'original_price' => $product->original_price,
-                            'stock' => $variantStock,
+                            'stock' => $vStock,
                             'image' => $imagePath,
                             'status' => 'active',
                         ]
                     );
+
+                    $validVariantIds[] = $variant->id;
                 }
             }
+
+            // Vô hiệu hóa các biến thể cũ không còn nằm trong danh sách màu & size được chọn
+            ProductVariant::where('product_id', $product->id)
+                ->whereNotIn('id', $validVariantIds)
+                ->update(['status' => 'inactive']);
         }
 
         // Đồng bộ tổng tồn kho sản phẩm từ các biến thể

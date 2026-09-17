@@ -259,7 +259,8 @@
           $soldCount = $deal->sold_count ?? rand(12, 38);
           $limitCount = $deal->quantity_limit ?: 50;
           $soldPercent = min(98, max(25, round(($soldCount / max(1, $limitCount)) * 100)));
-          $savings = max(0, $p->price - $deal->deal_price);
+          $origPrice = $p->original_price ?: $p->price;
+          $savings = max(0, $origPrice - $deal->deal_price);
         @endphp
         <div class="group flex flex-col bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300">
           
@@ -309,7 +310,7 @@
                   {{ number_format($deal->deal_price, 0, ',', '.') }}₫
                 </span>
                 <span class="text-xs text-neutral-500 line-through font-medium">
-                  {{ number_format($p->price, 0, ',', '.') }}₫
+                  {{ number_format($origPrice, 0, ',', '.') }}₫
                 </span>
               </div>
 
@@ -521,14 +522,15 @@
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         @forelse($collectionItems as $item)
           @php
-            $minPrice = $item->variants->min('price') ?? $item->price ?? 0;
+            $minPrice = $item->effective_price;
+            $origPrice = $item->effective_original_price;
             $primaryImg = $item->primaryImage->image_path ?? ($item->image ?? ($item->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop'));
             if (!str_starts_with($primaryImg, 'http')) {
               $primaryImg = asset($primaryImg);
             }
             $isFav = in_array($item->id, $wishlistIds ?? []);
-            $hasDiscount = ($item->original_price && $item->original_price > $minPrice);
-            $discPct = $hasDiscount ? round((($item->original_price - $minPrice) / $item->original_price) * 100) : 0;
+            $hasDiscount = ($origPrice > $minPrice);
+            $discPct = $item->effective_discount_percent;
             $pRating = round((float)($item->rating ?: 5.0), 1);
             $pSold = (int)($item->sold_count ?: 0);
             $fullStars = floor($pRating);
@@ -600,9 +602,9 @@
                   <span class="font-serif-luxury text-base md:text-lg font-black text-neutral-950">
                     {{ number_format($minPrice, 0, ',', '.') }}₫
                   </span>
-                  @if($item->original_price && $item->original_price > $minPrice)
+                  @if($hasDiscount)
                     <span class="text-xs text-neutral-400 line-through font-medium">
-                      {{ number_format($item->original_price, 0, ',', '.') }}₫
+                      {{ number_format($origPrice, 0, ',', '.') }}₫
                     </span>
                   @endif
                 </div>

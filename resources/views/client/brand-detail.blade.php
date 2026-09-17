@@ -69,11 +69,11 @@
           <div class="mt-3 pt-3 border-t border-neutral-100 flex flex-col gap-2">
             <div class="flex items-baseline justify-between">
               <span class="font-serif-luxury text-base font-bold text-neutral-950">
-                {{ number_format($p->price, 0, ',', '.') }}₫
+                {{ number_format($p->effective_price, 0, ',', '.') }}₫
               </span>
-              @if($p->original_price && $p->original_price > $p->price)
+              @if($p->effective_original_price > $p->effective_price)
                 <span class="text-xs text-neutral-400 line-through font-medium">
-                  {{ number_format($p->original_price, 0, ',', '.') }}₫
+                  {{ number_format($p->effective_original_price, 0, ',', '.') }}₫
                 </span>
               @endif
             </div>

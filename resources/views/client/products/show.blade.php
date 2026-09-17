@@ -34,17 +34,12 @@
           $firstImg = asset($galleryImages->first()->image_path);
         }
 
-        // Tính % giảm giá nếu có
-        $hasDiscount = ($product->original_price && $product->original_price > $product->price);
-        $discountPercent = $hasDiscount ? round((($product->original_price - $product->price) / $product->original_price) * 100) : 0;
-        
-        // Kiểm tra Running Deal / Flash Sale
+        // Tính giá bán thực tế, giá gốc niêm yết và % giảm giá
+        $origPrice = $product->original_price ?: $product->price;
         $isDealActive = isset($runningDeal) && (bool)$runningDeal;
-        $effectivePrice = $product->price;
-        if ($isDealActive && isset($runningDeal->deal_price) && $runningDeal->deal_price < $product->price) {
-          $effectivePrice = $runningDeal->deal_price;
-          $discountPercent = $runningDeal->discount_percent ?: $discountPercent;
-        }
+        $effectivePrice = $product->effective_price;
+        $discountPercent = $product->effective_discount_percent;
+        $hasDiscount = ($origPrice > $effectivePrice);
 
         $isFav = \App\Services\WishlistService::isFavorite($product->id);
 
@@ -178,7 +173,7 @@
             </span>
             @if($hasDiscount)
               <span class="text-sm text-neutral-400 line-through">
-                {{ number_format($product->original_price, 0, ',', '.') }}₫
+                {{ number_format($origPrice, 0, ',', '.') }}₫
               </span>
               <span class="ml-auto text-xs font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded">
                 GIẢM {{ $discountPercent }}%
