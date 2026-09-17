@@ -177,7 +177,7 @@ class EcommerceDataService
             [
                 'id' => 5,
                 'sku' => 'BS-PNT-005',
-                'name' => 'Quần Tây Nam Dáng Slimfit Co Giãn Chống Nhăn BeeStyle',
+                'name' => 'Áo Sơ Mi Nam Cổ Trụ Oxford Slimfit BeeStyle',
                 'category' => 'Thời Trang Nam',
                 'category_slug' => 'thoi-trang-nam',
                 'price' => 450000,
@@ -195,10 +195,10 @@ class EcommerceDataService
                     '/assets/img/products/5.png',
                     '/assets/img/products/1.png'
                 ],
-                'colors' => ['Đen', 'Xám Đậm', 'Xanh Đen', 'Be'],
-                'sizes' => ['29', '30', '31', '32', '33', '34'],
-                'short_description' => 'Vải tuyết mưa dệt cao cấp, cạp thông minh co giãn 3cm tạo cảm giác dễ chịu khi vận động.',
-                'description' => 'Quần tây BeeStyle cạp tăng đơ thông minh, đường ủi ly chết sắc nét, thích hợp cho quý ông công sở năng động.'
+                'colors' => ['Trắng Sữa', 'Xanh Navy', 'Xám Tro', 'Beige'],
+                'sizes' => ['S', 'M', 'L', 'XL', 'XXL'],
+                'short_description' => 'Chất liệu vải Oxford dệt mật độ cao chống nhăn nhẹ, phom slimfit ôm dáng công sở lịch lãm.',
+                'description' => 'Áo sơ mi cổ trụ Oxford BeeStyle là lựa chọn hoàn hảo cho quý ông yêu thích phong cách tối giản, đường may mí đôi giấu chỉ tinh tế.'
             ],
             [
                 'id' => 6,

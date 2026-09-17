@@ -151,6 +151,9 @@ class Product extends Model
      */
     public function getDiscountPercentAttribute($value)
     {
+        if ($this->current_daily_deal) {
+            return (int) $this->current_daily_deal->discount_percent;
+        }
         if ($value && $value > 0) {
             return (int)$value;
         }
@@ -200,15 +203,37 @@ class Product extends Model
     }
 
     /**
-     * Get effective sale price (takes daily deal into account)
+     * Get effective sale price (takes active daily deal / promotion into account,
+     * returns original/base price when deal expires)
      */
     public function getEffectivePriceAttribute(): int
     {
         $deal = $this->current_daily_deal;
         if ($deal) {
-            return (int) ($deal->deal_price ?: round($this->price * (100 - $deal->discount_percent) / 100));
+            $basePrice = $this->original_price ?: $this->price;
+            return (int) ($deal->deal_price ?: round($basePrice * (100 - $deal->discount_percent) / 100));
         }
         return (int) $this->price;
+    }
+
+    /**
+     * Get effective original price (giá gốc niêm yết)
+     */
+    public function getEffectiveOriginalPriceAttribute(): int
+    {
+        return (int) ($this->original_price ?: $this->price);
+    }
+
+    /**
+     * Get effective discount percentage
+     */
+    public function getEffectiveDiscountPercentAttribute(): int
+    {
+        $deal = $this->current_daily_deal;
+        if ($deal) {
+            return (int) $deal->discount_percent;
+        }
+        return (int) $this->discount_percent;
     }
 
     /**

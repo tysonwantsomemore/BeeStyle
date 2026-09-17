@@ -95,7 +95,9 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
     @forelse($products as $p)
       @php
-        $minPrice = $p->variants->min('price') ?? $p->price ?? 0;
+        $minPrice = $p->effective_price;
+        $origPrice = $p->effective_original_price;
+        $discPct = $p->effective_discount_percent;
         $primaryImg = $p->primaryImage->image_path ?? $p->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop';
         if (!str_starts_with($primaryImg, 'http')) {
           $primaryImg = asset($primaryImg);
@@ -139,15 +141,15 @@
                 <span class="font-serif-luxury text-xl font-black text-neutral-950 block">
                   {{ number_format($minPrice, 0, ',', '.') }}₫
                 </span>
-                @if($p->original_price && $p->original_price > $minPrice)
+                @if($origPrice > $minPrice)
                   <span class="text-xs text-neutral-500 line-through font-medium">
-                    {{ number_format($p->original_price, 0, ',', '.') }}₫
+                    {{ number_format($origPrice, 0, ',', '.') }}₫
                   </span>
                 @endif
               </div>
-              @if($p->discount_percent > 0)
+              @if($discPct > 0)
                 <span class="px-2 py-0.5 bg-rose-600 text-white text-[10px] font-black rounded shadow-xs">
-                  -{{ $p->discount_percent }}%
+                  -{{ $discPct }}%
                 </span>
               @endif
             </div>

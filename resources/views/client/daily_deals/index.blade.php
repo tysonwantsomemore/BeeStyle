@@ -74,7 +74,7 @@
                 {{ number_format($deal->deal_price, 0, ',', '.') }}₫
               </span>
               <span class="text-[11px] text-neutral-400 line-through">
-                {{ number_format($p->price, 0, ',', '.') }}₫
+                {{ number_format($p->original_price ?: $p->price, 0, ',', '.') }}₫
               </span>
             </div>
             <div class="grid grid-cols-2 gap-1.5">

@@ -180,8 +180,13 @@ class CartService
             $isDailyDeal = true;
             $dealId = $runningDeal->id;
             $dealDiscount = $runningDeal->discount_percent;
-            $originalPrice = $originalPrice ?: $price;
-            $price = max(0, (int) round($price * (1 - ($runningDeal->discount_percent / 100))));
+            $baseReferencePrice = $originalPrice ?: $product->original_price ?: $price;
+            $price = $runningDeal->deal_price ?: max(0, (int) round($baseReferencePrice * (1 - ($runningDeal->discount_percent / 100))));
+            $originalPrice = $baseReferencePrice;
+        } else {
+            if (!$originalPrice || $originalPrice <= $price) {
+                $originalPrice = $product->original_price ?: $price;
+            }
         }
 
         // Khách hàng có thể mua được nhiều sản phẩm 1 lần (tùy theo số lượng tồn kho)

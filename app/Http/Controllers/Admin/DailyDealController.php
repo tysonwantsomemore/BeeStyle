@@ -118,7 +118,8 @@ class DailyDealController extends Controller
         }
 
         $product = Product::findOrFail($validated['product_id']);
-        $dealPrice = max(0, (int) round($product->price * (1 - ($validated['discount_percent'] / 100))));
+        $basePrice = $product->original_price ?: $product->price;
+        $dealPrice = max(0, (int) round($basePrice * (1 - ($validated['discount_percent'] / 100))));
 
         $slotName = !empty($validated['slot_name']) 
             ? $validated['slot_name'] 
@@ -177,7 +178,8 @@ class DailyDealController extends Controller
         }
 
         $product = Product::findOrFail($validated['product_id']);
-        $dealPrice = max(0, (int) round($product->price * (1 - ($validated['discount_percent'] / 100))));
+        $basePrice = $product->original_price ?: $product->price;
+        $dealPrice = max(0, (int) round($basePrice * (1 - ($validated['discount_percent'] / 100))));
         
         $slotName = !empty($validated['slot_name']) 
             ? $validated['slot_name'] 
@@ -277,7 +279,8 @@ class DailyDealController extends Controller
 
         $discountPercent = !empty($validated['discount_percent']) ? (int)$validated['discount_percent'] : $deal->discount_percent;
         $product = $deal->product;
-        $dealPrice = max(0, (int) round($product->price * (1 - ($discountPercent / 100))));
+        $basePrice = $product->original_price ?: $product->price;
+        $dealPrice = max(0, (int) round($basePrice * (1 - ($discountPercent / 100))));
 
         $updateData = [
             'deal_date' => $dealDate,

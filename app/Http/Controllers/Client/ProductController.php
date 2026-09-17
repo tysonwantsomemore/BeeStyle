@@ -362,12 +362,12 @@ class ProductController extends Controller
 
         // Kiểm tra ưu đãi trong ngày
         $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
-        $effectivePrice = $product->price;
         $originalPrice = $product->original_price ?: $product->price;
-        $discountPercent = $product->discount_percent;
+        $effectivePrice = $product->effective_price;
+        $discountPercent = $product->effective_discount_percent;
 
         if ($runningDeal) {
-            $effectivePrice = max(0, (int) round($product->price * (1 - ($runningDeal->discount_percent / 100))));
+            $effectivePrice = $runningDeal->deal_price ?: max(0, (int) round($originalPrice * (1 - ($runningDeal->discount_percent / 100))));
             $discountPercent = $runningDeal->discount_percent;
         }
 
