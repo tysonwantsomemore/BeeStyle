@@ -77,6 +77,7 @@ class CheckoutController extends Controller
             'shipping_address' => 'required|string|max:255',
             'city' => 'nullable|string|max:100',
             'district' => 'nullable|string|max:100',
+            'ward' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:1000',
             'payment_method' => 'required|string|in:cod,online,momo,zalopay,vnpay,vietqr',
         ]);
@@ -171,7 +172,8 @@ class CheckoutController extends Controller
                 'customer_email' => $validated['customer_email'] ?? null,
                 'shipping_address' => $validated['shipping_address'],
                 'city' => $validated['city'] ?? 'Hồ Chí Minh',
-                'district' => $validated['district'] ?? '',
+                'district' => $validated['district'] ?? null,
+                'ward' => $validated['ward'] ?? null,
                 'notes' => $orderNotes,
                 'admin_notes' => $adminNotes,
                 'payment_method' => $validated['payment_method'],
@@ -358,27 +360,49 @@ class CheckoutController extends Controller
         return redirect()->route('client.home')
             ->with('payment_success_order', $code)
             ->with('payment_success_amount', $successAmount)
-            ->with('payment_success_method', 'Chuyển khoản VietQR 24/7 (Techcombank)')
+            ->with('payment_success_method', 'Thanh Toán Trực Tuyến (Online Sandbox)')
             ->with('success', $successMsg);
     }
 
     /**
-     * Cổng Thanh Toán Trực Tuyến Ví MoMo
+     * Giả lập thanh toán Online thất bại (Developer Sandbox Simulator)
+     */
+    public function onlineFailed($code)
+    {
+        $order = Order::where('order_code', $code)->firstOrFail();
+        $order->update([
+            'payment_status' => 'PAYMENT_FAILED',
+        ]);
+
+        return redirect()->route('client.checkout.online', ['code' => $code])
+            ->with('error', "Giao dịch giả lập bị từ chối: Thẻ không đủ số dư hoặc lỗi kết nối cổng trực tuyến (Simulation Error Code: 105).");
+    }
+
+    /**
+     * Cổng Thanh Toán Trực Tuyến Ví MoMo ATM / Napas Sandbox (Chuyển hướng trực tiếp payUrl theo atm/atm_momo.php)
      */
     public function momoGateway($code)
     {
         $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
 
-        if ($order->payment_status === 'paid') {
+        if (in_array(strtoupper((string)$order->payment_status), ['PAID', 'COMPLETED', 'DEPOSIT_PAID'])) {
             return redirect()->route('client.order-tracking', ['code' => $code])
                 ->with('success', "Đơn hàng #{$code} đã được thanh toán qua Ví MoMo thành công!");
         }
-        if ($order->shipping_status === 'cancelled') {
+        if ($order->shipping_status === 'cancelled' || strtoupper((string)$order->payment_status) === 'CANCELLED') {
             return redirect()->route('client.cart')
-                ->with('warning', "Đơn hàng #{$code} đã bị hủy do hết hạn thanh toán.");
+                ->with('warning', "Đơn hàng #{$code} đã bị hủy. Vui lòng thêm sản phẩm vào giỏ để đặt hàng lại.");
         }
 
-        return view('client.payment.momo', compact('order'));
+        $momoService = app(MomoService::class);
+        $momoResult = $momoService->createPayment($order);
+
+        if (!empty($momoResult['success']) && !empty($momoResult['payUrl'])) {
+            return redirect()->away($momoResult['payUrl']);
+        }
+
+        return redirect()->route('client.cart')
+            ->with('error', $momoResult['message'] ?? 'Không thể kết nối đến Cổng MoMo Sandbox. Vui lòng thử lại sau giây lát.');
     }
 
     /**
@@ -387,21 +411,78 @@ class CheckoutController extends Controller
     public function momoSuccess($code)
     {
         $order = Order::where('order_code', $code)->firstOrFail();
-        $order->update([
-            'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 3,
-            'paid_at' => now(),
-            'confirmed_at' => $order->confirmed_at ?: now(),
-            'processing_at' => now(),
-        ]);
+        $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+
+        if ($isDeposit) {
+            $order->update([
+                'deposit_status' => 'paid',
+                'deposit_paid_at' => now(),
+                'payment_status' => 'deposit_paid',
+                'shipping_status' => 'processing',
+                'status_step' => 3,
+                'confirmed_at' => $order->confirmed_at ?: now(),
+                'processing_at' => now(),
+            ]);
+            $successAmount = $order->deposit_amount;
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$code} qua Cổng MoMo Developer Sandbox! 50% còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ thu khi giao hàng (COD).";
+        } else {
+            $order->update([
+                'payment_status' => 'paid',
+                'shipping_status' => 'processing',
+                'status_step' => 3,
+                'paid_at' => now(),
+                'confirmed_at' => $order->confirmed_at ?: now(),
+                'processing_at' => now(),
+            ]);
+            $successAmount = $order->total_amount;
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví MoMo (MoMo Developer Sandbox)! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm.";
+        }
+
         $this->sendOrderInvoiceEmail($order);
 
         return redirect()->route('client.home')
             ->with('payment_success_order', $code)
-            ->with('payment_success_amount', $order->total_amount)
-            ->with('payment_success_method', 'Ví Điện Tử MoMo')
-            ->with('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví MoMo! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+            ->with('payment_success_amount', $successAmount)
+            ->with('payment_success_method', 'Ví Điện Tử MoMo (Developer Sandbox)')
+            ->with('success', $successMsg);
+    }
+
+    /**
+     * Giả lập khách hủy hoặc giao dịch MoMo thất bại
+     */
+    public function momoFailed($code)
+    {
+        $order = Order::with('items')->where('order_code', $code)->firstOrFail();
+
+        DB::beginTransaction();
+        try {
+            foreach ($order->items as $item) {
+                Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+
+                if (!empty($item->color) && !empty($item->size)) {
+                    \App\Models\ProductVariant::where('product_id', $item->product_id)
+                        ->where('color', $item->color)
+                        ->where('size', $item->size)
+                        ->increment('stock', $item->quantity);
+                }
+            }
+
+            $order->update([
+                'payment_status' => 'CANCELLED',
+                'shipping_status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancel_reason' => 'Khách hàng hủy giao dịch trên Cổng MoMo Sandbox (ResultCode: 1006)',
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Lỗi khi xử lý hủy giao dịch MoMo: ' . $e->getMessage());
+        }
+
+        return redirect()->route('client.order-tracking', ['code' => $code])
+            ->with('warning', "Giao dịch MoMo Sandbox cho đơn hàng #{$code} đã bị hủy. Toàn bộ số lượng sản phẩm đã được hoàn trả về kho.");
     }
 
     /**

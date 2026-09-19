@@ -34,6 +34,27 @@ class ShippingAddressRequest extends BaseFormRequest
             $mergeData['detailed_address'] = $this->input('address');
         }
 
+        // Đồng bộ alias city <-> province_name
+        if (!$this->has('city') && $this->has('province_name')) {
+            $mergeData['city'] = $this->input('province_name');
+        } elseif (!$this->has('province_name') && $this->has('city')) {
+            $mergeData['province_name'] = $this->input('city');
+        }
+
+        // Đồng bộ alias ward <-> ward_name
+        if (!$this->has('ward') && $this->has('ward_name')) {
+            $mergeData['ward'] = $this->input('ward_name');
+        } elseif (!$this->has('ward_name') && $this->has('ward')) {
+            $mergeData['ward_name'] = $this->input('ward');
+        }
+
+        // Đồng bộ alias district <-> district_name
+        if (!$this->has('district') && $this->has('district_name')) {
+            $mergeData['district'] = $this->input('district_name');
+        } elseif (!$this->has('district_name') && $this->has('district')) {
+            $mergeData['district_name'] = $this->input('district');
+        }
+
         if ($this->has('receiver_name') || isset($mergeData['receiver_name'])) {
             $name = $mergeData['receiver_name'] ?? $this->input('receiver_name');
             $mergeData['receiver_name'] = preg_replace('/\s+/', ' ', trim((string) $name));
@@ -81,20 +102,50 @@ class ShippingAddressRequest extends BaseFormRequest
                 new VietnamesePhoneNumber,
             ],
             'province_id' => [
-                'required',
+                'nullable',
                 'numeric',
                 'min:1',
+            ],
+            'province_name' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'city' => [
+                'nullable',
+                'string',
+                'max:100',
             ],
             'district_id' => [
-                'required',
+                'nullable',
                 'numeric',
                 'min:1',
             ],
+            'district_name' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'district' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
             'ward_id' => [
-                'required',
+                'nullable',
                 'numeric',
                 'min:1',
                 new \App\Rules\ValidAdministrativeCascade($provinceId, $districtId, $wardId),
+            ],
+            'ward_name' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'ward' => [
+                'nullable',
+                'string',
+                'max:100',
             ],
             'detailed_address' => [
                 'required',
@@ -136,15 +187,12 @@ class ShippingAddressRequest extends BaseFormRequest
             'receiver_phone.string'   => 'Số điện thoại người nhận phải là chuỗi ký tự.',
             'receiver_phone.regex'    => 'Số điện thoại người nhận phải là số điện thoại Việt Nam 10 chữ số (bắt đầu bằng 03, 05, 07, 08 hoặc 09).',
 
-            'province_id.required' => 'Vui lòng chọn Tỉnh / Thành phố nhận hàng.',
             'province_id.numeric'  => 'Mã Tỉnh / Thành phố phải là giá trị số hợp lệ.',
             'province_id.min'      => 'Mã Tỉnh / Thành phố không hợp lệ.',
 
-            'district_id.required' => 'Vui lòng chọn Quận / Huyện nhận hàng.',
             'district_id.numeric'  => 'Mã Quận / Huyện phải là giá trị số hợp lệ.',
             'district_id.min'      => 'Mã Quận / Huyện không hợp lệ.',
 
-            'ward_id.required' => 'Vui lòng chọn Phường / Xã nhận hàng.',
             'ward_id.numeric'  => 'Mã Phường / Xã phải là giá trị số hợp lệ.',
             'ward_id.min'      => 'Mã Phường / Xã không hợp lệ.',
 

@@ -464,8 +464,8 @@
         }
 
         // District ID
-        if (!cleaned.district_id || !Utils.isNumeric(cleaned.district_id)) {
-            errors.district_id = 'Vui lòng chọn Quận / Huyện nhận hàng.';
+        if (cleaned.district_id && !Utils.isNumeric(cleaned.district_id)) {
+            errors.district_id = 'Mã Quận / Huyện không hợp lệ.';
         }
 
         // Ward ID

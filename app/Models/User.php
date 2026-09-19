@@ -120,7 +120,6 @@ class User extends Authenticatable
         }
         return 'badge-phoenix-secondary';
     }
-
     protected function casts(): array
     {
         return [

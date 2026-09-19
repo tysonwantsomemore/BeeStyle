@@ -91,6 +91,8 @@ Route::name('auth.')->group(function () {
 Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
 Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
 Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
+Route::get('/payment/momo/query', [MomoPaymentController::class, 'queryView'])->name('payment.momo.query');
+Route::post('/payment/momo/query', [MomoPaymentController::class, 'querySubmit'])->name('payment.momo.query.submit');
 
 /*
 |--------------------------------------------------------------------------
@@ -174,9 +176,6 @@ Route::name('client.')->group(function () {
     | MOMO ONLINE PAYMENT GATEWAY (DEEP LINK / APP-TO-APP / SANDBOX)
     |--------------------------------------------------------------------------
     */
-    Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
-    Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
-    Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
     Route::get('/thanh-toan/momo/callback', [MomoPaymentController::class, 'result'])->name('checkout.momo.callback');
     Route::post('/thanh-toan/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('checkout.momo.ipn');
 
@@ -200,18 +199,20 @@ Route::name('client.')->group(function () {
         Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
         Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
 
-        // Cổng MoMo Gateway
+        // Cổng MoMo Gateway (MoMo Developer Sandbox)
         Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
         Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
+        Route::post('/thanh-toan/momo/{code}/that-bai', [CheckoutController::class, 'momoFailed'])->name('checkout.momo.failed');
         Route::post('/thanh-toan/momo/{code}/sandbox-redirect', [CheckoutController::class, 'momoRedirectSandbox'])->name('checkout.momo.redirect');
 
         // Cổng ZaloPay Gateway
         Route::get('/thanh-toan/zalopay/{code}', [CheckoutController::class, 'zalopayGateway'])->name('checkout.zalopay');
         Route::post('/thanh-toan/zalopay/{code}/xac-nhan', [CheckoutController::class, 'zalopaySuccess'])->name('checkout.zalopay.success');
 
-        // Cổng Online Banking Gateway (Techcombank / Napas 247)
+        // Cổng Online Banking Gateway (Cổng Giả Lập Thanh Toán Sandbox)
         Route::get('/thanh-toan/online/{code}', [CheckoutController::class, 'onlineGateway'])->name('checkout.online');
         Route::post('/thanh-toan/online/{code}/xac-nhan', [CheckoutController::class, 'onlineSuccess'])->name('checkout.online.success');
+        Route::post('/thanh-toan/online/{code}/that-bai', [CheckoutController::class, 'onlineFailed'])->name('checkout.online.failed');
 
         // Auto-Expiry & Tự Động Khớp Lệnh
         Route::post('/thanh-toan/{code}/het-han', [CheckoutController::class, 'handleExpired'])->name('checkout.expire');

@@ -365,8 +365,8 @@ export function validateShippingAddress(data = {}) {
         errors.province_id = 'Vui lòng chọn Tỉnh / Thành phố nhận hàng.';
     }
 
-    if (!cleaned.district_id || !Utils.isNumeric(cleaned.district_id)) {
-        errors.district_id = 'Vui lòng chọn Quận / Huyện nhận hàng.';
+    if (cleaned.district_id && !Utils.isNumeric(cleaned.district_id)) {
+        errors.district_id = 'Mã Quận / Huyện không hợp lệ.';
     }
 
     if (!cleaned.ward_id || !Utils.isNumeric(cleaned.ward_id)) {

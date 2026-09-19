@@ -699,23 +699,52 @@
   let currentVariantStock = {{ (int)($product->variants->sum('stock') ?: $product->stock) }};
   let calculatedFitSize = 'L';
 
-  // 1. Gallery Thumbnail Switcher
+  // 1. Gallery Thumbnail Switcher & Bidirectional Sync with Color Swatches
   function setMainImage(url, btn) {
     const mainImg = document.getElementById('main-product-img');
     if (!mainImg) return;
-    mainImg.style.opacity = '0.5';
+    mainImg.style.opacity = '0.4';
     mainImg.style.transform = 'scale(1)';
     mainImg.style.transformOrigin = 'center center';
     mainImg.src = url;
     setTimeout(() => { mainImg.style.opacity = '1'; }, 150);
 
+    // Cập nhật viền cho thumbnails
     document.querySelectorAll('.gallery-thumb-btn').forEach(b => {
       b.classList.remove('border-neutral-950', 'ring-2', 'ring-neutral-950/20');
       b.classList.add('border-neutral-200');
     });
+
     if (btn) {
       btn.classList.add('border-neutral-950', 'ring-2', 'ring-neutral-950/20');
       btn.classList.remove('border-neutral-200');
+
+      // Tự động chọn color swatch nếu thumbnail trùng với màu của một biến thể
+      const cleanUrl = url.split('?')[0];
+      const foundVar = PRODUCT_VARIANTS.find(v => v.image && (v.image.includes(cleanUrl) || cleanUrl.includes(v.image.split('?')[0])));
+      if (foundVar && foundVar.color && foundVar.color !== selectedProductColor) {
+        const swatch = document.querySelector(`.color-swatch-btn[data-color="${foundVar.color}"]`);
+        if (swatch) {
+          selectedProductColor = foundVar.color;
+          document.getElementById('selected-color-name').textContent = foundVar.color;
+          document.getElementById('selectedColorInput').value = foundVar.color;
+          document.querySelectorAll('.color-swatch-btn').forEach(b => {
+            b.classList.remove('ring-2', 'ring-offset-2', 'ring-neutral-950', 'scale-110');
+          });
+          swatch.classList.add('ring-2', 'ring-offset-2', 'ring-neutral-950', 'scale-110');
+          syncVariantSelection();
+        }
+      }
+    } else {
+      // Tìm thumbnail có ảnh trùng khớp để active
+      const cleanUrl = url.split('?')[0];
+      document.querySelectorAll('.gallery-thumb-btn').forEach(b => {
+        const tImg = b.querySelector('img');
+        if (tImg && (tImg.src.includes(cleanUrl) || cleanUrl.includes(tImg.src.split('?')[0]))) {
+          b.classList.add('border-neutral-950', 'ring-2', 'ring-neutral-950/20');
+          b.classList.remove('border-neutral-200');
+        }
+      });
     }
   }
 
@@ -927,7 +956,7 @@
           const csmQty = document.getElementById('csmQuantityText');
           const csmPrice = document.getElementById('csmPriceText');
 
-          if (csmImg) csmImg.src = document.getElementById('mainProductDisplayImage')?.src || '';
+          if (csmImg) csmImg.src = document.getElementById('main-product-img')?.src || '';
           if (csmName) csmName.textContent = @json($product->name);
           if (csmVar) csmVar.textContent = `${selectedProductColor || 'Tiêu chuẩn'} / Size ${selectedProductSize || 'Freesize'}`;
           if (csmQty) csmQty.textContent = qty;
@@ -1197,6 +1226,16 @@
     if (typeof lucide !== 'undefined') lucide.createIcons();
     calculateSmartFit();
     resetFormRating();
+
+    // Tự động kích hoạt màu sắc đầu tiên và size đầu tiên để có trải nghiệm người dùng liền mạch
+    const firstColorBtn = document.querySelector('.color-swatch-btn');
+    if (firstColorBtn) {
+      firstColorBtn.click();
+    }
+    const firstSizeBtn = document.querySelector('.variant-size-btn');
+    if (firstSizeBtn) {
+      firstSizeBtn.click();
+    }
 
     // Auto scroll if URL contains hash #reviews-section
     if (window.location.hash === '#reviews-section') {

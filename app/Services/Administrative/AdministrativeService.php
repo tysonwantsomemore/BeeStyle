@@ -41,23 +41,27 @@ class AdministrativeService
      */
     public function validateCascade(int $provinceId, int $districtId, int $wardId): array
     {
-        $province = Province::find($provinceId);
-        $district = District::where('id', $districtId)->where('province_id', $provinceId)->first();
-        $ward = Ward::where('id', $wardId)->where('district_id', $districtId)->first();
+        $province = $provinceId > 0 ? Province::find($provinceId) : null;
+        $district = ($districtId > 0 && $provinceId > 0)
+            ? District::where('id', $districtId)->where('province_id', $provinceId)->first()
+            : ($districtId > 0 ? District::find($districtId) : null);
+        $ward = ($wardId > 0 && $districtId > 0)
+            ? Ward::where('id', $wardId)->where('district_id', $districtId)->first()
+            : ($wardId > 0 ? Ward::find($wardId) : null);
 
-        // Nếu bảng database chưa được seed dữ liệu hoàn toàn, cho phép fallback theo ID nhưng kiểm tra tính toàn vẹn
-        if ($province && !$district) {
+        // Kiểm tra tính toàn vẹn nếu có đủ cả 2 cấp
+        if ($provinceId > 0 && $districtId > 0 && $province && !$district) {
             throw new AdministrativeMismatchException('Quận/Huyện đã chọn không thuộc Tỉnh/Thành phố đã chọn.');
         }
 
-        if ($district && !$ward) {
+        if ($districtId > 0 && $wardId > 0 && $district && !$ward) {
             throw new AdministrativeMismatchException('Phường/Xã đã chọn không thuộc Quận/Huyện đã chọn.');
         }
 
         return [
-            'province' => $province?->name ?? "Tỉnh #{$provinceId}",
-            'district' => $district?->name ?? "Quận #{$districtId}",
-            'ward'     => $ward?->name ?? "Phường #{$wardId}",
+            'province' => $province?->name ?? ($provinceId > 0 ? "Tỉnh #{$provinceId}" : ''),
+            'district' => $district?->name ?? ($districtId > 0 ? "Quận #{$districtId}" : ''),
+            'ward'     => $ward?->name ?? ($wardId > 0 ? "Phường #{$wardId}" : ''),
         ];
     }
 }

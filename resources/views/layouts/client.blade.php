@@ -550,6 +550,8 @@
 
       </div>
     </div>
+  </header>
+
     <!-- Mobile Navigation Drawer -->
     <div id="mobile-nav" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden">
       <div class="w-4/5 max-w-sm h-full bg-white p-6 flex flex-col justify-between shadow-2xl animate-fade-in">

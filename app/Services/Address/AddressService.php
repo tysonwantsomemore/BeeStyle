@@ -42,15 +42,19 @@ class AddressService
                 $user->addresses()->update(['is_default' => false]);
             }
 
+            $cityName = !empty($adminNames['province']) ? $adminNames['province'] : trim(strip_tags((string)($validatedData['province_name'] ?? $validatedData['city'] ?? '')));
+            $districtName = !empty($adminNames['district']) ? $adminNames['district'] : (isset($validatedData['district_name']) || isset($validatedData['district']) ? trim(strip_tags((string)($validatedData['district_name'] ?? $validatedData['district'] ?? ''))) : null);
+            $wardName = !empty($adminNames['ward']) ? $adminNames['ward'] : trim(strip_tags((string)($validatedData['ward_name'] ?? $validatedData['ward'] ?? '')));
+
             return $user->addresses()->create([
                 'recipient_name' => trim(strip_tags($validatedData['receiver_name'] ?? $validatedData['recipient_name'])),
                 'phone'          => preg_replace('/[\s\-\.\(\)]+/', '', $validatedData['receiver_phone'] ?? $validatedData['phone']),
                 'province_id'    => $provinceId ?: null,
                 'district_id'    => $districtId ?: null,
                 'ward_id'        => $wardId ?: null,
-                'city'           => $adminNames['province'],
-                'district'       => $adminNames['district'],
-                'ward'           => $adminNames['ward'],
+                'city'           => $cityName,
+                'district'       => $districtName,
+                'ward'           => $wardName,
                 'address'        => trim(strip_tags($validatedData['detailed_address'] ?? $validatedData['address'])),
                 'label'          => $validatedData['label'] ?? 'Nhà riêng',
                 'is_default'     => $isDefault,
@@ -71,6 +75,10 @@ class AddressService
 
             $adminNames = $this->adminService->validateCascade($provinceId, $districtId, $wardId);
 
+            $cityName = !empty($adminNames['province']) ? $adminNames['province'] : trim(strip_tags((string)($validatedData['province_name'] ?? $validatedData['city'] ?? $address->city ?? '')));
+            $districtName = !empty($adminNames['district']) ? $adminNames['district'] : (isset($validatedData['district_name']) || isset($validatedData['district']) ? trim(strip_tags((string)($validatedData['district_name'] ?? $validatedData['district'] ?? ''))) : $address->district);
+            $wardName = !empty($adminNames['ward']) ? $adminNames['ward'] : trim(strip_tags((string)($validatedData['ward_name'] ?? $validatedData['ward'] ?? $address->ward ?? '')));
+
             $isDefault = !empty($validatedData['is_default']);
             if ($isDefault) {
                 UserAddress::where('user_id', $address->user_id)
@@ -84,9 +92,9 @@ class AddressService
                 'province_id'    => $provinceId ?: $address->province_id,
                 'district_id'    => $districtId ?: $address->district_id,
                 'ward_id'        => $wardId ?: $address->ward_id,
-                'city'           => $adminNames['province'],
-                'district'       => $adminNames['district'],
-                'ward'           => $adminNames['ward'],
+                'city'           => $cityName,
+                'district'       => $districtName,
+                'ward'           => $wardName,
                 'address'        => trim(strip_tags($validatedData['detailed_address'] ?? $validatedData['address'] ?? $address->address)),
                 'label'          => $validatedData['label'] ?? $address->label,
                 'is_default'     => $isDefault ?: $address->is_default,

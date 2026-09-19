@@ -70,12 +70,11 @@
                   <option value="{{ $addr->id }}" 
                     data-name="{{ $addr->receiver_name }}" 
                     data-phone="{{ $addr->receiver_phone }}" 
-                    data-address="{{ $addr->detail_address }}"
-                    data-city="{{ $addr->province_name }}"
-                    data-district="{{ $addr->district_name }}"
-                    data-ward="{{ $addr->ward_name }}"
+                    data-address="{{ $addr->detail_address ?? $addr->address }}"
+                    data-city="{{ $addr->province_name ?? $addr->city }}"
+                    data-ward="{{ $addr->ward_name ?? $addr->ward }}"
                     {{ (isset($defaultAddress) && $defaultAddress && $defaultAddress->id === $addr->id) ? 'selected' : '' }}>
-                    {{ $addr->receiver_name }} — {{ $addr->receiver_phone }} ({{ $addr->detail_address }}, {{ $addr->ward_name }}, {{ $addr->district_name }}, {{ $addr->province_name }})
+                    {{ $addr->receiver_name }} — {{ $addr->receiver_phone }} ({{ implode(', ', array_filter([$addr->detail_address ?? $addr->address, $addr->ward_name ?? $addr->ward, $addr->province_name ?? $addr->city])) }})
                   </option>
                 @endforeach
               </select>
@@ -101,21 +100,17 @@
 
             <div>
               <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Địa chỉ nhận hàng (Số nhà, tên đường) <span class="text-rose-600">*</span></label>
-              <input type="text" name="shipping_address" id="cust_address" value="{{ old('shipping_address', $defaultAddress->detail_address ?? '') }}" required placeholder="Ví dụ: 88 Lê Lợi..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              <input type="text" name="shipping_address" id="cust_address" value="{{ old('shipping_address', $defaultAddress->detail_address ?? $defaultAddress->address ?? '') }}" required placeholder="Ví dụ: 88 Lê Lợi..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Tỉnh / Thành Phố</label>
-                <input type="text" name="city" id="cust_city" value="{{ old('city', $defaultAddress->province_name ?? 'TP. Hồ Chí Minh') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
-              </div>
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Quận / Huyện</label>
-                <input type="text" name="district" id="cust_district" value="{{ old('district', $defaultAddress->district_name ?? 'Quận 1') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                <input type="text" name="city" id="cust_city" value="{{ old('city', $defaultAddress->province_name ?? $defaultAddress->city ?? 'TP. Hồ Chí Minh') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
               </div>
               <div>
                 <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Phường / Xã</label>
-                <input type="text" name="ward" id="cust_ward" value="{{ old('ward', $defaultAddress->ward_name ?? 'Bến Nghé') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                <input type="text" name="ward" id="cust_ward" value="{{ old('ward', $defaultAddress->ward_name ?? $defaultAddress->ward ?? 'Bến Nghé') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
               </div>
             </div>
 
@@ -207,7 +202,7 @@
               </div>
             </label>
 
-            <!-- Online Banking / VietQR -->
+            <!-- Online Banking / Giả Lập Thanh Toán Sandbox -->
             <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_online">
               <div class="flex items-center justify-between">
                 <div class="flex items-start gap-3">
@@ -216,32 +211,32 @@
                     <div class="flex items-center gap-2 flex-wrap">
                       <strong class="text-neutral-950 text-sm font-semibold">
                         @if(!empty($depositInfo['is_required']))
-                          Chuyển khoản cọc 50% qua VietQR (Techcombank)
+                          Thanh Toán Online (Giả Lập Cọc 50% Sandbox)
                         @else
-                          Chuyển khoản Ngân Hàng / Quét mã VietQR 24/7
+                          Thanh Toán Online (Cổng Giả Lập Thanh Toán Sandbox)
                         @endif
                       </strong>
-                      <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">
-                        VietQR Techcombank
+                      <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">
+                        SANDBOX SIMULATOR
                       </span>
                     </div>
                     <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
                       @if(!empty($depositInfo['is_required']))
-                        Quét mã QR qua app ngân hàng để chuyển đúng 50% tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫).
+                        Cổng mô phỏng thanh toán 50% tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫) dành cho Tester/Developer. Hỗ trợ giả lập thành công/thất bại tức thì.
                       @else
-                        Mở app mọi ngân hàng (Techcombank, Vietcombank, MB...) quét mã xác thực tự động 24/7.
+                        Mô phỏng thanh toán trực tuyến qua VietQR / Thẻ quốc tế với công cụ Developer Simulator hỗ trợ kiểm thử luồng 1-click.
                       @endif
                     </p>
                   </div>
                 </div>
-                <i data-lucide="qr-code" class="w-5 h-5 text-emerald-700 shrink-0 ml-2"></i>
+                <i data-lucide="cpu" class="w-5 h-5 text-amber-600 shrink-0 ml-2"></i>
               </div>
               <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_online">
-                Sau khi bấm "Xác Nhận Đặt Hàng", mã QR Techcombank (STK: <strong>77427842310105</strong> - NGUYEN XUAN BAC) sẽ hiển thị với số tiền {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫ cùng mã đối soát tự động.
+                Sau khi bấm "Xác Nhận Đặt Hàng", hệ thống sẽ chuyển đến <strong>Cổng Giả Lập Thanh Toán Online</strong> để mô phỏng duyệt giao dịch {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫.
               </div>
             </label>
 
-            <!-- MoMo -->
+            <!-- MoMo Developer Sandbox -->
             <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_momo">
               <div class="flex items-center justify-between">
                 <div class="flex items-start gap-3">
@@ -249,21 +244,21 @@
                   <div>
                     <div class="flex items-center gap-2 flex-wrap">
                       <strong class="text-neutral-950 text-sm font-semibold">
-                        Ví Điện Tử MoMo (Chuyển Hướng Ứng Dụng)
+                        Ví Điện Tử MoMo (MoMo Developer Sandbox)
                       </strong>
                       <span class="px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-[10px] font-bold">
-                        MOMO App
+                        MOMO DEVELOPER
                       </span>
                     </div>
                     <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
-                      Hệ thống tự động chuyển tiếp sang ứng dụng MoMo để xác nhận giao dịch an toàn không cần nhập lại số tiền.
+                      Kết nối Cổng MoMo Developer Gateway v2 chính thức. Chuyển tiếp sang trang thanh toán MoMo Sandbox hoặc App MoMo để quét mã QR test.
                     </p>
                   </div>
                 </div>
                 <span class="px-2.5 py-1 bg-[#d82d8b] text-white font-bold rounded-md text-[10px] shrink-0 ml-2">MOMO</span>
               </div>
               <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_momo">
-                Xác nhận thanh toán số tiền {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫ qua cổng thanh toán MoMo Official Gateway.
+                Xác nhận thanh toán số tiền {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫ qua cổng MoMo Developer Gateway (Partner: MOMOBKUN20180529).
               </div>
             </label>
 
@@ -535,12 +530,11 @@
   function fillSavedAddress(select) {
     const opt = select.options[select.selectedIndex];
     if (opt.value) {
-      document.getElementById('cust_name').value = opt.getAttribute('data-name') || '';
-      document.getElementById('cust_phone').value = opt.getAttribute('data-phone') || '';
-      document.getElementById('cust_address').value = opt.getAttribute('data-address') || '';
-      document.getElementById('cust_city').value = opt.getAttribute('data-city') || '';
-      document.getElementById('cust_district').value = opt.getAttribute('data-district') || '';
-      document.getElementById('cust_ward').value = opt.getAttribute('data-ward') || '';
+      if (document.getElementById('cust_name')) document.getElementById('cust_name').value = opt.getAttribute('data-name') || '';
+      if (document.getElementById('cust_phone')) document.getElementById('cust_phone').value = opt.getAttribute('data-phone') || '';
+      if (document.getElementById('cust_address')) document.getElementById('cust_address').value = opt.getAttribute('data-address') || '';
+      if (document.getElementById('cust_city')) document.getElementById('cust_city').value = opt.getAttribute('data-city') || '';
+      if (document.getElementById('cust_ward')) document.getElementById('cust_ward').value = opt.getAttribute('data-ward') || '';
     }
   }
 

@@ -882,17 +882,13 @@
                 <input type="text" name="detailed_address" required placeholder="Ví dụ: 88 Lê Lợi..." class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Tỉnh/Thành Phố</label>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Tỉnh / Thành Phố *</label>
                   <input type="text" name="province_name" value="Hà Nội" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
                 </div>
                 <div>
-                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Quận/Huyện</label>
-                  <input type="text" name="district_name" value="Cầu Giấy" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
-                </div>
-                <div>
-                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Phường/Xã</label>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Phường / Xã *</label>
                   <input type="text" name="ward_name" value="Dịch Vọng" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
                 </div>
               </div>
@@ -922,7 +918,7 @@
                     @endif
                   </div>
                   <span class="text-neutral-500 block mb-1">{{ $addr->receiver_phone }}</span>
-                  <p class="text-neutral-700 leading-relaxed">{{ $addr->detail_address }}, {{ $addr->ward_name }}, {{ $addr->district_name }}, {{ $addr->province_name }}</p>
+                  <p class="text-neutral-700 leading-relaxed">{{ implode(', ', array_filter([$addr->detail_address ?? $addr->address, $addr->ward_name ?? $addr->ward, $addr->province_name ?? $addr->city])) }}</p>
                 </div>
 
                 <div class="pt-3 border-t border-neutral-200 flex justify-end gap-2">

@@ -1,283 +1,466 @@
 @extends('layouts.client')
 
-@section('title', 'Cổng Thanh Toán Trực Tuyến VietQR — Đơn Hàng #' . $order->order_code)
+@section('title', 'Cổng Giả Lập Thanh Toán Online Sandbox — Đơn Hàng #' . $order->order_code)
 
 @section('content')
-<main class="w-full flex-grow py-12 px-6 max-w-4xl mx-auto">
-  
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-neutral-200">
-    <div>
-      <span class="text-xs tracking-widest uppercase text-amber-800 font-semibold block mb-1">CỔNG THANH TOÁN VIETQR 24/7</span>
-      <h1 class="font-serif-luxury text-2xl md:text-3xl font-bold text-neutral-900">Đơn Hàng #{{ $order->order_code }}</h1>
-    </div>
-    <div class="px-3.5 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-full text-xs font-semibold flex items-center gap-1.5">
-      <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-      <span>Hết hạn sau: <strong id="onlineCountdown" class="font-mono">09:59</strong></span>
-    </div>
-  </div>
-
-  <div class="bg-white rounded-2xl border border-neutral-200 shadow-xl overflow-hidden">
+<div class="min-h-screen bg-[#f7f8fa] py-8 px-4 sm:px-6 flex items-center justify-center font-sans">
+  <div class="w-full max-w-4xl bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.06)] border border-neutral-200/80 overflow-hidden">
     
-    <!-- Top banner -->
-    <div class="bg-neutral-950 text-white p-6 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-neutral-800 flex items-center justify-center text-amber-400">
-          <i data-lucide="credit-card" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h2 class="font-serif-luxury text-xl font-semibold">Chuyển Khoản Tự Động Khớp Lệnh</h2>
-          <p class="text-xs text-neutral-400 font-light">Hỗ trợ tất cả ngân hàng Việt Nam qua chuẩn VietQR NAPAS 247</p>
-        </div>
-      </div>
-      <span class="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-        <i data-lucide="shield-check" class="w-4 h-4"></i> SSL 256-Bit
-      </span>
-    </div>
-
     @php
       $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
       $payAmount = $isDeposit ? $order->deposit_amount : $order->total_amount;
-      $vietQrUrl = "https://img.vietqr.io/image/TCB-77427842310105-compact2.png?amount=" . $payAmount . "&addInfo=" . urlencode($order->order_code) . "&accountName=" . urlencode("NGUYEN XUAN BAC");
     @endphp
 
-    <div class="p-6 md:p-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-xs">
+    <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
       
-      <!-- Cột trái: Thông tin đơn hàng & Số tiền cần chuyển (5 cols) -->
-      <div class="md:col-span-5 space-y-4">
+      <!-- ========================================================================= -->
+      <!-- CỘT TRÁI: THÔNG TIN ĐƠN HÀNG & BỘ ĐẾM THỜI GIAN (4.5 cols) -->
+      <!-- ========================================================================= -->
+      <div class="lg:col-span-5 p-6 sm:p-8 bg-[#fafbfc] border-b lg:border-b-0 lg:border-r border-neutral-200/80 flex flex-col justify-between space-y-6 text-xs">
         
-        <div class="p-5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-3">
-          <div class="flex justify-between pb-2 border-b border-neutral-200/60 font-semibold text-neutral-900">
-            <span>Thông Tin Đơn Hàng</span>
-            <span class="text-amber-800 text-[10px] uppercase font-mono">BeeStyle Atelier</span>
+        <div class="space-y-5">
+          <!-- Logo & Nhà cung cấp -->
+          <div class="flex items-center gap-3 pb-4 border-b border-neutral-200/80">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-400 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+              <i data-lucide="cpu" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold block">Cổng Thanh Toán</span>
+              <strong class="text-neutral-900 text-sm font-bold">Online Sandbox Simulator</strong>
+            </div>
           </div>
-          <div class="flex justify-between">
-            <span class="text-neutral-500">Khách hàng:</span>
-            <strong class="text-neutral-900">{{ $order->customer_name }}</strong>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-neutral-500">Số điện thoại:</span>
-            <strong class="text-neutral-900">{{ $order->customer_phone }}</strong>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-neutral-500">Mã đơn hàng:</span>
-            <strong class="font-mono text-neutral-950">{{ $order->order_code }}</strong>
-          </div>
-        </div>
 
-        <!-- Box Số tiền cần thanh toán -->
-        @if($isDeposit)
-          <div class="p-4 rounded-xl text-center bg-amber-50 border-2 border-dashed border-amber-300 space-y-1">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-200 text-amber-900 font-bold rounded-full text-[10px]">
-              <i data-lucide="shield-alert" class="w-3 h-3"></i> ĐẶT CỌC 50% (ĐƠN SỐ LƯỢNG LỚN)
-            </span>
-            <span class="text-neutral-500 uppercase font-semibold text-[10px] block pt-1">Số tiền cọc cần chuyển ngay</span>
-            <h2 class="font-serif-luxury text-2xl md:text-3xl font-bold text-rose-600 font-mono">
-              {{ number_format($order->deposit_amount, 0, ',', '.') }}₫
-            </h2>
-            <p class="text-[11px] text-neutral-600 pt-1 border-t border-amber-200">
-              Còn lại thu COD khi nhận hàng: <strong class="text-neutral-900 font-mono">{{ number_format($order->remaining_amount, 0, ',', '.') }}₫</strong>
-            </p>
+          <!-- Mã đơn hàng -->
+          <div>
+            <span class="text-neutral-400 text-[11px] block mb-0.5">Mã đơn hàng</span>
+            <strong class="font-mono text-neutral-900 text-sm font-bold tracking-wide">{{ $order->order_code }}</strong>
           </div>
-        @else
-          <div class="p-4 rounded-xl text-center bg-sky-50 border-2 border-dashed border-sky-300 space-y-1">
-            <span class="text-neutral-500 uppercase font-semibold text-[10px] block">Số tiền cần thanh toán</span>
-            <h2 class="font-serif-luxury text-2xl md:text-3xl font-bold text-neutral-950 font-mono">
-              {{ number_format($order->total_amount, 0, ',', '.') }}₫
-            </h2>
-            <span class="text-[10px] text-emerald-700 font-semibold block">Đã bao gồm VAT &amp; Phí vận chuyển</span>
-          </div>
-        @endif
 
-        <!-- Danh sách tóm tắt tác phẩm -->
-        <div class="p-4 bg-white rounded-xl border border-neutral-200">
-          <span class="text-neutral-400 uppercase font-semibold text-[10px] tracking-wider block mb-2">Tác phẩm đặt may ({{ $order->items->count() }})</span>
-          <div class="space-y-2 max-h-36 overflow-y-auto pr-1">
-            @foreach($order->items as $it)
-              <div class="flex items-center justify-between gap-2 text-[11px] text-neutral-600 pb-1.5 border-b border-neutral-100 last:border-0 last:pb-0">
-                <span class="truncate max-w-[180px] font-medium text-neutral-800">{{ $it->product_name }} <span class="text-neutral-400">×{{ $it->quantity }}</span></span>
-                <span class="font-semibold text-neutral-900 shrink-0">{{ number_format($it->subtotal ?? ($it->price * $it->quantity), 0, ',', '.') }}₫</span>
+          <!-- Mô tả -->
+          <div>
+            <span class="text-neutral-400 text-[11px] block mb-0.5">Mô tả</span>
+            <strong class="text-neutral-800 text-xs font-semibold block">
+              Thanh toán trực tuyến đơn hàng #{{ $order->order_code }}
+            </strong>
+          </div>
+
+          <!-- Số tiền -->
+          <div class="pt-1">
+            <span class="text-neutral-400 text-[11px] block mb-0.5">Số tiền</span>
+            <div class="font-serif-luxury text-3xl font-black text-neutral-950 font-mono tracking-tight">
+              {{ number_format($payAmount, 0, ',', '.') }}đ
+            </div>
+            @if($isDeposit)
+              <span class="inline-block mt-1 px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded text-[10px] font-bold">
+                TIỀN CỌC 50%
+              </span>
+            @endif
+          </div>
+
+          <!-- Khung đếm ngược hết hạn -->
+          <div class="p-4 bg-[#fff6ed] border border-[#fed7aa] rounded-2xl text-center space-y-2">
+            <span class="text-[#c2410c] font-bold text-[11px] block">Đơn hàng sẽ hết hạn sau:</span>
+            <div class="flex items-center justify-center gap-2">
+              <div class="flex items-center gap-1.5">
+                <span id="minBox" class="bg-[#fef3c7] text-[#92400e] px-3 py-1.5 rounded-lg font-mono font-black text-base shadow-2xs">09</span>
+                <span class="text-[11px] font-semibold text-[#92400e]">Phút</span>
               </div>
-            @endforeach
+              <div class="flex items-center gap-1.5">
+                <span id="secBox" class="bg-[#fef3c7] text-[#92400e] px-3 py-1.5 rounded-lg font-mono font-black text-base shadow-2xs">59</span>
+                <span class="text-[11px] font-semibold text-[#92400e]">Giây</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Hủy đơn & hoàn kho -->
-        <div class="pt-1 text-center">
-          <form action="{{ route('client.checkout.expire', $order->order_code) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này để hoàn trả số lượng sản phẩm về kho?')">
-            @csrf
-            <button type="submit" class="text-rose-600 hover:text-rose-800 text-xs font-semibold underline transition-colors">
-              Hủy giao dịch &amp; hoàn trả giỏ hàng
-            </button>
-          </form>
-        </div>
-
-      </div>
-
-      <!-- Cột phải: Mã QR VietQR & Chi tiết tài khoản (7 cols) -->
-      <div class="md:col-span-7 space-y-4">
-        
-        <!-- Tab selector chuyển đổi view QR / Ngân hàng -->
-        <div class="flex bg-neutral-100 p-1 rounded-xl gap-1">
-          <button type="button" id="tabBtnQr" onclick="switchOnlineTab('qr')" class="flex-1 py-2 rounded-lg text-xs font-semibold bg-white text-neutral-900 shadow-xs transition-all flex items-center justify-center gap-1.5">
-            <i data-lucide="qr-code" class="w-3.5 h-3.5 text-amber-700"></i> Quét Mã VietQR 24/7
+        <!-- Footer Links -->
+        <div class="pt-4 border-t border-neutral-200/80 space-y-2 text-center">
+          <button type="button" onclick="openSafeGuideModal()" class="text-blue-600 hover:text-blue-800 font-semibold text-xs transition-colors block mx-auto">
+            Hướng dẫn thanh toán an toàn
           </button>
-          <button type="button" id="tabBtnBank" onclick="switchOnlineTab('bank')" class="flex-1 py-2 rounded-lg text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-all flex items-center justify-center gap-1.5">
-            <i data-lucide="building-2" class="w-3.5 h-3.5"></i> Danh Sách Ngân Hàng
-          </button>
-        </div>
-
-        <!-- VIEW 1: QUÉT MÃ QR TECHCOMBANK NAPAS 247 -->
-        <div id="tabContentQr" class="p-6 bg-neutral-50 rounded-2xl border border-neutral-200 text-center space-y-4">
-          <div class="flex justify-between items-center px-1">
-            <span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-mono font-bold text-[10px]">
-              TECHCOMBANK NAPAS 247
-            </span>
-            <span class="text-emerald-700 font-semibold text-[11px] flex items-center gap-1">
-              <i data-lucide="radio" class="w-3 h-3 text-emerald-600"></i> Tự động khớp lệnh 24/7
-            </span>
-          </div>
-
-          <div class="inline-block bg-white p-3 rounded-2xl border border-neutral-300 shadow-sm">
-            <img src="{{ $vietQrUrl }}" alt="VietQR Techcombank Payment" class="w-56 h-56 object-contain mx-auto rounded-lg">
-          </div>
-          <p class="text-[11px] text-neutral-500">Mở ứng dụng ngân hàng bất kỳ (Techcombank, VCB, MB...) để quét mã tự động điền số tiền và nội dung.</p>
-
-          <!-- Chi tiết tài khoản dạng list trực quan -->
-          <div class="bg-white p-4 rounded-xl border border-neutral-200 text-left space-y-2 text-[11px]">
-            <div class="flex justify-between items-center pb-1.5 border-b border-neutral-100">
-              <span class="text-neutral-500">Ngân hàng:</span>
-              <strong class="text-neutral-900 font-semibold">Techcombank (TCB)</strong>
-            </div>
-            <div class="flex justify-between items-center pb-1.5 border-b border-neutral-100">
-              <span class="text-neutral-500">Chủ tài khoản:</span>
-              <strong class="text-neutral-900 font-bold tracking-wide">NGUYEN XUAN BAC</strong>
-            </div>
-            <div class="flex justify-between items-center pb-1.5 border-b border-neutral-100">
-              <span class="text-neutral-500">Số tài khoản:</span>
-              <div class="flex items-center gap-2">
-                <strong class="font-mono text-neutral-950 font-bold" id="accNumberVal">77427842310105</strong>
-                <button type="button" onclick="copyOnlineText('77427842310105', this)" class="px-2 py-0.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded font-semibold text-[10px] transition-colors">
-                  Copy
-                </button>
-              </div>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-neutral-500">Nội dung chuyển khoản:</span>
-              <div class="flex items-center gap-2">
-                <strong class="font-mono px-2 py-0.5 bg-amber-100 border border-amber-300 text-amber-900 rounded font-bold">
-                  {{ $order->order_code }}
-                </strong>
-                <button type="button" onclick="copyOnlineText('{{ $order->order_code }}', this)" class="px-2 py-0.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded font-semibold text-[10px] transition-colors">
-                  Copy
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- VIEW 2: DANH SÁCH NGÂN HÀNG HỖ TRỢ -->
-        <div id="tabContentBank" class="p-6 bg-neutral-50 rounded-2xl border border-neutral-200 hidden space-y-3">
-          <label class="font-semibold text-neutral-800 block text-xs">Các ngân hàng hỗ trợ quét VietQR liên thông:</label>
-          @php
-            $banks = [
-              ['name' => 'Techcombank', 'code' => 'TCB', 'bg' => 'bg-rose-600'],
-              ['name' => 'Vietcombank', 'code' => 'VCB', 'bg' => 'bg-emerald-700'],
-              ['name' => 'MB Bank', 'code' => 'MB', 'bg' => 'bg-blue-700'],
-              ['name' => 'VietinBank', 'code' => 'CTG', 'bg' => 'bg-sky-700'],
-              ['name' => 'BIDV', 'code' => 'BIDV', 'bg' => 'bg-teal-700'],
-              ['name' => 'ACB Bank', 'code' => 'ACB', 'bg' => 'bg-blue-600'],
-              ['name' => 'VPBank', 'code' => 'VPB', 'bg' => 'bg-emerald-600'],
-              ['name' => 'TPBank', 'code' => 'TPB', 'bg' => 'bg-purple-700'],
-            ];
-          @endphp
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            @foreach($banks as $b)
-              <div class="p-2.5 bg-white border border-neutral-200 rounded-xl text-center hover:border-neutral-400 transition-all cursor-pointer">
-                <span class="inline-block text-white px-2 py-0.5 rounded font-bold text-[10px] mb-1 {{ $b['bg'] }}">{{ $b['code'] }}</span>
-                <span class="block text-[11px] font-semibold text-neutral-800 truncate">{{ $b['name'] }}</span>
-              </div>
-            @endforeach
-          </div>
-          <div class="p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-900 text-[11px] flex items-center gap-2">
-            <i data-lucide="info" class="w-4 h-4 shrink-0 text-sky-600"></i>
-            <span>Chuyển tiền nhanh Napas 24/7 từ bất kỳ ứng dụng ngân hàng nào ở trên sẽ được kích hoạt đơn tức thì.</span>
-          </div>
-        </div>
-
-        <!-- Nút xác nhận thanh toán -->
-        <form action="{{ route('client.checkout.online.success', $order->order_code) }}" method="POST">
-          @csrf
-          <button type="submit" class="w-full py-3.5 bg-neutral-950 hover:bg-neutral-800 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-            <span>{{ $isDeposit ? 'Tôi Đã Chuyển Khoản 50% Tiền Cọc (Xác Nhận Ngay)' : 'Tôi Đã Chuyển Khoản Thành Công' }}</span>
-          </button>
-        </form>
-
-        <div class="text-center">
-          <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="text-neutral-500 hover:text-neutral-900 text-[11px] font-semibold transition-colors">
-            Kiểm tra trạng thái đơn hàng trên hệ thống &rarr;
+          <a href="{{ route('client.checkout') }}" class="text-blue-600 hover:text-blue-800 font-semibold text-xs transition-colors block">
+            Quay về
           </a>
         </div>
 
       </div>
 
+      <!-- ========================================================================= -->
+      <!-- CỘT PHẢI: THẺ NAPAS & FORM NHẬP TÀI KHOẢN DEVELOPER (7.5 cols) -->
+      <!-- ========================================================================= -->
+      <div class="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-6">
+        
+        <!-- Thanh chọn nhanh tài khoản test Developer hỗ trợ -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i>
+              Tài Khoản Thẻ Test Có Sẵn (Developer Sandbox):
+            </span>
+            <span class="text-[10px] font-mono bg-amber-50 text-amber-800 px-2 py-0.5 rounded font-bold border border-amber-200">
+              1-CLICK AUTOFILL
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button type="button" onclick="selectTestCard('saigonbank')" class="test-card-btn p-2 rounded-xl border border-pink-300 bg-pink-50/60 hover:bg-pink-100 text-left transition-all text-[11px] focus:ring-2 focus:ring-pink-500">
+              <strong class="text-pink-950 font-bold block text-[11px]">Saigonbank Napas</strong>
+              <span class="text-neutral-500 font-mono text-[10px]">...0018 (Mặc định)</span>
+            </button>
+            <button type="button" onclick="selectTestCard('vietcombank')" class="test-card-btn p-2 rounded-xl border border-neutral-200 hover:border-pink-300 hover:bg-neutral-50 text-left transition-all text-[11px] focus:ring-2 focus:ring-pink-500">
+              <strong class="text-neutral-800 font-bold block text-[11px]">Vietcombank Connect</strong>
+              <span class="text-neutral-500 font-mono text-[10px]">...0001 (Test OTP)</span>
+            </button>
+            <button type="button" onclick="selectTestCard('techcombank')" class="test-card-btn p-2 rounded-xl border border-neutral-200 hover:border-pink-300 hover:bg-neutral-50 text-left transition-all text-[11px] focus:ring-2 focus:ring-pink-500">
+              <strong class="text-neutral-800 font-bold block text-[11px]">Techcombank Debit</strong>
+              <span class="text-neutral-500 font-mono text-[10px]">...0002 (Test OTP)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- MÔ PHỎNG THẺ ATM / NAPAS (REALISTIC PINK CARD) -->
+        <div class="flex justify-center my-2">
+          <div id="visualCard" class="w-full max-w-[340px] h-[190px] rounded-2xl p-5 text-white shadow-xl relative overflow-hidden flex flex-col justify-between transition-all duration-300"
+               style="background: linear-gradient(135deg, #d82d8b 0%, #b81772 50%, #8f0653 100%);">
+            
+            <!-- Họa tiết lượn sóng mờ trên thẻ -->
+            <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 rounded-full border-4 border-white/10 pointer-events-none"></div>
+
+            <!-- Top Row: Bank Name + Chip -->
+            <div class="flex justify-between items-start relative z-10">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center p-1 backdrop-blur-xs">
+                  <i data-lucide="landmark" class="w-3.5 h-3.5 text-white"></i>
+                </div>
+                <span id="cardBankDisplay" class="font-bold text-sm tracking-wide text-white drop-shadow-xs">Saigonbank</span>
+              </div>
+              <span class="text-[9px] font-mono tracking-widest text-pink-200 uppercase">DEBIT CARD</span>
+            </div>
+
+            <!-- Middle Row: EMV Chip + Last 4 Digits -->
+            <div class="flex items-center justify-between my-auto relative z-10">
+              <div class="w-9 h-7 rounded bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400 border border-amber-500/50 shadow-inner flex items-center justify-center">
+                <div class="w-full h-[1px] bg-amber-600/40"></div>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-pink-200 block tracking-widest leading-none">•••• •••• ••••</span>
+                <span id="cardLastDigitsDisplay" class="font-mono text-xl font-bold tracking-widest drop-shadow-xs">0018</span>
+              </div>
+            </div>
+
+            <!-- Bottom Row: Cardholder Name, Valid Date & Napas Logo -->
+            <div class="flex justify-between items-end relative z-10 pt-1">
+              <div>
+                <span class="text-[8px] uppercase tracking-wider text-pink-200 block leading-none mb-0.5">VALID FROM: <span id="cardDateDisplay" class="font-mono text-white text-[10px] font-bold">03/07</span></span>
+                <span id="cardHolderDisplay" class="font-mono text-xs font-bold tracking-wider uppercase truncate max-w-[170px] block text-white drop-shadow-xs">NGUYEN VAN A</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="font-sans font-black italic text-base tracking-tighter text-white drop-shadow-sm">napas<span class="text-amber-300">»</span></span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- FORM NHẬP THÔNG TIN THẺ -->
+        <form id="onlineCardForm" onsubmit="handleOnlineSubmit(event)" class="space-y-4 text-xs">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            
+            <!-- Số thẻ -->
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-neutral-700 mb-1">
+                Số thẻ
+              </label>
+              <div class="relative">
+                <input type="text" id="inputCardNumber" name="card_number" value="9704 0000 0000 0018" required
+                       placeholder="9704 xxxx xxxx xxxx"
+                       oninput="onCardNumberChange(this)"
+                       class="w-full bg-[#f8fafc] border border-neutral-300 rounded-xl px-3.5 py-2.5 font-mono text-xs text-neutral-900 focus:outline-none focus:border-pink-600 focus:bg-white transition-all pr-8">
+                <span id="checkCardNumber" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-sm">✓</span>
+              </div>
+            </div>
+
+            <!-- Ngày phát hành -->
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-neutral-700 mb-1">
+                Ngày phát hành
+              </label>
+              <div class="relative">
+                <input type="text" id="inputCardDate" name="card_date" value="03/07" required
+                       placeholder="MM/YY"
+                       oninput="onCardDateChange(this)"
+                       class="w-full bg-[#f8fafc] border border-neutral-300 rounded-xl px-3.5 py-2.5 font-mono text-xs text-neutral-900 focus:outline-none focus:border-pink-600 focus:bg-white transition-all pr-8">
+                <span id="checkCardDate" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-sm">✓</span>
+              </div>
+            </div>
+
+            <!-- Tên chủ thẻ -->
+            <div class="relative">
+              <label class="block text-[11px] font-semibold text-neutral-700 mb-1">
+                Tên chủ thẻ
+              </label>
+              <div class="relative">
+                <input type="text" id="inputCardHolder" name="card_holder" value="NGUYEN VAN A" required
+                       placeholder="NGUYEN VAN A"
+                       oninput="onCardHolderChange(this)"
+                       class="w-full bg-[#f8fafc] border border-neutral-300 rounded-xl px-3.5 py-2.5 font-mono text-xs uppercase text-neutral-900 focus:outline-none focus:border-pink-600 focus:bg-white transition-all pr-8">
+                <span id="checkCardHolder" class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-sm">✓</span>
+              </div>
+            </div>
+
+            <!-- Số điện thoại -->
+            <div class="relative">
+              <label class="flex items-center gap-1 text-[11px] font-semibold text-neutral-700 mb-1">
+                Số điện thoại
+                <span title="Số điện thoại nhận mã OTP xác thực" class="text-neutral-400 cursor-help">(?)</span>
+              </label>
+              <div class="relative">
+                <input type="tel" id="inputCardPhone" name="card_phone" value="0968238770" required
+                       placeholder="0987654321"
+                       class="w-full bg-[#f8fafc] border border-neutral-300 rounded-xl px-3.5 py-2.5 font-mono text-xs text-neutral-900 focus:outline-none focus:border-pink-600 focus:bg-white transition-all pr-8">
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-sm">✓</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Nút Thanh Toán -->
+          <div class="pt-2">
+            <button type="submit" id="btnPaySubmit" class="w-full py-3.5 bg-[#d82d8b] hover:bg-[#c2187a] active:bg-[#a50064] text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+              <span id="btnPaySpinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span id="btnPayText">Thanh Toán</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Ngân hàng chấp nhận thanh toán -->
+        <div class="pt-3 border-t border-neutral-200/80 text-center space-y-2">
+          <span class="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold block">
+            Ngân hàng chấp nhận thanh toán Napas &amp; MoMo Gateway
+          </span>
+          <div class="flex flex-wrap items-center justify-center gap-2 opacity-80">
+            <span class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-bold text-[9px] text-neutral-700">NAPAS</span>
+            <span class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-bold text-[9px] text-neutral-700">SAIGONBANK</span>
+            <span class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-bold text-[9px] text-neutral-700">VIETCOMBANK</span>
+            <span class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-bold text-[9px] text-neutral-700">TECHCOMBANK</span>
+            <span class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-bold text-[9px] text-neutral-700">MB BANK</span>
+            <span class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-bold text-[9px] text-neutral-700">BIDV</span>
+            <span class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 rounded font-bold text-[9px] text-neutral-700">VIETINBANK</span>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
   </div>
-</main>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL XÁC THỰC MÃ OTP (ONLINE DEVELOPER SANDBOX OTP MODAL) -->
+<!-- ========================================================================= -->
+<div id="onlineOtpModal" class="fixed inset-0 z-50 bg-neutral-950/60 backdrop-blur-xs flex items-center justify-center p-4 hidden animate-fade-in">
+  <div class="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-neutral-200 space-y-5 text-center relative">
+    
+    <!-- Icon Sandbox OTP -->
+    <div class="w-14 h-14 mx-auto rounded-2xl bg-pink-100 text-[#a50064] flex items-center justify-center shadow-inner">
+      <i data-lucide="shield-check" class="w-8 h-8"></i>
+    </div>
+
+    <div>
+      <h3 class="font-bold text-lg text-neutral-900">Xác Thực Giao Dịch Sandbox</h3>
+      <p class="text-xs text-neutral-500 mt-1">
+        Mã xác thực OTP giả lập đã được gửi đến số <strong id="modalPhoneText" class="font-mono text-neutral-900">0968***770</strong>
+      </p>
+    </div>
+
+    <!-- OTP Input Box -->
+    <div class="p-4 bg-pink-50/60 border border-pink-200 rounded-2xl space-y-3">
+      <span class="text-[11px] text-neutral-600 block">
+        Mã OTP Developer Sandbox mặc định: <strong class="font-mono text-[#a50064] font-bold text-sm">000000</strong>
+      </span>
+      <input type="text" id="otpCodeInput" value="000000" maxlength="6"
+             class="w-full text-center font-mono text-2xl font-bold tracking-[0.4em] py-2.5 bg-white border border-pink-300 rounded-xl focus:outline-none focus:border-[#a50064] text-neutral-900">
+    </div>
+
+    <!-- Nút Xác Nhận Thành Công -->
+    <form action="{{ route('client.checkout.online.success', $order->order_code) }}" method="POST">
+      @csrf
+      <button type="submit" class="w-full py-3.5 bg-[#d82d8b] hover:bg-[#c2187a] active:bg-[#a50064] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+        <i data-lucide="check" class="w-4 h-4"></i>
+        <span>Xác Nhận Thanh Toán Thành Công</span>
+      </button>
+    </form>
+
+    <!-- Nút Giả lập Thất Bại / Hủy -->
+    <form action="{{ route('client.checkout.online.failed', $order->order_code) }}" method="POST">
+      @csrf
+      <button type="submit" class="w-full py-2.5 text-neutral-500 hover:text-rose-600 font-semibold text-xs transition-colors">
+        Giả lập nhập sai OTP / Hủy giao dịch (Mã lỗi: 105)
+      </button>
+    </form>
+
+    <!-- Close button -->
+    <button type="button" onclick="closeOnlineOtpModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-700">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL HƯỚNG DẪN THANH TOÁN AN TOÀN -->
+<!-- ========================================================================= -->
+<div id="safeGuideModal" class="fixed inset-0 z-50 bg-neutral-950/60 backdrop-blur-xs flex items-center justify-center p-4 hidden animate-fade-in">
+  <div class="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-neutral-200 space-y-4 text-xs relative">
+    <div class="flex items-center gap-2.5 pb-3 border-b border-neutral-200">
+      <i data-lucide="shield-alert" class="w-5 h-5 text-emerald-600"></i>
+      <h3 class="font-bold text-sm text-neutral-900">Hướng Dẫn Thanh Toán An Toàn</h3>
+    </div>
+    <div class="space-y-2.5 text-neutral-600 text-[11px] leading-relaxed">
+      <p>• Đây là cổng thanh toán <strong>Developer Sandbox Simulator</strong> mô phỏng trực tiếp quy trình thanh toán thẻ ATM / Napas.</p>
+      <p>• Quý khách có thể sử dụng các tài khoản test có sẵn (Saigonbank, Vietcombank, Techcombank) để kiểm thử luồng giao dịch mà không mất bất kỳ chi phí thực tế nào.</p>
+      <p>• Mã OTP kiểm thử luôn là <strong class="font-mono text-neutral-900">000000</strong> hoặc <strong class="font-mono text-neutral-900">123456</strong>.</p>
+    </div>
+    <button type="button" onclick="closeSafeGuideModal()" class="w-full py-2.5 bg-neutral-900 text-white font-semibold rounded-xl hover:bg-neutral-800 transition-colors">
+      Đã Hiểu
+    </button>
+    <button type="button" onclick="closeSafeGuideModal()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-700">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
-  // Đếm ngược 10 phút
+  // Dữ liệu tài khoản test có sẵn của Developer Sandbox
+  const TEST_CARDS = {
+    saigonbank: {
+      bank: 'Saigonbank',
+      number: '9704 0000 0000 0018',
+      date: '03/07',
+      holder: 'NGUYEN VAN A',
+      phone: '0968238770',
+      lastDigits: '0018'
+    },
+    vietcombank: {
+      bank: 'Vietcombank',
+      number: '9704 3600 0000 0001',
+      date: '03/07',
+      holder: 'NGUYEN VAN B',
+      phone: '0912345678',
+      lastDigits: '0001'
+    },
+    techcombank: {
+      bank: 'Techcombank',
+      number: '9704 0700 0000 0002',
+      date: '03/07',
+      holder: 'NGUYEN VAN C',
+      phone: '0987654321',
+      lastDigits: '0002'
+    }
+  };
+
+  // Chọn nhanh tài khoản test
+  function selectTestCard(type) {
+    const data = TEST_CARDS[type];
+    if (!data) return;
+
+    // Fill form
+    document.getElementById('inputCardNumber').value = data.number;
+    document.getElementById('inputCardDate').value = data.date;
+    document.getElementById('inputCardHolder').value = data.holder;
+    document.getElementById('inputCardPhone').value = data.phone;
+
+    // Update Visual Card
+    document.getElementById('cardBankDisplay').textContent = data.bank;
+    document.getElementById('cardLastDigitsDisplay').textContent = data.lastDigits;
+    document.getElementById('cardDateDisplay').textContent = data.date;
+    document.getElementById('cardHolderDisplay').textContent = data.holder;
+
+    // Active button style
+    document.querySelectorAll('.test-card-btn').forEach(btn => {
+      btn.classList.remove('border-pink-300', 'bg-pink-50/60');
+      btn.classList.add('border-neutral-200');
+    });
+    event.currentTarget.classList.add('border-pink-300', 'bg-pink-50/60');
+    event.currentTarget.classList.remove('border-neutral-200');
+  }
+
+  // Live updates
+  function onCardNumberChange(input) {
+    let val = input.value.replace(/\D/g, '');
+    let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+    input.value = formatted;
+
+    const digits = val.slice(-4) || '0018';
+    document.getElementById('cardLastDigitsDisplay').textContent = digits;
+  }
+
+  function onCardDateChange(input) {
+    document.getElementById('cardDateDisplay').textContent = input.value || '03/07';
+  }
+
+  function onCardHolderChange(input) {
+    input.value = input.value.toUpperCase();
+    document.getElementById('cardHolderDisplay').textContent = input.value || 'NGUYEN VAN A';
+  }
+
+  // Handle Form Submit -> Mở OTP Modal
+  function handleOnlineSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnPaySubmit');
+    const spinner = document.getElementById('btnPaySpinner');
+    const text = document.getElementById('btnPayText');
+
+    spinner.classList.remove('hidden');
+    text.textContent = 'Đang xử lý...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      spinner.classList.add('hidden');
+      text.textContent = 'Thanh Toán';
+      btn.disabled = false;
+
+      // Update phone in modal
+      const phone = document.getElementById('inputCardPhone').value;
+      const maskedPhone = phone.length >= 6 ? phone.slice(0, 4) + '***' + phone.slice(-3) : phone;
+      document.getElementById('modalPhoneText').textContent = maskedPhone;
+
+      // Open Modal
+      document.getElementById('onlineOtpModal').classList.remove('hidden');
+    }, 600);
+  }
+
+  function closeOnlineOtpModal() {
+    document.getElementById('onlineOtpModal').classList.add('hidden');
+  }
+
+  function openSafeGuideModal() {
+    document.getElementById('safeGuideModal').classList.remove('hidden');
+  }
+
+  function closeSafeGuideModal() {
+    document.getElementById('safeGuideModal').classList.add('hidden');
+  }
+
+  // Countdown timer 10 phút
   let sec = 599;
   const timer = setInterval(() => {
     sec--;
     if (sec <= 0) {
       clearInterval(timer);
-      const cdEl = document.getElementById('onlineCountdown');
-      if (cdEl) cdEl.textContent = '00:00';
+      document.getElementById('minBox').textContent = '00';
+      document.getElementById('secBox').textContent = '00';
       return;
     }
     const m = String(Math.floor(sec / 60)).padStart(2, '0');
     const s = String(sec % 60).padStart(2, '0');
-    const cdEl = document.getElementById('onlineCountdown');
-    if (cdEl) cdEl.textContent = `${m}:${s}`;
+    document.getElementById('minBox').textContent = m;
+    document.getElementById('secBox').textContent = s;
   }, 1000);
-
-  // Chuyển tab giữa mã QR và danh sách Bank
-  function switchOnlineTab(tab) {
-    const qrContent = document.getElementById('tabContentQr');
-    const bankContent = document.getElementById('tabContentBank');
-    const btnQr = document.getElementById('tabBtnQr');
-    const btnBank = document.getElementById('tabBtnBank');
-
-    if (tab === 'bank') {
-      qrContent?.classList.add('hidden');
-      bankContent?.classList.remove('hidden');
-      btnBank?.classList.add('bg-white', 'text-neutral-900', 'shadow-xs');
-      btnBank?.classList.remove('text-neutral-500');
-      btnQr?.classList.remove('bg-white', 'text-neutral-900', 'shadow-xs');
-      btnQr?.classList.add('text-neutral-500');
-    } else {
-      bankContent?.classList.add('hidden');
-      qrContent?.classList.remove('hidden');
-      btnQr?.classList.add('bg-white', 'text-neutral-900', 'shadow-xs');
-      btnQr?.classList.remove('text-neutral-500');
-      btnBank?.classList.remove('bg-white', 'text-neutral-900', 'shadow-xs');
-      btnBank?.classList.add('text-neutral-500');
-    }
-  }
-
-  // Copy nhanh
-  function copyOnlineText(text, btn) {
-    navigator.clipboard.writeText(text).then(() => {
-      const orig = btn.textContent;
-      btn.textContent = 'Đã chép!';
-      setTimeout(() => { btn.textContent = orig; }, 1500);
-    });
-  }
 
   document.addEventListener('DOMContentLoaded', () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();

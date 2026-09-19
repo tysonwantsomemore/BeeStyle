@@ -24,6 +24,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Xóa sạch dữ liệu cũ để tránh trùng lặp dữ liệu và unique constraint
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
+        UserAddress::truncate();
+        Review::truncate();
+        OrderItem::truncate();
+        Order::truncate();
+        Coupon::truncate();
+        ProductVariant::truncate();
+        ProductImage::truncate();
+        \App\Models\DailyDeal::truncate();
+        Product::truncate();
+        Category::truncate();
+        Brand::truncate();
+        User::truncate();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+
         // 1. TÀI KHOẢN QUẢN TRỊ VIÊN (ADMIN), NHÂN VIÊN & KHÁCH HÀNG MẪU
         $admin = User::create([
             'name' => 'Quản Trị Viên BeeStyle',
@@ -363,6 +379,108 @@ class DatabaseSeeder extends Seeder
             $brd = $catGroup['brand'];
 
             foreach ($catGroup['items'] as $index => $item) {
+                // Cấu hình ảnh và biến thể màu sắc chuẩn xác 100% theo từng danh mục
+                $catId = $cat->id;
+                if ($catId === $catPolo->id) {
+                    $variantColors = [
+                        1 => ['name' => 'Đen', 'hex' => '#111827', 'img' => '/assets/img/products/polo/polo_black.jpg'],
+                        2 => ['name' => 'Trắng', 'hex' => '#ffffff', 'img' => '/assets/img/products/polo/polo_white.jpg'],
+                        3 => ['name' => 'Xanh Navy', 'hex' => '#1e3a8a', 'img' => '/assets/img/products/polo/polo_navy.jpg'],
+                        4 => ['name' => 'Xám Ghi', 'hex' => '#64748b', 'img' => '/assets/img/products/polo/polo_grey.jpg'],
+                    ];
+                    $gallerySet = [
+                        $item['img'],
+                        '/assets/img/products/polo/polo_black.jpg',
+                        '/assets/img/products/polo/polo_white.jpg',
+                        '/assets/img/products/polo/polo_navy.jpg',
+                        '/assets/img/products/polo/polo_grey.jpg',
+                        '/assets/img/products/polo/polo_detail_collar.jpg',
+                        '/assets/img/products/polo/polo_detail_fabric.jpg',
+                        '/assets/img/products/polo/polo_detail_back.jpg',
+                    ];
+                } elseif ($catId === $catShirt->id) {
+                    $variantColors = [
+                        1 => ['name' => 'Trắng', 'hex' => '#ffffff', 'img' => '/assets/img/products/somi/somi_white.jpg'],
+                        2 => ['name' => 'Đen', 'hex' => '#111827', 'img' => '/assets/img/products/somi/somi_black.jpg'],
+                        3 => ['name' => 'Xanh Pastel', 'hex' => '#93c5fd', 'img' => '/assets/img/products/somi/somi_blue.jpg'],
+                        4 => ['name' => 'Xám Ghi', 'hex' => '#4b5563', 'img' => '/assets/img/products/somi/somi_grey.jpg'],
+                    ];
+                    $gallerySet = [
+                        $item['img'],
+                        '/assets/img/products/somi/somi_white.jpg',
+                        '/assets/img/products/somi/somi_black.jpg',
+                        '/assets/img/products/somi/somi_blue.jpg',
+                        '/assets/img/products/somi/somi_grey.jpg',
+                        '/assets/img/products/somi/somi_detail_collar.jpg',
+                        '/assets/img/products/somi/somi_detail_cuff.jpg',
+                        '/assets/img/products/somi/somi_detail_fabric.jpg',
+                    ];
+                } elseif ($catId === $catTshirt->id) {
+                    $variantColors = [
+                        1 => ['name' => 'Đen', 'hex' => '#111827', 'img' => '/assets/img/products/tshirt/tshirt_black.jpg'],
+                        2 => ['name' => 'Trắng', 'hex' => '#ffffff', 'img' => '/assets/img/products/thun/thun_white.jpg'],
+                        3 => ['name' => 'Xanh Navy', 'hex' => '#1e3a8a', 'img' => '/assets/img/products/thun/thun_navy.jpg'],
+                        4 => ['name' => 'Xám Ghi', 'hex' => '#64748b', 'img' => '/assets/img/products/thun/thun_grey.jpg'],
+                    ];
+                    $gallerySet = [
+                        $item['img'],
+                        '/assets/img/products/tshirt/tshirt_black.jpg',
+                        '/assets/img/products/thun/thun_white.jpg',
+                        '/assets/img/products/thun/thun_navy.jpg',
+                        '/assets/img/products/thun/thun_grey.jpg',
+                        '/assets/img/products/tshirt/tshirt_detail_fabric.jpg',
+                        '/assets/img/products/tshirt/tshirt_detail_back.jpg',
+                    ];
+                } elseif ($catId === $catBlazer->id) {
+                    $variantColors = [
+                        1 => ['name' => 'Đen', 'hex' => '#111827', 'img' => '/assets/img/products/outerwear/blazer_black.jpg'],
+                        2 => ['name' => 'Xanh Navy', 'hex' => '#1e3a8a', 'img' => '/assets/img/products/outerwear/blazer_navy.jpg'],
+                        3 => ['name' => 'Xám Ghi', 'hex' => '#4b5563', 'img' => '/assets/img/products/outerwear/blazer_grey.jpg'],
+                        4 => ['name' => 'Be Khaki', 'hex' => '#d4b996', 'img' => '/assets/img/products/outerwear/blazer_beige.jpg'],
+                    ];
+                    $gallerySet = [
+                        $item['img'],
+                        '/assets/img/products/outerwear/blazer_black.jpg',
+                        '/assets/img/products/outerwear/blazer_navy.jpg',
+                        '/assets/img/products/outerwear/blazer_grey.jpg',
+                        '/assets/img/products/outerwear/blazer_beige.jpg',
+                        '/assets/img/products/outerwear/jacket_leather.jpg',
+                        '/assets/img/products/outerwear/jacket_bomber.jpg',
+                    ];
+                } elseif ($catId === $catThun->id) {
+                    $variantColors = [
+                        1 => ['name' => 'Đen', 'hex' => '#111827', 'img' => '/assets/img/products/thun/thun_black.jpg'],
+                        2 => ['name' => 'Trắng', 'hex' => '#ffffff', 'img' => '/assets/img/products/thun/thun_white.jpg'],
+                        3 => ['name' => 'Xám Ghi', 'hex' => '#64748b', 'img' => '/assets/img/products/thun/thun_grey.jpg'],
+                        4 => ['name' => 'Xanh Navy', 'hex' => '#1e3a8a', 'img' => '/assets/img/products/thun/thun_navy.jpg'],
+                    ];
+                    $gallerySet = [
+                        $item['img'],
+                        '/assets/img/products/thun/thun_black.jpg',
+                        '/assets/img/products/thun/thun_white.jpg',
+                        '/assets/img/products/thun/thun_grey.jpg',
+                        '/assets/img/products/thun/thun_navy.jpg',
+                        '/assets/img/products/thun/thun_olive.jpg',
+                    ];
+                } else {
+                    $variantColors = [
+                        1 => ['name' => 'Đen', 'hex' => '#111827', 'img' => '/assets/img/products/hoodie/hoodie_black.jpg'],
+                        2 => ['name' => 'Xám Tiêu', 'hex' => '#6b7280', 'img' => '/assets/img/products/hoodie/hoodie_grey.jpg'],
+                        3 => ['name' => 'Be Cát', 'hex' => '#d4b996', 'img' => '/assets/img/products/hoodie/hoodie_beige.jpg'],
+                        4 => ['name' => 'Xanh Navy', 'hex' => '#1e3a8a', 'img' => '/assets/img/products/hoodie/hoodie_navy.jpg'],
+                    ];
+                    $gallerySet = [
+                        $item['img'],
+                        '/assets/img/products/hoodie/hoodie_black.jpg',
+                        '/assets/img/products/hoodie/hoodie_grey.jpg',
+                        '/assets/img/products/hoodie/hoodie_beige.jpg',
+                        '/assets/img/products/hoodie/hoodie_navy.jpg',
+                        '/assets/img/products/hoodie/hoodie_charcoal.jpg',
+                    ];
+                }
+
+                $colorNames = array_values(array_unique(array_map(fn($c) => $c['name'], $variantColors)));
+
                 $p = Product::create([
                     'category_id' => $cat->id,
                     'brand_id' => $brd->id,
@@ -379,7 +497,7 @@ class DatabaseSeeder extends Seeder
                     'image' => $item['img'],
                     'short_description' => "Mẫu {$item['name']} cao cấp từ BeeStyle, chất liệu sợi tự nhiên thoáng mát, co giãn đàn hồi cao, đường may tỉ mỉ.",
                     'description' => "<p><strong>{$item['name']}</strong> là sự lựa chọn hàng đầu cho phái mạnh hiện đại. Được may tỉ mỉ với đường chỉ đôi sắc sảo, chống xù lông và giữ phom dáng chuẩn mực suốt ngày dài.</p>",
-                    'colors' => ['Đen', 'Trắng', 'Xanh Navy', 'Xám Ghi'],
+                    'colors' => $colorNames,
                     'sizes' => ['S', 'M', 'L', 'XL', 'XXL'],
                     'specifications' => [
                         'Chất liệu' => 'Cotton Compact / Sợi Organic tự nhiên cao cấp',
@@ -393,20 +511,17 @@ class DatabaseSeeder extends Seeder
                     'status' => 'active',
                 ]);
 
-                // Lưu ảnh chính vào bảng ProductImage
-                ProductImage::create([
-                    'product_id' => $p->id,
-                    'image_path' => $p->image,
-                    'sort_order' => 1,
-                ]);
+                // Lưu danh sách ảnh Gallery vào bảng ProductImage (loại bỏ ảnh trùng)
+                $uniqueGallery = array_values(array_unique($gallerySet));
+                foreach ($uniqueGallery as $sortOrder => $imgPath) {
+                    ProductImage::create([
+                        'product_id' => $p->id,
+                        'image_path' => $imgPath,
+                        'sort_order' => $sortOrder + 1,
+                    ]);
+                }
 
-                // Tạo các biến thể màu sắc và kích cỡ (ProductVariants)
-                $variantColors = [
-                    1 => ['name' => 'Đen', 'hex' => '#111827'],
-                    2 => ['name' => 'Trắng', 'hex' => '#ffffff'],
-                    3 => ['name' => 'Xanh Navy', 'hex' => '#1e3a8a'],
-                    4 => ['name' => 'Xám Ghi', 'hex' => '#64748b'],
-                ];
+                // Tạo các biến thể màu sắc và kích cỡ (ProductVariants) với ảnh chuẩn 100% theo màu
                 $variantSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
                 foreach ($variantColors as $cIdx => $cVal) {
@@ -420,7 +535,7 @@ class DatabaseSeeder extends Seeder
                             'price' => $p->price,
                             'original_price' => $p->original_price,
                             'stock' => rand(10, 35),
-                            'image' => $p->image,
+                            'image' => $cVal['img'],
                             'status' => 'active',
                         ]);
                     }

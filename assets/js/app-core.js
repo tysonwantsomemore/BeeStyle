@@ -1102,6 +1102,15 @@ window.BeeCore = {
   },
 
   openAuthModal: function(mode = 'login') {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+      this.setAuthMode(mode);
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+      return;
+    }
+
+    // Fallback if rendered on Laravel backend
     if (mode === 'register') {
       window.location.href = '/dang-ky';
     } else {
@@ -1109,25 +1118,63 @@ window.BeeCore = {
     }
   },
 
+  closeAuthModal: function() {
+    document.getElementById('auth-modal')?.classList.add('hidden');
+  },
+
+  setAuthMode: function(mode = 'login') {
+    const tabLogin = document.getElementById('auth-tab-btn-login');
+    const tabRegister = document.getElementById('auth-tab-btn-register');
+    const paneLogin = document.getElementById('auth-pane-login');
+    const paneRegister = document.getElementById('auth-pane-register');
+    const titleEl = document.getElementById('auth-modal-title');
+
+    if (mode === 'login') {
+      tabLogin?.classList.add('border-neutral-900', 'text-neutral-900', 'font-bold');
+      tabLogin?.classList.remove('border-transparent', 'text-neutral-500');
+      tabRegister?.classList.remove('border-neutral-900', 'text-neutral-900', 'font-bold');
+      tabRegister?.classList.add('border-transparent', 'text-neutral-500');
+      paneLogin?.classList.remove('hidden');
+      paneRegister?.classList.add('hidden');
+      if (titleEl) titleEl.innerText = 'Đăng Nhập Tài Khoản';
+    } else {
+      tabRegister?.classList.add('border-neutral-900', 'text-neutral-900', 'font-bold');
+      tabRegister?.classList.remove('border-transparent', 'text-neutral-500');
+      tabLogin?.classList.remove('border-neutral-900', 'text-neutral-900', 'font-bold');
+      tabLogin?.classList.add('border-transparent', 'text-neutral-500');
+      paneRegister?.classList.remove('hidden');
+      paneLogin?.classList.add('hidden');
+      if (titleEl) titleEl.innerText = 'Đăng Ký Thành Viên Mới';
+    }
+    lucide.createIcons();
+  },
+
+  fillDemoAccount: function(email = 'customer@beestyle.vn', pass = '123456') {
+    const emailInp = document.getElementById('auth-email');
+    const passInp = document.getElementById('auth-password');
+    if (emailInp) emailInp.value = email;
+    if (passInp) passInp.value = pass;
+    this.submitAuth();
+  },
+
   submitAuth: function(e) {
     e?.preventDefault();
     const email = document.getElementById('auth-email')?.value?.trim() || 'customer@beestyle.vn';
-    const fullname = document.getElementById('auth-fullname')?.value?.trim() || 'Nguyễn Văn An';
     const password = document.getElementById('auth-password')?.value || '123456';
 
-    const defaultUser = BeeDB.users.find(u => u.email === email) || BeeDB.users[0];
+    const defaultUser = BeeDB.users.find(u => u.email === email || u.phone_number === email || u.phone === email) || BeeDB.users[0];
 
     this.currentUser = {
       ...defaultUser,
-      fullname: fullname || defaultUser.fullname,
-      email: email || defaultUser.email,
-      phone: defaultUser.phone_number || '0988776655',
-      phone_number: defaultUser.phone_number || '0988776655',
+      fullname: defaultUser.fullname || 'Nguyễn Văn An',
+      email: defaultUser.email || email,
+      phone: defaultUser.phone_number || defaultUser.phone || '0988776655',
+      phone_number: defaultUser.phone_number || defaultUser.phone || '0988776655',
       gender: defaultUser.gender || 'male',
       birthday: defaultUser.birthday || '1995-08-15',
       address: defaultUser.address || '88 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
       bank_name: defaultUser.bank_name || 'Vietcombank',
-      user_bank_name: defaultUser.user_bank_name || (fullname || 'NGUYEN VAN AN').toUpperCase(),
+      user_bank_name: defaultUser.user_bank_name || (defaultUser.fullname || 'NGUYEN VAN AN').toUpperCase(),
       bank_account: defaultUser.bank_account || '0071001234567',
       tier: defaultUser.tier || 'VIP Gold',
       points: defaultUser.points || 1250,
@@ -1137,6 +1184,7 @@ window.BeeCore = {
 
     this.saveUser();
     this.closeAuthModal();
+    this.renderAuthStatus();
     this.showToast(`Chào mừng ${this.currentUser.fullname} đã đăng nhập!`);
 
     // Re-render components across active views if applicable
@@ -1146,14 +1194,69 @@ window.BeeCore = {
     if (typeof ShopPage !== 'undefined' && ShopPage.renderProducts) {
       ShopPage.renderProducts();
     }
-    if (typeof ProductDetail !== 'undefined' && ProductDetail.updateFavIcon) {
-      ProductDetail.updateFavIcon();
+    if (typeof ProductPage !== 'undefined' && ProductPage.updateFavIcon) {
+      ProductPage.updateFavIcon();
+    }
+  },
+
+  submitRegister: function(e) {
+    e?.preventDefault();
+    const fullname = document.getElementById('register-fullname')?.value?.trim();
+    const email = document.getElementById('register-email')?.value?.trim();
+    const phone = document.getElementById('register-phone')?.value?.trim();
+    const pwd = document.getElementById('register-password')?.value;
+    const pwdConfirm = document.getElementById('register-password-confirm')?.value;
+
+    if (!fullname || !email || !phone || !pwd) {
+      this.showToast('Vui lòng điền đầy đủ các trường thông tin!', 'error');
+      return;
+    }
+
+    if (pwd !== pwdConfirm) {
+      this.showToast('Mật khẩu xác nhận không trùng khớp!', 'error');
+      return;
+    }
+
+    const newUser = {
+      id: Date.now(),
+      fullname: fullname,
+      email: email,
+      phone: phone,
+      phone_number: phone,
+      password: pwd,
+      gender: 'male',
+      birthday: '1998-01-01',
+      address: 'TP. Hồ Chí Minh',
+      bank_name: 'Vietcombank',
+      user_bank_name: fullname.toUpperCase(),
+      bank_account: '0071001234567',
+      tier: 'Thành viên Mới',
+      points: 100,
+      is_change_password: 0
+    };
+
+    BeeDB.users.push(newUser);
+    this.currentUser = newUser;
+    this.saveUser();
+    this.closeAuthModal();
+    this.renderAuthStatus();
+    this.showToast(`Đăng ký thành công! Chào mừng ${fullname} đến với Beestyle Atelier.`);
+
+    if (typeof CheckoutPage !== 'undefined' && CheckoutPage.init) {
+      CheckoutPage.init();
+    }
+    if (typeof ShopPage !== 'undefined' && ShopPage.renderProducts) {
+      ShopPage.renderProducts();
+    }
+    if (typeof ProductPage !== 'undefined' && ProductPage.updateFavIcon) {
+      ProductPage.updateFavIcon();
     }
   },
 
   logout: function() {
     this.currentUser = null;
     this.saveUser();
+    this.renderAuthStatus();
     this.showToast('Bạn đã đăng xuất tài khoản.');
 
     // Re-render components across active views if applicable
@@ -1163,8 +1266,8 @@ window.BeeCore = {
     if (typeof ShopPage !== 'undefined' && ShopPage.renderProducts) {
       ShopPage.renderProducts();
     }
-    if (typeof ProductDetail !== 'undefined' && ProductDetail.updateFavIcon) {
-      ProductDetail.updateFavIcon();
+    if (typeof ProductPage !== 'undefined' && ProductPage.updateFavIcon) {
+      ProductPage.updateFavIcon();
     }
   },
 
@@ -2792,6 +2895,137 @@ window.BeeCore = {
               <span>Gửi Đánh Giá Sản Phẩm</span>
             </button>
           </form>
+        </div>
+      </div>
+
+      <!-- Auth Modal (Đăng Nhập / Đăng Ký Chuyên Nghiệp) -->
+      <div id="auth-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative border border-neutral-200 animate-fade-in my-8 max-h-[92vh] flex flex-col">
+          <button onclick="BeeCore.closeAuthModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-black transition-colors z-10">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Modal Brand Header -->
+          <div class="text-center mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-neutral-950 text-amber-300 flex items-center justify-center font-serif text-xl font-bold mx-auto mb-3 shadow-md border border-neutral-800">
+              B
+            </div>
+            <h3 id="auth-modal-title" class="font-serif-luxury text-2xl font-bold text-neutral-900">Đăng Nhập Tài Khoản</h3>
+            <p class="text-xs text-neutral-500 mt-0.5">Trải nghiệm dịch vụ thời trang thiết kế Atelier đẳng cấp</p>
+          </div>
+
+          <!-- Auth Mode Tabs (Đăng Nhập / Đăng Ký) -->
+          <div class="flex border-b border-neutral-200 mb-5 text-xs">
+            <button id="auth-tab-btn-login" type="button" onclick="BeeCore.setAuthMode('login')" class="flex-1 pb-3 text-center border-b-2 border-neutral-900 text-neutral-900 font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+              <i data-lucide="log-in" class="w-4 h-4"></i>
+              <span>Đăng Nhập</span>
+            </button>
+            <button id="auth-tab-btn-register" type="button" onclick="BeeCore.setAuthMode('register')" class="flex-1 pb-3 text-center border-b-2 border-transparent text-neutral-500 hover:text-neutral-900 font-medium uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              <span>Đăng Ký</span>
+            </button>
+          </div>
+
+          <!-- Pane 1: Đăng Nhập Form -->
+          <div id="auth-pane-login" class="space-y-4 overflow-y-auto pr-0.5">
+            <!-- Quick Demo Account Badge -->
+            <div class="p-3 bg-amber-50/80 rounded-xl border border-amber-200/90 text-xs text-amber-900 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold flex items-center gap-1.5">
+                  <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-600 fill-amber-500"></i>
+                  Tài khoản dùng thử Demo:
+                </span>
+                <button type="button" onclick="BeeCore.fillDemoAccount()" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-[10px] font-bold uppercase tracking-wider shadow-xs transition-colors flex items-center gap-1">
+                  <span>⚡ Đăng Nhập Nhanh</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-amber-800 font-mono">Email: <strong>customer@beestyle.vn</strong> | Pass: <strong>123456</strong></p>
+            </div>
+
+            <form onsubmit="BeeCore.submitAuth(event)" class="space-y-3.5 text-xs">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1">Email hoặc Số Điện Thoại *</label>
+                <div class="relative">
+                  <i data-lucide="mail" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input type="text" id="auth-email" required value="customer@beestyle.vn" placeholder="vd: customer@beestyle.vn hoặc 0988776655" class="w-full bg-neutral-50 border border-neutral-300 rounded-xl pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:border-neutral-900">
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block font-semibold uppercase text-neutral-700">Mật Khẩu *</label>
+                  <a href="javascript:void(0)" onclick="BeeCore.showToast('Demo: Mật khẩu mặc định là 123456', 'info')" class="text-[11px] text-amber-700 hover:underline">Quên mật khẩu?</a>
+                </div>
+                <div class="relative">
+                  <i data-lucide="lock" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input type="password" id="auth-password" required value="123456" placeholder="Nhập mật khẩu..." class="w-full bg-neutral-50 border border-neutral-300 rounded-xl pl-9 pr-10 py-2.5 text-xs focus:outline-none focus:border-neutral-900">
+                  <button type="button" onclick="BeeCore.togglePasswordVisibility('auth-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full py-3 bg-neutral-950 hover:bg-neutral-800 text-white rounded-xl font-semibold uppercase tracking-wider transition-colors shadow-md flex items-center justify-center gap-2 mt-4">
+                <i data-lucide="log-in" class="w-4 h-4 text-amber-400"></i>
+                <span>Đăng Nhập Ngay</span>
+              </button>
+            </form>
+
+            <div class="text-center pt-2 text-xs text-neutral-500">
+              Chưa có tài khoản? 
+              <button type="button" onclick="BeeCore.setAuthMode('register')" class="text-neutral-900 font-bold hover:underline ml-1">Đăng ký thành viên mới</button>
+            </div>
+          </div>
+
+          <!-- Pane 2: Đăng Ký Form -->
+          <div id="auth-pane-register" class="space-y-4 hidden overflow-y-auto pr-0.5">
+            <form onsubmit="BeeCore.submitRegister(event)" class="space-y-3 text-xs">
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1">Họ và Tên *</label>
+                <div class="relative">
+                  <i data-lucide="user" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input type="text" id="register-fullname" required placeholder="Nguyễn Văn A" class="w-full bg-neutral-50 border border-neutral-300 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1">Email *</label>
+                <div class="relative">
+                  <i data-lucide="mail" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input type="email" id="register-email" required placeholder="email@domain.com" class="w-full bg-neutral-50 border border-neutral-300 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold uppercase text-neutral-700 mb-1">Số Điện Thoại *</label>
+                <div class="relative">
+                  <i data-lucide="phone" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                  <input type="tel" id="register-phone" required placeholder="09xxxxxxxx" class="w-full bg-neutral-50 border border-neutral-300 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Mật Khẩu *</label>
+                  <input type="password" id="register-password" required minlength="6" placeholder="Tối thiểu 6 ký tự" class="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
+                </div>
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1">Xác Nhận MK *</label>
+                  <input type="password" id="register-password-confirm" required minlength="6" placeholder="Nhập lại MK" class="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-neutral-900">
+                </div>
+              </div>
+
+              <button type="submit" class="w-full py-3 bg-neutral-950 hover:bg-neutral-800 text-white rounded-xl font-semibold uppercase tracking-wider transition-colors shadow-md flex items-center justify-center gap-2 mt-4">
+                <i data-lucide="user-check" class="w-4 h-4 text-amber-400"></i>
+                <span>Hoàn Tất Đăng Ký</span>
+              </button>
+            </form>
+
+            <div class="text-center pt-2 text-xs text-neutral-500">
+              Đã có tài khoản? 
+              <button type="button" onclick="BeeCore.setAuthMode('login')" class="text-neutral-900 font-bold hover:underline ml-1">Đăng nhập</button>
+            </div>
+          </div>
         </div>
       </div>
     `;

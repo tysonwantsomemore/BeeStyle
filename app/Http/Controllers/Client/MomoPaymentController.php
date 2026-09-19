@@ -97,15 +97,27 @@ class MomoPaymentController extends Controller
      * API POST /api/payments/momo/ipn
      * Webhook nhận kết quả thanh toán từ máy chủ MoMo (Nguồn xác nhận thanh toán chính)
      */
+    /**
+     * API POST /api/payments/momo/ipn
+     * Webhook nhận kết quả thanh toán từ máy chủ MoMo (Nguồn xác nhận thanh toán chính)
+     * Chuẩn theo atm/ipn_momo.php
+     */
     public function ipn(Request $request)
     {
         $data = $request->all();
         Log::info('[MoMo IPN Webhook Received]', $data);
 
-        // 1. Kiểm tra chữ ký số HMAC SHA-256 từ MoMo
-        if (!$this->momoService->verifySignature($data)) {
+        // 1. Kiểm tra chữ ký số HMAC SHA-256 từ MoMo theo chuẩn atm/ipn_momo.php
+        $isSignatureValid = $this->momoService->verifySignature($data);
+        $debugger = $this->momoService->getAtmDebuggerData($data);
+
+        if (!$isSignatureValid) {
             Log::warning('[MoMo IPN] Invalid Signature', $data);
-            return response()->json(['resultCode' => 11007, 'message' => 'Invalid signature'], 400);
+            return response()->json([
+                'resultCode' => 11007,
+                'message' => 'ERROR! Fail checksum',
+                'debugger' => $debugger
+            ], 400);
         }
 
         // 2. Trích xuất mã đơn hàng BeeStyle
@@ -114,35 +126,66 @@ class MomoPaymentController extends Controller
 
         if (!$order) {
             Log::warning("[MoMo IPN] Order Not Found: {$orderCode}", $data);
-            return response()->json(['resultCode' => 11000, 'message' => 'Order not found'], 404);
+            return response()->json([
+                'resultCode' => 11000,
+                'message' => 'Order not found',
+                'debugger' => $debugger
+            ], 404);
         }
 
-        // 3. Kiểm tra số tiền giao dịch khớp với đơn hàng
+        // 3. Kiểm tra số tiền giao dịch khớp với đơn hàng (hoặc tiền cọc nếu có)
         $amount = (int)($data['amount'] ?? 0);
-        if ($amount !== (int)round($order->total_amount)) {
-            Log::error("[MoMo IPN] Amount Mismatch: Received {$amount}, expected {$order->total_amount}");
-            return response()->json(['resultCode' => 11008, 'message' => 'Amount mismatch'], 400);
+        $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+        $expectedAmount = $isDeposit ? (int)round($order->deposit_amount) : (int)round($order->total_amount);
+
+        if ($amount > 0 && abs($amount - $expectedAmount) > 100) {
+            Log::error("[MoMo IPN] Amount Mismatch: Received {$amount}, expected {$expectedAmount}");
+            return response()->json([
+                'resultCode' => 11008,
+                'message' => 'Amount mismatch',
+                'debugger' => $debugger
+            ], 400);
         }
 
-        $resultCode = (int)($data['resultCode'] ?? -1);
+        $resultCode = (int)($data['resultCode'] ?? ($data['errorCode'] ?? -1));
         $transId = (string)($data['transId'] ?? '');
 
-        // 4. Xử lý Idempotency: Nếu đơn đã được cập nhật PAID trước đó, trả về 204 ngay
-        if (strtoupper((string)$order->payment_status) === 'PAID') {
+        // 4. Xử lý Idempotency: Nếu đơn đã được cập nhật PAID trước đó, trả về 200 ngay
+        if (in_array(strtoupper((string)$order->payment_status), ['PAID', 'COMPLETED', 'DEPOSIT_PAID'])) {
             Log::info("[MoMo IPN] Order #{$orderCode} already marked as PAID. Skipping duplicate processing.");
-            return response()->noContent();
+            return response()->json([
+                'resultCode' => 0,
+                'message' => 'Received payment result success (Order already paid)',
+                'debugger' => $debugger
+            ]);
         }
 
         DB::beginTransaction();
         try {
             if ($resultCode === 0) {
                 // THANH TOÁN THÀNH CÔNG
-                $order->update([
-                    'payment_status' => 'PAID',
-                    'momo_trans_id' => $transId,
-                    'shipping_status' => 'processing',
-                    'status_step' => 2,
-                ]);
+                if ($isDeposit) {
+                    $order->update([
+                        'deposit_status' => 'paid',
+                        'deposit_paid_at' => now(),
+                        'payment_status' => 'deposit_paid',
+                        'momo_trans_id' => $transId,
+                        'shipping_status' => 'processing',
+                        'status_step' => 3,
+                        'confirmed_at' => $order->confirmed_at ?: now(),
+                        'processing_at' => now(),
+                    ]);
+                } else {
+                    $order->update([
+                        'payment_status' => 'paid',
+                        'momo_trans_id' => $transId,
+                        'shipping_status' => 'processing',
+                        'status_step' => 3,
+                        'paid_at' => now(),
+                        'confirmed_at' => $order->confirmed_at ?: now(),
+                        'processing_at' => now(),
+                    ]);
+                }
 
                 DB::commit();
 
@@ -174,54 +217,90 @@ class MomoPaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("[MoMo IPN Exception] " . $e->getMessage());
-            return response()->json(['resultCode' => 99, 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'resultCode' => 99,
+                'message' => $e->getMessage(),
+                'debugger' => $debugger
+            ], 500);
         }
 
-        return response()->noContent();
+        return response()->json([
+            'resultCode' => 0,
+            'message' => 'Received payment result success',
+            'debugger' => $debugger
+        ]);
     }
 
     /**
      * GET /payment/momo/result
      * Trang hiển thị kết quả giao dịch sau khi khách hàng hoàn tất hoặc hủy trên MoMo
+     * Chuẩn theo atm/result_atm.php
      */
     public function result(Request $request)
     {
         $data = $request->all();
         Log::info('[MoMo Browser Redirect Received]', $data);
 
+        $momoConfig = $this->momoService->getConfig();
+
+        // Trích xuất toàn bộ tham số chuẩn theo atm/result_atm.php
+        $partnerCode  = $request->input('partnerCode', $momoConfig['partnerCode']);
+        $accessKey    = $request->input('accessKey', $momoConfig['accessKey']);
+        $orderId      = $request->input('orderId', '');
+        $localMessage = $request->input('localMessage', '');
+        $message      = $request->input('message', '');
+        $transId      = $request->input('transId', '');
+        $orderInfo    = $request->input('orderInfo', '');
+        $amount       = $request->input('amount', '');
+        $errorCode    = $request->input('errorCode', $request->input('resultCode', ''));
+        $resultCode   = (int) ($request->input('resultCode', $request->input('errorCode', -1)));
+        $responseTime = $request->input('responseTime', '');
+        $requestId    = $request->input('requestId', '');
+        $extraData    = $request->input('extraData', '');
+        $payType      = $request->input('payType', 'napas');
+        $orderType    = $request->input('orderType', 'momo_wallet');
+        $m2signature  = $request->input('signature', '');
+
+        // Trích xuất và tìm đơn hàng tương ứng
         $orderCode = $this->momoService->extractOrderCode($data);
         $order = $orderCode ? Order::with(['items.product', 'user'])->where('order_code', $orderCode)->first() : null;
 
-        $resultCode = (int)$request->input('resultCode', -1);
-        $message = $request->input('message', 'Giao dịch chưa hoàn tất');
-        $transId = $request->input('transId', '');
+        // Tính toán chuỗi Checksum và Chữ ký đối tác theo atm/result_atm.php
+        $debugger = $this->momoService->getAtmDebuggerData($data);
+        $isSignatureValid = $debugger['isSignatureValid'];
 
-        // Kiểm tra chữ ký số nếu có signature
-        $isSignatureValid = true;
-        if (!empty($data['signature'])) {
-            $isSignatureValid = $this->momoService->verifySignature($data);
-        }
+        $isSuccess = ($resultCode === 0 || $errorCode === '0') && $isSignatureValid;
 
-        // Nếu đơn hàng chưa cập nhật thành PAID nhưng resultCode == 0:
-        // Thực hiện tra cứu trực tiếp máy chủ MoMo (Server-to-Server Query) để bảo vệ tính toàn vẹn
-        if ($order && $resultCode === 0 && strtoupper((string)$order->payment_status) !== 'PAID') {
-            $momoOrderId = $data['orderId'] ?? ($order->order_code . '_' . time());
-            $queryResult = $this->momoService->queryTransaction($momoOrderId, $data['requestId'] ?? null);
-
-            if (isset($queryResult['resultCode']) && (int)$queryResult['resultCode'] === 0) {
-                // Xác thực MoMo Server đã ghi nhận thành công
-                $order->update([
-                    'payment_status' => 'PAID',
-                    'momo_trans_id' => $queryResult['transId'] ?? $transId,
-                    'shipping_status' => 'processing',
-                    'status_step' => 2,
-                ]);
+        // Cập nhật trạng thái đơn hàng nếu hợp lệ và chưa cập nhật PAID
+        if ($order && $isSuccess) {
+            $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
+            if (strtoupper((string)$order->payment_status) !== 'PAID' && strtoupper((string)$order->payment_status) !== 'DEPOSIT_PAID') {
+                if ($isDeposit) {
+                    $order->update([
+                        'deposit_status' => 'paid',
+                        'deposit_paid_at' => now(),
+                        'payment_status' => 'deposit_paid',
+                        'momo_trans_id' => $transId,
+                        'shipping_status' => 'processing',
+                        'status_step' => 3,
+                        'confirmed_at' => $order->confirmed_at ?: now(),
+                        'processing_at' => now(),
+                    ]);
+                } else {
+                    $order->update([
+                        'payment_status' => 'paid',
+                        'momo_trans_id' => $transId,
+                        'shipping_status' => 'processing',
+                        'status_step' => 3,
+                        'paid_at' => now(),
+                        'confirmed_at' => $order->confirmed_at ?: now(),
+                        'processing_at' => now(),
+                    ]);
+                }
                 $this->sendOrderInvoiceEmail($order);
             }
-        }
-
-        // Nếu khách hàng hủy giao dịch và đơn chưa hủy
-        if ($order && $resultCode !== 0 && strtoupper((string)$order->payment_status) === 'PENDING_PAYMENT') {
+        } elseif ($order && !$isSuccess && in_array(strtoupper((string)$order->payment_status), ['PENDING_PAYMENT', 'UNPAID'])) {
+            // Xử lý đơn hàng khi khách hủy hoặc giao dịch thất bại
             $newStatus = match ($resultCode) {
                 1006 => 'CANCELLED',
                 49 => 'EXPIRED',
@@ -238,10 +317,65 @@ class MomoPaymentController extends Controller
 
         return view('client.payment.momo_result', [
             'order' => $order,
-            'resultCode' => $resultCode,
+            'partnerCode' => $partnerCode,
+            'accessKey' => $accessKey,
+            'orderId' => $orderId,
+            'localMessage' => $localMessage,
             'message' => $message,
             'transId' => $transId,
+            'orderInfo' => $orderInfo,
+            'amount' => $amount,
+            'errorCode' => $errorCode,
+            'resultCode' => $resultCode,
+            'responseTime' => $responseTime,
+            'requestId' => $requestId,
+            'extraData' => $extraData,
+            'payType' => $payType,
+            'orderType' => $orderType,
+            'm2signature' => $m2signature,
             'isSignatureValid' => $isSignatureValid,
+            'isSuccess' => $isSuccess,
+            'debugger' => $debugger,
+        ]);
+    }
+
+    /**
+     * GET /payment/momo/query
+     * Giao diện tra cứu trạng thái giao dịch MoMo trực tiếp (Chuẩn theo atm/query_transaction.php)
+     */
+    public function queryView(Request $request)
+    {
+        $momoConfig = $this->momoService->getConfig();
+        $orderId = $request->input('orderId', '');
+
+        return view('client.payment.momo_query', [
+            'partnerCode' => $momoConfig['partnerCode'],
+            'orderId' => $orderId,
+            'response' => null,
+            'debugger' => null,
+        ]);
+    }
+
+    /**
+     * POST /payment/momo/query
+     * Thực hiện tra cứu trạng thái giao dịch MoMo trực tiếp (Chuẩn theo atm/query_transaction.php)
+     */
+    public function querySubmit(Request $request)
+    {
+        $request->validate([
+            'orderId' => 'required|string',
+        ]);
+
+        $orderId = $request->input('orderId');
+        $momoConfig = $this->momoService->getConfig();
+        $queryResult = $this->momoService->queryTransaction($orderId);
+
+        return view('client.payment.momo_query', [
+            'partnerCode' => $momoConfig['partnerCode'],
+            'orderId' => $orderId,
+            'response' => json_encode($queryResult['data'] ?? $queryResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+            'queryResult' => $queryResult,
+            'isPassChecksum' => $queryResult['isPassChecksum'] ?? false,
         ]);
     }
 
