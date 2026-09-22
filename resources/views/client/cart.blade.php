@@ -154,6 +154,11 @@
                             Size: <strong class="text-neutral-950 font-bold">{{ $item['size'] }}</strong>
                           </span>
                         @endif
+                        @if(!empty($item['material']))
+                          <span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[11px] font-medium text-amber-900">
+                            Chất liệu: <strong class="text-neutral-950 font-bold">{{ $item['material'] }}</strong>
+                          </span>
+                        @endif
                         @if(!empty($item['is_daily_deal']))
                           <span class="inline-flex items-center gap-1 bg-rose-600 text-white px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shadow-2xs">
                             <i class="fa-solid fa-bolt text-amber-300 text-[9px]"></i> Flash Sale -{{ $item['deal_discount'] }}%

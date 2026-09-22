@@ -7,6 +7,59 @@
   $addresses = $addresses ?? ($user->addresses ?? collect());
   $pendingReviewItems = $pendingReviewItems ?? collect();
   $userReviews = $user->reviews ?? collect();
+
+  $vietnamBanks = [
+    'Ngân hàng phổ biến nhất' => [
+      ['code' => 'VCB', 'short_name' => 'Vietcombank', 'full_name' => 'Vietcombank - Ngân hàng Ngoại Thương Việt Nam (VCB)'],
+      ['code' => 'MB', 'short_name' => 'MB Bank', 'full_name' => 'MB Bank - Ngân hàng TMCP Quân Đội (MB)'],
+      ['code' => 'TCB', 'short_name' => 'Techcombank', 'full_name' => 'Techcombank - Ngân hàng Kỹ Thương Việt Nam (TCB)'],
+      ['code' => 'CTG', 'short_name' => 'VietinBank', 'full_name' => 'VietinBank - Ngân hàng Công Thương Việt Nam (CTG)'],
+      ['code' => 'BIDV', 'short_name' => 'BIDV', 'full_name' => 'BIDV - Ngân hàng Đầu Tư & Phát Triển Việt Nam'],
+      ['code' => 'VPB', 'short_name' => 'VPBank', 'full_name' => 'VPBank - Ngân hàng Việt Nam Thịnh Vượng (VPB)'],
+      ['code' => 'ACB', 'short_name' => 'ACB', 'full_name' => 'ACB - Ngân hàng TMCP Á Châu (ACB)'],
+      ['code' => 'TPB', 'short_name' => 'TPBank', 'full_name' => 'TPBank - Ngân hàng Tiên Phong (TPB)'],
+      ['code' => 'STB', 'short_name' => 'Sacombank', 'full_name' => 'Sacombank - Ngân hàng Sài Gòn Thương Tín (STB)'],
+      ['code' => 'VBA', 'short_name' => 'Agribank', 'full_name' => 'Agribank - Ngân hàng Nông Nghiệp & PTNT (VBA)'],
+    ],
+    'Ngân hàng Thương mại Cổ phần' => [
+      ['code' => 'VIB', 'short_name' => 'VIB', 'full_name' => 'VIB - Ngân hàng Quốc Tế Việt Nam'],
+      ['code' => 'HDB', 'short_name' => 'HDBank', 'full_name' => 'HDBank - Ngân hàng Phát Triển TP.HCM'],
+      ['code' => 'SHB', 'short_name' => 'SHB', 'full_name' => 'SHB - Ngân hàng Sài Gòn - Hà Nội'],
+      ['code' => 'MSB', 'short_name' => 'MSB', 'full_name' => 'MSB - Ngân hàng Hàng Hải Việt Nam'],
+      ['code' => 'OCB', 'short_name' => 'OCB', 'full_name' => 'OCB - Ngân hàng Phương Đông'],
+      ['code' => 'SSB', 'short_name' => 'SeABank', 'full_name' => 'SeABank - Ngân hàng Đông Nam Á'],
+      ['code' => 'LPB', 'short_name' => 'LPBank', 'full_name' => 'LPBank - Ngân hàng Lộc Phát Việt Nam (Bưu Điện Liên Việt)'],
+      ['code' => 'EIB', 'short_name' => 'Eximbank', 'full_name' => 'Eximbank - Ngân hàng Xuất Nhập Khẩu Việt Nam'],
+      ['code' => 'PVB', 'short_name' => 'PVcomBank', 'full_name' => 'PVcomBank - Ngân hàng Đại Chúng Việt Nam'],
+      ['code' => 'BAB', 'short_name' => 'Bac A Bank', 'full_name' => 'Bac A Bank - Ngân hàng TMCP Bắc Á'],
+      ['code' => 'BVB', 'short_name' => 'BaoViet Bank', 'full_name' => 'BaoViet Bank - Ngân hàng Bảo Việt'],
+      ['code' => 'ABB', 'short_name' => 'ABBANK', 'full_name' => 'ABBANK - Ngân hàng An Bình'],
+      ['code' => 'NAB', 'short_name' => 'Nam A Bank', 'full_name' => 'Nam A Bank - Ngân hàng Nam Á'],
+      ['code' => 'KLB', 'short_name' => 'Kienlongbank', 'full_name' => 'Kienlongbank - Ngân hàng Kiên Long'],
+      ['code' => 'BVBANK', 'short_name' => 'BVBank', 'full_name' => 'BVBank - Ngân hàng Bản Việt'],
+      ['code' => 'PGB', 'short_name' => 'PG Bank', 'full_name' => 'PG Bank - Ngân hàng Xăng Dầu Petrolimex'],
+      ['code' => 'SGB', 'short_name' => 'Saigonbank', 'full_name' => 'Saigonbank - Ngân hàng Sài Gòn Công Thương'],
+      ['code' => 'VAB', 'short_name' => 'VietABank', 'full_name' => 'VietABank - Ngân hàng Việt Á'],
+    ],
+    'Ngân hàng số & Ví điện tử' => [
+      ['code' => 'CAKE', 'short_name' => 'Cake by VPBank', 'full_name' => 'Cake by VPBank - Ngân hàng số Cake'],
+      ['code' => 'TNEX', 'short_name' => 'TNEX', 'full_name' => 'TNEX - Ngân hàng số TNEX (MSB)'],
+      ['code' => 'TIMO', 'short_name' => 'Timo', 'full_name' => 'Timo - Ngân hàng số Timo (BVBank)'],
+      ['code' => 'VIETTEL', 'short_name' => 'Viettel Money', 'full_name' => 'Viettel Money - Tổng công ty Dịch vụ số Viettel'],
+      ['code' => 'VNPT', 'short_name' => 'VNPT Money', 'full_name' => 'VNPT Money - Tập đoàn Bưu chính Viễn thông'],
+    ],
+    'Ngân hàng Quốc tế & Liên doanh' => [
+      ['code' => 'SHBVN', 'short_name' => 'Shinhan Bank', 'full_name' => 'Shinhan Bank - Ngân hàng TNHH MTV Shinhan Việt Nam'],
+      ['code' => 'WRB', 'short_name' => 'Woori Bank', 'full_name' => 'Woori Bank - Ngân hàng TNHH MTV Woori Việt Nam'],
+      ['code' => 'HSBC', 'short_name' => 'HSBC', 'full_name' => 'HSBC - Ngân hàng TNHH MTV HSBC Việt Nam'],
+      ['code' => 'SCVN', 'short_name' => 'Standard Chartered', 'full_name' => 'Standard Chartered - Ngân hàng Standard Chartered VN'],
+      ['code' => 'PBVN', 'short_name' => 'Public Bank', 'full_name' => 'Public Bank - Ngân hàng Public Bank Việt Nam'],
+      ['code' => 'UOB', 'short_name' => 'UOB', 'full_name' => 'UOB - Ngân hàng United Overseas Bank Việt Nam'],
+      ['code' => 'CIMB', 'short_name' => 'CIMB', 'full_name' => 'CIMB - Ngân hàng TNHH MTV CIMB Việt Nam'],
+      ['code' => 'IVB', 'short_name' => 'Indovina Bank', 'full_name' => 'Indovina Bank - Ngân hàng TNHH Indovina (IVB)'],
+      ['code' => 'HLB', 'short_name' => 'Hong Leong Bank', 'full_name' => 'Hong Leong Bank - Ngân hàng Hong Leong Việt Nam'],
+    ],
+  ];
   
   $totalSpent = $orders->where('shipping_status', 'completed')->sum('total_amount');
   if ($totalSpent <= 0) {
@@ -345,7 +398,7 @@
                     <div class="flex items-center gap-2 flex-wrap">
                       <!-- Hủy đơn hàng trước khi giao -->
                       @if(method_exists($order, 'canBeCancelledByCustomer') ? $order->canBeCancelledByCustomer() : in_array($order->shipping_status, ['pending', 'processing']))
-                        <button type="button" onclick="openCancelModal({{ $order->id }}, '{{ $order->order_code }}')" class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors">
+                        <button type="button" onclick="openCancelModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, {{ $order->items->count() }})" class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors">
                           Hủy Đơn
                         </button>
                       @endif
@@ -773,15 +826,16 @@
             <div>
               <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ngân Hàng (NAPAS / VietQR) *</label>
               <select name="bank_name" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:bg-white transition-colors">
-                <option value="" disabled selected>-- Chọn ngân hàng --</option>
-                <option value="Techcombank" {{ old('bank_name', $user->bank_name) === 'Techcombank' ? 'selected' : '' }}>Techcombank (Ngân hàng Kỹ Thương)</option>
-                <option value="Vietcombank" {{ old('bank_name', $user->bank_name) === 'Vietcombank' ? 'selected' : '' }}>Vietcombank (Ngân hàng TMCP Ngoại Thương)</option>
-                <option value="MB Bank" {{ old('bank_name', $user->bank_name) === 'MB Bank' ? 'selected' : '' }}>MB Bank (Ngân hàng Quân Đội)</option>
-                <option value="ACB" {{ old('bank_name', $user->bank_name) === 'ACB' ? 'selected' : '' }}>ACB (Ngân hàng Á Châu)</option>
-                <option value="VPBank" {{ old('bank_name', $user->bank_name) === 'VPBank' ? 'selected' : '' }}>VPBank (Ngân hàng Việt Nam Thịnh Vượng)</option>
-                <option value="BIDV" {{ old('bank_name', $user->bank_name) === 'BIDV' ? 'selected' : '' }}>BIDV (Ngân hàng Đầu tư & Phát triển)</option>
-                <option value="VietinBank" {{ old('bank_name', $user->bank_name) === 'VietinBank' ? 'selected' : '' }}>VietinBank (Ngân hàng Công Thương)</option>
-                <option value="TPBank" {{ old('bank_name', $user->bank_name) === 'TPBank' ? 'selected' : '' }}>TPBank (Ngân hàng Tiên Phong)</option>
+                <option value="" disabled {{ empty($user->bank_name) ? 'selected' : '' }}>-- Click chọn ngân hàng của bạn --</option>
+                @foreach($vietnamBanks as $groupName => $bankGroup)
+                  <optgroup label="{{ $groupName }}">
+                    @foreach($bankGroup as $b)
+                      <option value="{{ $b['short_name'] }}" {{ (old('bank_name', $user->bank_name) === $b['short_name'] || old('bank_name', $user->bank_name) === $b['full_name']) ? 'selected' : '' }}>
+                        {{ $b['full_name'] }}
+                      </option>
+                    @endforeach
+                  </optgroup>
+                @endforeach
               </select>
             </div>
 
@@ -1046,25 +1100,87 @@
       </div>
 
       <!-- Tùy chọn đổi size / màu nếu chọn Đổi hàng -->
-      <div id="profileExchangeFields" class="hidden p-3 bg-sky-50 rounded-xl border border-sky-200 space-y-2">
-        <span class="font-bold text-sky-900 uppercase text-[10px] block">Yêu Cầu Đổi Size / Đổi Màu Cụ Thể:</span>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[10px] font-semibold text-neutral-600 mb-0.5">Size mới mong muốn *</label>
-            <select name="exchange_size" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
-              <option value="S">Size S (48 - 56kg)</option>
-              <option value="M" selected>Size M (57 - 65kg)</option>
-              <option value="L">Size L (66 - 73kg)</option>
-              <option value="XL">Size XL (74 - 82kg)</option>
-              <option value="XXL">Size XXL (83 - 90kg)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-semibold text-neutral-600 mb-0.5">Màu sắc mới</label>
-            <input type="text" name="exchange_color" placeholder="VD: Đen, Trắng, Giữ nguyên..." class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
+      <div id="profileExchangeFields" class="hidden p-3.5 bg-gradient-to-br from-sky-50/90 to-indigo-50/50 rounded-xl border border-sky-200 space-y-3 shadow-2xs">
+        <div class="flex items-center justify-between pb-2 border-b border-sky-200/80">
+          <span class="font-bold text-sky-950 uppercase text-xs flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-sky-600"></i>
+            <span>Yêu Cầu Đổi Size / Đổi Màu Cụ Thể</span>
+          </span>
+          <span class="text-[10px] bg-sky-200/80 text-sky-900 font-bold px-2 py-0.5 rounded-full">
+            Đổi Miễn Phí Tận Nhà 7 Ngày
+          </span>
+        </div>
+
+        <!-- Khối hiển thị tóm tắt sản phẩm đang chọn đổi -->
+        <div id="profileExchangeProductSummary" class="p-2.5 bg-white rounded-xl border border-sky-200 flex items-center gap-3 shadow-2xs">
+          <img id="exchangeSummaryThumb" src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop" alt="Thumbnail" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0">
+          <div class="min-w-0 flex-1">
+            <p id="exchangeSummaryName" class="font-bold text-xs text-neutral-900 truncate">Chọn sản phẩm cần đổi...</p>
+            <div class="flex items-center gap-1.5 mt-1 flex-wrap text-[10px]">
+              <span id="exchangeSummaryCurrentColor" class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded font-medium">
+                Màu hiện tại: Đang tải...
+              </span>
+              <span id="exchangeSummaryCurrentSize" class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded font-medium">
+                Size hiện tại: Đang tải...
+              </span>
+            </div>
           </div>
         </div>
-        <p class="text-[10px] text-sky-700">Shipper sẽ mang trang phục mới đến tận nhà đổi và thu hồi sản phẩm cũ.</p>
+
+        <!-- 1. CHỌN MÀU SẮC MỚI (Liên kết trực tiếp với sản phẩm đơn hàng đã mua) -->
+        <div class="space-y-1.5 pt-1">
+          <div class="flex justify-between items-center">
+            <label class="block text-[11px] font-bold text-neutral-800 flex items-center gap-1">
+              <span>Màu Sắc Mới Mong Muốn <span class="text-rose-600">*</span></span>
+            </label>
+            <span id="exchangeColorActiveBadge" class="text-[10px] font-semibold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full">Đang tải màu...</span>
+          </div>
+
+          <!-- Color Swatches: Danh sách nút màu sắc chuẩn (Click chọn ngay) -->
+          <div>
+            <span class="text-[10px] text-neutral-500 block mb-1">Click vào màu bạn mong muốn đổi:</span>
+            <div id="profileExchangeColorSwatches" class="flex flex-wrap gap-1.5">
+              <!-- Populated dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- Sổ danh sách Màu sắc chuẩn (Dropdown select đồng bộ) -->
+          <div class="pt-0.5">
+            <select name="exchange_color" id="profileExchangeColorSelect" onchange="handleExchangeColorSelectChange(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 shadow-2xs">
+              <!-- Populated dynamically by JS -->
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. CHỌN SIZE MỚI (Liên kết trực tiếp với sản phẩm đơn hàng đã mua) -->
+        <div class="space-y-1.5 pt-1">
+          <div class="flex justify-between items-center">
+            <label class="block text-[11px] font-bold text-neutral-800 flex items-center gap-1">
+              <span>Kích Cỡ (Size) Mới Mong Muốn <span class="text-rose-600">*</span></span>
+            </label>
+            <span id="exchangeSizeActiveBadge" class="text-[10px] font-semibold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full">Đang tải size...</span>
+          </div>
+
+          <!-- Size Swatches: Danh sách nút size chuẩn (Click chọn ngay) -->
+          <div>
+            <span class="text-[10px] text-neutral-500 block mb-1">Click vào size bạn mong muốn đổi:</span>
+            <div id="profileExchangeSizeSwatches" class="flex flex-wrap gap-1.5">
+              <!-- Populated dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- Sổ danh sách Size chuẩn (Dropdown select đồng bộ) -->
+          <div class="pt-0.5">
+            <select name="exchange_size" id="profileExchangeSizeSelect" onchange="handleExchangeSizeSelectChange(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600 shadow-2xs">
+              <!-- Populated dynamically by JS -->
+            </select>
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-sky-100/70 rounded-xl flex items-start gap-2 text-[10px] text-sky-900 border border-sky-200">
+          <i data-lucide="truck" class="w-3.5 h-3.5 text-sky-700 shrink-0 mt-0.5"></i>
+          <span>Shipper BeeStyle sẽ mang trang phục mới đúng màu &amp; size đến tận nhà giao đồng thời thu hồi sản phẩm cũ. Quý khách vui lòng giữ nguyên tem mác.</span>
+        </div>
       </div>
 
       <!-- Lý do đổi trả -->
@@ -1119,11 +1235,83 @@
       </div>
 
       <!-- Thông tin ngân hàng nhận tiền hoàn (Ẩn nếu chọn Đổi hàng) -->
-      <div id="profileBankFields" class="p-3 bg-brand-50 rounded-xl border border-brand-200 space-y-2">
-        <span class="font-bold text-neutral-900 uppercase text-[10px] block">7. Thông Tin Nhận Tiền Hoàn:</span>
-        <input type="text" name="bank_name" value="{{ $user->bank_name ?? 'Techcombank' }}" placeholder="Tên Ngân Hàng (VD: Vietcombank, Techcombank...)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs">
-        <input type="text" name="bank_account_number" value="{{ $user->bank_account_number ?? '' }}" placeholder="Số Tài Khoản Ngân Hàng" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs font-mono">
-        <input type="text" name="bank_account_name" value="{{ $user->bank_account_name ?? $user->name }}" placeholder="Tên Chủ Tài Khoản (IN HOA)" class="w-full bg-white border border-neutral-300 rounded p-2 text-xs uppercase">
+      <div id="profileBankFields" class="p-3.5 bg-amber-50/70 rounded-xl border border-amber-300 space-y-3 shadow-2xs">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-neutral-900 uppercase text-xs flex items-center gap-1.5">
+              <i data-lucide="landmark" class="w-4 h-4 text-amber-700"></i>
+              <span>7. Thông Tin Nhận Tiền Hoàn: <span class="text-rose-600">*</span></span>
+            </span>
+            <span class="text-[10px] text-amber-900 font-semibold bg-amber-100 px-2 py-0.5 rounded-full">NAPAS 24/7</span>
+          </div>
+          <p class="text-[11px] text-neutral-600 mt-1">
+            Số tiền hoàn sẽ được chuyển khoản trực tiếp vào tài khoản ngân hàng của bạn sau khi sản phẩm được kiểm định hợp lệ.
+          </p>
+        </div>
+
+        <!-- 1. CHỌN NGÂN HÀNG (Sổ đầy đủ tất cả ngân hàng, click chọn ngay) -->
+        <div>
+          <label class="block text-[11px] font-bold text-neutral-800 mb-1 flex items-center justify-between">
+            <span>Ngân Hàng Thụ Hưởng <span class="text-rose-600">*</span></span>
+            <span id="selectedBankBadge" class="text-[10px] font-semibold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-full">Chưa chọn ngân hàng</span>
+          </label>
+
+          <!-- Top ngân hàng phổ biến (Click chọn nhanh) -->
+          <div class="mb-2">
+            <span class="text-[10px] text-neutral-500 block mb-1">Ngân hàng phổ biến (Click chọn ngay):</span>
+            <div id="quickBankList" class="flex flex-wrap gap-1.5">
+              <!-- Rendered dynamically by JS or loop -->
+              @foreach(($vietnamBanks['Ngân hàng phổ biến nhất'] ?? []) as $qb)
+                <button type="button" onclick="selectQuickBank('{{ $qb['short_name'] }}')" data-bank-name="{{ $qb['short_name'] }}" class="quick-bank-btn px-2.5 py-1 text-[11px] font-semibold rounded-lg border border-neutral-200 bg-white hover:border-amber-400 hover:bg-amber-50 text-neutral-800 transition-all cursor-pointer shadow-2xs flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  <span>{{ $qb['short_name'] }}</span>
+                </button>
+              @endforeach
+            </div>
+          </div>
+
+          <!-- Sổ danh sách tất cả các ngân hàng (Hơn 40 ngân hàng đầy đủ) -->
+          <div>
+            <select name="bank_name" id="returnBankSelect" onchange="handleBankSelectChange(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-medium focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 shadow-2xs">
+              <option value="" disabled selected>-- Click vào đây để chọn ngân hàng thụ hưởng --</option>
+              @foreach($vietnamBanks as $groupName => $bankGroup)
+                <optgroup label="{{ $groupName }}">
+                  @foreach($bankGroup as $b)
+                    <option value="{{ $b['short_name'] }}">{{ $b['full_name'] }}</option>
+                  @endforeach
+                </optgroup>
+              @endforeach
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. SỐ TÀI KHOẢN NGÂN HÀNG (Khách hàng tự nhập) -->
+        <div>
+          <label class="block text-[11px] font-bold text-neutral-800 mb-1">
+            Số Tài Khoản Ngân Hàng <span class="text-rose-600">*</span>
+          </label>
+          <input type="text" inputmode="numeric" name="bank_account_number" id="returnBankAccountNumber" value="" placeholder="Khách hàng tự nhập số tài khoản ngân hàng (chỉ gồm chữ số)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs font-mono font-bold tracking-wider text-neutral-900 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 shadow-2xs">
+        </div>
+
+        <!-- 3. TÊN TÀI KHOẢN NGÂN HÀNG (Khách hàng tự nhập, KHÔNG NHẬP SẴN) -->
+        <div>
+          <label class="block text-[11px] font-bold text-neutral-800 mb-1 flex items-center justify-between">
+            <span>Tên Chủ Tài Khoản (Người Thụ Hưởng) <span class="text-rose-600">*</span></span>
+            <span class="text-[10px] text-neutral-500 font-normal">VIẾT HOA KHÔNG DẤU</span>
+          </label>
+          <input type="text" name="bank_account_name" id="returnBankAccountName" value="" placeholder="Ví dụ: NGUYEN VAN A (Khách hàng tự nhập)" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs uppercase font-bold text-neutral-900 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 shadow-2xs">
+          <p class="text-[10px] text-neutral-500 mt-1 italic leading-tight">
+            * Khách hàng vui lòng tự nhập đúng họ tên chủ tài khoản ngân hàng để chuyển khoản hoàn tiền chính xác.
+          </p>
+        </div>
+
+        <!-- 4. CHI NHÁNH NGÂN HÀNG (TÙY CHỌN) -->
+        <div>
+          <label class="block text-[10px] font-semibold text-neutral-600 mb-0.5">
+            Chi Nhánh Ngân Hàng (Tùy chọn)
+          </label>
+          <input type="text" name="bank_branch" id="returnBankBranch" value="" placeholder="Ví dụ: Chi nhánh Ba Đình, Hà Nội..." class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-800 focus:outline-none focus:border-neutral-900">
+        </div>
       </div>
 
       <button type="submit" id="btnSubmitProfileReturn" class="w-full py-3 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2">
@@ -1134,31 +1322,70 @@
   </div>
 </div>
 
-<!-- 2. MODAL HỦY ĐƠN HÀNG -->
+<!-- 2. MODAL HỦY ĐƠN HÀNG (CLIENT) -->
 <div id="cancelOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
   <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
     <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
-      <h3 class="font-serif-luxury text-xl font-bold text-rose-600" id="cancelModalOrderCode">Hủy Đơn Hàng</h3>
-      <button onclick="closeCancelModal()" class="text-neutral-400 hover:text-black">&times;</button>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-sm shrink-0">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="font-serif-luxury text-base font-bold text-neutral-900" id="cancelModalOrderCode">Hủy Đơn Hàng #BS-000</h3>
+          <p class="text-[10px] text-neutral-500">Xác nhận yêu cầu hủy đơn hàng</p>
+        </div>
+      </div>
+      <button onclick="closeCancelModal()" class="text-neutral-400 hover:text-black text-lg">&times;</button>
     </div>
 
-    <form id="cancelOrderForm" method="POST" class="space-y-4">
-      @csrf
-      <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px]">
-        Khi xác nhận hủy đơn, hệ thống sẽ tự động hoàn lại số lượng tồn kho và mã giảm giá cho bạn.
-      </div>
+    <!-- Tóm tắt đơn hàng cần hủy -->
+    <div id="cancelModalOrderSummary" class="p-3 bg-neutral-50 rounded-xl border border-neutral-200 mb-3 flex items-center justify-between">
       <div>
-        <label class="block font-semibold uppercase text-neutral-700 mb-1">Lý Do Hủy Đơn *</label>
-        <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5">
-          <option value="Tôi muốn đổi địa chỉ nhận hàng">Tôi muốn đổi địa chỉ nhận hàng</option>
-          <option value="Tôi muốn thay đổi Size hoặc Màu sắc áo">Tôi muốn thay đổi Size hoặc Màu sắc áo</option>
+        <span class="text-[10px] text-neutral-500 block">Giá trị đơn hàng:</span>
+        <strong id="cancelModalOrderAmount" class="font-serif-luxury text-sm text-neutral-900">0₫</strong>
+      </div>
+      <span id="cancelModalOrderItemsCount" class="text-[10px] bg-neutral-200 text-neutral-700 font-semibold px-2 py-0.5 rounded-full">1 sản phẩm</span>
+    </div>
+
+    <form id="cancelOrderForm" method="POST" onsubmit="handleCancelOrderSubmit(this)" class="space-y-3.5">
+      @csrf
+      <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px] border border-rose-100 leading-relaxed">
+        <i data-lucide="info" class="w-3.5 h-3.5 inline mr-1 text-rose-600"></i>
+        Khi xác nhận hủy đơn, hệ thống sẽ <strong>tự động hoàn lại số lượng tồn kho</strong> và <strong>khôi phục mã giảm giá (voucher)</strong> cho bạn.
+      </div>
+
+      <div>
+        <label class="block font-bold text-neutral-800 uppercase text-[10px] mb-1">
+          1. Lý Do Hủy Đơn Hàng <span class="text-rose-600">*</span>
+        </label>
+        <select name="reason" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-medium focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 shadow-2xs">
+          <option value="" disabled selected>-- Chọn lý do bạn muốn hủy đơn --</option>
+          <option value="Tôi muốn thay đổi địa chỉ nhận hàng">Tôi muốn thay đổi địa chỉ nhận hàng</option>
+          <option value="Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm">Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm</option>
+          <option value="Tôi tìm thấy sản phẩm giá tốt hơn ở nơi khác">Tôi tìm thấy sản phẩm giá tốt hơn ở nơi khác</option>
           <option value="Tôi đổi ý, không có nhu cầu mua nữa">Tôi đổi ý, không có nhu cầu mua nữa</option>
+          <option value="Đặt nhầm hoặc bị trùng lặp đơn hàng">Đặt nhầm hoặc bị trùng lặp đơn hàng</option>
+          <option value="Thời gian giao hàng dự kiến quá lâu">Thời gian giao hàng dự kiến quá lâu</option>
           <option value="Lý do khác">Lý do khác</option>
         </select>
       </div>
-      <button type="submit" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-wider rounded-xl transition-colors shadow">
-        Xác Nhận Hủy Đơn
-      </button>
+
+      <div>
+        <label class="block font-semibold text-neutral-700 text-[10px] mb-1">
+          2. Ghi Chú Thêm Chi Tiết (Không bắt buộc)
+        </label>
+        <textarea name="notes" rows="2" placeholder="Nhập thêm chi tiết nếu có (Ví dụ: Đổi sang áo sơ mi trắng, giao vào tuần sau...)" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-neutral-950 focus:bg-white"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button type="button" onclick="closeCancelModal()" class="py-2.5 px-3 border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 font-bold rounded-xl transition-colors text-center text-xs">
+          Giữ Lại Đơn Hàng
+        </button>
+        <button type="submit" id="btnSubmitCancelOrder" class="py-2.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors shadow flex items-center justify-center gap-1.5 text-xs">
+          <i data-lucide="x-circle" class="w-4 h-4"></i>
+          <span>Xác Nhận Hủy Đơn</span>
+        </button>
+      </div>
     </form>
   </div>
 </div>
@@ -1291,16 +1518,73 @@
       'code' => $o->order_code,
       'total_amount' => $o->total_amount,
       'items' => $o->items->map(function($it) {
+        $product = $it->product;
+        $variants = ($product && $product->variants) ? $product->variants : collect();
+
+        // 1. Trích xuất màu sắc chuẩn của sản phẩm từ variants hoặc product->colors
+        $colors = collect();
+        if ($variants->isNotEmpty()) {
+            $colors = $variants->groupBy('color')->map(function($vItems, $colorName) {
+                $first = $vItems->first();
+                return [
+                    'name' => (string) $colorName,
+                    'color_code' => $first->color_code ?: null,
+                    'sizes' => $vItems->pluck('size')->filter()->unique()->values()->all(),
+                    'stock' => $vItems->sum('stock'),
+                    'in_stock' => $vItems->sum('stock') > 0,
+                    'image' => $first->image ? asset($first->image) : null,
+                ];
+            })->values();
+        } elseif ($product && !empty($product->colors) && is_array($product->colors)) {
+            $colors = collect($product->colors)->map(function($c) {
+                $cName = is_array($c) ? ($c['name'] ?? 'Chuẩn') : $c;
+                $cCode = is_array($c) ? ($c['code'] ?? null) : null;
+                return [
+                    'name' => (string) $cName,
+                    'color_code' => $cCode,
+                    'sizes' => [],
+                    'stock' => 99,
+                    'in_stock' => true,
+                    'image' => null,
+                ];
+            });
+        }
+
+        // Fallback màu nếu sản phẩm chưa có
+        if ($colors->isEmpty() && !empty($it->color)) {
+            $colors = collect([[
+                'name' => (string) $it->color,
+                'color_code' => null,
+                'sizes' => !empty($it->size) ? [(string) $it->size] : [],
+                'stock' => 99,
+                'in_stock' => true,
+                'image' => null,
+            ]]);
+        }
+
+        // 2. Trích xuất kích cỡ chuẩn của sản phẩm từ variants hoặc product->sizes
+        $sizes = collect();
+        if ($variants->isNotEmpty()) {
+            $sizes = $variants->pluck('size')->filter()->unique()->values();
+        } elseif ($product && !empty($product->sizes) && is_array($product->sizes)) {
+            $sizes = collect($product->sizes);
+        }
+        if ($sizes->isEmpty() && !empty($it->size)) {
+            $sizes = collect([$it->size]);
+        }
+
         return [
           'id' => $it->id,
           'product_id' => $it->product_id,
           'name' => $it->product_name,
-          'color' => $it->color,
-          'size' => $it->size,
+          'color' => $it->color ?: 'Chuẩn',
+          'size' => $it->size ?: 'M',
           'quantity' => $it->quantity,
           'price' => $it->price,
           'subtotal' => $it->price * $it->quantity,
           'thumbnail' => asset($it->product->primaryImage->image_path ?? $it->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop'),
+          'available_colors' => $colors->values()->all(),
+          'available_sizes' => $sizes->values()->all(),
         ];
       })
     ];
@@ -1308,6 +1592,46 @@
 @endphp
 <script>
   const userOrdersData = @json($ordersJsonData);
+  let currentActiveOrder = null;
+  let currentActiveReturnItem = null;
+
+  // Ánh xạ mã màu HEX thông minh cho các tên màu thời trang tiếng Việt
+  function getColorHex(colorName, defaultHex = null) {
+    if (defaultHex && defaultHex.startsWith('#') && defaultHex.length >= 4) {
+      return defaultHex;
+    }
+    const map = {
+      'đen': '#111827',
+      'den': '#111827',
+      'trắng': '#ffffff',
+      'trang': '#ffffff',
+      'xanh navy': '#1e3a8a',
+      'xanh than': '#1e3a8a',
+      'navy': '#1e3a8a',
+      'xanh lam': '#2563eb',
+      'xanh dương': '#0284c7',
+      'xanh coban': '#1d4ed8',
+      'xanh rêu': '#3f6212',
+      'rêu': '#3f6212',
+      'xanh lá': '#16a34a',
+      'xám': '#64748b',
+      'xám ghi': '#64748b',
+      'ghi': '#64748b',
+      'be': '#d4b996',
+      'màu be': '#d4b996',
+      'kem': '#fef3c7',
+      'nâu': '#78350f',
+      'nau': '#78350f',
+      'đỏ': '#dc2626',
+      'đỏ đô': '#881337',
+      'vàng': '#f59e0b',
+      'hồng': '#ec4899',
+      'tím': '#8b5cf6',
+      'cam': '#ea580c'
+    };
+    const key = (colorName || '').trim().toLowerCase();
+    return map[key] || '#111827';
+  }
 
   function switchProfileTab(tabName) {
     document.querySelectorAll('.profile-panel').forEach(p => p.classList.add('hidden'));
@@ -1343,17 +1667,71 @@
     if (typeof lucide !== 'undefined') lucide.createIcons();
   });
 
+  // Chọn nhanh ngân hàng
+  function selectQuickBank(bankName) {
+    const select = document.getElementById('returnBankSelect');
+    if (select) {
+      select.value = bankName;
+      handleBankSelectChange(bankName);
+    }
+  }
+
+  // Xử lý khi ngân hàng thay đổi
+  function handleBankSelectChange(bankName) {
+    const badge = document.getElementById('selectedBankBadge');
+    if (badge) {
+      if (bankName) {
+        badge.textContent = `Đã chọn: ${bankName}`;
+        badge.className = 'text-[10px] font-bold text-amber-900 bg-amber-200 px-2 py-0.5 rounded-full';
+      } else {
+        badge.textContent = 'Chưa chọn ngân hàng';
+        badge.className = 'text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full';
+      }
+    }
+
+    // Active highlight trên các nút chip chọn nhanh
+    document.querySelectorAll('.quick-bank-btn').forEach(btn => {
+      if (btn.dataset.bankName === bankName) {
+        btn.className = 'quick-bank-btn px-2.5 py-1 text-[11px] font-bold rounded-lg border-2 border-amber-600 bg-amber-100 text-amber-950 transition-all shadow-xs flex items-center gap-1 ring-1 ring-amber-500';
+      } else {
+        btn.className = 'quick-bank-btn px-2.5 py-1 text-[11px] font-semibold rounded-lg border border-neutral-200 bg-white hover:border-amber-400 hover:bg-amber-50 text-neutral-800 transition-all cursor-pointer shadow-2xs flex items-center gap-1';
+      }
+    });
+  }
+
   // Chuyển đổi giao diện Đổi Hàng vs Trả Hàng trong Modal Profile
   function handleProfileReturnTypeChange(type) {
     const exBox = document.getElementById('profileExchangeFields');
     const bankBox = document.getElementById('profileBankFields');
     const btn = document.getElementById('btnSubmitProfileReturn');
+
+    const bankSelect = document.getElementById('returnBankSelect');
+    const bankAccNum = document.getElementById('returnBankAccountNumber');
+    const bankAccName = document.getElementById('returnBankAccountName');
+
     if (type === 'exchange') {
       if (exBox) exBox.classList.remove('hidden');
       if (bankBox) bankBox.classList.add('hidden');
       if (btn) {
         btn.querySelector('span').textContent = 'Gửi Yêu Cầu Đổi Hàng Mới';
         btn.className = 'w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2';
+      }
+
+      // Xóa bắt buộc các trường ngân hàng khi đổi hàng
+      if (bankSelect) bankSelect.removeAttribute('required');
+      if (bankAccNum) bankAccNum.removeAttribute('required');
+      if (bankAccName) bankAccName.removeAttribute('required');
+
+      // Khi chọn đổi size/màu, bắt buộc liên kết với 1 sản phẩm cụ thể
+      const checkedRadio = document.querySelector('input[name="order_item_id"]:checked');
+      if (!checkedRadio || !checkedRadio.value) {
+        const firstProductRadio = document.querySelector('#returnOrderItemsList input[name="order_item_id"][value]:not([value=""])');
+        if (firstProductRadio) {
+          firstProductRadio.checked = true;
+          firstProductRadio.dispatchEvent(new Event('change'));
+        }
+      } else {
+        renderExchangeVariants(checkedRadio.value);
       }
     } else {
       if (exBox) exBox.classList.add('hidden');
@@ -1362,7 +1740,198 @@
         btn.querySelector('span').textContent = 'Gửi Yêu Cầu Hoàn Tiền / Đổi Trả';
         btn.className = 'w-full py-3 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold uppercase tracking-wider rounded-xl transition-colors shadow flex items-center justify-center gap-2';
       }
+
+      // Thêm bắt buộc các trường ngân hàng khi trả hàng hoàn tiền
+      if (bankSelect) bankSelect.setAttribute('required', 'required');
+      if (bankAccNum) bankAccNum.setAttribute('required', 'required');
+      if (bankAccName) bankAccName.setAttribute('required', 'required');
     }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  // Render biến thể Màu sắc & Size của sản phẩm được chọn
+  function renderExchangeVariants(orderItemId) {
+    if (!currentActiveOrder) return;
+
+    let item = null;
+    if (orderItemId) {
+      item = currentActiveOrder.items.find(it => it.id == orderItemId);
+    }
+    if (!item && currentActiveOrder.items && currentActiveOrder.items.length > 0) {
+      item = currentActiveOrder.items[0];
+    }
+    if (!item) return;
+
+    currentActiveReturnItem = item;
+
+    // 1. Cập nhật khối tóm tắt sản phẩm đang chọn đổi
+    const thumbEl = document.getElementById('exchangeSummaryThumb');
+    const nameEl = document.getElementById('exchangeSummaryName');
+    const colorEl = document.getElementById('exchangeSummaryCurrentColor');
+    const sizeEl = document.getElementById('exchangeSummaryCurrentSize');
+
+    if (thumbEl) thumbEl.src = item.thumbnail;
+    if (nameEl) nameEl.textContent = item.name;
+    if (colorEl) colorEl.textContent = `Màu hiện tại: ${item.color || 'Chuẩn'}`;
+    if (sizeEl) sizeEl.textContent = `Size hiện tại: ${item.size || 'M'}`;
+
+    // 2. Render Màu sắc mới (Liên kết chính xác với sản phẩm khách mua)
+    const colorSwatchesContainer = document.getElementById('profileExchangeColorSwatches');
+    const colorSelect = document.getElementById('profileExchangeColorSelect');
+    const colorBadge = document.getElementById('exchangeColorActiveBadge');
+
+    let availableColors = item.available_colors || [];
+    if (availableColors.length === 0 && item.color) {
+      availableColors = [{
+        name: item.color,
+        color_code: getColorHex(item.color),
+        sizes: [item.size],
+        in_stock: true
+      }];
+    }
+
+    if (colorSwatchesContainer && colorSelect) {
+      colorSwatchesContainer.innerHTML = '';
+      colorSelect.innerHTML = '<option value="" disabled>-- Click chọn màu sắc bạn muốn đổi --</option>';
+
+      // Chọn mặc định là màu hiện tại của sản phẩm
+      let selectedColorName = item.color || (availableColors[0] ? availableColors[0].name : '');
+
+      availableColors.forEach(c => {
+        const isCurrentPurchased = (c.name.trim().toLowerCase() === (item.color || '').trim().toLowerCase());
+        const isSelected = (c.name.trim().toLowerCase() === selectedColorName.trim().toLowerCase());
+        const hex = getColorHex(c.name, c.color_code);
+
+        // Nút Swatch chọn màu trực quan (Chỉ việc click)
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.colorName = c.name;
+        btn.className = `exchange-color-btn px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer ${isSelected ? 'border-sky-600 bg-sky-100/90 text-sky-950 font-bold ring-2 ring-sky-500 shadow-xs' : 'border-neutral-200 bg-white hover:border-sky-300 text-neutral-800'}`;
+        btn.onclick = () => selectExchangeColor(c.name);
+
+        const isWhite = hex.toLowerCase() === '#ffffff' || hex.toLowerCase() === '#fff';
+        btn.innerHTML = `
+          <span class="w-4 h-4 rounded-full shrink-0 ${isWhite ? 'border border-neutral-300' : 'shadow-2xs'}" style="background-color: ${hex}"></span>
+          <span>${c.name}</span>
+          ${isCurrentPurchased ? '<span class="text-[9px] bg-neutral-200 text-neutral-700 px-1.5 py-0.2 rounded font-normal">(Đang mua)</span>' : ''}
+        `;
+        colorSwatchesContainer.appendChild(btn);
+
+        // Option trong Dropdown
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = isCurrentPurchased ? `${c.name} (Giữ nguyên màu đang mua)` : `${c.name} (Màu mới)`;
+        if (isSelected) opt.selected = true;
+        colorSelect.appendChild(opt);
+      });
+
+      if (colorBadge) {
+        colorBadge.textContent = selectedColorName ? `Đã chọn: ${selectedColorName}` : 'Chưa chọn';
+        colorBadge.className = selectedColorName ? 'text-[10px] font-bold text-sky-900 bg-sky-200 px-2 py-0.5 rounded-full' : 'text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full';
+      }
+    }
+
+    // 3. Render Size mới tương ứng
+    renderExchangeSizes(item, item.color || '');
+  }
+
+  function renderExchangeSizes(item, selectedColorName) {
+    const sizeSwatchesContainer = document.getElementById('profileExchangeSizeSwatches');
+    const sizeSelect = document.getElementById('profileExchangeSizeSelect');
+    const sizeBadge = document.getElementById('exchangeSizeActiveBadge');
+
+    if (!sizeSwatchesContainer || !sizeSelect) return;
+
+    let availableSizes = item.available_sizes || [];
+    if (selectedColorName && item.available_colors) {
+      const matched = item.available_colors.find(c => c.name.trim().toLowerCase() === selectedColorName.trim().toLowerCase());
+      if (matched && matched.sizes && matched.sizes.length > 0) {
+        availableSizes = matched.sizes;
+      }
+    }
+    if (availableSizes.length === 0 && item.size) {
+      availableSizes = [item.size];
+    }
+
+    sizeSwatchesContainer.innerHTML = '';
+    sizeSelect.innerHTML = '<option value="" disabled>-- Click chọn kích cỡ bạn muốn đổi --</option>';
+
+    let selectedSizeName = item.size || (availableSizes[0] || '');
+
+    availableSizes.forEach(s => {
+      const isCurrentPurchased = (String(s).trim().toLowerCase() === String(item.size || '').trim().toLowerCase());
+      const isSelected = (String(s).trim().toLowerCase() === String(selectedSizeName).trim().toLowerCase());
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.sizeName = s;
+      btn.className = `exchange-size-btn px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${isSelected ? 'border-sky-600 bg-sky-100/90 text-sky-950 font-bold ring-2 ring-sky-500 shadow-xs' : 'border-neutral-200 bg-white hover:border-sky-300 text-neutral-800'}`;
+      btn.onclick = () => selectExchangeSize(s);
+      btn.innerHTML = `
+        <span>Size ${s}</span>
+        ${isCurrentPurchased ? '<span class="text-[9px] bg-neutral-200 text-neutral-700 px-1 py-0.2 rounded font-normal">(Đang mặc)</span>' : ''}
+      `;
+      sizeSwatchesContainer.appendChild(btn);
+
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = isCurrentPurchased ? `Size ${s} (Giữ nguyên kích cỡ đang dùng)` : `Size ${s} (Đổi sang size này)`;
+      if (isSelected) opt.selected = true;
+      sizeSelect.appendChild(opt);
+    });
+
+    if (sizeBadge) {
+      sizeBadge.textContent = selectedSizeName ? `Đã chọn: Size ${selectedSizeName}` : 'Chưa chọn';
+      sizeBadge.className = selectedSizeName ? 'text-[10px] font-bold text-sky-900 bg-sky-200 px-2 py-0.5 rounded-full' : 'text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full';
+    }
+  }
+
+  function selectExchangeColor(colorName) {
+    const select = document.getElementById('profileExchangeColorSelect');
+    if (select) select.value = colorName;
+    handleExchangeColorSelectChange(colorName);
+  }
+
+  function handleExchangeColorSelectChange(colorName) {
+    const badge = document.getElementById('exchangeColorActiveBadge');
+    if (badge) {
+      badge.textContent = colorName ? `Đã chọn: ${colorName}` : 'Chưa chọn';
+      badge.className = colorName ? 'text-[10px] font-bold text-sky-900 bg-sky-200 px-2 py-0.5 rounded-full' : 'text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full';
+    }
+
+    document.querySelectorAll('.exchange-color-btn').forEach(btn => {
+      if (btn.dataset.colorName === colorName) {
+        btn.className = 'exchange-color-btn px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer border-sky-600 bg-sky-100/90 text-sky-950 font-bold ring-2 ring-sky-500 shadow-xs';
+      } else {
+        btn.className = 'exchange-color-btn px-3 py-1.5 rounded-lg border text-xs flex items-center gap-2 transition-all cursor-pointer border-neutral-200 bg-white hover:border-sky-300 text-neutral-800';
+      }
+    });
+
+    if (currentActiveReturnItem) {
+      renderExchangeSizes(currentActiveReturnItem, colorName);
+    }
+  }
+
+  function selectExchangeSize(sizeName) {
+    const select = document.getElementById('profileExchangeSizeSelect');
+    if (select) select.value = sizeName;
+    handleExchangeSizeSelectChange(sizeName);
+  }
+
+  function handleExchangeSizeSelectChange(sizeName) {
+    const badge = document.getElementById('exchangeSizeActiveBadge');
+    if (badge) {
+      badge.textContent = sizeName ? `Đã chọn: Size ${sizeName}` : 'Chưa chọn';
+      badge.className = sizeName ? 'text-[10px] font-bold text-sky-900 bg-sky-200 px-2 py-0.5 rounded-full' : 'text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full';
+    }
+
+    document.querySelectorAll('.exchange-size-btn').forEach(btn => {
+      if (btn.dataset.sizeName === String(sizeName)) {
+        btn.className = 'exchange-size-btn px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border-sky-600 bg-sky-100/90 text-sky-950 font-bold ring-2 ring-sky-500 shadow-xs';
+      } else {
+        btn.className = 'exchange-size-btn px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border-neutral-200 bg-white hover:border-sky-300 text-neutral-800';
+      }
+    });
   }
 
   function toggleAddAddressForm() {
@@ -1410,6 +1979,8 @@
 
     // Find order in JSON
     const order = userOrdersData.find(o => o.id === orderId);
+    currentActiveOrder = order;
+
     const itemsListContainer = document.getElementById('returnOrderItemsList');
     const badge = document.getElementById('returnSelectedItemBadge');
 
@@ -1420,6 +1991,7 @@
       if (order.items && order.items.length > 1) {
         const isAllChecked = !preselectedItemId;
         const allCard = document.createElement('label');
+        allCard.id = 'returnItemRadioLabel_all';
         allCard.className = `p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${isAllChecked ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-neutral-200 hover:border-neutral-300'}`;
         allCard.innerHTML = `
           <div class="flex items-center gap-2.5">
@@ -1429,7 +2001,7 @@
             </div>
             <div>
               <strong class="text-xs text-neutral-900 block">Toàn bộ đơn hàng (${order.items.length} sản phẩm)</strong>
-              <span class="text-[10px] text-neutral-400">Yêu cầu đổi trả cho tất cả các món trong đơn #${order.code}</span>
+              <span class="text-[10px] text-neutral-400">Yêu cầu hoàn tiền cho tất cả các món trong đơn #${order.code}</span>
             </div>
           </div>
           <span class="font-serif-luxury font-bold text-neutral-900 text-xs">${Number(order.total_amount).toLocaleString('vi-VN')}₫</span>
@@ -1439,8 +2011,9 @@
 
       // Each product item
       (order.items || []).forEach(it => {
-        const isChecked = (preselectedItemId && it.id === preselectedItemId) || (order.items.length === 1);
+        const isChecked = (preselectedItemId && it.id === preselectedItemId) || (!preselectedItemId && order.items.length === 1);
         const itemCard = document.createElement('label');
+        itemCard.id = `returnItemRadioLabel_${it.id}`;
         itemCard.className = `p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all ${isChecked ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300' : 'bg-white border-neutral-200 hover:border-neutral-300'}`;
         itemCard.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0 pr-2">
@@ -1448,7 +2021,7 @@
             <img src="${it.thumbnail}" class="w-10 h-12 rounded object-cover border border-neutral-200 shrink-0">
             <div class="min-w-0">
               <strong class="text-xs text-neutral-900 block truncate">${it.name}</strong>
-              <span class="text-[11px] text-neutral-500">Màu: ${it.color || 'Chuẩn'} | Size: ${it.size || 'M'} • SL: x${it.quantity}</span>
+              <span class="text-[11px] text-neutral-500">Màu: <b class="text-neutral-700">${it.color || 'Chuẩn'}</b> | Size: <b class="text-neutral-700">${it.size || 'M'}</b> • SL: x${it.quantity}</span>
             </div>
           </div>
           <span class="font-serif-luxury font-bold text-neutral-900 text-xs shrink-0">${Number(it.subtotal).toLocaleString('vi-VN')}₫</span>
@@ -1469,6 +2042,19 @@
       }
     }
 
+    // Reset thông tin ngân hàng: KHÁCH HÀNG TỰ NHẬP, KHÔNG NHẬP SẴN
+    const returnBankSelect = document.getElementById('returnBankSelect');
+    if (returnBankSelect) returnBankSelect.value = '';
+    const returnBankAccNum = document.getElementById('returnBankAccountNumber');
+    if (returnBankAccNum) returnBankAccNum.value = '';
+    const returnBankAccName = document.getElementById('returnBankAccountName');
+    if (returnBankAccName) returnBankAccName.value = '';
+    handleBankSelectChange('');
+
+    // Khởi tạo biến thể đổi màu/size cho item được chọn
+    const activeItemId = preselectedItemId || (order.items && order.items.length > 0 ? order.items[0].id : null);
+    renderExchangeVariants(activeItemId);
+
     // Reset uploads & fields
     selectedReturnFiles = [];
     const previewContainer = document.getElementById('returnImagesPreviewList');
@@ -1476,8 +2062,8 @@
     const imgInput = document.getElementById('returnImageProofsInput');
     if (imgInput) imgInput.value = '';
     removeReturnVideo();
-    
-    // Set radio & fields về default
+
+    // Set radio & fields về default (Trả hàng hoàn tiền)
     const radioRefund = document.querySelector('input[name="type"][value="return_refund"]');
     if (radioRefund) radioRefund.checked = true;
     handleProfileReturnTypeChange('return_refund');
@@ -1500,11 +2086,67 @@
         lbl.className = 'p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-white border-neutral-200 hover:border-neutral-300';
       }
     });
+
+    // Nếu chọn 1 sản phẩm cụ thể, cập nhật ngay khối Màu & Size chuẩn của sản phẩm đó
+    if (radio.value) {
+      renderExchangeVariants(radio.value);
+    }
   }
 
   function closeReturnModal() {
     document.getElementById('returnOrderModal').classList.add('hidden');
   }
+
+  // Lắng nghe sự kiện submit của returnOrderForm để kiểm tra tính hợp lệ
+  document.getElementById('returnOrderForm')?.addEventListener('submit', function(e) {
+    const type = document.querySelector('input[name="type"]:checked')?.value;
+    const btn = document.getElementById('btnSubmitProfileReturn');
+
+    if (type === 'return_refund') {
+      const bankSelect = document.getElementById('returnBankSelect');
+      const bankAccNum = document.getElementById('returnBankAccountNumber');
+      const bankAccName = document.getElementById('returnBankAccountName');
+
+      if (!bankSelect || !bankSelect.value) {
+        e.preventDefault();
+        alert('Vui lòng chọn ngân hàng bạn mong muốn nhận tiền hoàn!');
+        bankSelect?.focus();
+        return false;
+      }
+      if (!bankAccNum || !bankAccNum.value.trim()) {
+        e.preventDefault();
+        alert('Vui lòng tự nhập số tài khoản ngân hàng của bạn!');
+        bankAccNum?.focus();
+        return false;
+      }
+      if (!bankAccName || !bankAccName.value.trim()) {
+        e.preventDefault();
+        alert('Vui lòng tự nhập tên chủ tài khoản ngân hàng (viết hoa không dấu)!');
+        bankAccName?.focus();
+        return false;
+      }
+    } else if (type === 'exchange') {
+      const checkedItem = document.querySelector('input[name="order_item_id"]:checked');
+      if (!checkedItem || !checkedItem.value) {
+        e.preventDefault();
+        alert('Vui lòng chọn cụ thể sản phẩm trong đơn hàng bạn muốn đổi size / đổi màu!');
+        return false;
+      }
+      const exColor = document.getElementById('profileExchangeColorSelect')?.value;
+      const exSize = document.getElementById('profileExchangeSizeSelect')?.value;
+      if (!exColor && !exSize) {
+        e.preventDefault();
+        alert('Vui lòng chọn màu sắc hoặc kích cỡ mới mà bạn muốn đổi!');
+        return false;
+      }
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      const span = btn.querySelector('span');
+      if (span) span.textContent = 'Đang xử lý gửi yêu cầu...';
+    }
+  });
 
   function handleReturnImagesPreview(input) {
     if (!input.files || input.files.length === 0) return;
@@ -1570,13 +2212,44 @@
   }
 
   // Cancel Order Modal
-  function openCancelModal(orderId, orderCode) {
-    document.getElementById('cancelModalOrderCode').textContent = `Hủy Đơn Hàng #${orderCode}`;
-    document.getElementById('cancelOrderForm').action = `/don-hang/${orderId}/huy`;
+  function openCancelModal(orderId, orderCode, totalAmount = 0, itemsCount = 1) {
+    const titleEl = document.getElementById('cancelModalOrderCode');
+    if (titleEl) titleEl.textContent = `Hủy Đơn Hàng #${orderCode}`;
+
+    const formEl = document.getElementById('cancelOrderForm');
+    if (formEl) {
+      formEl.action = `/don-hang/${orderId}/huy`;
+      formEl.reset();
+    }
+
+    const amountEl = document.getElementById('cancelModalOrderAmount');
+    if (amountEl) {
+      amountEl.textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount || 0);
+    }
+
+    const itemsCountEl = document.getElementById('cancelModalOrderItemsCount');
+    if (itemsCountEl) {
+      itemsCountEl.textContent = `${itemsCount || 1} sản phẩm`;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmitCancelOrder');
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>Xác Nhận Hủy Đơn</span>`;
+    }
+
     document.getElementById('cancelOrderModal').classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
   }
   function closeCancelModal() {
     document.getElementById('cancelOrderModal').classList.add('hidden');
+  }
+  function handleCancelOrderSubmit(form) {
+    const btn = document.getElementById('btnSubmitCancelOrder');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xử lý hủy...`;
+    }
   }
 
   // Quick Review Modal

@@ -154,7 +154,7 @@ class CartService
             return ['success' => false, 'message' => 'Quý khách vui lòng chọn Kích thước (Size) cho sản phẩm trước khi mua hàng!'];
         }
 
-        $price = $variant ? $variant->price : $product->price;
+        $price = $variant ? $variant->effective_price : $product->effective_price;
         $originalPrice = $variant ? ($variant->original_price ?? $product->original_price) : $product->original_price;
         $stock = $variant ? $variant->stock : $product->stock;
         $sku = $variant ? $variant->sku : $product->sku;
@@ -217,6 +217,7 @@ class CartService
                 'original_price' => $originalPrice,
                 'color' => $selectedColor,
                 'size' => $selectedSize,
+                'material' => $variant ? $variant->material : null,
                 'quantity' => $quantity,
                 'stock' => $stock,
             ];

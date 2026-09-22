@@ -15,6 +15,7 @@ class ProductVariant extends Model
         'color',
         'color_code',
         'size',
+        'material',
         'price',
         'original_price',
         'stock',
@@ -44,5 +45,21 @@ class ProductVariant extends Model
     public function isAvailable(): bool
     {
         return $this->status === 'active' && $this->stock > 0;
+    }
+
+    public function getIsSaleActiveAttribute(): bool
+    {
+        return $this->product ? $this->product->is_sale_active : false;
+    }
+
+    public function getEffectivePriceAttribute(): int
+    {
+        $product = $this->product;
+        if ($product && ($product->sale_starts_at || $product->sale_ends_at)) {
+            if (!$product->is_sale_active) {
+                return (int) ($this->original_price ?: ($product->original_price ?: $this->price));
+            }
+        }
+        return (int) $this->price;
     }
 }

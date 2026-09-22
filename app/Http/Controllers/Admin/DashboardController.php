@@ -15,7 +15,26 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')->latest()->take(6)->get();
+        $products = Product::with('category')
+            ->withSum(['orderItems as real_sold_count' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', '!=', 'cancelled');
+                });
+            }], 'quantity')
+            ->withSum(['orderItems as real_revenue' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', '!=', 'cancelled');
+                });
+            }], 'subtotal')
+            ->withCount(['orderItems as orders_count' => function ($query) {
+                $query->whereHas('order', function ($q) {
+                    $q->where('shipping_status', '!=', 'cancelled');
+                });
+            }])
+            ->orderByDesc('real_sold_count')
+            ->orderByDesc('sold_count')
+            ->take(6)
+            ->get();
         $orders = Order::with('items')->latest()->take(6)->get();
         $customers = User::where('role', 'customer')->latest()->take(6)->get();
         $categories = Category::withCount('products')->get();

@@ -250,6 +250,175 @@
     @endif
 
     <!-- ========================================================================= -->
+    <!-- 3.1 KHỐI THANH TOÁN MOMO PAYMENT GATEWAY (NẾU CHƯA TRẢ ĐỦ) -->
+    <!-- ========================================================================= -->
+    @if($currentOrder->payment_method === 'momo' && !in_array(strtoupper((string)$currentOrder->payment_status), ['PAID', 'DEPOSIT_PAID']))
+      @php
+        $isDepositMomoTrack = ($currentOrder->is_deposit_required && $currentOrder->deposit_status !== 'paid');
+        $payAmountMomoTrack = $isDepositMomoTrack ? $currentOrder->deposit_amount : $currentOrder->total_amount;
+      @endphp
+      <div class="bg-gradient-to-br from-neutral-900 via-[#3a0624] to-neutral-950 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-pink-500/40 mb-8 relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          
+          <!-- Cột 1: Logo & ATM Badge -->
+          <div class="lg:col-span-5 text-center">
+            <div class="p-5 bg-white rounded-2xl shadow-lg inline-block w-full max-w-[280px]">
+              <div class="flex justify-between items-center mb-3 text-[10px] font-bold">
+                <span class="px-2 py-0.5 bg-pink-100 text-[#a50064] rounded font-mono">MOMO PAYMENT</span>
+                <span class="px-2 py-0.5 bg-neutral-100 text-neutral-700 rounded font-mono">NAPAS ATM</span>
+              </div>
+              <div class="p-4 bg-gradient-to-br from-pink-50 to-white rounded-xl border border-pink-200 flex flex-col items-center justify-center gap-3">
+                <img src="{{ asset('assets/img/logos/momo.svg') }}" alt="MoMo Logo" class="w-16 h-16 object-contain" onerror="this.src='{{ asset('assets/img/logos/momo.png') }}'">
+                <div class="text-center">
+                  <strong class="text-neutral-900 text-xs block">Thanh Toán Thẻ ATM Nội Địa</strong>
+                  <span class="text-[11px] text-neutral-500">Bảo mật PCI DSS 256-Bit (Không QR)</span>
+                </div>
+              </div>
+              <span class="text-[11px] text-neutral-700 mt-3 block font-semibold">Chấp nhận tất cả ngân hàng Việt Nam</span>
+            </div>
+          </div>
+
+          <!-- Cột 2: Chi tiết thanh toán MoMo -->
+          <div class="lg:col-span-7 space-y-4 text-xs">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="px-3.5 py-1 bg-pink-500/30 border border-pink-400/50 text-pink-200 font-bold rounded-full text-xs tracking-wide flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
+                <span>{{ $isDepositMomoTrack ? 'CHỜ THANH TOÁN TIỀN CỌC 50% QUA MOMO' : 'CHỜ THANH TOÁN QUA CỔNG MOMO' }}</span>
+              </span>
+              <div class="px-3 py-1 bg-white/15 rounded-full border border-white/20 text-xs font-medium text-neutral-200">
+                Cổng MoMo Gateway V2
+              </div>
+            </div>
+
+            <h3 class="font-serif-luxury text-xl md:text-2xl font-bold text-white">
+              {{ $isDepositMomoTrack ? 'Thanh Toán Tiền Cọc 50% Qua Cổng MoMo (ATM)' : 'Thanh Toán Đơn Hàng Qua Cổng MoMo (ATM)' }}
+            </h3>
+            <p class="text-pink-100/90 leading-relaxed text-xs">
+              @if($isDepositMomoTrack)
+                Đơn hàng yêu cầu đặt cọc 50% (<strong class="text-amber-300">{{ number_format($payAmountMomoTrack, 0, ',', '.') }}₫</strong>). Bấm nút bên dưới để chuyển tiếp sang cổng thanh toán MoMo chính thức và thanh toán bằng thẻ ATM bảo mật tuyệt đối. Phần còn lại {{ number_format($currentOrder->remaining_amount, 0, ',', '.') }}₫ sẽ thanh toán khi nhận hàng.
+              @else
+                Bấm nút bên dưới để chuyển tiếp an toàn sang Cổng Thanh Toán MoMo Payment, chọn ngân hàng và nhập thông tin thẻ ATM hoàn tất đơn hàng <strong class="text-amber-300">#{{ $currentOrder->order_code }}</strong>.
+              @endif
+            </p>
+
+            <div class="p-4 rounded-xl bg-white/10 border border-white/20 backdrop-blur space-y-3">
+              <div class="flex justify-between items-center pb-2.5 border-b border-white/15">
+                <span class="text-neutral-300 font-medium">Cổng xử lý:</span>
+                <strong class="text-pink-300 font-bold text-sm">MoMo Payment (ATM &amp; Tài Khoản Ngân Hàng)</strong>
+              </div>
+              <div class="flex justify-between items-center pb-2.5 border-b border-white/15">
+                <span class="text-neutral-300 font-medium">Mã đơn hàng:</span>
+                <strong class="font-mono text-white text-sm font-bold">#{{ $currentOrder->order_code }}</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-neutral-300 font-medium">{{ $isDepositMomoTrack ? 'Số tiền cọc cần thanh toán (50%):' : 'Số tiền cần thanh toán:' }}</span>
+                <strong class="font-mono text-amber-300 text-xl font-bold">{{ number_format($payAmountMomoTrack, 0, ',', '.') }}₫</strong>
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 flex-wrap pt-1">
+              <form action="{{ route('client.checkout.momo.redirect', $currentOrder->order_code) }}" method="POST" class="flex-grow">
+                @csrf
+                <button type="submit" class="w-full py-3.5 px-5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:opacity-95 hover:shadow-xl transition-all cursor-pointer text-white" style="background: linear-gradient(135deg, #a50064, #d82d8b);">
+                  <i data-lucide="credit-card" class="w-4 h-4"></i>
+                  <span>Thanh Toán Ngay Qua Cổng MoMo (ATM)</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+              </form>
+              <a href="{{ route('client.home') }}" class="py-3 px-5 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center">
+                Về Trang Chủ
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- 3.2 KHỐI THANH TOÁN VNPAY PAYMENT GATEWAY (NẾU CHƯA TRẢ ĐỦ) -->
+    <!-- ========================================================================= -->
+    @if($currentOrder->payment_method === 'vnpay' && !in_array(strtoupper((string)$currentOrder->payment_status), ['PAID', 'DEPOSIT_PAID']))
+      @php
+        $isDepositVnpayTrack = ($currentOrder->is_deposit_required && $currentOrder->deposit_status !== 'paid');
+        $payAmountVnpayTrack = $isDepositVnpayTrack ? $currentOrder->deposit_amount : $currentOrder->total_amount;
+      @endphp
+      <div class="bg-gradient-to-br from-neutral-900 via-[#062444] to-neutral-950 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-blue-500/40 mb-8 relative overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          
+          <!-- Cột 1: Logo & ATM Badge -->
+          <div class="lg:col-span-5 text-center">
+            <div class="p-5 bg-white rounded-2xl shadow-lg inline-block w-full max-w-[280px]">
+              <div class="flex justify-between items-center mb-3 text-[10px] font-bold">
+                <span class="px-2 py-0.5 bg-blue-100 text-[#005baa] rounded font-mono">VNPAY GATEWAY</span>
+                <span class="px-2 py-0.5 bg-neutral-100 text-neutral-700 rounded font-mono">ATM / QR</span>
+              </div>
+              <div class="p-4 bg-gradient-to-br from-blue-50 to-white rounded-xl border border-blue-200 flex flex-col items-center justify-center gap-3">
+                <img src="{{ asset('assets/img/logos/vnpay.svg') }}" alt="VNPAY Logo" class="h-10 w-auto object-contain">
+                <div class="text-center">
+                  <strong class="text-neutral-900 text-xs block">VNPAY-QR &amp; Thẻ ATM / Quốc Tế</strong>
+                  <span class="text-[11px] text-neutral-500">Tiêu chuẩn bảo mật VNPAY PCI-DSS</span>
+                </div>
+              </div>
+              <span class="text-[11px] text-neutral-700 mt-3 block font-semibold">Chấp nhận tất cả ngân hàng Việt Nam</span>
+            </div>
+          </div>
+
+          <!-- Cột 2: Chi tiết thanh toán VNPAY -->
+          <div class="lg:col-span-7 space-y-4 text-xs">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="px-3.5 py-1 bg-blue-500/30 border border-blue-400/50 text-blue-200 font-bold rounded-full text-xs tracking-wide flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                <span>{{ $isDepositVnpayTrack ? 'CHỜ THANH TOÁN TIỀN CỌC 50% QUA VNPAY' : 'CHỜ THANH TOÁN QUA CỔNG VNPAY' }}</span>
+              </span>
+              <div class="px-3 py-1 bg-white/15 rounded-full border border-white/20 text-xs font-medium text-neutral-200">
+                Cổng VNPAY Gateway V2
+              </div>
+            </div>
+
+            <h3 class="font-serif-luxury text-xl md:text-2xl font-bold text-white">
+              {{ $isDepositVnpayTrack ? 'Thanh Toán Tiền Cọc 50% Qua Cổng VNPAY' : 'Thanh Toán Đơn Hàng Qua Cổng VNPAY' }}
+            </h3>
+            <p class="text-blue-100/90 leading-relaxed text-xs">
+              @if($isDepositVnpayTrack)
+                Đơn hàng yêu cầu đặt cọc 50% (<strong class="text-amber-300">{{ number_format($payAmountVnpayTrack, 0, ',', '.') }}₫</strong>). Bấm nút bên dưới để chuyển tiếp sang Cổng thanh toán VNPAY chính thức và quét mã QR hoặc nhập thẻ ATM. Phần còn lại {{ number_format($currentOrder->remaining_amount, 0, ',', '.') }}₫ sẽ thanh toán khi nhận hàng.
+              @else
+                Bấm nút bên dưới để chuyển tiếp an toàn sang Cổng Thanh Toán VNPAY, quét mã VNPAY-QR hoặc nhập thông tin thẻ hoàn tất đơn hàng <strong class="text-amber-300">#{{ $currentOrder->order_code }}</strong>.
+              @endif
+            </p>
+
+            <div class="p-4 rounded-xl bg-white/10 border border-white/20 backdrop-blur space-y-3">
+              <div class="flex justify-between items-center pb-2.5 border-b border-white/15">
+                <span class="text-neutral-300 font-medium">Cổng xử lý:</span>
+                <strong class="text-blue-300 font-bold text-sm">VNPAY Payment Gateway (QR / Thẻ ATM)</strong>
+              </div>
+              <div class="flex justify-between items-center pb-2.5 border-b border-white/15">
+                <span class="text-neutral-300 font-medium">Mã đơn hàng:</span>
+                <strong class="font-mono text-white text-sm font-bold">#{{ $currentOrder->order_code }}</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-neutral-300 font-medium">{{ $isDepositVnpayTrack ? 'Số tiền cọc cần thanh toán (50%):' : 'Số tiền cần thanh toán:' }}</span>
+                <strong class="font-mono text-amber-300 text-xl font-bold">{{ number_format($payAmountVnpayTrack, 0, ',', '.') }}₫</strong>
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 flex-wrap pt-1">
+              <a href="{{ route('client.checkout.vnpay', $currentOrder->order_code) }}" class="flex-grow py-3.5 px-5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 hover:opacity-95 hover:shadow-xl transition-all cursor-pointer text-white" style="background: linear-gradient(135deg, #005baa, #008fe5);">
+                <i data-lucide="credit-card" class="w-4 h-4"></i>
+                <span>Thanh Toán Ngay Qua Cổng VNPAY</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </a>
+              <a href="{{ route('client.home') }}" class="py-3 px-5 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center">
+                Về Trang Chủ
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    @endif
+
+    <!-- ========================================================================= -->
     <!-- 4. KHỐI THẺ VẬN ĐƠN BƯU TÁ & THEO DÕI HÀNH TRÌNH (#carrierTrackingPassSection) -->
     <!-- ========================================================================= -->
     @php
@@ -755,7 +924,7 @@
         </div>
         <div>
           <span class="text-neutral-600 uppercase text-[11px] tracking-wider font-bold block mb-1">Địa chỉ giao hàng:</span>
-          <p class="text-neutral-800 font-medium leading-relaxed">{{ $currentOrder->shipping_address }}{{ $currentOrder->city ? ', ' . $currentOrder->city : '' }}</p>
+          <p class="text-neutral-800 font-medium leading-relaxed">{{ $currentOrder->full_shipping_address }}</p>
         </div>
         <div>
           <span class="text-neutral-600 uppercase text-[11px] tracking-wider font-bold block mb-1">Phương thức thanh toán:</span>

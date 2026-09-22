@@ -49,6 +49,7 @@ class User extends Authenticatable
         'actual_total_spent',
         'is_verified',
         'rank',
+        'is_shipper',
     ];
 
     /**
@@ -176,6 +177,21 @@ class User extends Authenticatable
     public function getIsAdminAttribute(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isShipper(): bool
+    {
+        return $this->role === 'shipper';
+    }
+
+    public function getIsShipperAttribute(): bool
+    {
+        return $this->role === 'shipper';
+    }
+
+    public function assignedOrders()
+    {
+        return $this->hasMany(Order::class, 'shipper_id')->orderBy('created_at', 'desc');
     }
 
     public function addresses()

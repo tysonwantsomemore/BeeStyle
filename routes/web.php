@@ -45,6 +45,7 @@ use App\Http\Controllers\Admin\RevenueController as AdminRevenueController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\ReturnController as AdminReturnController;
+use App\Http\Controllers\Shipper\ShipperOrderController;
 
 
 /*
@@ -92,6 +93,14 @@ Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->na
 Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
 Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
 
+// API Đơn vị hành chính Việt Nam (Tỉnh/Thành phố, Quận/Huyện, Phường/Xã) chuẩn xác
+Route::prefix('api/administrative')->name('administrative.')->group(function () {
+    Route::get('/provinces', [\App\Http\Controllers\Api\AdministrativeController::class, 'provinces'])->name('provinces');
+    Route::get('/districts/{provinceCode}', [\App\Http\Controllers\Api\AdministrativeController::class, 'districts'])->name('districts');
+    Route::get('/wards/{districtCode}', [\App\Http\Controllers\Api\AdministrativeController::class, 'wards'])->name('wards');
+    Route::post('/verify', [\App\Http\Controllers\Api\AdministrativeController::class, 'verify'])->name('verify');
+});
+
 /*
 |--------------------------------------------------------------------------
 | CLIENT / FRONTEND E-COMMERCE ROUTES
@@ -113,6 +122,7 @@ Route::name('client.')->group(function () {
 
     // Sản phẩm
     Route::get('/san-pham', [ClientProductController::class, 'index'])->name('products.index');
+    Route::get('/san-pham/api-tim-kiem-nhanh', [ClientProductController::class, 'quickSearch'])->name('products.quickSearch');
     Route::get('/san-pham/api-quick-view/{id}', [ClientProductController::class, 'getQuickViewData'])->name('products.quickView');
     Route::get('/san-pham/api-reviewer-profile/{id}', [ClientProductController::class, 'getReviewerProfile'])->name('products.reviewerProfile');
     Route::get('/san-pham/{id}', [ClientProductController::class, 'show'])->name('products.show');
@@ -176,9 +186,37 @@ Route::name('client.')->group(function () {
     */
     Route::post('/api/payments/momo/create', [MomoPaymentController::class, 'create'])->name('payments.momo.create');
     Route::post('/api/payments/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('payments.momo.ipn');
-    Route::get('/payment/momo/result', [MomoPaymentController::class, 'result'])->name('payment.momo.result');
-    Route::get('/thanh-toan/momo/callback', [MomoPaymentController::class, 'result'])->name('checkout.momo.callback');
-    Route::post('/thanh-toan/momo/ipn', [MomoPaymentController::class, 'ipn'])->name('checkout.momo.ipn');
+    Route::get('/payment/momo/result', [CheckoutController::class, 'momoCallback'])->name('payment.momo.result');
+    Route::get('/thanh-toan/momo/callback', [CheckoutController::class, 'momoCallback'])->name('checkout.momo.callback');
+    Route::post('/thanh-toan/momo/ipn', [CheckoutController::class, 'momoIpn'])->name('checkout.momo.ipn');
+    Route::match(['get', 'post'], '/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
+    Route::match(['get', 'post'], '/thanh-toan/momo/{code}/query', [CheckoutController::class, 'momoGateway'])->name('checkout.momo.query');
+    Route::post('/thanh-toan/momo/{code}/process', [CheckoutController::class, 'momoGateway'])->name('checkout.momo.process');
+    Route::match(['get', 'post'], '/thanh-toan/momo/atm_momo.php', [CheckoutController::class, 'momoAtmPhpBridge']);
+    Route::match(['get', 'post'], '/atm_momo.php', [CheckoutController::class, 'momoAtmPhpBridge']);
+    Route::match(['get', 'post'], '/thanh-toan/momo/query_transaction.php', [CheckoutController::class, 'momoQueryBridge']);
+    Route::match(['get', 'post'], '/query_transaction.php', [CheckoutController::class, 'momoQueryBridge']);
+    Route::match(['get', 'post'], '/checkout', [CheckoutController::class, 'momoCallback'])->name('checkout.alias');
+
+    // Cổng MoMo Gateway (Napas / OTP fallback & Thành công đơn hàng)
+    Route::post('/thanh-toan/momo/{code}/submit-card', [CheckoutController::class, 'momoSubmitCard'])->name('checkout.momo.submit-card');
+    Route::get('/thanh-toan/momo/{code}/otp', [CheckoutController::class, 'momoOtp'])->name('checkout.momo.otp');
+    Route::post('/thanh-toan/momo/{code}/otp-verify', [CheckoutController::class, 'momoVerifyOtp'])->name('checkout.momo.verify-otp');
+    Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
+    Route::post('/thanh-toan/momo/{code}/sandbox-redirect', [CheckoutController::class, 'momoRedirectSandbox'])->name('checkout.momo.redirect');
+
+    /*
+    |--------------------------------------------------------------------------
+    | VNPAY ONLINE PAYMENT GATEWAY (SANDBOX & PRODUCTION)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/thanh-toan/vnpay/callback', [CheckoutController::class, 'vnpayCallback'])->name('checkout.vnpay.callback');
+    Route::match(['get', 'post'], '/thanh-toan/vnpay/ipn', [CheckoutController::class, 'vnpayIpn'])->name('checkout.vnpay.ipn');
+    Route::post('/api/payments/vnpay/ipn', [CheckoutController::class, 'vnpayIpn'])->name('payments.vnpay.ipn');
+    Route::match(['get', 'post'], '/thanh-toan/vnpay/{code}', [CheckoutController::class, 'vnpayGateway'])->name('checkout.vnpay');
+    Route::match(['get', 'post'], '/vnpay_payment', [CheckoutController::class, 'vnpayPaymentBridge'])->name('checkout.vnpay.bridge');
+
+    Route::get('/dat-hang-thanh-cong/{code}', [CheckoutController::class, 'orderSuccess'])->name('checkout.success');
 
     /*
     |--------------------------------------------------------------------------
@@ -199,11 +237,6 @@ Route::name('client.')->group(function () {
         */
         Route::get('/thanh-toan', [CheckoutController::class, 'index'])->name('checkout');
         Route::post('/thanh-toan', [CheckoutController::class, 'process'])->name('checkout.process');
-
-        // Cổng MoMo Gateway
-        Route::get('/thanh-toan/momo/{code}', [CheckoutController::class, 'momoGateway'])->name('checkout.momo');
-        Route::post('/thanh-toan/momo/{code}/xac-nhan', [CheckoutController::class, 'momoSuccess'])->name('checkout.momo.success');
-        Route::post('/thanh-toan/momo/{code}/sandbox-redirect', [CheckoutController::class, 'momoRedirectSandbox'])->name('checkout.momo.redirect');
 
         // Cổng ZaloPay Gateway
         Route::get('/thanh-toan/zalopay/{code}', [CheckoutController::class, 'zalopayGateway'])->name('checkout.zalopay');
@@ -249,6 +282,22 @@ Route::name('client.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| SHIPPER / BƯU TÁ GIAO HÀNG PORTAL
+|--------------------------------------------------------------------------
+*/
+Route::prefix('shipper')
+    ->name('shipper.')
+    ->middleware(['auth', 'shipper'])
+    ->group(function () {
+        Route::get('/', [ShipperOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders', [ShipperOrderController::class, 'index']);
+        Route::get('/orders/{id}', [ShipperOrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{id}/deliver', [ShipperOrderController::class, 'deliver'])->name('orders.deliver');
+        Route::post('/orders/{id}/report-issue', [ShipperOrderController::class, 'reportIssue'])->name('orders.reportIssue');
+    });
+
+/*
+|--------------------------------------------------------------------------
 | ADMIN DASHBOARD & MANAGEMENT ROUTES
 |--------------------------------------------------------------------------
 */
@@ -273,6 +322,9 @@ Route::prefix('admin')
         */
         Route::get('/revenue/monthly', [AdminRevenueController::class, 'monthly'])->name('revenue.monthly');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
+        Route::post('/reports/inventory/quick-stock', [ReportController::class, 'quickStock'])->name('reports.inventory.quickStock');
+        Route::get('/products/inventory-report', [ReportController::class, 'inventory'])->name('products.inventory-report');
 
         /*
         |--------------------------------------------------------------------------
@@ -280,7 +332,12 @@ Route::prefix('admin')
         |--------------------------------------------------------------------------
         */
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::get('/users/export', [UserManagementController::class, 'export'])->name('users.export');
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+        Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.resetPassword');
+        Route::patch('/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggleStatus');
+        Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
 
         /*
         |--------------------------------------------------------------------------
@@ -290,6 +347,7 @@ Route::prefix('admin')
         Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
         Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create');
         Route::post('/products', [AdminProductController::class, 'store'])->name('products.store');
+        Route::get('/products/{id}/sales-buyers', [AdminProductController::class, 'salesBuyers'])->name('products.salesBuyers');
         Route::get('/products/{id}', [AdminProductController::class, 'show'])->name('products.show');
         Route::get('/products/{id}/edit', [AdminProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{id}', [AdminProductController::class, 'update'])->name('products.update');
@@ -324,12 +382,18 @@ Route::prefix('admin')
         |--------------------------------------------------------------------------
         */
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/statistics', [AdminOrderController::class, 'statistics'])->name('orders.statistics');
         Route::post('/orders/bulk-action', [AdminOrderController::class, 'bulkAction'])->name('orders.bulkAction');
         Route::post('/orders/confirm-all-pending', [AdminOrderController::class, 'confirmAllPending'])->name('orders.confirmAllPending');
         Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
         Route::post('/orders/bulk-print', [AdminOrderController::class, 'bulkPrint'])->name('orders.bulkPrint');
+        Route::get('/orders/{id}/print-slip', [AdminOrderController::class, 'printSlip'])->name('orders.printSlip');
+        Route::post('/orders/{id}/handover-shipper', [AdminOrderController::class, 'handoverShipper'])->name('orders.handoverShipper');
+        Route::post('/orders/{id}/finish-packing', [AdminOrderController::class, 'finishPacking'])->name('orders.finishPacking');
         Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        Route::post('/orders/{id}/mark-paid', [AdminOrderController::class, 'markPaid'])->name('orders.markPaid');
+        Route::post('/orders/{id}/cancel-single', [AdminOrderController::class, 'cancelSingleOrder'])->name('orders.cancelSingle');
         Route::post('/orders/{id}/approve-refund', [AdminOrderController::class, 'approveRefund'])->name('orders.approveRefund');
         Route::post('/orders/{id}/reject-refund', [AdminOrderController::class, 'rejectRefund'])->name('orders.rejectRefund');
 
@@ -339,7 +403,10 @@ Route::prefix('admin')
         |--------------------------------------------------------------------------
         */
         Route::get('/customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers/export', [AdminCustomerController::class, 'export'])->name('customers.export');
         Route::get('/customers/{id}', [AdminCustomerController::class, 'show'])->name('customers.show');
+        Route::patch('/customers/{id}/toggle-status', [AdminCustomerController::class, 'toggleStatus'])->name('customers.toggleStatus');
+        Route::put('/customers/{id}', [AdminCustomerController::class, 'update'])->name('customers.update');
 
         /*
         |--------------------------------------------------------------------------

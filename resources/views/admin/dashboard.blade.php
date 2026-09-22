@@ -14,6 +14,9 @@
   </div>
   <div class="col-auto">
     <div class="d-flex align-items-center gap-2 flex-wrap">
+      <a class="btn btn-warning text-dark fw-bold shadow-xs px-3" href="{{ route('admin.reports.index') }}">
+        <span class="fa-solid fa-chart-pie me-1.5"></span> Báo Cáo &amp; Thống Kê
+      </a>
       <a class="btn btn-primary fw-bold shadow-xs px-3" href="{{ route('admin.products.create') }}">
         <span class="fas fa-plus me-1.5"></span> Thêm Sản Phẩm
       </a>
@@ -23,116 +26,6 @@
       <a class="btn btn-outline-warning text-dark fw-bold shadow-xs px-3 bg-white" href="{{ route('admin.reviews.index') }}">
         <span class="fas fa-star me-1.5 text-warning"></span> Đánh Giá Mới
       </a>
-    </div>
-  </div>
-</div>
-
-<!-- KPI STAT CARDS -->
-<div class="row g-3 mb-4">
-  <!-- Revenue -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 16px; border-top: 4px solid #f59e0b !important;">
-      <div class="card-body p-3">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <span class="text-secondary text-uppercase fw-bold fs-10 tracking-wider d-block mb-1" style="letter-spacing: 0.05em; color: #475569 !important;">DOANH THU HỆ THỐNG</span>
-            <h3 class="text-dark mb-1 fw-bolder font-monospace" style="color: #0f172a !important;">{{ number_format($stats['total_revenue'], 0, ',', '.') }}₫</h3>
-            <small class="text-muted" style="color: #64748b !important;">Tổng tích lũy thực nhận</small>
-          </div>
-          <div class="d-flex align-items-center justify-content-center bg-warning-subtle text-warning rounded-circle shadow-xs" style="width: 46px; height: 46px; font-size: 1.15rem;">
-            <span class="fa-solid fa-wallet"></span>
-          </div>
-        </div>
-        <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top border-translucent">
-          <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold fs-10">
-            <span class="fa-solid fa-arrow-trend-up me-1"></span> {{ $stats['revenue_growth'] }}
-          </span>
-          <a href="{{ route('admin.revenue.monthly') }}" class="fs-9 fw-bold text-primary text-decoration-none">
-            Chi tiết <span class="fas fa-chevron-right ms-1 fs-11"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Orders -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 16px; border-top: 4px solid #3b82f6 !important;">
-      <div class="card-body p-3">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <span class="text-secondary text-uppercase fw-bold fs-10 tracking-wider d-block mb-1" style="letter-spacing: 0.05em; color: #475569 !important;">TỔNG ĐƠN HÀNG</span>
-            <h3 class="text-dark mb-1 fw-bolder font-monospace" style="color: #0f172a !important;">{{ number_format($stats['total_orders']) }}</h3>
-            <small class="text-muted" style="color: #64748b !important;">Đơn mua toàn thời gian</small>
-          </div>
-          <div class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle shadow-xs" style="width: 46px; height: 46px; font-size: 1.15rem;">
-            <span class="fa-solid fa-cart-shopping"></span>
-          </div>
-        </div>
-        <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top border-translucent">
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold fs-10">
-            <span class="fa-solid fa-arrow-trend-up me-1"></span> {{ $stats['orders_growth'] }}
-          </span>
-          <a href="{{ route('admin.orders.index') }}" class="fs-9 fw-bold text-primary text-decoration-none">
-            Xem đơn <span class="fas fa-chevron-right ms-1 fs-11"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Customers -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 16px; border-top: 4px solid #06b6d4 !important;">
-      <div class="card-body p-3">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <span class="text-secondary text-uppercase fw-bold fs-10 tracking-wider d-block mb-1" style="letter-spacing: 0.05em; color: #475569 !important;">KHÁCH HÀNG THÀNH VIÊN</span>
-            <h3 class="text-dark mb-1 fw-bolder font-monospace" style="color: #0f172a !important;">{{ number_format($stats['total_customers']) }}</h3>
-            <small class="text-muted" style="color: #64748b !important;">Tài khoản đăng ký hệ thống</small>
-          </div>
-          <div class="d-flex align-items-center justify-content-center bg-info-subtle text-info rounded-circle shadow-xs" style="width: 46px; height: 46px; font-size: 1.15rem;">
-            <span class="fa-solid fa-users"></span>
-          </div>
-        </div>
-        <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top border-translucent">
-          <span class="badge bg-info-subtle text-info border border-info-subtle fw-bold fs-10">
-            <span class="fa-solid fa-arrow-trend-up me-1"></span> {{ $stats['customers_growth'] }}
-          </span>
-          <a href="{{ route('admin.customers.index') }}" class="fs-9 fw-bold text-info text-decoration-none">
-            Hồ sơ khách <span class="fas fa-chevron-right ms-1 fs-11"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reviews & Rating -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 16px; border-top: 4px solid #10b981 !important;">
-      <div class="card-body p-3">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <span class="text-secondary text-uppercase fw-bold fs-10 tracking-wider d-block mb-1" style="letter-spacing: 0.05em; color: #475569 !important;">ĐÁNH GIÁ &amp; PHẢN HỒI</span>
-            <h3 class="text-warning mb-1 fw-bolder font-monospace">
-              {{ $stats['total_reviews'] }} 
-              <span class="fs-8 text-dark fw-bold" style="color: #0f172a !important;">({{ number_format($stats['avg_rating'], 1) }} ⭐)</span>
-            </h3>
-            <small class="text-muted" style="color: #64748b !important;">Phản hồi chất lượng sản phẩm</small>
-          </div>
-          <div class="d-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle shadow-xs" style="width: 46px; height: 46px; font-size: 1.15rem;">
-            <span class="fa-solid fa-star"></span>
-          </div>
-        </div>
-        <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top border-translucent">
-          <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold fs-10">
-            <span class="fa-solid fa-circle-check me-1"></span> 98.6% hài lòng
-          </span>
-          <a href="{{ route('admin.reviews.index') }}" class="fs-9 fw-bold text-success text-decoration-none">
-            Nhận xét <span class="fas fa-chevron-right ms-1 fs-11"></span>
-          </a>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -432,35 +325,66 @@
           <table class="table table-hover table-sm fs-9 mb-0 align-middle">
             <thead style="background-color: #f1f5f9;">
               <tr>
-                <th class="ps-3 py-2.5" style="color: #0f172a !important; font-weight: 800;">Sản phẩm</th>
+                <th class="ps-3 py-2.5 text-center" style="width: 50px; color: #0f172a !important; font-weight: 800;">#</th>
+                <th class="py-2.5" style="color: #0f172a !important; font-weight: 800;">Sản phẩm</th>
                 <th class="py-2.5" style="color: #0f172a !important; font-weight: 800;">Giá niêm yết</th>
-                <th class="py-2.5" style="color: #0f172a !important; font-weight: 800;">Đã bán</th>
-                <th class="py-2.5" style="color: #0f172a !important; font-weight: 800;">Tồn kho</th>
-                <th class="text-end pe-3 py-2.5" style="color: #0f172a !important; font-weight: 800;">Trạng thái</th>
+                <th class="py-2.5 text-center" style="color: #0f172a !important; font-weight: 800;">
+                  Đã bán <i class="fa-solid fa-arrow-pointer ms-1 text-primary fs-11" title="Bấm vào để xem danh sách khách mua"></i>
+                </th>
+                <th class="py-2.5 text-center" style="color: #0f172a !important; font-weight: 800;">Tồn kho</th>
+                <th class="text-end pe-3 py-2.5" style="color: #0f172a !important; font-weight: 800;">Thao tác</th>
               </tr>
             </thead>
             <tbody class="list">
               @foreach($products as $p)
                 <tr class="hover-actions-trigger btn-reveal-trigger position-static border-bottom border-translucent">
-                  <td class="ps-3 py-2.5">
+                  <td class="ps-3 py-2.5 text-center">
+                    @if($loop->iteration == 1)
+                      <span class="badge bg-warning text-dark fw-bolder rounded-circle p-1 d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 26px; height: 26px; font-size: 0.72rem;" title="Bán chạy TOP 1">🥇</span>
+                    @elseif($loop->iteration == 2)
+                      <span class="badge bg-secondary-subtle text-dark fw-bolder rounded-circle p-1 d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 26px; height: 26px; font-size: 0.72rem;" title="Bán chạy TOP 2">🥈</span>
+                    @elseif($loop->iteration == 3)
+                      <span class="badge bg-warning-subtle text-warning-emphasis fw-bolder rounded-circle p-1 d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 26px; height: 26px; font-size: 0.72rem;" title="Bán chạy TOP 3">🥉</span>
+                    @else
+                      <span class="badge bg-light text-secondary border border-translucent fw-bold rounded-circle p-1 d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.7rem;">{{ $loop->iteration }}</span>
+                    @endif
+                  </td>
+                  <td class="py-2.5">
                     <div class="d-flex align-items-center gap-2.5">
-                      <img src="{{ asset($p->image) }}" alt="{{ $p->name }}" style="width: 40px; height: 40px; object-fit: contain;" class="rounded border border-translucent bg-light">
+                      <img src="{{ asset($p->image) }}" alt="{{ $p->name }}" style="width: 42px; height: 42px; object-fit: contain;" class="rounded border border-translucent bg-light shadow-xs">
                       <div>
-                        <div class="fw-bold text-dark text-truncate fs-9" style="max-width: 240px; color: #0f172a !important;">{{ $p->name }}</div>
-                        <small class="fw-semibold fs-10" style="color: #64748b !important;">{{ $p->category->name ?? 'Thời trang nam' }}</small>
+                        <a href="{{ route('admin.products.edit', $p->id) }}" class="fw-bold text-dark text-truncate fs-9 text-decoration-none d-block hover-primary" style="max-width: 220px; color: #0f172a !important;">
+                          {{ $p->name }}
+                        </a>
+                        <small class="fw-semibold fs-10" style="color: #64748b !important;">{{ $p->category->name ?? 'Thời trang nam' }} • SKU: {{ $p->sku }}</small>
                       </div>
                     </div>
                   </td>
-                  <td class="py-2.5"><strong class="text-dark fw-bold font-monospace" style="color: #0f172a !important;">{{ number_format($p->price, 0, ',', '.') }}₫</strong></td>
-                  <td class="py-2.5"><span class="badge bg-success-subtle text-success border border-success-subtle fw-bold">{{ $p->sold_count }} đã bán</span></td>
                   <td class="py-2.5">
+                    <strong class="text-dark fw-bold font-monospace" style="color: #0f172a !important;">{{ number_format($p->price, 0, ',', '.') }}₫</strong>
+                  </td>
+                  <td class="py-2.5 text-center">
+                    <button type="button" 
+                            class="btn btn-sm btn-subtle-success rounded-pill px-2.5 py-1 fw-bold fs-10 d-inline-flex align-items-center gap-1.5 shadow-xs border border-success-subtle hover-scale"
+                            onclick="openSalesBuyersModal({{ $p->id }}, '{{ addslashes($p->name) }}')"
+                            title="Bấm để xem đã bán bao nhiêu cái và bán cho ai">
+                      <i class="fa-solid fa-users fs-11 text-success"></i>
+                      <span>{{ number_format($p->real_sold_count ?: $p->sold_count) }} đã bán</span>
+                      <i class="fa-solid fa-arrow-up-right-from-square ms-0.5 fs-11 text-success opacity-75"></i>
+                    </button>
+                  </td>
+                  <td class="py-2.5 text-center">
                     @if($p->stock <= 5)
                       <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Còn {{ $p->stock }}</span>
                     @else
-                      <span class="fw-bold text-dark" style="color: #0f172a !important;">{{ $p->stock }} cái</span>
+                      <span class="fw-bold text-dark font-monospace" style="color: #0f172a !important;">{{ $p->stock }} cái</span>
                     @endif
                   </td>
-                  <td class="text-end pe-3 py-2.5"><span class="badge bg-success-subtle text-success border border-success-subtle fw-bold">Đang bán</span></td>
+                  <td class="text-end pe-3 py-2.5">
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold fs-10 py-1 px-2.5 shadow-xs" onclick="openSalesBuyersModal({{ $p->id }}, '{{ addslashes($p->name) }}')">
+                      <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                    </button>
+                  </td>
                 </tr>
               @endforeach
             </tbody>
@@ -497,7 +421,10 @@
   </div>
 </div>
 
+@include('admin.partials.sales-buyers-modal')
+
 @push('scripts')
+@include('admin.partials.sales-buyers-modal-script')
 <script>
   const chartDataRaw = @json($chartData);
   let revenueChartInstance = null;

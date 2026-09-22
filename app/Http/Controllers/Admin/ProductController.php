@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\ProductVariant;
 use App\Models\ProductImage;
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -51,110 +53,6 @@ class ProductController extends Controller
         $categories = Category::where('is_active', true)->get();
         $brands = Brand::where('is_active', true)->get();
 
-        // Thống kê nhanh chỉ số kho hàng
-        $totalProductsCount = Product::count();
-        $activeProductsCount = Product::where('status', 'active')->where('stock', '>', 0)->count();
-        $inactiveProductsCount = Product::where('status', 'inactive')->count();
-        $lowStockProductsCount = Product::where('stock', '<=', 5)->count();
-
-        // Dữ liệu chi tiết cho 4 nhóm KPI khi bấm vào từng thẻ
-        $allProducts = Product::with(['category', 'brand'])->get();
-
-        $formatProduct = function($p) {
-            return [
-                'id' => $p->id,
-                'name' => $p->name,
-                'sku' => $p->sku,
-                'category' => $p->category->name ?? 'Thời trang nam',
-                'brand' => $p->brand->name ?? null,
-                'price' => $p->price,
-                'price_formatted' => number_format($p->price, 0, ',', '.') . '₫',
-                'original_price' => $p->original_price,
-                'original_price_formatted' => $p->original_price ? number_format($p->original_price, 0, ',', '.') . '₫' : null,
-                'stock' => $p->stock,
-                'sold_count' => $p->sold_count,
-                'rating' => $p->rating,
-                'reviews_count' => $p->reviews_count,
-                'status' => $p->status,
-                'is_active' => $p->is_active,
-                'image' => asset($p->image),
-                'url' => route('client.products.show', $p->id),
-                'edit_url' => route('admin.products.edit', $p->id),
-            ];
-        };
-
-        $allList = $allProducts->map($formatProduct)->values();
-        $activeList = $allProducts->where('status', 'active')->where('stock', '>', 0)->map($formatProduct)->values();
-        $inactiveList = $allProducts->where('status', 'inactive')->map($formatProduct)->values();
-        $lowStockList = $allProducts->where('stock', '<=', 5)->map($formatProduct)->values();
-
-        $kpiDetailData = [
-            'all' => [
-                'type' => 'all',
-                'title' => 'Toàn Bộ Mẫu Trong Kho',
-                'subtitle' => 'Danh sách toàn bộ các mẫu sản phẩm thời trang trong kho hàng BeeStyle',
-                'badge' => 'TỔNG QUAN',
-                'badge_class' => 'bg-warning text-dark',
-                'icon' => 'fa-solid fa-shirt',
-                'filter_url' => route('admin.products.index'),
-                'metrics' => [
-                    ['label' => 'Tổng Mẫu Sản Phẩm', 'value' => $allProducts->count() . ' mẫu', 'color' => 'text-primary'],
-                    ['label' => 'Tổng Số Cái Tồn Kho', 'value' => number_format($allProducts->sum('stock'), 0, ',', '.') . ' cái', 'color' => 'text-dark'],
-                    ['label' => 'Tổng Giá Trị Tồn Kho', 'value' => number_format($allProducts->sum(fn($p) => $p->price * $p->stock), 0, ',', '.') . '₫', 'color' => 'text-danger'],
-                    ['label' => 'Tổng Đã Xuất Bán', 'value' => number_format($allProducts->sum('sold_count'), 0, ',', '.') . ' cái', 'color' => 'text-success'],
-                ],
-                'products' => $allList,
-            ],
-            'active' => [
-                'type' => 'active',
-                'title' => 'Sản Phẩm Đang Mở Bán Công Khai',
-                'subtitle' => 'Các mẫu sản phẩm đang hiển thị và cho phép khách hàng đặt mua trên Website',
-                'badge' => 'KINH DOANH',
-                'badge_class' => 'bg-success text-white',
-                'icon' => 'fa-solid fa-circle-check',
-                'filter_url' => route('admin.products.index', ['status' => 'active']),
-                'metrics' => [
-                    ['label' => 'Số Mẫu Đang Bán', 'value' => $activeList->count() . ' mẫu', 'color' => 'text-success'],
-                    ['label' => 'Tổng Cái Đang Mở Bán', 'value' => number_format($allProducts->where('status', 'active')->where('stock', '>', 0)->sum('stock'), 0, ',', '.') . ' cái', 'color' => 'text-dark'],
-                    ['label' => 'Giá Trị Hàng Đang Bán', 'value' => number_format($allProducts->where('status', 'active')->where('stock', '>', 0)->sum(fn($p) => $p->price * $p->stock), 0, ',', '.') . '₫', 'color' => 'text-danger'],
-                    ['label' => 'Giá Bán Trung Bình', 'value' => number_format(round($allProducts->where('status', 'active')->where('stock', '>', 0)->avg('price') ?: 0), 0, ',', '.') . '₫', 'color' => 'text-primary'],
-                ],
-                'products' => $activeList,
-            ],
-            'inactive' => [
-                'type' => 'inactive',
-                'title' => 'Sản Phẩm Đang Ẩn / Tạm Dừng',
-                'subtitle' => 'Các mẫu sản phẩm đã tạm dừng kinh doanh và ẩn hoàn toàn khỏi Website',
-                'badge' => 'TẠM DỪNG',
-                'badge_class' => 'bg-secondary text-white',
-                'icon' => 'fa-solid fa-eye-slash',
-                'filter_url' => route('admin.products.index', ['status' => 'inactive']),
-                'metrics' => [
-                    ['label' => 'Số Mẫu Tạm Dừng', 'value' => $inactiveList->count() . ' mẫu', 'color' => 'text-secondary'],
-                    ['label' => 'Số Cái Đang Lưu Kho', 'value' => number_format($allProducts->where('status', 'inactive')->sum('stock'), 0, ',', '.') . ' cái', 'color' => 'text-dark'],
-                    ['label' => 'Giá Trị Hàng Tạm Dừng', 'value' => number_format($allProducts->where('status', 'inactive')->sum(fn($p) => $p->price * $p->stock), 0, ',', '.') . '₫', 'color' => 'text-danger'],
-                    ['label' => 'Đã Từng Bán', 'value' => number_format($allProducts->where('status', 'inactive')->sum('sold_count'), 0, ',', '.') . ' cái', 'color' => 'text-muted'],
-                ],
-                'products' => $inactiveList,
-            ],
-            'low_stock' => [
-                'type' => 'low_stock',
-                'title' => 'Sản Phẩm Cảnh Báo Tồn Kho (≤ 5 Cái)',
-                'subtitle' => 'Danh sách các mẫu sản phẩm đã hết hàng hoặc số lượng trong kho còn từ 1 đến 5 cái cần nhập thêm gấp',
-                'badge' => 'CẢNH BÁO KHO',
-                'badge_class' => 'bg-danger text-white',
-                'icon' => 'fa-solid fa-triangle-exclamation',
-                'filter_url' => route('admin.products.index', ['status' => 'out_of_stock']),
-                'metrics' => [
-                    ['label' => 'Tổng Mẫu Cảnh Báo', 'value' => $lowStockList->count() . ' mẫu', 'color' => 'text-danger'],
-                    ['label' => 'Mẫu Đã Hết Sạch Kho', 'value' => $allProducts->where('stock', '<=', 0)->count() . ' mẫu', 'color' => 'text-danger'],
-                    ['label' => 'Mẫu Sắp Hết (1-5 cái)', 'value' => $allProducts->where('stock', '>', 0)->where('stock', '<=', 5)->count() . ' mẫu', 'color' => 'text-warning'],
-                    ['label' => 'Tổng Cái Còn Lại', 'value' => number_format($allProducts->where('stock', '<=', 5)->sum('stock'), 0, ',', '.') . ' cái', 'color' => 'text-dark'],
-                ],
-                'products' => $lowStockList,
-            ],
-        ];
-
         return view('admin.products.index', compact(
             'products', 
             'categories', 
@@ -162,12 +60,7 @@ class ProductController extends Controller
             'categoryId', 
             'brandId',
             'status', 
-            'search',
-            'totalProductsCount',
-            'activeProductsCount',
-            'inactiveProductsCount',
-            'lowStockProductsCount',
-            'kpiDetailData'
+            'search'
         ));
     }
 
@@ -182,21 +75,26 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'nullable|string|max:100|unique:products,sku',
+            'sku' => 'required|string|max:100|unique:products,sku',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
+            'sale_starts_at' => 'nullable|date',
+            'sale_ends_at' => 'nullable|date',
             'stock' => 'required|integer|min:0',
             'short_description' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
             'specifications' => 'nullable|array',
             'specifications.*' => 'nullable|string',
-            'colors' => 'nullable|array',
-            'colors.*' => 'string',
-            'sizes' => 'nullable|array',
-            'sizes.*' => 'string',
+            'colors' => 'required|array|min:1',
+            'colors.*' => 'required|string',
+            'sizes' => 'required|array|min:1',
+            'sizes.*' => 'required|string',
             'variant_stock' => 'nullable|array',
+            'variant_price' => 'nullable|array',
+            'variant_original_price' => 'nullable|array',
+            'variant_material' => 'nullable|array',
             'is_featured' => 'nullable|boolean',
             'is_best_seller' => 'nullable|boolean',
             'is_new' => 'nullable|boolean',
@@ -208,10 +106,15 @@ class ProductController extends Controller
             'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
         ], [
             'name.required' => 'Vui lòng nhập tên sản phẩm.',
+            'sku.required' => 'Vui lòng nhập Mã SKU cho sản phẩm.',
             'category_id.required' => 'Vui lòng chọn danh mục thời trang.',
             'price.required' => 'Vui lòng nhập giá bán.',
-            'stock.required' => 'Vui lòng nhập số lượng tồn kho.',
+            'stock.required' => 'Vui lòng nhập số lượng nhập kho.',
             'sku.unique' => 'Mã SKU này đã tồn tại trên hệ thống.',
+            'colors.required' => 'Vui lòng chọn hoặc thêm ít nhất một Màu sắc cho sản phẩm.',
+            'colors.min' => 'Vui lòng chọn hoặc thêm ít nhất một Màu sắc cho sản phẩm.',
+            'sizes.required' => 'Vui lòng chọn hoặc thêm ít nhất một Kích thước (Size) cho sản phẩm.',
+            'sizes.min' => 'Vui lòng chọn hoặc thêm ít nhất một Kích thước (Size) cho sản phẩm.',
             'image.image' => 'File ảnh đại diện không đúng định dạng hình ảnh.',
         ]);
 
@@ -224,25 +127,17 @@ class ProductController extends Controller
             $imagePath = trim($request->input('image_url'), " \t\n\r\0\x0B'\"");
         }
 
-        $sku = $request->filled('sku') 
-            ? strtoupper(trim($request->input('sku'))) 
-            : ('BS-' . strtoupper(Str::random(6)));
+        $sku = strtoupper(trim($request->input('sku')));
 
         $price = (float)$validated['price'];
-        $originalPrice = isset($validated['original_price']) ? (float)$validated['original_price'] : null;
+        $originalPrice = isset($validated['original_price']) && is_numeric($validated['original_price']) ? (float)$validated['original_price'] : null;
         $discountPercent = 0;
         if ($originalPrice && $originalPrice > $price) {
             $discountPercent = round((($originalPrice - $price) / $originalPrice) * 100);
         }
 
-        $colors = $request->input('colors', ['Đen', 'Trắng']);
-        if (empty($colors)) {
-            $colors = ['Đen', 'Trắng'];
-        }
-        $sizes = $request->input('sizes', ['S', 'M', 'L', 'XL']);
-        if (empty($sizes)) {
-            $sizes = ['S', 'M', 'L', 'XL'];
-        }
+        $colors = $request->input('colors', []);
+        $sizes = $request->input('sizes', []);
 
         $stock = (int)$validated['stock'];
         $status = $validated['status'] ?? 'active';
@@ -257,14 +152,6 @@ class ProductController extends Controller
                 }
             }
         }
-        if (empty($specifications)) {
-            $specifications = [
-                'Phom dáng' => 'Regular fit / Slimfit tôn dáng',
-                'Chất liệu' => 'Cotton Compact cao cấp / Thoáng khí',
-                'Xuất xứ' => 'Việt Nam (Tiêu chuẩn xuất khẩu chất lượng cao)',
-                'Bảo hành' => 'Đổi size miễn phí trong 30 ngày',
-            ];
-        }
 
         $product = Product::create([
             'name' => $validated['name'],
@@ -275,6 +162,8 @@ class ProductController extends Controller
             'product_type' => 'variant',
             'price' => $price,
             'original_price' => $originalPrice,
+            'sale_starts_at' => $request->filled('sale_starts_at') ? $request->input('sale_starts_at') : null,
+            'sale_ends_at' => $request->filled('sale_ends_at') ? $request->input('sale_ends_at') : null,
             'discount_percent' => $discountPercent,
             'stock' => $stock,
             'sold_count' => 0,
@@ -341,6 +230,9 @@ class ProductController extends Controller
         $baseStock = (int)floor($stock / $totalVariants);
         $remainder = $stock % $totalVariants;
         $variantStocksInput = $request->input('variant_stock', []);
+        $variantPricesInput = $request->input('variant_price', []);
+        $variantOriginalPricesInput = $request->input('variant_original_price', []);
+        $variantMaterialsInput = $request->input('variant_material', []);
 
         foreach ($colors as $color) {
             $colorTrim = trim($color);
@@ -357,14 +249,27 @@ class ProductController extends Controller
                     $remainder--;
                 }
 
+                $vPrice = (isset($variantPricesInput[$varSku]) && is_numeric($variantPricesInput[$varSku]) && (float)$variantPricesInput[$varSku] > 0)
+                    ? (float)$variantPricesInput[$varSku]
+                    : $product->price;
+
+                $vOriginalPrice = (isset($variantOriginalPricesInput[$varSku]) && is_numeric($variantOriginalPricesInput[$varSku]) && (float)$variantOriginalPricesInput[$varSku] > 0)
+                    ? (float)$variantOriginalPricesInput[$varSku]
+                    : ($product->original_price ?: null);
+
+                $vMaterial = isset($variantMaterialsInput[$varSku]) && trim($variantMaterialsInput[$varSku]) !== ''
+                    ? trim($variantMaterialsInput[$varSku])
+                    : ($specifications['Chất liệu'] ?? null);
+
                 ProductVariant::create([
                     'product_id' => $product->id,
                     'sku' => $varSku,
                     'color' => $colorTrim,
                     'color_code' => $colorCode,
                     'size' => $sizeTrim,
-                    'price' => $product->price,
-                    'original_price' => $product->original_price,
+                    'material' => $vMaterial,
+                    'price' => $vPrice,
+                    'original_price' => $vOriginalPrice,
                     'stock' => $vStock,
                     'image' => $imagePath,
                     'status' => 'active',
@@ -410,6 +315,8 @@ class ProductController extends Controller
             'brand_id' => 'nullable|exists:brands,id',
             'price' => 'required|numeric|min:0',
             'original_price' => 'nullable|numeric|min:0',
+            'sale_starts_at' => 'nullable|date',
+            'sale_ends_at' => 'nullable|date',
             'stock' => 'required|integer|min:0',
             'short_description' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
@@ -417,6 +324,9 @@ class ProductController extends Controller
             'colors.*' => 'string',
             'sizes' => 'nullable|array',
             'sizes.*' => 'string',
+            'variant_stock' => 'nullable|array',
+            'variant_price' => 'nullable|array',
+            'variant_material' => 'nullable|array',
             'is_featured' => 'nullable|boolean',
             'is_best_seller' => 'nullable|boolean',
             'is_new' => 'nullable|boolean',
@@ -448,7 +358,7 @@ class ProductController extends Controller
             : $product->sku;
 
         $price = (float)$validated['price'];
-        $originalPrice = isset($validated['original_price']) ? (float)$validated['original_price'] : null;
+        $originalPrice = isset($validated['original_price']) && is_numeric($validated['original_price']) ? (float)$validated['original_price'] : null;
         $discountPercent = 0;
         if ($originalPrice && $originalPrice > $price) {
             $discountPercent = round((($originalPrice - $price) / $originalPrice) * 100);
@@ -466,6 +376,8 @@ class ProductController extends Controller
             'brand_id' => $validated['brand_id'] ?? null,
             'price' => $price,
             'original_price' => $originalPrice,
+            'sale_starts_at' => $request->filled('sale_starts_at') ? $request->input('sale_starts_at') : null,
+            'sale_ends_at' => $request->filled('sale_ends_at') ? $request->input('sale_ends_at') : null,
             'discount_percent' => $discountPercent,
             'stock' => (int)$validated['stock'],
             'short_description' => $validated['short_description'] ?? $product->short_description,
@@ -504,25 +416,83 @@ class ProductController extends Controller
         }
 
         // Bổ sung hoặc cập nhật các biến thể theo màu & size
+        $variantStocksInput = $request->input('variant_stock', []);
+        $variantPricesInput = $request->input('variant_price', []);
+        $variantMaterialsInput = $request->input('variant_material', []);
+
+        // 1. Cập nhật trực tiếp các biến thể hiện tại theo ID (từ bảng quản lý biến thể trang Edit)
+        foreach ($product->variants as $variant) {
+            $hasUpdate = false;
+            $vData = [];
+            if (isset($variantStocksInput[$variant->id]) && is_numeric($variantStocksInput[$variant->id])) {
+                $vData['stock'] = max(0, (int)$variantStocksInput[$variant->id]);
+                $hasUpdate = true;
+            }
+            if (isset($variantPricesInput[$variant->id]) && is_numeric($variantPricesInput[$variant->id]) && (float)$variantPricesInput[$variant->id] > 0) {
+                $vData['price'] = (float)$variantPricesInput[$variant->id];
+                $hasUpdate = true;
+            }
+            if (isset($variantMaterialsInput[$variant->id])) {
+                $vData['material'] = trim($variantMaterialsInput[$variant->id]) !== '' ? trim($variantMaterialsInput[$variant->id]) : null;
+                $hasUpdate = true;
+            }
+            if ($hasUpdate) {
+                $variant->update($vData);
+            }
+        }
+
+        // 2. Đồng bộ các biến thể mới nếu quản trị viên tích thêm màu sắc / kích cỡ mới
         if (!empty($colors) && !empty($sizes)) {
             $variantStock = max(1, (int)floor($product->stock / (count($colors) * count($sizes))));
             foreach ($colors as $color) {
+                $colorTrim = trim($color);
                 foreach ($sizes as $size) {
-                    ProductVariant::firstOrCreate(
-                        [
+                    $sizeTrim = trim($size);
+                    $varSku = $product->sku . '-' . strtoupper(Str::slug($colorTrim)) . '-' . strtoupper(Str::slug($sizeTrim));
+
+                    $variant = ProductVariant::where('product_id', $product->id)
+                        ->where('color', $colorTrim)
+                        ->where('size', $sizeTrim)
+                        ->first();
+
+                    if ($variant) {
+                        // Kiểm tra nếu có cập nhật bằng mã SKU
+                        $skuUpdate = [];
+                        if (isset($variantStocksInput[$varSku]) && is_numeric($variantStocksInput[$varSku])) {
+                            $skuUpdate['stock'] = max(0, (int)$variantStocksInput[$varSku]);
+                        }
+                        if (isset($variantPricesInput[$varSku]) && is_numeric($variantPricesInput[$varSku]) && (float)$variantPricesInput[$varSku] > 0) {
+                            $skuUpdate['price'] = (float)$variantPricesInput[$varSku];
+                        }
+                        if (isset($variantMaterialsInput[$varSku])) {
+                            $skuUpdate['material'] = trim($variantMaterialsInput[$varSku]) !== '' ? trim($variantMaterialsInput[$varSku]) : null;
+                        }
+                        if (!empty($skuUpdate)) {
+                            $variant->update($skuUpdate);
+                        }
+                    } else {
+                        // Tạo biến thể mới bổ sung
+                        $vStock = (isset($variantStocksInput[$varSku]) && is_numeric($variantStocksInput[$varSku]))
+                            ? max(0, (int)$variantStocksInput[$varSku])
+                            : $variantStock;
+                        $vPrice = (isset($variantPricesInput[$varSku]) && is_numeric($variantPricesInput[$varSku]) && (float)$variantPricesInput[$varSku] > 0)
+                            ? (float)$variantPricesInput[$varSku]
+                            : $product->price;
+                        $vMaterial = isset($variantMaterialsInput[$varSku]) ? (trim($variantMaterialsInput[$varSku]) ?: null) : null;
+
+                        ProductVariant::create([
                             'product_id' => $product->id,
-                            'color' => $color,
-                            'size' => $size,
-                        ],
-                        [
-                            'sku' => $product->sku . '-' . Str::slug($color) . '-' . $size,
-                            'price' => $product->price,
+                            'sku' => $varSku,
+                            'color' => $colorTrim,
+                            'size' => $sizeTrim,
+                            'material' => $vMaterial,
+                            'price' => $vPrice,
                             'original_price' => $product->original_price,
-                            'stock' => $variantStock,
+                            'stock' => $vStock,
                             'image' => $imagePath,
                             'status' => 'active',
-                        ]
-                    );
+                        ]);
+                    }
                 }
             }
         }
@@ -578,5 +548,119 @@ class ProductController extends Controller
         ]);
 
         return back()->with('success', "Đã thay đổi trạng thái sản phẩm #{$product->sku} sang " . ($newStatus === 'active' ? 'Đang bán' : 'Tạm dừng'));
+    }
+
+    /**
+     * Lấy chi tiết lịch sử bán hàng và danh sách khách hàng đã mua sản phẩm
+     */
+    public function salesBuyers($id)
+    {
+        $product = Product::with(['category', 'brand'])->findOrFail($id);
+
+        // Lấy tất cả order items của sản phẩm kèm thông tin đơn hàng và tài khoản khách
+        $orderItems = OrderItem::with(['order.user'])
+            ->where('product_id', $product->id)
+            ->whereHas('order')
+            ->orderByDesc('id')
+            ->get();
+
+        // Danh sách đơn hàng hợp lệ (không tính đơn hủy)
+        $validItems = $orderItems->filter(function ($item) {
+            return $item->order && $item->order->shipping_status !== 'cancelled';
+        });
+
+        $totalSoldQty = (int) $validItems->sum('quantity');
+        $totalRevenue = (int) $validItems->sum('subtotal');
+        $distinctOrdersCount = $validItems->pluck('order_id')->unique()->count();
+        
+        $distinctBuyersCount = $validItems->map(function ($item) {
+            $order = $item->order;
+            if (!$order) return null;
+            return $order->customer_phone ?: ($order->customer_email ?: $order->customer_name);
+        })->filter()->unique()->count();
+
+        // Danh sách khách hàng và chi tiết từng lần mua
+        $buyers = $orderItems->map(function ($item) {
+            $order = $item->order;
+            
+            $shippingStatus = $order ? $order->shipping_status : 'pending';
+            $statusLabel = 'Chờ xử lý';
+            $statusBadgeClass = 'bg-warning-subtle text-warning border-warning-subtle';
+            
+            switch ($shippingStatus) {
+                case 'completed':
+                    $statusLabel = 'Hoàn tất';
+                    $statusBadgeClass = 'bg-success-subtle text-success border-success-subtle';
+                    break;
+                case 'delivered':
+                    $statusLabel = 'Đã giao hàng';
+                    $statusBadgeClass = 'bg-success-subtle text-success border-success-subtle';
+                    break;
+                case 'shipping':
+                    $statusLabel = 'Đang giao hàng';
+                    $statusBadgeClass = 'bg-info-subtle text-info border-info-subtle';
+                    break;
+                case 'processing':
+                    $statusLabel = 'Đang chuẩn bị hàng';
+                    $statusBadgeClass = 'bg-primary-subtle text-primary border-primary-subtle';
+                    break;
+                case 'confirmed':
+                    $statusLabel = 'Đã xác nhận';
+                    $statusBadgeClass = 'bg-secondary-subtle text-secondary border-secondary-subtle';
+                    break;
+                case 'cancelled':
+                    $statusLabel = 'Đã hủy đơn';
+                    $statusBadgeClass = 'bg-danger-subtle text-danger border-danger-subtle';
+                    break;
+            }
+
+            return [
+                'item_id' => $item->id,
+                'order_id' => $order ? $order->id : null,
+                'order_code' => $order ? $order->order_code : 'N/A',
+                'order_url' => $order ? route('admin.orders.show', $order->id) : '#',
+                'customer_name' => $order ? ($order->customer_name ?: 'Khách mua tại quầy / web') : 'Khách mua',
+                'customer_phone' => $order ? ($order->customer_phone ?: 'Chưa có SĐT') : 'Chưa có SĐT',
+                'customer_email' => $order ? ($order->customer_email ?: 'Chưa có email') : 'Chưa có email',
+                'shipping_address' => $order ? ($order->shipping_address ?: 'Nhận tại cửa hàng') : '',
+                'is_registered' => $order && $order->user_id ? true : false,
+                'color' => $item->color ?: 'Tiêu chuẩn',
+                'size' => $item->size ?: 'FreeSize',
+                'quantity' => (int) $item->quantity,
+                'price' => (int) $item->price,
+                'price_formatted' => number_format((int) $item->price, 0, ',', '.') . '₫',
+                'subtotal' => (int) $item->subtotal,
+                'subtotal_formatted' => number_format((int) $item->subtotal, 0, ',', '.') . '₫',
+                'shipping_status' => $shippingStatus,
+                'status_label' => $statusLabel,
+                'status_badge_class' => $statusBadgeClass,
+                'payment_method' => $order ? ($order->payment_method_name ?? strtoupper($order->payment_method ?? 'COD')) : 'COD',
+                'created_at' => $order && $order->created_at ? $order->created_at->format('d/m/Y H:i') : '',
+                'created_at_human' => $order && $order->created_at ? $order->created_at->diffForHumans() : '',
+            ];
+        });
+
+        $displaySoldQty = $totalSoldQty > 0 ? $totalSoldQty : (int)$product->sold_count;
+
+        return response()->json([
+            'success' => true,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => (int) $product->price,
+                'price_formatted' => number_format((int) $product->price, 0, ',', '.') . '₫',
+                'image' => asset($product->image ?: 'assets/img/products/1.png'),
+                'category_name' => $product->category->name ?? 'Thời trang nam',
+                'stock' => (int) $product->stock,
+                'total_sold_qty' => $displaySoldQty,
+                'total_revenue' => $totalRevenue,
+                'total_revenue_formatted' => number_format($totalRevenue, 0, ',', '.') . '₫',
+                'orders_count' => $distinctOrdersCount,
+                'buyers_count' => $distinctBuyersCount,
+                'edit_url' => route('admin.products.edit', $product->id),
+            ],
+            'orders' => $buyers,
+        ]);
     }
 }

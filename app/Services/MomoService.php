@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class MomoService
 {
@@ -27,27 +25,72 @@ class MomoService
     }
 
     /**
-     * Tạo yêu cầu thanh toán MoMo Sandbox (Gateway v2 API)
+     * Gửi yêu cầu HTTP POST tới cổng MoMo qua cURL (theo chuẩn tài liệu tích hợp MoMo Payment)
+     *
+     * @param string $url
+     * @param string $data (JSON string)
+     * @return string
+     */
+    public function execPostRequest(string $url, string $data): string
+    {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($data),
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+        $result = curl_exec($ch);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($result === false) {
+            Log::error("MoMo execPostRequest cURL Error: " . $curlError);
+            return json_encode([
+                'resultCode' => -1,
+                'message' => 'Lỗi kết nối máy chủ MoMo: ' . $curlError,
+            ]);
+        }
+
+        return (string) $result;
+    }
+
+    /**
+     * Tạo yêu cầu thanh toán MoMo Payment Gateway (Sandbox v2 API)
      *
      * @param Order $order
+     * @param string $requestType Mặc định 'payWithATM' (Cổng thanh toán MoMo ATM trực tuyến, không hiển thị mã quét QR)
      * @return array
      */
-    public function createPayment(Order $order): array
+    public function createPayment(Order $order, string $requestType = 'payWithATM'): array
     {
         try {
-            // Tạo unique orderId cho MoMo để tránh lỗi trùng lặp mã đơn khi khách thử thanh toán lại
+            // Tạo unique orderId cho MoMo để tránh lỗi trùng lặp mã đơn khi khách hàng thử thanh toán lại
             $orderId = $order->order_code . '_' . time();
-            $requestId = (string) Str::uuid();
+            $requestId = time() . '_' . rand(1000, 9999);
+
             $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
             $amount = $isDeposit ? (int) round($order->deposit_amount) : (int) round($order->total_amount);
-            $orderInfo = $isDeposit
-                ? "Dat coc 50% don hang #" . $order->order_code . " tai BeeStyle"
-                : "Thanh toan don hang #" . $order->order_code . " tai BeeStyle";
-            $extraData = base64_encode(json_encode(['order_code' => $order->order_code, 'is_deposit' => $isDeposit]));
-            $requestType = "captureWallet";
+            $amountStr = (string) $amount;
 
+            $orderInfo = $isDeposit
+                ? "Dat coc 50% don hang #" . $order->order_code . " qua MoMo Payment"
+                : "Thanh toan don hang #" . $order->order_code . " qua MoMo Payment";
+
+            $extraData = base64_encode(json_encode([
+                'order_code' => $order->order_code,
+                'is_deposit' => $isDeposit,
+            ]));
+
+            // Tạo chuỗi mã hóa HMAC-SHA256 theo chuẩn MoMo Gateway
             $rawHash = "accessKey=" . $this->accessKey .
-                "&amount=" . $amount .
+                "&amount=" . $amountStr .
                 "&extraData=" . $extraData .
                 "&ipnUrl=" . $this->ipnUrl .
                 "&orderId=" . $orderId .
@@ -61,7 +104,7 @@ class MomoService
 
             $payload = [
                 'partnerCode' => $this->partnerCode,
-                'partnerName' => 'BeeStyle Store',
+                'partnerName' => 'MoMo Demo',
                 'storeId' => 'BeeStyleStore',
                 'requestId' => $requestId,
                 'amount' => $amount,
@@ -72,57 +115,53 @@ class MomoService
                 'lang' => 'vi',
                 'extraData' => $extraData,
                 'requestType' => $requestType,
+                'orderExpireTime' => 15,
                 'signature' => $signature,
             ];
 
-            Log::info("MoMo Sandbox Create Payment Request for Order #{$order->order_code}", [
+            Log::info("MoMo Payment Create Request for Order #{$order->order_code}", [
                 'endpoint' => $this->endpoint,
                 'orderId' => $orderId,
-                'amount' => $amount
+                'amount' => $amount,
+                'requestType' => $requestType,
             ]);
 
-            $response = Http::withoutVerifying()
-                ->timeout(10)
-                ->post($this->endpoint, $payload);
+            $jsonString = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $response = $this->execPostRequest($this->endpoint, $jsonString);
+            $data = json_decode($response, true);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                Log::info("MoMo Sandbox Response for Order #{$order->order_code}", $data);
+            Log::info("MoMo Payment Response for Order #{$order->order_code}", $data ?: ['raw' => $response]);
 
-                if (isset($data['resultCode']) && (int)$data['resultCode'] === 0) {
-                    return [
-                        'success' => true,
-                        'payUrl' => $data['payUrl'] ?? null,
-                        'qrCodeUrl' => $data['qrCodeUrl'] ?? null,
-                        'deeplink' => $data['deeplink'] ?? null,
-                        'orderId' => $orderId,
-                        'message' => $data['message'] ?? 'Thành công.',
-                    ];
-                }
-
+            if (isset($data['resultCode']) && (int) $data['resultCode'] === 0) {
                 return [
-                    'success' => false,
-                    'message' => $data['message'] ?? 'Lỗi khởi tạo MoMo gateway (Mã: ' . ($data['resultCode'] ?? 'unknown') . ')',
-                    'resultCode' => $data['resultCode'] ?? -1,
+                    'success' => true,
+                    'payUrl' => $data['payUrl'] ?? null,
+                    'qrCodeUrl' => $data['qrCodeUrl'] ?? null,
+                    'deeplink' => $data['deeplink'] ?? null,
+                    'applink' => $data['applink'] ?? null,
+                    'orderId' => $orderId,
+                    'requestId' => $requestId,
+                    'message' => $data['message'] ?? 'Thành công.',
                 ];
             }
 
-            Log::error("MoMo Sandbox HTTP Error: " . $response->body());
             return [
                 'success' => false,
-                'message' => 'Không thể kết nối máy chủ MoMo Sandbox (HTTP ' . $response->status() . ').',
+                'message' => $data['message'] ?? 'Lỗi khởi tạo MoMo Payment (Mã: ' . ($data['resultCode'] ?? 'unknown') . ')',
+                'resultCode' => $data['resultCode'] ?? -1,
             ];
-        } catch (\Exception $e) {
-            Log::error("MoMo Sandbox Exception: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("MoMo Payment Exception: " . $e->getMessage());
             return [
                 'success' => false,
-                'message' => 'Lỗi kết nối cổng MoMo: ' . $e->getMessage(),
+                'message' => 'Lỗi kết nối cổng MoMo Payment: ' . $e->getMessage(),
             ];
         }
     }
 
     /**
-     * Xác thực chữ ký số từ MoMo Callback hoặc IPN
+     * Xác thực chữ ký số từ MoMo Callback hoặc IPN Webhook
+     * Hỗ trợ kiểm tra linh hoạt cả 2 định dạng mã hóa chữ ký số của MoMo
      *
      * @param array $data
      * @return bool
@@ -133,7 +172,10 @@ class MomoService
             return false;
         }
 
-        $rawHash = "accessKey=" . $this->accessKey .
+        $receivedSignature = (string) $data['signature'];
+
+        // Cách 1: Chuẩn mã hóa Gateway V2 theo thứ tự bảng chữ cái (Alphabetical order)
+        $rawHashAlphabetical = "accessKey=" . $this->accessKey .
             "&amount=" . ($data['amount'] ?? '') .
             "&extraData=" . ($data['extraData'] ?? '') .
             "&message=" . ($data['message'] ?? '') .
@@ -144,41 +186,40 @@ class MomoService
             "&payType=" . ($data['payType'] ?? '') .
             "&requestId=" . ($data['requestId'] ?? '') .
             "&responseTime=" . ($data['responseTime'] ?? '') .
-            "&resultCode=" . ($data['resultCode'] ?? '') .
+            "&resultCode=" . ($data['resultCode'] ?? ($data['errorCode'] ?? '')) .
             "&transId=" . ($data['transId'] ?? '');
 
-        $calculatedSignature = hash_hmac("sha256", $rawHash, $this->secretKey);
+        $sigAlphabetical = hash_hmac("sha256", $rawHashAlphabetical, $this->secretKey);
+        if (hash_equals($sigAlphabetical, $receivedSignature)) {
+            return true;
+        }
 
-        return hash_equals($calculatedSignature, (string)$data['signature']);
+        // Cách 2: Chuẩn mã hóa tuần tự (Sequential checksum từ tài liệu mẫu)
+        $rawHashSequential = "partnerCode=" . ($data['partnerCode'] ?? '') .
+            "&accessKey=" . $this->accessKey .
+            "&requestId=" . ($data['requestId'] ?? '') .
+            "&amount=" . ($data['amount'] ?? '') .
+            "&orderId=" . ($data['orderId'] ?? '') .
+            "&orderInfo=" . ($data['orderInfo'] ?? '') .
+            "&orderType=" . ($data['orderType'] ?? '') .
+            "&transId=" . ($data['transId'] ?? '') .
+            "&message=" . ($data['message'] ?? '') .
+            "&localMessage=" . ($data['localMessage'] ?? '') .
+            "&responseTime=" . ($data['responseTime'] ?? '') .
+            "&errorCode=" . ($data['errorCode'] ?? ($data['resultCode'] ?? '')) .
+            "&payType=" . ($data['payType'] ?? '') .
+            "&extraData=" . ($data['extraData'] ?? '');
+
+        $sigSequential = hash_hmac("sha256", $rawHashSequential, $this->secretKey);
+        if (hash_equals($sigSequential, $receivedSignature)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
-     * Trích xuất mã đơn hàng BeeStyle từ orderId của MoMo hoặc extraData
-     *
-     * @param array $data
-     * @return string|null
-     */
-    public function extractOrderCode(array $data): ?string
-    {
-        // Thử lấy từ extraData trước
-        if (!empty($data['extraData'])) {
-            $decoded = json_decode(base64_decode($data['extraData']), true);
-            if (!empty($decoded['order_code'])) {
-                return $decoded['order_code'];
-            }
-        }
-
-        // Thử tách từ orderId dạng BEE-XXXXXXXX-XXXX_timestamp
-        if (!empty($data['orderId'])) {
-            $parts = explode('_', $data['orderId']);
-            return $parts[0] ?? $data['orderId'];
-        }
-
-        return null;
-    }
-
-    /**
-     * Tra cứu trạng thái giao dịch MoMo trực tiếp từ máy chủ MoMo
+     * Tra cứu trạng thái giao dịch MoMo trực tiếp từ máy chủ MoMo (Server-to-Server Query)
      *
      * @param string $orderId
      * @param string|null $requestId
@@ -187,9 +228,10 @@ class MomoService
     public function queryTransaction(string $orderId, ?string $requestId = null): array
     {
         try {
-            $requestId = $requestId ?: (string) Str::uuid();
             $endpoint = str_replace('/create', '/query', $this->endpoint);
+            $requestId = $requestId ?: (time() . "_" . rand(1000, 9999));
 
+            // Chữ ký truy vấn giao dịch theo tài liệu MoMo
             $rawHash = "accessKey=" . $this->accessKey .
                 "&orderId=" . $orderId .
                 "&partnerCode=" . $this->partnerCode .
@@ -202,18 +244,41 @@ class MomoService
                 'requestId' => $requestId,
                 'orderId' => $orderId,
                 'signature' => $signature,
-                'lang' => 'vi'
+                'lang' => 'vi',
             ];
 
-            $response = Http::withoutVerifying()->timeout(10)->post($endpoint, $payload);
-            if ($response->successful()) {
-                return $response->json();
-            }
+            $response = $this->execPostRequest($endpoint, json_encode($payload));
+            $json = json_decode($response, true);
 
-            return ['resultCode' => -1, 'message' => 'Lỗi kết nối máy chủ MoMo: ' . $response->status()];
-        } catch (\Exception $e) {
+            return is_array($json) ? $json : ['resultCode' => -1, 'message' => 'Phản hồi không hợp lệ'];
+        } catch (\Throwable $e) {
             Log::error("MoMo queryTransaction Exception: " . $e->getMessage());
             return ['resultCode' => -1, 'message' => $e->getMessage()];
         }
+    }
+
+    /**
+     * Trích xuất mã đơn hàng BeeStyle từ orderId của MoMo hoặc extraData
+     *
+     * @param array $data
+     * @return string|null
+     */
+    public function extractOrderCode(array $data): ?string
+    {
+        // 1. Thử lấy từ extraData trước
+        if (!empty($data['extraData'])) {
+            $decoded = json_decode(base64_decode($data['extraData']), true);
+            if (!empty($decoded['order_code'])) {
+                return $decoded['order_code'];
+            }
+        }
+
+        // 2. Thử tách từ orderId dạng BEE-XXXXXXXX-XXXX_timestamp
+        if (!empty($data['orderId'])) {
+            $parts = explode('_', $data['orderId']);
+            return $parts[0] ?? $data['orderId'];
+        }
+
+        return null;
     }
 }

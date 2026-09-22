@@ -34,15 +34,17 @@
           $firstImg = asset($galleryImages->first()->image_path);
         }
 
-        // Tính % giảm giá nếu có
-        $hasDiscount = ($product->original_price && $product->original_price > $product->price);
+        // Tính % giảm giá nếu trong thời hạn sale
+        $isSaleActive = $product->is_sale_active;
+        $hasDiscount = $isSaleActive && ($product->original_price && $product->original_price > $product->price);
         $discountPercent = $hasDiscount ? round((($product->original_price - $product->price) / $product->original_price) * 100) : 0;
         
         // Kiểm tra Running Deal / Flash Sale
         $isDealActive = isset($runningDeal) && (bool)$runningDeal;
-        $effectivePrice = $product->price;
-        if ($isDealActive && isset($runningDeal->deal_price) && $runningDeal->deal_price < $product->price) {
+        $effectivePrice = $product->effective_price;
+        if ($isDealActive && isset($runningDeal->deal_price) && $runningDeal->deal_price < $effectivePrice) {
           $effectivePrice = $runningDeal->deal_price;
+          $hasDiscount = true;
           $discountPercent = $runningDeal->discount_percent ?: $discountPercent;
         }
 
@@ -185,6 +187,17 @@
               </span>
             @endif
           </div>
+
+          @if($isSaleActive && $product->sale_ends_at)
+            <div class="mt-2.5 pt-2 border-t border-brand-200/80 flex items-center justify-between text-[11px] text-amber-900 bg-amber-50/80 px-2.5 py-1 rounded-lg">
+              <span class="flex items-center gap-1 font-medium">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span>Ưu đãi áp dụng đến: <strong>{{ $product->sale_ends_at->format('d/m/Y H:i') }}</strong></span>
+              </span>
+              <span class="text-neutral-500 text-[10px]">Hết hạn về giá gốc</span>
+            </div>
+          @endif
+
           <div class="mt-2 flex items-center justify-between text-xs">
             <span class="text-emerald-700 font-semibold flex items-center gap-1" id="stockStatusIndicator">
               <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 
@@ -280,6 +293,15 @@
               </div>
             </div>
           @endif
+
+          <!-- THÔNG TIN CHẤT LIỆU RIÊNG CỦA BIẾN THỂ (HIỂN THỊ KHI CHỌN MẪU) -->
+          <div id="variantMaterialNotice" class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl mb-4 text-xs text-amber-950 flex items-center gap-2.5 hidden">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-600 shrink-0"></i>
+            <div>
+              <span class="text-neutral-600 text-[11px] block">Chất liệu may đo phiên bản này:</span>
+              <strong id="variantMaterialName" class="text-neutral-950 font-bold text-xs"></strong>
+            </div>
+          </div>
 
           <!-- THÔNG BÁO CHÍNH SÁCH ĐẶT CỌC 50% CHO ĐƠN HÀNG LỚN -->
           <div id="bulkDepositPolicyBox" class="p-3.5 bg-amber-50 border border-amber-300 rounded-xl mb-4 text-xs text-amber-950 hidden">
@@ -690,7 +712,8 @@
       'id' => $v->id,
       'color' => trim($v->color),
       'size' => trim($v->size),
-      'price' => (int)($v->price ?: $effectivePrice),
+      'material' => $v->material,
+      'price' => (int)($v->effective_price ?: $effectivePrice),
       'stock' => (int)$v->stock,
       'sku' => $v->sku,
       'image' => $v->image ? asset($v->image) : null,
@@ -803,6 +826,18 @@
         priceDisplay.textContent = currentProductUnitPrice.toLocaleString('vi-VN') + '₫';
         if (found.sku) skuDisplay.textContent = 'SKU: ' + found.sku;
 
+        // Cập nhật thông tin chất liệu may đo của biến thể
+        const matNotice = document.getElementById('variantMaterialNotice');
+        const matName = document.getElementById('variantMaterialName');
+        if (matNotice && matName) {
+          if (found.material && found.material.trim() !== '') {
+            matName.textContent = found.material;
+            matNotice.classList.remove('hidden');
+          } else {
+            matNotice.classList.add('hidden');
+          }
+        }
+
         if (currentVariantStock <= 0) {
           stockStatusText.textContent = `Hết hàng (${selectedProductColor} / ${selectedProductSize})`;
           stockStatusText.className = 'text-rose-600 font-bold';
@@ -820,6 +855,8 @@
         }
       }
     } else {
+      const matNotice = document.getElementById('variantMaterialNotice');
+      if (matNotice) matNotice.classList.add('hidden');
       if (stickyVariantText) {
         stickyVariantText.textContent = selectedProductColor || selectedProductSize || 'Chưa chọn phân loại';
       }

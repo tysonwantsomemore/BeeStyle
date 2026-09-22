@@ -52,6 +52,36 @@ class UserAddress extends Model
         return $this->belongsTo(Ward::class, 'ward_id');
     }
 
+    public function getReceiverNameAttribute(): string
+    {
+        return (string) ($this->recipient_name ?? '');
+    }
+
+    public function getReceiverPhoneAttribute(): string
+    {
+        return (string) ($this->phone ?? '');
+    }
+
+    public function getDetailAddressAttribute(): string
+    {
+        return (string) ($this->address ?? '');
+    }
+
+    public function getProvinceNameAttribute(): string
+    {
+        return (string) ($this->province?->name ?? $this->city ?? '');
+    }
+
+    public function getDistrictNameAttribute(): string
+    {
+        return (string) ($this->districtRelation?->name ?? $this->district ?? '');
+    }
+
+    public function getWardNameAttribute(): string
+    {
+        return (string) ($this->wardRelation?->name ?? $this->ward ?? '');
+    }
+
     public function getFullAddressAttribute(): string
     {
         $wardName = $this->wardRelation?->name ?? $this->ward;

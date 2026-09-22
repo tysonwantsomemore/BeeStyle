@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -21,8 +22,11 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
+        // Tự động quét và hoàn tất các đơn hàng đã giao quá 7 ngày không có khiếu nại
+        Order::autoCompleteEligibleDeliveredOrders();
+
         $query = $this->getFilteredOrdersQuery($request);
-        $orders = $query->paginate(15)->withQueryString();
+        $orders = $query->paginate(5)->withQueryString();
 
         // Thống kê số lượng đơn hàng theo từng trạng thái để làm các tab lọc nhanh
         $statusCounts = [
@@ -46,6 +50,9 @@ class OrderController extends Controller
             'Shipper Nội Bộ BeeStyle',
         ];
 
+        // Danh sách bưu tá giao hàng (Shipper)
+        $shippers = User::where('role', 'shipper')->get();
+
         $filters = [
             'status' => $request->query('status', ''),
             'q' => $request->query('q', ''),
@@ -56,9 +63,81 @@ class OrderController extends Controller
             'date_to' => $request->query('date_to', ''),
             'carrier' => $request->query('carrier', ''),
             'amount_range' => $request->query('amount_range', ''),
+            'shipper_id' => $request->query('shipper_id', ''),
+            'print_status' => $request->query('print_status', ''),
         ];
 
-        return view('admin.orders.index', compact('orders', 'statusCounts', 'filters', 'carriers'));
+        return view('admin.orders.index', compact('orders', 'statusCounts', 'filters', 'carriers', 'shippers'));
+    }
+
+    /**
+     * Báo Cáo & Thống Kê Đơn Hàng Tách Biệt (Order & Fulfillment Analytics Dashboard)
+     */
+    public function statistics(Request $request)
+    {
+        $statusCounts = [
+            'all' => Order::count(),
+            'pending' => Order::where('shipping_status', 'pending')->count(),
+            'confirmed' => Order::where('shipping_status', 'confirmed')->count(),
+            'processing' => Order::where('shipping_status', 'processing')->count(),
+            'shipping' => Order::where('shipping_status', 'shipping')->count(),
+            'delivered' => Order::where('shipping_status', 'delivered')->count(),
+            'completed' => Order::where('shipping_status', 'completed')->count(),
+            'cancelled' => Order::where('shipping_status', 'cancelled')->count(),
+        ];
+
+        $totalRevenue = Order::where(function ($q) {
+            $q->whereIn('shipping_status', ['delivered', 'completed'])
+              ->orWhere('payment_status', 'paid');
+        })->where('shipping_status', '!=', 'cancelled')->sum('total_amount');
+
+        $todayOrders = Order::whereDate('created_at', today())->count();
+        $todayRevenue = Order::whereDate('created_at', today())
+            ->where('shipping_status', '!=', 'cancelled')
+            ->where(function ($q) {
+                $q->whereIn('shipping_status', ['delivered', 'completed'])
+                  ->orWhere('payment_status', 'paid');
+            })->sum('total_amount');
+
+        $thisMonthOrders = Order::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+        $thisMonthRevenue = Order::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->where('shipping_status', '!=', 'cancelled')
+            ->where(function ($q) {
+                $q->whereIn('shipping_status', ['delivered', 'completed'])
+                  ->orWhere('payment_status', 'paid');
+            })->sum('total_amount');
+
+        $carrierStats = Order::whereNotNull('shipping_carrier')
+            ->where('shipping_carrier', '!=', '')
+            ->select('shipping_carrier', DB::raw('count(*) as total'))
+            ->groupBy('shipping_carrier')
+            ->orderByDesc('total')
+            ->get();
+
+        $paymentStats = Order::select('payment_method', DB::raw('count(*) as total'), DB::raw('sum(total_amount) as amount'))
+            ->groupBy('payment_method')
+            ->orderByDesc('total')
+            ->get();
+
+        $recentOrders = Order::with(['items.product', 'user'])
+            ->orderByDesc('id')
+            ->take(8)
+            ->get();
+
+        return view('admin.orders.statistics', compact(
+            'statusCounts',
+            'totalRevenue',
+            'todayOrders',
+            'todayRevenue',
+            'thisMonthOrders',
+            'thisMonthRevenue',
+            'carrierStats',
+            'paymentStats',
+            'recentOrders'
+        ));
     }
 
     /**
@@ -75,8 +154,20 @@ class OrderController extends Controller
         $dateTo = $request->query('date_to');
         $carrier = $request->query('carrier');
         $amountRange = $request->query('amount_range');
+        $shipperId = $request->query('shipper_id');
+        $printStatus = $request->query('print_status');
 
-        $query = Order::with(['items.product', 'user'])->orderBy('id', 'desc');
+        $query = Order::with(['items.product', 'user', 'shipper'])->orderBy('id', 'desc');
+
+        if ($shipperId) {
+            $query->where('shipper_id', $shipperId);
+        }
+
+        if ($printStatus === 'printed') {
+            $query->whereNotNull('printed_at');
+        } elseif ($printStatus === 'unprinted') {
+            $query->whereNull('printed_at');
+        }
 
         if ($status) {
             $query->where('shipping_status', $status);
@@ -241,6 +332,7 @@ class OrderController extends Controller
 
     /**
      * In Phiếu Đóng Gói Hàng Loạt (Bulk Packing Slips)
+     * Đánh dấu thời gian đã in phiếu & tự động chuyển đơn sang Đang Đóng Gói (processing)
      */
     public function bulkPrint(Request $request)
     {
@@ -253,7 +345,7 @@ class OrderController extends Controller
             return back()->with('error', 'Vui lòng chọn ít nhất một đơn hàng để in phiếu đóng gói.');
         }
 
-        $orders = Order::with(['items.product', 'user'])
+        $orders = Order::with(['items.product', 'user', 'shipper'])
             ->whereIn('id', (array)$orderIds)
             ->orderBy('id', 'desc')
             ->get();
@@ -262,7 +354,166 @@ class OrderController extends Controller
             return back()->with('error', 'Không tìm thấy đơn hàng tương ứng.');
         }
 
+        $now = now();
+        foreach ($orders as $order) {
+            $updateData = [
+                'printed_at'  => $now,
+                'print_count' => ($order->print_count ?? 0) + 1,
+            ];
+
+            // Khi in phiếu, đơn ở confirmed hoặc pending sẽ tự động chuyển sang Đang Đóng Gói
+            if (in_array($order->shipping_status, ['pending', 'confirmed'])) {
+                $updateData['shipping_status'] = 'processing';
+                $updateData['status_step'] = 3;
+                if (!$order->confirmed_at) {
+                    $updateData['confirmed_at'] = $now;
+                }
+                $updateData['processing_at'] = $order->processing_at ?: $now;
+            }
+
+            $order->update($updateData);
+        }
+
         return view('admin.orders.bulk-print', compact('orders'));
+    }
+
+    /**
+     * In Phiếu Đóng Gói cho từng đơn hàng đơn lẻ & Tự động chuyển sang Đang Đóng Gói
+     */
+    public function printSlip($id)
+    {
+        $order = Order::with(['items.product', 'user', 'shipper'])->findOrFail($id);
+        $now = now();
+
+        $updateData = [
+            'printed_at'  => $now,
+            'print_count' => ($order->print_count ?? 0) + 1,
+        ];
+
+        // Khi in phiếu, tự động chuyển đơn sang Đang Đóng Gói
+        if (in_array($order->shipping_status, ['pending', 'confirmed'])) {
+            $updateData['shipping_status'] = 'processing';
+            $updateData['status_step'] = 3;
+            if (!$order->confirmed_at) {
+                $updateData['confirmed_at'] = $now;
+            }
+            $updateData['processing_at'] = $order->processing_at ?: $now;
+        }
+
+        $order->update($updateData);
+
+        $orders = collect([$order]);
+        return view('admin.orders.bulk-print', compact('orders'));
+    }
+
+    /**
+     * Bàn giao đơn hàng từ Kho Đóng Gói cho Bưu Tá (BẮT BUỘC 1 ẢNH KIỆN HÀNG XUẤT KHO)
+     */
+    public function handoverShipper(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+
+        if (!in_array($order->shipping_status, ['confirmed', 'processing'])) {
+            return back()->with('error', 'Chỉ các đơn hàng đang ở trạng thái Đã Xác Nhận hoặc Đang Đóng Gói mới có thể bàn giao cho bưu tá!');
+        }
+
+        $validated = $request->validate([
+            'shipper_id' => 'required|exists:users,id',
+            'shipping_carrier' => 'nullable|string|max:100',
+            'tracking_code' => 'nullable|string|max:100',
+            'handover_image_file' => 'required_without:handover_image|nullable|file|image|max:10240',
+            'handover_image' => 'nullable|string|max:255',
+        ], [
+            'shipper_id.required' => 'Vui lòng chọn bưu tá phụ trách giao đơn hàng này.',
+            'shipper_id.exists' => 'Bưu tá đã chọn không tồn tại trong hệ thống.',
+            'handover_image_file.required_without' => 'BẮT BUỘC phải chụp hoặc tải lên 1 ảnh kiện hàng bàn giao xuất kho cho bưu tá!',
+            'handover_image_file.image' => 'Tập tin tải lên phải là hình ảnh (JPG, PNG, WEBP).',
+            'handover_image_file.max' => 'Dung lượng ảnh tối đa 10MB.',
+        ]);
+
+        $now = now();
+        $handoverPath = $order->handover_image;
+
+        if ($request->hasFile('handover_image_file')) {
+            $handoverPath = $request->file('handover_image_file')->store('handover_proofs', 'public');
+        } elseif ($request->filled('handover_image')) {
+            $handoverPath = $request->input('handover_image');
+        }
+
+        if (empty($handoverPath)) {
+            $handoverPath = 'assets/img/delivery-proofs/sample_pod_1.jpg';
+        }
+
+        $shipper = User::find($validated['shipper_id']);
+        $carrier = $validated['shipping_carrier'] ?: ($shipper ? 'BeeStyle Express - ' . $shipper->name : 'BeeStyle Express');
+        $tracking = $validated['tracking_code'] ?: 'BEE-' . strtoupper(Str::random(8));
+
+        $order->update([
+            'shipping_status'  => 'shipping',
+            'status_step'      => 4,
+            'shipper_id'       => $validated['shipper_id'],
+            'shipping_carrier' => $carrier,
+            'tracking_code'    => $tracking,
+            'handover_image'   => $handoverPath,
+            'shipping_at'      => $order->shipping_at ?: $now,
+            'confirmed_at'     => $order->confirmed_at ?: $now,
+            'processing_at'    => $order->processing_at ?: $now,
+        ]);
+
+        return back()->with('success', "Đã bàn giao đơn hàng #{$order->order_code} cho Bưu tá {$shipper->name} (Mã VĐ: {$tracking})! Đơn đã chuyển sang trạng thái ĐANG GIAO HÀNG.");
+    }
+
+    /**
+     * Đóng gói xong -> Tự động chuyển sang bưu tá vận chuyển
+     * Tự động điều phối bưu tá hợp lý, sinh mã vận đơn và chuyển đơn sang trạng thái Đang Giao Hàng (shipping)
+     */
+    public function finishPacking(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+
+        if (!in_array($order->shipping_status, ['confirmed', 'processing'])) {
+            return back()->with('error', 'Chỉ các đơn hàng đang ở trạng thái Đã Xác Nhận hoặc Đang Đóng Gói mới có thể hoàn tất đóng gói và chuyển sang bưu tá!');
+        }
+
+        $now = now();
+
+        // 1. Xác định Bưu tá nhận đơn (nếu chưa gán)
+        $shipper = null;
+        if ($order->shipper_id) {
+            $shipper = User::find($order->shipper_id);
+        }
+
+        if (!$shipper) {
+            // Tự động tìm bưu tá active có ít đơn đang giao nhất để chia đều công việc
+            $shippers = User::where('role', 'shipper')->get();
+            if ($shippers->isNotEmpty()) {
+                $shipper = $shippers->sortBy(function ($shp) {
+                    return Order::where('shipper_id', $shp->id)->where('shipping_status', 'shipping')->count();
+                })->first();
+            }
+        }
+
+        $shipperId = $shipper ? $shipper->id : null;
+        $shipperName = $shipper ? $shipper->name : 'BeeStyle Courier';
+
+        // 2. Tự động sinh mã vận đơn nếu chưa có
+        $tracking = $order->tracking_code ?: ('BEE-' . strtoupper(Str::random(8)));
+        $carrier = $order->shipping_carrier ?: ('BeeStyle Express - ' . $shipperName);
+
+        // 3. Cập nhật đơn hàng sang Bước 4: Đang Giao Hàng
+        $order->update([
+            'shipping_status'  => 'shipping',
+            'status_step'      => 4,
+            'shipper_id'       => $shipperId,
+            'shipping_carrier' => $carrier,
+            'tracking_code'    => $tracking,
+            'handover_image'   => $order->handover_image ?: 'assets/img/delivery-proofs/sample_pod_1.jpg',
+            'shipping_at'      => $order->shipping_at ?: $now,
+            'confirmed_at'     => $order->confirmed_at ?: $now,
+            'processing_at'    => $order->processing_at ?: $now,
+        ]);
+
+        return back()->with('success', "Đóng gói hoàn tất! Đơn hàng #{$order->order_code} đã tự động chuyển giao cho Bưu tá {$shipperName} (Mã VĐ: {$tracking}). Đơn đã hiển thị trên Cổng Bưu Tá để bưu tá đi phát hàng.");
     }
 
     /**
@@ -305,12 +556,16 @@ class OrderController extends Controller
         $validated = $request->validate([
             'order_ids' => 'required|array|min:1',
             'order_ids.*' => 'integer|exists:orders,id',
-            'action' => 'required|string|in:confirm,processing,shipping,delivered,completed,mark_paid,cancel',
+            'action' => 'required|string|in:confirm,processing,shipping,delivered,completed',
         ]);
 
         $orderIds = $validated['order_ids'];
         $action = $validated['action'];
         $now = now();
+
+        if (in_array($action, ['mark_paid', 'cancel'])) {
+            return back()->with('error', 'Thu tiền và Hủy đơn chỉ được phép thực hiện trên từng đơn hàng riêng biệt để đảm bảo an toàn tài chính và quản lý kho.');
+        }
 
         $orders = Order::with('items')->whereIn('id', $orderIds)->get();
         if ($orders->isEmpty()) {
@@ -342,23 +597,47 @@ class OrderController extends Controller
                         break;
 
                     case 'shipping':
-                        if (in_array($order->shipping_status, ['pending', 'confirmed', 'processing'])) {
+                        if ($order->shipping_status === 'processing') {
                             $updateData['shipping_status'] = 'shipping';
                             $updateData['status_step'] = 4;
                             if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
                             if (!$order->processing_at) $updateData['processing_at'] = $now;
                             $updateData['shipping_at'] = $order->shipping_at ?: $now;
+
+                            if (empty($order->shipper_id)) {
+                                $shippers = User::where('role', 'shipper')->get();
+                                if ($shippers->isNotEmpty()) {
+                                    $autoShipper = $shippers->random();
+                                    $updateData['shipper_id'] = $autoShipper->id;
+                                    if (empty($order->shipping_carrier)) {
+                                        $updateData['shipping_carrier'] = 'BeeStyle Express - ' . $autoShipper->name;
+                                    }
+                                }
+                            }
+                            if (empty($order->tracking_code)) {
+                                $updateData['tracking_code'] = 'BEE-' . strtoupper(Str::random(8));
+                            }
+                            if (empty($order->handover_image)) {
+                                $updateData['handover_image'] = 'assets/img/delivery-proofs/sample_pod_1.jpg';
+                            }
                         }
                         break;
 
                     case 'delivered':
-                        if (in_array($order->shipping_status, ['pending', 'confirmed', 'processing', 'shipping'])) {
+                        if ($order->shipping_status === 'shipping') {
                             $updateData['shipping_status'] = 'delivered';
                             $updateData['status_step'] = 5;
                             if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
                             if (!$order->processing_at) $updateData['processing_at'] = $now;
                             if (!$order->shipping_at) $updateData['shipping_at'] = $now;
                             $updateData['delivered_at'] = $order->delivered_at ?: $now;
+                            if (empty($order->delivery_proof_image)) {
+                                $updateData['delivery_proof_image'] = 'assets/img/delivery-proofs/sample_pod_1.jpg';
+                                $updateData['delivery_proof_at'] = $now;
+                            }
+                            if (empty($order->delivery_proof_note)) {
+                                $updateData['delivery_proof_note'] = 'Bưu tá xác nhận đã chuyển kiện hàng thành công tới khách hàng.';
+                            }
                             if ($order->payment_method === 'cod') {
                                 $updateData['payment_status'] = 'paid';
                                 $updateData['paid_at'] = $order->paid_at ?: $now;
@@ -368,7 +647,7 @@ class OrderController extends Controller
                         break;
 
                     case 'completed':
-                        if (in_array($order->shipping_status, ['delivered', 'shipping'], true)) {
+                        if ($order->shipping_status === 'delivered') {
                             $updateData['shipping_status'] = 'completed';
                             $updateData['status_step'] = 6;
                             if (!$order->confirmed_at) $updateData['confirmed_at'] = $now;
@@ -381,69 +660,12 @@ class OrderController extends Controller
                             $updateData['review_notified'] = false;
 
                             // Cộng điểm thưởng và tổng chi tiêu nếu đơn chưa hoàn tất trước đó
-                            if ($order->shipping_status !== 'completed' && $order->user_id) {
+                            if ($order->user_id) {
                                 $user = User::find($order->user_id);
                                 if ($user) {
                                     $earnedPoints = (int)floor($order->total_amount / 10000);
                                     $user->increment('points', $earnedPoints);
                                     $user->increment('total_spent', $order->total_amount);
-                                }
-                            }
-                        }
-                        break;
-
-                    case 'mark_paid':
-                        if ($order->payment_status !== 'paid') {
-                            $updateData['payment_status'] = 'paid';
-                            $updateData['paid_at'] = $order->paid_at ?: $now;
-                        }
-                        break;
-
-                    case 'cancel':
-                        if (in_array($order->shipping_status, ['pending', 'confirmed', 'processing', 'shipping'], true)) {
-                            $updateData['shipping_status'] = 'cancelled';
-                            $updateData['status_step'] = 0;
-                            $updateData['cancelled_at'] = $now;
-                            $updateData['cancelled_by'] = 'admin';
-                            $updateData['cancel_reason'] = 'Hủy hàng loạt bởi Quản trị viên';
-
-                            // Hoàn kho cho sản phẩm
-                            foreach ($order->items as $item) {
-                                if ($item->product_id) {
-                                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                                    $prod = Product::find($item->product_id);
-                                    if ($prod && $prod->sold_count >= $item->quantity) {
-                                        $prod->decrement('sold_count', $item->quantity);
-                                    }
-
-                                    if (!empty($item->color) && !empty($item->size)) {
-                                        ProductVariant::where('product_id', $item->product_id)
-                                            ->where('color', $item->color)
-                                            ->where('size', $item->size)
-                                            ->increment('stock', $item->quantity);
-                                    }
-                                }
-                            }
-
-                            // Hoàn lại lượt sử dụng mã giảm giá (Voucher)
-                            if ($order->coupon_code) {
-                                $coupon = Coupon::where('code', $order->coupon_code)->first();
-                                if ($coupon && $coupon->used_count > 0) {
-                                    $coupon->decrement('used_count');
-                                }
-                            }
-
-                            // Trừ lại điểm thưởng nếu đơn từng hoàn tất
-                            if (in_array($order->shipping_status, ['completed', 'delivered']) && $order->user_id) {
-                                $user = User::find($order->user_id);
-                                if ($user) {
-                                    $earnedPoints = (int)floor($order->total_amount / 10000);
-                                    if ($user->points >= $earnedPoints) {
-                                        $user->decrement('points', $earnedPoints);
-                                    }
-                                    if ($user->total_spent >= $order->total_amount) {
-                                        $user->decrement('total_spent', $order->total_amount);
-                                    }
                                 }
                             }
                         }
@@ -468,19 +690,22 @@ class OrderController extends Controller
             'shipping' => 'Bàn giao bưu tá vận chuyển (Bước 4)',
             'delivered' => 'Giao hàng thành công (Bước 5)',
             'completed' => 'Hoàn tất đơn hàng (Bước 6)',
-            'mark_paid' => 'Đánh dấu đã thanh toán',
-            'cancel' => 'Hủy đơn & hoàn kho',
         ];
 
         $actionName = $actionLabels[$action] ?? 'Cập nhật';
 
-        return back()->with('success', "Thành công! Đã thực hiện thao tác '{$actionName}' đồng bộ cho {$count} đơn hàng cùng một lúc.");
+        if ($count === 0) {
+            return back()->with('warning', "Không có đơn hàng nào phù hợp ở bước này để thực hiện '{$actionName}' (các đơn đã chọn có thể đã được xử lý bước này trước đó).");
+        }
+
+        return back()->with('success', "Thành công! Đã thực hiện thao tác '{$actionName}' đồng bộ cho {$count} đơn hàng hợp lệ.");
     }
 
     public function show($id)
     {
-        $order = Order::with(['items.product', 'user', 'returns'])->findOrFail($id);
-        return view('admin.orders.show', compact('order'));
+        $order = Order::with(['items.product', 'user', 'returns', 'shipper'])->findOrFail($id);
+        $shippers = User::where('role', 'shipper')->get();
+        return view('admin.orders.show', compact('order', 'shippers'));
     }
 
     public function updateStatus(Request $request, $id)
@@ -492,6 +717,9 @@ class OrderController extends Controller
             'payment_status' => 'nullable|string|in:unpaid,paid,refunded,pending,cancelled,expired',
             'shipping_carrier' => 'nullable|string|max:100',
             'tracking_code' => 'nullable|string|max:100',
+            'shipper_id' => 'nullable|exists:users,id',
+            'handover_image_file' => 'nullable|file|image|max:10240',
+            'handover_image' => 'nullable|string|max:255',
             'admin_notes' => 'nullable|string|max:1000',
             'cancel_reason' => 'nullable|string|max:500',
             'delivery_proof_file' => 'nullable|file|image|max:10240',
@@ -591,6 +819,11 @@ class OrderController extends Controller
                 }
             }
 
+            // Xử lý hoàn tiền tự động nếu đơn đã thanh toán online (VNPAY/MoMo/Chuyển khoản)
+            if ($order->payment_status === 'paid' && (!isset($validated['payment_status']) || $validated['payment_status'] === 'paid')) {
+                $paymentStatus = 'refunded';
+            }
+
             $cancelledBy = 'admin';
             $cancelledAt = now();
             $cancelReason = $request->input('cancel_reason', 'Hủy bởi Quản trị viên BeeStyle');
@@ -648,6 +881,15 @@ class OrderController extends Controller
             'cancel_reason' => $cancelReason,
         ];
 
+        if ($request->filled('shipper_id')) {
+            $updateData['shipper_id'] = $request->input('shipper_id');
+        }
+        if ($request->hasFile('handover_image_file')) {
+            $updateData['handover_image'] = $request->file('handover_image_file')->store('handover_proofs', 'public');
+        } elseif ($request->filled('handover_image')) {
+            $updateData['handover_image'] = $request->input('handover_image');
+        }
+
         // Ghi nhận mốc thời gian (ngày & giờ cụ thể) cho từng bước khi xác nhận
         $stepStatus = $validated['shipping_status'];
         $now = now();
@@ -699,6 +941,27 @@ class OrderController extends Controller
             }
             if (empty($updateData['shipping_at']) && !$order->shipping_at) {
                 $updateData['shipping_at'] = $now;
+            }
+            // Tự động gán bưu tá nếu chưa có
+            if (empty($updateData['shipper_id']) && empty($order->shipper_id)) {
+                $shippers = User::where('role', 'shipper')->get();
+                if ($shippers->isNotEmpty()) {
+                    $autoShipper = $shippers->sortBy(function ($shp) {
+                        return Order::where('shipper_id', $shp->id)->where('shipping_status', 'shipping')->count();
+                    })->first();
+                    if ($autoShipper) {
+                        $updateData['shipper_id'] = $autoShipper->id;
+                        if (empty($updateData['shipping_carrier']) && empty($order->shipping_carrier)) {
+                            $updateData['shipping_carrier'] = 'BeeStyle Express - ' . $autoShipper->name;
+                        }
+                    }
+                }
+            }
+            if (empty($updateData['tracking_code']) && empty($order->tracking_code)) {
+                $updateData['tracking_code'] = 'BEE-' . strtoupper(Str::random(8));
+            }
+            if (empty($updateData['handover_image']) && empty($order->handover_image)) {
+                $updateData['handover_image'] = 'assets/img/delivery-proofs/sample_pod_1.jpg';
             }
         } elseif ($stepStatus === 'delivered') {
             if (empty($updateData['confirmed_at']) && !$order->confirmed_at) {
@@ -772,6 +1035,57 @@ class OrderController extends Controller
         $order->update($updateData);
 
         return back()->with('success', "Trạng thái đơn hàng #{$order->order_code} đã được cập nhật thành công ({$order->status_label})! Dữ liệu đã đồng bộ theo thời gian thực.");
+    }
+
+    /**
+     * Đánh dấu ĐÃ THU TIỀN cho từng đơn hàng riêng biệt
+     */
+    public function markPaid($id)
+    {
+        $order = Order::findOrFail($id);
+        if ($order->payment_status === 'paid') {
+            return back()->with('info', "Đơn hàng #{$order->order_code} đã ở trạng thái Đã thanh toán trước đó.");
+        }
+
+        $order->update([
+            'payment_status' => 'paid',
+            'paid_at' => $order->paid_at ?: now(),
+        ]);
+
+        return back()->with('success', "Xác nhận thành công: Đơn hàng #{$order->order_code} đã được chuyển sang trạng thái ĐÃ THU TIỀN.");
+    }
+
+    /**
+     * Hủy đơn hàng riêng biệt với lý do cụ thể và hoàn kho chuẩn xác
+     */
+    public function cancelSingleOrder(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        if (in_array($order->shipping_status, ['delivered', 'completed'], true)) {
+            return back()->with('error', "Không thể hủy đơn hàng #{$order->order_code} vì hàng đã được giao đến tay khách hàng. Vui lòng sử dụng tính năng Đổi trả / Hoàn tiền (RMA).");
+        }
+
+        if ($order->shipping_status === 'cancelled') {
+            return back()->with('info', "Đơn hàng #{$order->order_code} đã ở trạng thái Đã Hủy trước đó.");
+        }
+
+        $reason = $request->input('reason', $request->input('cancel_reason', 'Hủy theo yêu cầu của Quản trị viên'));
+        if ($request->filled('notes')) {
+            $reason = trim($reason) . ' - ' . trim($request->input('notes'));
+        }
+
+        $paymentStatus = $order->payment_status;
+        if ($order->payment_status === 'paid') {
+            $paymentStatus = 'refunded';
+        }
+
+        $req = new Request([
+            'shipping_status' => 'cancelled',
+            'payment_status' => $paymentStatus,
+            'cancel_reason' => $reason,
+        ]);
+
+        return $this->updateStatus($req, $id);
     }
 
     /**

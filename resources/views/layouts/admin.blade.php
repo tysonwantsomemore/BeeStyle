@@ -303,6 +303,14 @@
                 </a>
               </div>
               <div class="nav-item-wrapper">
+                <a class="nav-link {{ request()->routeIs('admin.reports.inventory') ? 'active' : '' }}" href="{{ route('admin.reports.inventory') }}">
+                  <div class="d-flex align-items-center">
+                    <span class="nav-link-icon"><span data-feather="archive"></span></span>
+                    <span class="nav-link-text">Báo Cáo Tồn Kho</span>
+                  </div>
+                </a>
+              </div>
+              <div class="nav-item-wrapper">
                 <a class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}" href="{{ route('admin.categories.index') }}">
                   <div class="d-flex align-items-center">
                     <span class="nav-link-icon"><span data-feather="grid"></span></span>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32" width="120" height="32">
+  <defs>
+    <linearGradient id="vnpayBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#005baa"/>
+      <stop offset="100%" stop-color="#004582"/>
+    </linearGradient>
+  </defs>
+  <!-- V -->
+  <path d="M6 5 L14 26 L20 26 L28 5 L22 5 L17 20 L12 5 Z" fill="#005baa"/>
+  <!-- N -->
+  <path d="M32 5 L32 26 L37 26 L37 13 L47 26 L52 26 L52 5 L47 5 L47 18 L37 5 Z" fill="#005baa"/>
+  <!-- P -->
+  <path d="M56 5 L56 26 L61 26 L61 18 L68 18 C73 18 76 15 76 11.5 C76 8 73 5 68 5 Z M61 9.5 L67.5 9.5 C69.5 9.5 71 10.2 71 11.5 C71 12.8 69.5 13.5 67.5 13.5 L61 13.5 Z" fill="#ed1c24"/>
+  <!-- A -->
+  <path d="M84 5 L77 26 L82.5 26 L84.5 20 L93.5 20 L95.5 26 L101 26 L94 5 Z M85.8 16 L89 6.8 L92.2 16 Z" fill="#ed1c24"/>
+  <!-- Y -->
+  <path d="M101 5 L107.5 16 L107.5 26 L112.5 26 L112.5 16 L119 5 L113.5 5 L110 11.5 L106.5 5 Z" fill="#ed1c24"/>
+  <!-- Decorative dot -->
+  <circle cx="118.5" cy="24" r="2" fill="#ed1c24"/>
+</svg>

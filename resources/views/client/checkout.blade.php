@@ -60,22 +60,31 @@
 
           @if(isset($addresses) && $addresses->isNotEmpty())
             <!-- Saved Address Selector -->
-            <div class="mb-6 p-4 bg-brand-50 rounded-xl border border-brand-200">
-              <label class="block font-semibold uppercase text-neutral-800 text-[11px] mb-2">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 inline text-amber-800 mr-1"></i> Chọn sổ địa chỉ đã lưu:
+            <div class="mb-6 p-4 bg-amber-50/70 rounded-xl border border-amber-200">
+              <label class="block font-semibold uppercase text-neutral-800 text-[11px] mb-2 flex items-center justify-between">
+                <span class="flex items-center gap-1 text-amber-900 font-bold">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-800"></i> Sổ địa chỉ đã lưu của bạn:
+                </span>
+                <span class="text-[10px] text-neutral-500 font-normal">Chọn để tự động điền form</span>
               </label>
-              <select id="savedAddressSelect" onchange="fillSavedAddress(this)" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-neutral-950">
-                <option value="">-- Nhập địa chỉ mới --</option>
+              <select id="savedAddressSelect" onchange="fillSavedAddress(this)" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-neutral-950 shadow-xs cursor-pointer">
+                <option value="" selected>-- Nhập thông tin &amp; địa chỉ nhận hàng bên dưới --</option>
                 @foreach($addresses as $addr)
+                  @php
+                    $cityName = $addr->province_name ?: ($addr->city ?: '');
+                    $districtName = $addr->district_name ?: ($addr->district ?: '');
+                    $wardName = $addr->ward_name ?: ($addr->ward ?: '');
+                    $streetAddr = $addr->detail_address ?: ($addr->address ?: '');
+                    $fullDisplay = implode(', ', array_filter([$streetAddr, $wardName, $districtName, $cityName]));
+                  @endphp
                   <option value="{{ $addr->id }}" 
                     data-name="{{ $addr->receiver_name }}" 
                     data-phone="{{ $addr->receiver_phone }}" 
-                    data-address="{{ $addr->detail_address }}"
-                    data-city="{{ $addr->province_name }}"
-                    data-district="{{ $addr->district_name }}"
-                    data-ward="{{ $addr->ward_name }}"
-                    {{ (isset($defaultAddress) && $defaultAddress && $defaultAddress->id === $addr->id) ? 'selected' : '' }}>
-                    {{ $addr->receiver_name }} — {{ $addr->receiver_phone }} ({{ $addr->detail_address }}, {{ $addr->ward_name }}, {{ $addr->district_name }}, {{ $addr->province_name }})
+                    data-address="{{ $streetAddr }}"
+                    data-city="{{ $cityName }}"
+                    data-district="{{ $districtName }}"
+                    data-ward="{{ $wardName }}">
+                    {{ $addr->receiver_name }} — {{ $addr->receiver_phone }} ({{ $fullDisplay }})
                   </option>
                 @endforeach
               </select>
@@ -83,45 +92,194 @@
           @endif
 
           <div class="space-y-4 text-xs">
+            <!-- 1. Họ và tên & Số điện thoại (Bắt đầu để trống để khách hàng tự nhập) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Họ và Tên <span class="text-rose-600">*</span></label>
-                <input type="text" name="customer_name" id="cust_name" value="{{ old('customer_name', $user->name ?? '') }}" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5 flex items-center justify-between">
+                  <span>Họ và Tên <span class="text-rose-600">*</span></span>
+                </label>
+                <div class="relative">
+                  <input type="text" name="customer_name" id="cust_name" value="{{ old('customer_name', '') }}" required placeholder="Ví dụ: Nguyễn Văn A" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg pl-9 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                  <i data-lucide="user" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
               </div>
               <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Số Điện Thoại <span class="text-rose-600">*</span></label>
-                <input type="tel" name="customer_phone" id="cust_phone" value="{{ old('customer_phone', $user->phone ?? '') }}" required placeholder="0987654321" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                <label class="block font-semibold uppercase text-neutral-700 mb-1.5 flex items-center justify-between">
+                  <span>Số Điện Thoại <span class="text-rose-600">*</span></span>
+                  <span class="text-[10px] text-neutral-500 lowercase font-normal">10 chữ số (03, 05, 07, 08, 09)</span>
+                </label>
+                <div class="relative">
+                  <input type="tel" name="customer_phone" id="cust_phone" value="{{ old('customer_phone', '') }}" required placeholder="0987654321" pattern="^(0|\+84)(3|5|7|8|9)[0-9]{8}$" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg pl-9 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors font-mono">
+                  <i data-lucide="phone" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
               </div>
             </div>
 
+            <!-- 2. Email nhận hóa đơn điện tử (Bắt đầu để trống để khách hàng tự nhập) -->
             <div>
               <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Email nhận hóa đơn điện tử</label>
-              <input type="email" name="customer_email" id="cust_email" value="{{ old('customer_email', $user->email ?? '') }}" placeholder="email@gmail.com" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              <div class="relative">
+                <input type="email" name="customer_email" id="cust_email" value="{{ old('customer_email', '') }}" placeholder="email@gmail.com" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg pl-9 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                <i data-lucide="mail" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              </div>
             </div>
 
+            <!-- 3. CỤM ĐỊA CHỈ HÀNH CHÍNH THEO TRẬT TỰ YÊU CẦU: Tỉnh/Thành Phố -> Quận/Huyện -> Phường/Xã -->
+            <div class="pt-3 border-t border-neutral-100">
+              <div class="flex items-center justify-between mb-2.5">
+                <label class="block font-bold uppercase text-neutral-900 text-xs tracking-wide flex items-center gap-1.5">
+                  <i data-lucide="map" class="w-4 h-4 text-amber-600"></i>
+                  <span>Đơn Vị Hành Chính Tiếp Nhận Kiện Hàng</span>
+                </label>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <!-- Tỉnh / Thành Phố -->
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1 text-[11px] flex items-center justify-between">
+                    <span>Tỉnh / Thành Phố <span class="text-rose-600">*</span></span>
+                  </label>
+                  <div class="relative">
+                    <select id="cust_province" 
+                            name="province_code" 
+                            onchange="onProvinceChange(this)" 
+                            required 
+                            class="w-full bg-white border border-neutral-300 hover:border-neutral-950 rounded-lg pl-3 pr-8 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 transition-all cursor-pointer shadow-xs">
+                      <option value="">-- Chọn Tỉnh / Thành Phố --</option>
+                      @if(isset($provinces) && count($provinces) > 0)
+                        @foreach($provinces as $p)
+                          @php
+                            $pCode = is_array($p) ? $p['code'] : $p->code;
+                            $pName = is_array($p) ? $p['name'] : $p->name;
+                          @endphp
+                          <option value="{{ $pCode }}" data-name="{{ $pName }}" {{ old('province_code') == $pCode ? 'selected' : '' }}>
+                            {{ $pName }}
+                          </option>
+                        @endforeach
+                      @endif
+                    </select>
+                    <div id="provinceLoading" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <i data-lucide="loader-2" class="w-3.5 h-3.5 text-amber-600 animate-spin"></i>
+                    </div>
+                  </div>
+                  <!-- Hidden input to store city name string for backend -->
+                  <input type="hidden" name="city" id="hidden_city" value="{{ old('city', '') }}" required>
+                </div>
+
+                <!-- Quận / Huyện -->
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1 text-[11px]">
+                    Quận / Huyện <span class="text-rose-600">*</span>
+                  </label>
+                  <div class="relative">
+                    <select id="cust_district" 
+                            name="district_code" 
+                            onchange="onDistrictChange(this)" 
+                            required 
+                            class="w-full bg-white border border-neutral-300 hover:border-neutral-950 rounded-lg pl-3 pr-8 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 transition-all cursor-pointer shadow-xs">
+                      <option value="">-- Vui lòng chọn Tỉnh/TP trước --</option>
+                    </select>
+                    <div id="districtLoading" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <i data-lucide="loader-2" class="w-3.5 h-3.5 text-amber-600 animate-spin"></i>
+                    </div>
+                  </div>
+                  <!-- Hidden input to store district name string for backend -->
+                  <input type="hidden" name="district" id="hidden_district" value="{{ old('district', '') }}" required>
+                </div>
+
+                <!-- Phường / Xã -->
+                <div>
+                  <label class="block font-semibold uppercase text-neutral-700 mb-1 text-[11px]">
+                    Phường / Xã <span class="text-rose-600">*</span>
+                  </label>
+                  <div class="relative">
+                    <select id="cust_ward" 
+                            name="ward_code" 
+                            onchange="onWardChange(this)" 
+                            required 
+                            class="w-full bg-white border border-neutral-300 hover:border-neutral-950 rounded-lg pl-3 pr-8 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 transition-all cursor-pointer shadow-xs">
+                      <option value="">-- Vui lòng chọn Quận/Huyện trước --</option>
+                    </select>
+                    <div id="wardLoading" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <i data-lucide="loader-2" class="w-3.5 h-3.5 text-amber-600 animate-spin"></i>
+                    </div>
+                  </div>
+                  <!-- Hidden input to store ward name string for backend -->
+                  <input type="hidden" name="ward" id="hidden_ward" value="{{ old('ward', '') }}" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Địa chỉ nhận hàng (Số nhà, tên đường) -->
             <div>
-              <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Địa chỉ nhận hàng (Số nhà, tên đường) <span class="text-rose-600">*</span></label>
-              <input type="text" name="shipping_address" id="cust_address" value="{{ old('shipping_address', $defaultAddress->detail_address ?? '') }}" required placeholder="Ví dụ: 88 Lê Lợi..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Tỉnh / Thành Phố</label>
-                <input type="text" name="city" id="cust_city" value="{{ old('city', $defaultAddress->province_name ?? 'TP. Hồ Chí Minh') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
-              </div>
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Quận / Huyện</label>
-                <input type="text" name="district" id="cust_district" value="{{ old('district', $defaultAddress->district_name ?? 'Quận 1') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
-              </div>
-              <div>
-                <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Phường / Xã</label>
-                <input type="text" name="ward" id="cust_ward" value="{{ old('ward', $defaultAddress->ward_name ?? 'Bến Nghé') }}" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              <label class="block font-semibold uppercase text-neutral-700 mb-1.5 flex items-center justify-between">
+                <span>Địa chỉ nhận hàng (Số nhà, tên đường, ngõ, tòa nhà) <span class="text-rose-600">*</span></span>
+                <span class="text-[10px] text-neutral-400 font-normal">Càng chi tiết bưu tá giao càng nhanh</span>
+              </label>
+              <div class="relative">
+                <input type="text" 
+                       name="shipping_address" 
+                       id="cust_address" 
+                       value="{{ old('shipping_address', '') }}" 
+                       oninput="onStreetAddressInput(this)" 
+                       required 
+                       placeholder="Ví dụ: Số 123 Đường Kim Mã (hoặc Tòa nhà, Ngõ, Ngách...)" 
+                       class="w-full bg-neutral-50 border border-neutral-200 rounded-lg pl-9 pr-3.5 py-2.5 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+                <i data-lucide="home" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
               </div>
             </div>
 
+            <!-- Hidden input for full address -->
+            <input type="hidden" name="full_address" id="hidden_full_address">
+
+            <!-- 5. HỘP XÁC NHẬN ĐỊA CHỈ THỰC TẾ CHUẨN XÁC HIỆN TẠI (REALTIME ADDRESS VERIFICATION BOX) -->
+            <div id="addressVerificationCard" class="p-4 rounded-2xl border transition-all duration-300 bg-neutral-50/80 border-neutral-200">
+              <div class="flex items-start gap-3">
+                <div id="addressVerifyIconWrapper" class="w-9 h-9 rounded-xl bg-neutral-200 text-neutral-600 flex items-center justify-center shrink-0 shadow-xs transition-colors">
+                  <i data-lucide="map-pin" class="w-4 h-4" id="addressVerifyIcon"></i>
+                </div>
+                <div class="w-full space-y-2">
+                  <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="font-bold uppercase tracking-wider text-[11px] text-neutral-700 flex items-center gap-1.5">
+                      <span id="addressVerifyTitle">Xác Nhận Địa Chỉ Giao Hàng Thực Tế</span>
+                    </span>
+                    <span id="addressVerifyBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200 text-neutral-600 border border-neutral-300">
+                      Chờ nhập thông tin
+                    </span>
+                  </div>
+
+                  <!-- Nội dung chi tiết địa chỉ -->
+                  <div id="addressVerifySummary" class="text-neutral-600 text-xs leading-relaxed">
+                    Vui lòng chọn Tỉnh / Thành phố, Quận / Huyện, Phường / Xã và nhập số nhà để hệ thống xác nhận tuyến giao hàng.
+                  </div>
+
+                  <!-- Thẻ chi tiết 4 cấp -->
+                  <div id="addressDetailPills" class="hidden pt-2 border-t border-neutral-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                    <div class="bg-white p-2 rounded-lg border border-neutral-200">
+                      <span class="text-[9px] uppercase text-neutral-400 font-bold block">Tỉnh / Thành</span>
+                      <strong class="text-neutral-900 truncate block" id="pillCity">-</strong>
+                    </div>
+                    <div class="bg-white p-2 rounded-lg border border-neutral-200">
+                      <span class="text-[9px] uppercase text-neutral-400 font-bold block">Quận / Huyện</span>
+                      <strong class="text-neutral-900 truncate block" id="pillDistrict">-</strong>
+                    </div>
+                    <div class="bg-white p-2 rounded-lg border border-neutral-200">
+                      <span class="text-[9px] uppercase text-neutral-400 font-bold block">Phường / Xã</span>
+                      <strong class="text-neutral-900 truncate block" id="pillWard">-</strong>
+                    </div>
+                    <div class="bg-white p-2 rounded-lg border border-neutral-200">
+                      <span class="text-[9px] uppercase text-neutral-400 font-bold block">Số nhà / Đường</span>
+                      <strong class="text-neutral-900 truncate block" id="pillStreet">-</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ghi chú cho nghệ nhân -->
             <div>
               <label class="block font-semibold uppercase text-neutral-700 mb-1.5">Ghi chú cho nghệ nhân may đo / đóng gói</label>
-              <textarea name="notes" rows="2" placeholder="Ví dụ: Giao giờ hành chính, đóng hộp quà tặng..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors"></textarea>
+              <textarea name="notes" rows="2" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao 15 phút, đóng hộp quà tặng..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-3 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors"></textarea>
             </div>
           </div>
         </div>
@@ -207,91 +365,68 @@
               </div>
             </label>
 
-            <!-- Online Banking / VietQR -->
-            <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_online">
+            <!-- MoMo Payment (ATM) -->
+            <label class="pay-option-card block p-4 md:p-5 border border-neutral-200 rounded-2xl cursor-pointer hover:border-[#a50064] transition-all group relative overflow-hidden" id="card_pay_momo">
+              <div class="flex items-center justify-between">
+                <div class="flex items-start gap-3.5">
+                  <input type="radio" name="payment_method" id="pay_momo" value="momo" class="pay-radio mt-1.5 text-[#a50064] focus:ring-[#a50064]" onchange="updatePayOptionCards()">
+                  <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-white border-2 border-pink-300 p-1.5 shadow-sm flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <img src="{{ asset('assets/img/logos/momo.svg') }}" alt="MoMo Logo" class="w-full h-full object-contain rounded-xl" onerror="this.src='{{ asset('assets/img/logos/momo.png') }}'">
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <strong class="text-neutral-950 text-sm md:text-base font-bold group-hover:text-[#a50064] transition-colors">
+                          Cổng Thanh Toán MoMo Payment (Thẻ ATM &amp; Ngân Hàng)
+                        </strong>
+                        <span class="px-2.5 py-0.5 bg-gradient-to-r from-pink-500 to-[#a50064] text-white rounded-full text-[10px] font-black shadow-2xs flex items-center gap-1">
+                          <i data-lucide="check" class="w-2.5 h-2.5"></i> MoMo Official
+                        </span>
+                        <span class="px-2 py-0.5 bg-pink-50 text-[#a50064] font-mono text-[10px] rounded-md border border-pink-200 font-bold">NAPAS 24/7</span>
+                      </div>
+                      <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
+                        Thanh toán trực tuyến an toàn qua Cổng MoMo bằng Thẻ ATM nội địa mọi ngân hàng Việt Nam (Không yêu cầu quét mã QR).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="hidden md:flex items-center gap-2 shrink-0 ml-3">
+                  <div class="w-8 h-8 rounded-xl bg-pink-50 p-1 border border-pink-200 flex items-center justify-center shadow-2xs">
+                    <img src="{{ asset('assets/img/logos/momo.svg') }}" alt="MoMo" class="w-full h-full object-contain" onerror="this.src='{{ asset('assets/img/logos/momo.png') }}'">
+                  </div>
+                </div>
+              </div>
+
+            </label>
+
+            <!-- VNPAY Payment Gateway -->
+            <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-[#005baa] transition-all relative overflow-hidden group" id="card_pay_vnpay">
               <div class="flex items-center justify-between">
                 <div class="flex items-start gap-3">
-                  <input type="radio" name="payment_method" id="pay_online" value="online" class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
+                  <input type="radio" name="payment_method" id="pay_vnpay" value="vnpay" class="pay-radio mt-1.5 text-[#005baa] focus:ring-[#005baa]" onchange="updatePayOptionCards()">
                   <div>
                     <div class="flex items-center gap-2 flex-wrap">
-                      <strong class="text-neutral-950 text-sm font-semibold">
-                        @if(!empty($depositInfo['is_required']))
-                          Chuyển khoản cọc 50% qua VietQR (Techcombank)
-                        @else
-                          Chuyển khoản Ngân Hàng / Quét mã VietQR 24/7
-                        @endif
+                      <strong class="text-neutral-950 text-sm md:text-base font-bold group-hover:text-[#005baa] transition-colors">
+                        Cổng Thanh Toán VNPAY (ATM / QR / Visa / MasterCard)
                       </strong>
-                      <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">
-                        VietQR Techcombank
+                      <span class="px-2.5 py-0.5 bg-gradient-to-r from-blue-600 to-[#005baa] text-white rounded-full text-[10px] font-black shadow-2xs flex items-center gap-1">
+                        <i data-lucide="check" class="w-2.5 h-2.5"></i> VNPAY Official
                       </span>
+                      <span class="px-2 py-0.5 bg-blue-50 text-[#005baa] font-mono text-[10px] rounded-md border border-blue-200 font-bold">VNPAY-QR</span>
                     </div>
                     <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
-                      @if(!empty($depositInfo['is_required']))
-                        Quét mã QR qua app ngân hàng để chuyển đúng 50% tiền cọc ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫).
-                      @else
-                        Mở app mọi ngân hàng (Techcombank, Vietcombank, MB...) quét mã xác thực tự động 24/7.
-                      @endif
+                      Quét mã VNPAY-QR từ ứng dụng ngân hàng, thanh toán qua Thẻ ATM nội địa (30+ ngân hàng Napas) hoặc Thẻ quốc tế.
                     </p>
                   </div>
                 </div>
-                <i data-lucide="qr-code" class="w-5 h-5 text-emerald-700 shrink-0 ml-2"></i>
-              </div>
-              <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_online">
-                Sau khi bấm "Xác Nhận Đặt Hàng", mã QR Techcombank (STK: <strong>77427842310105</strong> - NGUYEN XUAN BAC) sẽ hiển thị với số tiền {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫ cùng mã đối soát tự động.
+                <div class="hidden md:flex items-center gap-2 shrink-0 ml-3">
+                  <div class="h-8 px-2 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center shadow-2xs">
+                    <img src="{{ asset('assets/img/logos/vnpay.svg') }}" alt="VNPAY" class="h-5 w-auto object-contain">
+                  </div>
+                </div>
               </div>
             </label>
 
-            <!-- MoMo -->
-            <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_momo">
-              <div class="flex items-center justify-between">
-                <div class="flex items-start gap-3">
-                  <input type="radio" name="payment_method" id="pay_momo" value="momo" class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
-                  <div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <strong class="text-neutral-950 text-sm font-semibold">
-                        Ví Điện Tử MoMo (Chuyển Hướng Ứng Dụng)
-                      </strong>
-                      <span class="px-2 py-0.5 bg-pink-100 text-pink-700 rounded text-[10px] font-bold">
-                        MOMO App
-                      </span>
-                    </div>
-                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
-                      Hệ thống tự động chuyển tiếp sang ứng dụng MoMo để xác nhận giao dịch an toàn không cần nhập lại số tiền.
-                    </p>
-                  </div>
-                </div>
-                <span class="px-2.5 py-1 bg-[#d82d8b] text-white font-bold rounded-md text-[10px] shrink-0 ml-2">MOMO</span>
-              </div>
-              <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_momo">
-                Xác nhận thanh toán số tiền {{ !empty($depositInfo['is_required']) ? number_format($depositInfo['deposit_amount'], 0, ',', '.') : number_format($total, 0, ',', '.') }}₫ qua cổng thanh toán MoMo Official Gateway.
-              </div>
-            </label>
-
-            <!-- ZaloPay -->
-            <label class="pay-option-card block p-4 border border-neutral-200 rounded-xl cursor-pointer hover:border-neutral-400 transition-all" id="card_pay_zalopay">
-              <div class="flex items-center justify-between">
-                <div class="flex items-start gap-3">
-                  <input type="radio" name="payment_method" id="pay_zalopay" value="zalopay" class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
-                  <div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <strong class="text-neutral-950 text-sm font-semibold">
-                        Ví Điện Tử ZaloPay Gateway
-                      </strong>
-                      <span class="px-2 py-0.5 bg-sky-100 text-sky-700 rounded text-[10px] font-bold">
-                        ZaloPay
-                      </span>
-                    </div>
-                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
-                      Thanh toán tiện lợi qua ví ZaloPay hoặc quét mã trực tiếp trên ứng dụng chat Zalo.
-                    </p>
-                  </div>
-                </div>
-                <span class="px-2.5 py-1 bg-[#008fe5] text-white font-bold rounded-md text-[10px] shrink-0 ml-2">ZaloPay</span>
-              </div>
-              <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px] hidden" id="desc_pay_zalopay">
-                Chuyển tiếp bảo mật sang cổng ZaloPay Gateway để thanh toán đơn hàng.
-              </div>
-            </label>
 
           </div>
         </div>
@@ -333,6 +468,7 @@
                   <p class="text-[11px] text-neutral-500 mt-0.5">
                     @if(!empty($item['color'])) Màu: {{ $item['color'] }} @endif
                     @if(!empty($item['size'])) | Size: {{ $item['size'] }} @endif
+                    @if(!empty($item['material'])) | Vải: {{ $item['material'] }} @endif
                   </p>
                   <span class="text-neutral-400 text-[11px]">Số lượng: {{ $item['quantity'] }}</span>
                 </div>
@@ -532,17 +668,389 @@
 
 @push('scripts')
 <script>
-  function fillSavedAddress(select) {
-    const opt = select.options[select.selectedIndex];
-    if (opt.value) {
-      document.getElementById('cust_name').value = opt.getAttribute('data-name') || '';
-      document.getElementById('cust_phone').value = opt.getAttribute('data-phone') || '';
-      document.getElementById('cust_address').value = opt.getAttribute('data-address') || '';
-      document.getElementById('cust_city').value = opt.getAttribute('data-city') || '';
-      document.getElementById('cust_district').value = opt.getAttribute('data-district') || '';
-      document.getElementById('cust_ward').value = opt.getAttribute('data-ward') || '';
+  // =========================================================================
+  // BẮT API ĐƠN VỊ HÀNH CHÍNH VIỆT NAM (TỈNH/THÀNH -> QUẬN/HUYỆN -> PHƯỜNG/XÃ)
+  // SỔ RA TRỰC TIẾP TRÊN CÁC HỘP CHỌN SELECT NATIVE 100%
+  // =========================================================================
+  const API_PROVINCES = '{{ route("administrative.provinces") }}';
+  const API_DISTRICTS_BASE = '{{ url("/api/administrative/districts") }}';
+  const API_WARDS_BASE = '{{ url("/api/administrative/wards") }}';
+  const OPEN_API_DISTRICTS = 'https://provinces.open-api.vn/api/p/';
+  const OPEN_API_WARDS = 'https://provinces.open-api.vn/api/d/';
+
+  let cachedDistricts = {};
+  let cachedWards = {};
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Khi người dùng chọn Tỉnh / Thành Phố từ dropdown
+  async function onProvinceChange(selectEl) {
+    const provCode = selectEl.value;
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const provName = provCode ? (selectedOpt.getAttribute('data-name') || selectedOpt.text.trim()) : '';
+
+    document.getElementById('hidden_city').value = provName;
+
+    // Reset Quận/Huyện & Phường/Xã
+    const distSelect = document.getElementById('cust_district');
+    const wardSelect = document.getElementById('cust_ward');
+
+    document.getElementById('hidden_district').value = '';
+    document.getElementById('hidden_ward').value = '';
+
+    if (!provCode) {
+      distSelect.innerHTML = '<option value="">-- Vui lòng chọn Tỉnh/TP trước --</option>';
+      wardSelect.innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+      updateAddressVerification();
+      return;
+    }
+
+    distSelect.innerHTML = '<option value="">-- Đang nạp danh sách Quận/Huyện... --</option>';
+    wardSelect.innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+
+    await loadDistrictsForProvince(provCode);
+    updateAddressVerification();
+
+    // Tự động focus vào dropdown Quận/Huyện để người dùng chọn tiếp
+    setTimeout(() => {
+      distSelect.focus();
+    }, 100);
+  }
+
+  // Tải danh sách Quận/Huyện theo Tỉnh/Thành phố
+  async function loadDistrictsForProvince(provCode, preselectedDistrictName = null, preselectedWardName = null) {
+    const distSelect = document.getElementById('cust_district');
+    const distLoading = document.getElementById('districtLoading');
+    const wardSelect = document.getElementById('cust_ward');
+
+    if (distLoading) distLoading.classList.remove('hidden');
+
+    try {
+      let districts = cachedDistricts[provCode] || [];
+
+      if (districts.length === 0) {
+        try {
+          const res = await fetch(`${API_DISTRICTS_BASE}/${provCode}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+              districts = json.data;
+            }
+          }
+        } catch (e) {
+          console.warn('Internal API districts error, fallback to open-api.vn:', e);
+        }
+
+        if (districts.length === 0) {
+          try {
+            const resExt = await fetch(`${OPEN_API_DISTRICTS}${provCode}?depth=2`);
+            if (resExt.ok) {
+              const jsonExt = await resExt.json();
+              districts = jsonExt.districts || [];
+            }
+          } catch (e2) {
+            console.error('Fallback open-api.vn districts error:', e2);
+          }
+        }
+
+        cachedDistricts[provCode] = districts;
+      }
+
+      distSelect.innerHTML = '<option value="">-- Chọn Quận / Huyện --</option>';
+
+      districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.code;
+        opt.textContent = d.name;
+        opt.setAttribute('data-name', d.name);
+        if (preselectedDistrictName && (d.name.toLowerCase() === preselectedDistrictName.toLowerCase() || d.name.toLowerCase().includes(preselectedDistrictName.toLowerCase()) || preselectedDistrictName.toLowerCase().includes(d.name.toLowerCase()))) {
+          opt.selected = true;
+        }
+        distSelect.appendChild(opt);
+      });
+
+      if (distSelect.value) {
+        const selectedOpt = distSelect.options[distSelect.selectedIndex];
+        document.getElementById('hidden_district').value = selectedOpt.getAttribute('data-name') || selectedOpt.text.trim();
+        await loadWardsForDistrict(distSelect.value, preselectedWardName);
+      } else {
+        wardSelect.innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách Quận/Huyện:', err);
+    } finally {
+      if (distLoading) distLoading.classList.add('hidden');
+      updateAddressVerification();
     }
   }
+
+  // Khi người dùng chọn Quận / Huyện
+  async function onDistrictChange(selectEl) {
+    const distCode = selectEl.value;
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const distName = distCode ? (selectedOpt.getAttribute('data-name') || selectedOpt.text.trim()) : '';
+
+    document.getElementById('hidden_district').value = distName;
+
+    // Reset Phường/Xã
+    const wardSelect = document.getElementById('cust_ward');
+    document.getElementById('hidden_ward').value = '';
+
+    if (!distCode) {
+      wardSelect.innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+      updateAddressVerification();
+      return;
+    }
+
+    wardSelect.innerHTML = '<option value="">-- Đang nạp danh sách Phường/Xã... --</option>';
+
+    await loadWardsForDistrict(distCode);
+    updateAddressVerification();
+
+    // Tự động focus vào Phường / Xã tiếp theo
+    setTimeout(() => {
+      wardSelect.focus();
+    }, 100);
+  }
+
+  // Tải danh sách Phường / Xã của 1 Quận/Huyện
+  async function loadWardsForDistrict(distCode, preselectedWardName = null) {
+    const wardSelect = document.getElementById('cust_ward');
+    const wardLoading = document.getElementById('wardLoading');
+
+    if (wardLoading) wardLoading.classList.remove('hidden');
+
+    try {
+      let wards = cachedWards[distCode] || [];
+
+      if (wards.length === 0) {
+        try {
+          const res = await fetch(`${API_WARDS_BASE}/${distCode}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+              wards = json.data;
+            }
+          }
+        } catch (e) {
+          console.warn('Internal API wards error, fallback to open-api.vn:', e);
+        }
+
+        if (wards.length === 0) {
+          try {
+            const resExt = await fetch(`${OPEN_API_WARDS}${distCode}?depth=2`);
+            if (resExt.ok) {
+              const jsonExt = await resExt.json();
+              wards = jsonExt.wards || [];
+            }
+          } catch (e2) {
+            console.error('Fallback open-api.vn wards error:', e2);
+          }
+        }
+
+        cachedWards[distCode] = wards;
+      }
+
+      wardSelect.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+
+      wards.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.code;
+        opt.textContent = w.name;
+        opt.setAttribute('data-name', w.name);
+        if (preselectedWardName && (w.name.toLowerCase() === preselectedWardName.toLowerCase() || w.name.toLowerCase().includes(preselectedWardName.toLowerCase()) || preselectedWardName.toLowerCase().includes(w.name.toLowerCase()))) {
+          opt.selected = true;
+        }
+        wardSelect.appendChild(opt);
+      });
+
+      if (wardSelect.value) {
+        const selectedOpt = wardSelect.options[wardSelect.selectedIndex];
+        document.getElementById('hidden_ward').value = selectedOpt.getAttribute('data-name') || selectedOpt.text.trim();
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải danh sách Phường/Xã:', err);
+    } finally {
+      if (wardLoading) wardLoading.classList.add('hidden');
+      updateAddressVerification();
+    }
+  }
+
+  // Khi người dùng chọn Phường / Xã
+  function onWardChange(selectEl) {
+    const wardCode = selectEl.value;
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const wardName = wardCode ? (selectedOpt.getAttribute('data-name') || selectedOpt.text.trim()) : '';
+    document.getElementById('hidden_ward').value = wardName;
+    updateAddressVerification();
+
+    // Tự động focus sang ô nhập số nhà, tên đường nếu ô này đang trống
+    const streetInput = document.getElementById('cust_address');
+    if (streetInput && !streetInput.value.trim()) {
+      streetInput.focus();
+    }
+  }
+
+  // Khi nhập số nhà, tên đường
+  function onStreetAddressInput(inputEl) {
+    updateAddressVerification();
+  }
+
+  // =========================================================================
+  // XÁC THỰC & ĐỒNG BỘ ĐỊA CHỈ GIAO HÀNG CHUẨN XÁC HIỆN TẠI
+  // =========================================================================
+  function updateAddressVerification() {
+    const cityName = (document.getElementById('hidden_city')?.value || '').trim();
+    const districtName = (document.getElementById('hidden_district')?.value || '').trim();
+    const wardName = (document.getElementById('hidden_ward')?.value || '').trim();
+    const street = (document.getElementById('cust_address')?.value || '').trim();
+
+    const card = document.getElementById('addressVerificationCard');
+    const iconWrap = document.getElementById('addressVerifyIconWrapper');
+    const badge = document.getElementById('addressVerifyBadge');
+    const title = document.getElementById('addressVerifyTitle');
+    const summary = document.getElementById('addressVerifySummary');
+    const pills = document.getElementById('addressDetailPills');
+    const hiddenFull = document.getElementById('hidden_full_address');
+
+    if (!card) return;
+
+    const isComplete = cityName && districtName && wardName && street;
+
+    if (isComplete) {
+      const full = `${street}, ${wardName}, ${districtName}, ${cityName}`;
+      if (hiddenFull) hiddenFull.value = full;
+
+      card.className = 'p-4 rounded-2xl border transition-all duration-300 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-teal-500/10 border-emerald-400 shadow-sm';
+      iconWrap.className = 'w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm';
+      iconWrap.innerHTML = '<i data-lucide="shield-check" class="w-5 h-5"></i>';
+
+      badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shadow-xs tracking-wider flex items-center gap-1';
+      badge.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> ĐÃ XÁC THỰC ĐỊA CHỈ THỰC TẾ';
+
+      title.className = 'text-emerald-950 font-bold';
+      title.textContent = 'Địa Chỉ Giao Hàng Chuẩn Xác Đã Xác Nhận';
+
+      summary.innerHTML = `
+        <div class="font-serif-luxury text-sm font-bold text-neutral-950 mb-1 leading-snug">
+          ${escapeHtml(full)}
+        </div>
+        <p class="text-[11px] text-emerald-800 font-medium flex items-center gap-1.5">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-600"></i>
+          <span>Tuyến vận chuyển hành chính được xác thực chính xác theo bản đồ bưu chính Việt Nam.</span>
+        </p>
+      `;
+
+      if (pills) {
+        pills.classList.remove('hidden');
+        document.getElementById('pillCity').textContent = cityName;
+        document.getElementById('pillDistrict').textContent = districtName;
+        document.getElementById('pillWard').textContent = wardName;
+        document.getElementById('pillStreet').textContent = street;
+      }
+    } else {
+      card.className = 'p-4 rounded-2xl border transition-all duration-300 bg-neutral-50/80 border-neutral-200';
+      iconWrap.className = 'w-9 h-9 rounded-xl bg-neutral-200 text-neutral-600 flex items-center justify-center shrink-0 shadow-xs';
+      iconWrap.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4"></i>';
+
+      badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200 text-neutral-600 border border-neutral-300';
+      badge.textContent = 'Chưa hoàn tất';
+
+      title.className = 'text-neutral-700 font-bold';
+      title.textContent = 'Xác Nhận Địa Chỉ Giao Hàng Thực Tế';
+
+      let missing = [];
+      if (!cityName) missing.push('Tỉnh/Thành phố');
+      if (!districtName) missing.push('Quận/Huyện');
+      if (!wardName) missing.push('Phường/Xã');
+      if (!street) missing.push('Số nhà, tên đường');
+
+      summary.innerHTML = `
+        <span class="text-neutral-500">
+          Vui lòng chọn: <strong class="text-amber-800 font-bold">${missing.join(' → ')}</strong> để hệ thống tiến hành kiểm tra và xác nhận tuyến giao hàng.
+        </span>
+      `;
+
+      if (pills) pills.classList.add('hidden');
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  // Khi chọn từ Sổ địa chỉ đã lưu
+  async function fillSavedAddress(select) {
+    const opt = select.options[select.selectedIndex];
+    if (!opt || !opt.value) {
+      document.getElementById('cust_name').value = '';
+      document.getElementById('cust_phone').value = '';
+      document.getElementById('cust_address').value = '';
+      document.getElementById('cust_province').value = '';
+      document.getElementById('hidden_city').value = '';
+      document.getElementById('hidden_district').value = '';
+      document.getElementById('hidden_ward').value = '';
+
+      document.getElementById('cust_district').innerHTML = '<option value="">-- Vui lòng chọn Tỉnh/TP trước --</option>';
+      document.getElementById('cust_ward').innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+
+      updateAddressVerification();
+      return;
+    }
+
+    document.getElementById('cust_name').value = opt.getAttribute('data-name') || '';
+    document.getElementById('cust_phone').value = opt.getAttribute('data-phone') || '';
+    document.getElementById('cust_address').value = opt.getAttribute('data-address') || '';
+
+    const targetCity = (opt.getAttribute('data-city') || '').trim();
+    const targetDistrict = (opt.getAttribute('data-district') || '').trim();
+    const targetWard = (opt.getAttribute('data-ward') || '').trim();
+
+    document.getElementById('hidden_city').value = targetCity;
+    document.getElementById('hidden_district').value = targetDistrict;
+    document.getElementById('hidden_ward').value = targetWard;
+
+    // Tìm và chọn Tỉnh tương ứng trong select
+    const provSelect = document.getElementById('cust_province');
+    let matchedProvCode = null;
+    for (let i = 0; i < provSelect.options.length; i++) {
+      const pOpt = provSelect.options[i];
+      const pName = (pOpt.getAttribute('data-name') || pOpt.text || '').toLowerCase();
+      if (targetCity && (pName === targetCity.toLowerCase() || pName.includes(targetCity.toLowerCase()) || targetCity.toLowerCase().includes(pName))) {
+        provSelect.selectedIndex = i;
+        matchedProvCode = pOpt.value;
+        break;
+      }
+    }
+
+    if (matchedProvCode) {
+      await loadDistrictsForProvince(matchedProvCode, targetDistrict, targetWard);
+    } else {
+      updateAddressVerification();
+    }
+  }
+
+  // Khởi chạy khi DOM sẵn sàng
+  document.addEventListener('DOMContentLoaded', async function() {
+    const provSelect = document.getElementById('cust_province');
+    if (provSelect && provSelect.value) {
+      const selectedOpt = provSelect.options[provSelect.selectedIndex];
+      document.getElementById('hidden_city').value = selectedOpt.getAttribute('data-name') || selectedOpt.text.trim();
+      const initialDistrict = (document.getElementById('hidden_district')?.value || '').trim();
+      const initialWard = (document.getElementById('hidden_ward')?.value || '').trim();
+      await loadDistrictsForProvince(provSelect.value, initialDistrict, initialWard);
+    }
+
+    updateAddressVerification();
+  });
 
   function updatePayOptionCards() {
     const radios = document.querySelectorAll('.pay-radio');
@@ -552,13 +1060,21 @@
 
       if (radio.checked) {
         if (card) {
-          card.classList.add('border-neutral-950', 'bg-neutral-50');
-          card.classList.remove('border-neutral-200');
+          if (radio.id === 'pay_momo') {
+            card.classList.add('border-[#a50064]', 'bg-pink-50/20', 'ring-1', 'ring-[#a50064]/20');
+            card.classList.remove('border-neutral-200', 'border-neutral-950', 'bg-neutral-50', 'border-[#005baa]', 'bg-blue-50/20', 'ring-[#005baa]/20');
+          } else if (radio.id === 'pay_vnpay') {
+            card.classList.add('border-[#005baa]', 'bg-blue-50/20', 'ring-1', 'ring-[#005baa]/20');
+            card.classList.remove('border-neutral-200', 'border-neutral-950', 'bg-neutral-50', 'border-[#a50064]', 'bg-pink-50/20', 'ring-[#a50064]/20');
+          } else {
+            card.classList.add('border-neutral-950', 'bg-neutral-50');
+            card.classList.remove('border-neutral-200', 'border-[#a50064]', 'bg-pink-50/20', 'border-[#005baa]', 'bg-blue-50/20', 'ring-1', 'ring-[#a50064]/20', 'ring-[#005baa]/20');
+          }
         }
         if (desc) desc.classList.remove('hidden');
       } else {
         if (card) {
-          card.classList.remove('border-neutral-950', 'bg-neutral-50');
+          card.classList.remove('border-neutral-950', 'bg-neutral-50', 'border-[#a50064]', 'bg-pink-50/20', 'border-[#005baa]', 'bg-blue-50/20', 'ring-1', 'ring-[#a50064]/20', 'ring-[#005baa]/20');
           card.classList.add('border-neutral-200');
         }
         if (desc) desc.classList.add('hidden');

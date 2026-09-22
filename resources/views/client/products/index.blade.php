@@ -95,7 +95,12 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
     @forelse($products as $p)
       @php
-        $minPrice = $p->variants->min('price') ?? $p->price ?? 0;
+        $isSaleActive = $p->is_sale_active;
+        $minPrice = ($p->variants && $p->variants->isNotEmpty()) 
+          ? $p->variants->min(fn($v) => $v->effective_price) 
+          : ($p->effective_price ?? ($p->price ?? 0));
+        $hasDiscount = $isSaleActive && ($p->original_price && $p->original_price > $minPrice);
+        $discountPercent = $hasDiscount ? round((($p->original_price - $minPrice) / $p->original_price) * 100) : 0;
         $primaryImg = $p->primaryImage->image_path ?? $p->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=600&auto=format&fit=crop';
         if (!str_starts_with($primaryImg, 'http')) {
           $primaryImg = asset($primaryImg);
@@ -139,15 +144,15 @@
                 <span class="font-serif-luxury text-xl font-black text-neutral-950 block">
                   {{ number_format($minPrice, 0, ',', '.') }}₫
                 </span>
-                @if($p->original_price && $p->original_price > $minPrice)
+                @if($hasDiscount)
                   <span class="text-xs text-neutral-500 line-through font-medium">
                     {{ number_format($p->original_price, 0, ',', '.') }}₫
                   </span>
                 @endif
               </div>
-              @if($p->discount_percent > 0)
+              @if($hasDiscount && $discountPercent > 0)
                 <span class="px-2 py-0.5 bg-rose-600 text-white text-[10px] font-black rounded shadow-xs">
-                  -{{ $p->discount_percent }}%
+                  -{{ $discountPercent }}%
                 </span>
               @endif
             </div>

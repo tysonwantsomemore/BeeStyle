@@ -32,6 +32,9 @@ class AuthController extends Controller
             if (Auth::user()->isAdmin()) {
                 return redirect()->route('admin.dashboard');
             }
+            if (Auth::user()->isShipper()) {
+                return redirect()->route('shipper.orders.index');
+            }
             return redirect()->route('client.profile');
         }
 
@@ -53,6 +56,11 @@ class AuthController extends Controller
         if ($user->isAdmin()) {
             return redirect()->intended(route('admin.dashboard'))
                 ->with('success', "Chào mừng Quản trị viên {$user->name} quay trở lại hệ thống BeeStyle!");
+        }
+
+        if ($user->isShipper()) {
+            return redirect()->intended(route('shipper.orders.index'))
+                ->with('success', "Xin chào Bưu tá {$user->name}, chúc bạn một ca giao hàng an toàn và thành công!");
         }
 
         return redirect()->intended(route('client.profile'))

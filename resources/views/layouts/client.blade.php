@@ -157,7 +157,7 @@
   @stack('styles')
 </head>
 
-<body class="bg-brand-50 text-neutral-900 selection:bg-neutral-900 selection:text-white flex flex-col min-h-screen">
+<body class="bg-brand-50 text-neutral-900 selection:bg-neutral-900 selection:text-white flex flex-col min-h-screen pb-14 md:pb-0">
 
   <!-- ========================================================================= -->
   <!-- 1. ANNOUNCEMENT TOP BAR -->
@@ -174,10 +174,10 @@
           <i data-lucide="package" class="w-3.5 h-3.5"></i>
           <span>Tra Cứu Đơn Hàng</span>
         </a>
-        <a href="{{ route('client.profile', ['tab' => 'returns']) }}" class="hover:text-white flex items-center gap-1 transition-colors">
+        <button type="button" onclick="openPolicyModal('returns')" class="hover:text-white flex items-center gap-1 transition-colors bg-transparent border-0 p-0 text-[11px] text-neutral-200 cursor-pointer">
           <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-          <span>Đổi Trả &amp; Hoàn Tiền</span>
-        </a>
+          <span>Đổi Trả 30 Ngày</span>
+        </button>
       </div>
     </div>
   </div>
@@ -863,10 +863,15 @@
           </div>
 
           <!-- Bảng giá -->
-          <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 flex items-baseline gap-3">
-            <span class="font-serif-luxury text-2xl font-bold text-neutral-950" id="qvmProductPrice">0₫</span>
-            <span class="text-neutral-400 line-through text-xs hidden" id="qvmProductOriginalPrice">0₫</span>
-            <span class="ml-auto text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded hidden" id="qvmSavingsBadge">Tiết kiệm 0₫</span>
+          <div class="p-3 bg-brand-50 rounded-xl border border-brand-200 flex flex-col gap-2">
+            <div class="flex items-baseline gap-3 w-full">
+              <span class="font-serif-luxury text-2xl font-bold text-neutral-950" id="qvmProductPrice">0₫</span>
+              <span class="text-neutral-400 line-through text-xs hidden" id="qvmProductOriginalPrice">0₫</span>
+              <span class="ml-auto text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded hidden" id="qvmSavingsBadge">Tiết kiệm 0₫</span>
+            </div>
+            <div id="qvmMaterialBadge" class="text-[11px] text-amber-900 bg-amber-50/80 px-2.5 py-1 rounded border border-amber-200 font-medium hidden">
+              Chất liệu phân loại: <strong id="qvmMaterialText" class="text-neutral-900 font-semibold"></strong>
+            </div>
           </div>
 
           <!-- 1. Chọn màu sắc -->
@@ -1295,6 +1300,8 @@
         iconHtml = '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>';
       } else if (type === 'coupon') {
         iconHtml = '<i data-lucide="ticket" class="w-4 h-4 text-amber-400 shrink-0"></i>';
+      } else if (type === 'warning') {
+        iconHtml = '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0"></i>';
       }
 
       toast.innerHTML = `
@@ -1356,6 +1363,7 @@
     // QUICK VIEW & VARIANT SELECTION MODAL CONTROLLER
     // =========================================================================
     let currentQvmProduct = null;
+    let currentQvmUnitPrice = 0;
     let selectedColor = null;
     let selectedSize = null;
     let selectedVariantId = null;
@@ -1366,6 +1374,7 @@
       selectedColor = null;
       selectedSize = null;
       selectedVariantId = null;
+      currentQvmUnitPrice = 0;
 
       // Cập nhật nhãn trạng thái chế độ mở
       const modeBadge = document.getElementById('qvmModeBadge');
@@ -1522,6 +1531,9 @@
       }
 
       selectedVariantId = null;
+      currentQvmUnitPrice = data.price || 0;
+      const matBadgeInit = document.getElementById('qvmMaterialBadge');
+      if (matBadgeInit) matBadgeInit.classList.add('hidden');
       updateQvmQtyDisplay(1);
     }
 
@@ -1569,13 +1581,39 @@
         (!selectedSize || v.size.toLowerCase() === selectedSize.toLowerCase())
       );
 
+      const matBadge = document.getElementById('qvmMaterialBadge');
+      const matText = document.getElementById('qvmMaterialText');
+
       if (matched) {
         selectedVariantId = matched.id;
+        if (matched.price) {
+          currentQvmUnitPrice = matched.price;
+        }
         if (matched.price_formatted) {
           document.getElementById('qvmProductPrice').textContent = matched.price_formatted;
         }
         const stockNum = document.getElementById('qvmStockNumber');
         if (stockNum) stockNum.textContent = matched.stock;
+
+        if (matBadge && matText) {
+          if (matched.material && matched.material.trim() !== '') {
+            matText.textContent = matched.material;
+            matBadge.classList.remove('hidden');
+          } else {
+            matBadge.classList.add('hidden');
+          }
+        }
+        updateQvmQtyDisplay(parseInt(document.getElementById('qvmQuantityInput').value) || 1);
+      } else {
+        selectedVariantId = null;
+        if (matBadge) matBadge.classList.add('hidden');
+        if (currentQvmProduct) {
+          currentQvmUnitPrice = currentQvmProduct.price;
+          document.getElementById('qvmProductPrice').textContent = currentQvmProduct.price_formatted || '0₫';
+          const stockNum = document.getElementById('qvmStockNumber');
+          if (stockNum) stockNum.textContent = currentQvmProduct.stock;
+        }
+        updateQvmQtyDisplay(parseInt(document.getElementById('qvmQuantityInput').value) || 1);
       }
     }
 
@@ -1591,7 +1629,7 @@
       if (val > maxStock) val = maxStock;
       document.getElementById('qvmQuantityInput').value = val;
 
-      const unitPrice = currentQvmProduct ? currentQvmProduct.price : 0;
+      const unitPrice = (typeof currentQvmUnitPrice === 'number' && currentQvmUnitPrice > 0) ? currentQvmUnitPrice : (currentQvmProduct ? currentQvmProduct.price : 0);
       const subtotal = unitPrice * val;
       document.getElementById('qvmSubtotalLive').textContent = subtotal.toLocaleString('vi-VN') + '₫';
 

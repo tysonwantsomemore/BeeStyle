@@ -19,6 +19,8 @@ class Product extends Model
         'product_type',
         'price',
         'original_price',
+        'sale_starts_at',
+        'sale_ends_at',
         'discount_percent',
         'stock',
         'sold_count',
@@ -42,6 +44,8 @@ class Product extends Model
         return [
             'price' => 'integer',
             'original_price' => 'integer',
+            'sale_starts_at' => 'datetime',
+            'sale_ends_at' => 'datetime',
             'discount_percent' => 'integer',
             'stock' => 'integer',
             'sold_count' => 'integer',
@@ -55,6 +59,24 @@ class Product extends Model
             'is_featured' => 'boolean',
             'is_best_seller' => 'boolean',
         ];
+    }
+
+    public function getIsSaleActiveAttribute(): bool
+    {
+        if ($this->is_on_daily_deal) {
+            return true;
+        }
+        if (!$this->original_price || $this->original_price <= $this->price) {
+            return false;
+        }
+        $now = now();
+        if ($this->sale_starts_at && $now->lt($this->sale_starts_at)) {
+            return false;
+        }
+        if ($this->sale_ends_at && $now->gt($this->sale_ends_at)) {
+            return false;
+        }
+        return true;
     }
 
     protected static function boot()
@@ -200,7 +222,7 @@ class Product extends Model
     }
 
     /**
-     * Get effective sale price (takes daily deal into account)
+     * Get effective sale price (takes daily deal and promotional duration into account)
      */
     public function getEffectivePriceAttribute(): int
     {
@@ -208,6 +230,14 @@ class Product extends Model
         if ($deal) {
             return (int) ($deal->deal_price ?: round($this->price * (100 - $deal->discount_percent) / 100));
         }
+
+        if ($this->original_price && $this->original_price > $this->price) {
+            if (($this->sale_starts_at || $this->sale_ends_at) && !$this->is_sale_active) {
+                return (int) $this->original_price;
+            }
+            return (int) $this->price;
+        }
+
         return (int) $this->price;
     }
 

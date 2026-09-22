@@ -24,6 +24,7 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'momo_trans_id',
+        'vnpay_trans_id',
         'shipping_status',
         'shipping_carrier',
         'tracking_code',
@@ -41,6 +42,10 @@ class Order extends Model
         'deposit_amount',
         'remaining_amount',
         'deposit_status',
+        'printed_at',
+        'print_count',
+        'shipper_id',
+        'handover_image',
         'deposit_paid_at',
         'review_notified',
         'cancel_reason',
@@ -74,7 +79,8 @@ class Order extends Model
         'completed_at'              => 'datetime',
         'paid_at'                   => 'datetime',
         'delivery_proof_at'         => 'datetime',
-        'shipping_address_snapshot' => 'array',
+        'printed_at'                => 'datetime',
+        'print_count'               => 'integer',
     ];
 
     protected static function booted()
@@ -105,9 +111,23 @@ class Order extends Model
         });
     }
 
+    public function getFullShippingAddressAttribute(): string
+    {
+        if (!empty($this->shipping_address_snapshot['full_address'])) {
+            return $this->shipping_address_snapshot['full_address'];
+        }
+        $parts = array_filter([$this->shipping_address, $this->ward, $this->district, $this->city]);
+        return implode(', ', $parts);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function shipper()
+    {
+        return $this->belongsTo(User::class, 'shipper_id');
     }
 
     public function items()
@@ -158,15 +178,15 @@ class Order extends Model
     }
 
     /**
-     * Danh sách ma trận các trạng thái hợp lệ tiếp theo được phép chuyển từ trạng thái hiện tại (State Machine)
+     * Danh sách ma trận các trạng thái hợp lệ tiếp theo (chuyển trạng thái nhảy tuần tự từng bước 1)
      */
     public function getAllowedNextStatuses(): array
     {
         $transitions = [
-            'pending'    => ['confirmed', 'processing', 'cancelled'],
-            'confirmed'  => ['processing', 'shipping', 'cancelled'],
-            'processing' => ['shipping', 'delivered', 'cancelled'],
-            'shipping'   => ['delivered', 'completed', 'cancelled'],
+            'pending'    => ['confirmed', 'cancelled'],
+            'confirmed'  => ['processing', 'cancelled'],
+            'processing' => ['shipping', 'cancelled'],
+            'shipping'   => ['delivered', 'cancelled'],
             'delivered'  => ['completed'],
             'completed'  => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái
             'cancelled'  => [], // Trạng thái đóng cuối cùng - không được chuyển trạng thái
@@ -231,10 +251,10 @@ class Order extends Model
     {
         return match ($this->payment_method) {
             'online' => 'Chuyển khoản VietQR 24/7 (Techcombank)',
-            'momo' => 'Thanh toán trực tuyến qua ví MoMo (Redirect/Deep Link)',
+            'momo' => 'Thanh toán trực tuyến MoMo Payment (ATM)',
             'zalopay' => 'Ví Điện Tử ZaloPay',
             'vietqr' => 'Chuyển khoản VietQR 24/7 (Techcombank)',
-            'vnpay' => 'Cổng VNPAY',
+            'vnpay' => 'Cổng Thanh Toán VNPAY (ATM / QR / Visa)',
             'exchange' => 'Đơn Đổi Hàng (0₫ - Bảo hành RMA)',
             default => 'Thanh toán khi nhận hàng (COD)',
         };
@@ -244,9 +264,10 @@ class Order extends Model
     {
         return match ($this->payment_method) {
             'online' => '<span class="badge bg-info-subtle text-info fw-bold"><i class="fa-solid fa-credit-card me-1"></i> Online Banking</span>',
-            'momo' => '<span class="badge text-white fw-bold" style="background-color: #d82d8b;"><i class="fa-solid fa-wallet me-1"></i> MoMo (Deep Link)</span>',
+            'momo' => '<span class="badge text-white fw-bold" style="background-color: #a50064;"><i class="fa-solid fa-credit-card me-1"></i> MoMo Payment</span>',
             'zalopay' => '<span class="badge text-white fw-bold" style="background-color: #008fe5;"><i class="fa-solid fa-wallet me-1"></i> Ví ZaloPay</span>',
-            'vietqr', 'vnpay' => '<span class="badge bg-primary-subtle text-primary fw-bold"><i class="fa-solid fa-qrcode me-1"></i> Online</span>',
+            'vnpay' => '<span class="badge text-white fw-bold" style="background-color: #005baa;"><i class="fa-solid fa-credit-card me-1"></i> VNPAY</span>',
+            'vietqr' => '<span class="badge bg-primary-subtle text-primary fw-bold"><i class="fa-solid fa-qrcode me-1"></i> Online</span>',
             'exchange' => '<span class="badge bg-warning text-dark fw-bold"><i class="fa-solid fa-arrow-right-arrow-left me-1"></i> Đổi Hàng RMA</span>',
             default => '<span class="badge bg-secondary-subtle text-secondary fw-bold"><i class="fa-solid fa-hand-holding-dollar me-1"></i> COD</span>',
         };
@@ -304,7 +325,6 @@ class Order extends Model
     public function getDeliveryProofUrlAttribute(): ?string
     {
         if (empty($this->delivery_proof_image)) {
-            // Mặc định trả về ảnh mẫu bưu tá đã giao hàng nếu đơn đã giao hoặc hoàn tất
             if (in_array($this->shipping_status, ['delivered', 'completed']) || ($this->status_step ?? 0) >= 5) {
                 return asset('assets/img/delivery-proofs/sample_pod_1.jpg');
             }
@@ -318,5 +338,72 @@ class Order extends Model
         }
 
         return asset('storage/' . $this->delivery_proof_image);
+    }
+
+    /**
+     * Ảnh kiện hàng xuất kho bàn giao bưu tá
+     */
+    public function getHandoverImageUrlAttribute(): ?string
+    {
+        if (empty($this->handover_image)) {
+            return null;
+        }
+
+        if (str_starts_with($this->handover_image, 'http') 
+            || str_starts_with($this->handover_image, '/') 
+            || str_starts_with($this->handover_image, 'assets/')) {
+            return asset($this->handover_image);
+        }
+
+        return asset('storage/' . $this->handover_image);
+    }
+
+    /**
+     * Đơn hàng đã được in phiếu đóng gói chưa
+     */
+    public function getIsPrintedAttribute(): bool
+    {
+        return !is_null($this->printed_at);
+    }
+
+    /**
+     * Tự động quét và hoàn tất các đơn hàng đã giao quá 7 ngày mà khách hàng không có khiếu nại/đổi trả
+     */
+    public static function autoCompleteEligibleDeliveredOrders(): int
+    {
+        $sevenDaysAgo = now()->subDays(7);
+
+        $orders = static::where('shipping_status', 'delivered')
+            ->whereNotNull('delivered_at')
+            ->where('delivered_at', '<=', $sevenDaysAgo)
+            ->whereDoesntHave('returns', function ($q) {
+                $q->whereIn('status', ['pending', 'approved', 'received']);
+            })
+            ->get();
+
+        $count = 0;
+        foreach ($orders as $order) {
+            $order->update([
+                'shipping_status' => 'completed',
+                'status_step'     => 6,
+                'completed_at'    => now(),
+                'payment_status'  => 'paid',
+                'paid_at'         => $order->paid_at ?: now(),
+                'review_notified' => false,
+            ]);
+
+            // Tích điểm thưởng & doanh số cho khách hàng thành viên
+            if ($order->user_id) {
+                $user = User::find($order->user_id);
+                if ($user) {
+                    $earnedPoints = (int)floor($order->total_amount / 10000);
+                    $user->increment('points', $earnedPoints);
+                    $user->increment('total_spent', $order->total_amount);
+                }
+            }
+            $count++;
+        }
+
+        return $count;
     }
 }

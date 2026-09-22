@@ -2,6 +2,62 @@
 
 @section('title', 'Chỉnh Sửa Sản Phẩm | BeeStyle Admin')
 
+@push('styles')
+<style>
+  .price-variant-input::-webkit-outer-spin-button,
+  .price-variant-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .price-variant-input {
+    -moz-appearance: textfield;
+    font-size: 15.5px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-right: none !important;
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+    height: 42px !important;
+    letter-spacing: 0.5px;
+    font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .price-variant-input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    position: relative;
+    z-index: 3;
+  }
+  .price-variant-addon {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: #334155 !important;
+    background-color: #f1f5f9 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-left: 1px solid #e2e8f0 !important;
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    padding: 0 14px !important;
+    height: 42px !important;
+    display: flex;
+    align-items: center;
+  }
+  .price-variant-subtext {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-top: 4px;
+    padding-left: 3px;
+    letter-spacing: 0.2px;
+    min-height: 18px;
+  }
+</style>
+@endpush
+
 @section('content')
 <div class="row gy-3 mb-4 justify-content-between align-items-center">
   <div class="col-md">
@@ -122,7 +178,7 @@
           <div class="mb-0">
             <label class="form-label fs-9 fw-semibold">Kích thước (Size) đang áp dụng</label>
             <div class="d-flex flex-wrap gap-3">
-              @foreach(['S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43'] as $s)
+              @foreach(['S', 'M', 'L', 'XL', 'XXL', '3XL'] as $s)
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="sizes[]" value="{{ $s }}" id="s_{{ $loop->index }}" {{ in_array($s, $prodSizes) ? 'checked' : '' }}>
                   <label class="form-check-label fs-9 text-body-emphasis" for="s_{{ $loop->index }}">{{ $s }}</label>
@@ -130,6 +186,63 @@
               @endforeach
             </div>
           </div>
+
+          @if($product->variants && $product->variants->count() > 0)
+            <div class="mt-4 pt-3 border-top border-translucent">
+              <label class="form-label fs-9 fw-bold text-dark mb-1">
+                <i class="fa-solid fa-table-cells text-warning me-1"></i> Danh Sách Biến Thể (Chất Liệu &amp; Giá Bán Từng Mẫu)
+              </label>
+              <p class="fs-10 text-muted mb-2">Biến thể có chất liệu cao cấp hơn (VD: Cotton Compact, Lụa Bamboo) có thể sửa giá bán cao hơn ở cột Giá Bán</p>
+              <div class="table-responsive border rounded-3 bg-white" style="max-height: 380px; overflow-y: auto;">
+                <table class="table table-hover mb-0 align-middle">
+                  <thead class="bg-body-secondary text-body-emphasis sticky-top">
+                    <tr>
+                      <th class="ps-3 py-2.5">Màu Sắc</th>
+                      <th class="py-2.5">Kích Cỡ</th>
+                      <th class="py-2.5">Chất Liệu</th>
+                      <th class="py-2.5">Mã SKU Con</th>
+                      <th class="py-2.5" style="width: 220px; min-width: 210px;">Giá Bán (VNĐ)</th>
+                      <th class="pe-3 py-2.5 text-end" style="width: 100px;">Tồn Kho</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach($product->variants as $v)
+                      <tr>
+                        <td class="ps-3 py-2 fw-semibold">
+                          <span class="rounded-circle border d-inline-block me-1.5 align-middle" style="width: 13px; height: 13px; background-color: {{ $v->color_code ?: '#333' }};"></span>
+                          {{ $v->color }}
+                        </td>
+                        <td class="py-2 fw-bold text-primary">Size {{ $v->size }}</td>
+                        <td class="py-2">
+                          <input type="text" name="variant_material[{{ $v->id }}]" value="{{ old('variant_material.' . $v->id, $v->material) }}" placeholder="VD: Lụa, Cotton..." class="form-control" style="font-size: 13px; height: 42px; border-radius: 8px; border: 1.5px solid #cbd5e1;" title="Chất liệu của biến thể này">
+                        </td>
+                        <td class="py-2 font-monospace fs-10 text-muted">{{ $v->sku }}</td>
+                        <td class="py-2">
+                          <div class="input-group" style="min-width: 185px;">
+                            <input type="number" 
+                                   name="variant_price[{{ $v->id }}]" 
+                                   value="{{ old('variant_price.' . $v->id, $v->price) }}" 
+                                   step="1000" 
+                                   min="0" 
+                                   class="form-control price-variant-input px-3" 
+                                   title="Giá bán riêng cho biến thể này"
+                                   oninput="const sub = document.getElementById('edit_price_sub_{{ $v->id }}'); if (sub) { sub.innerText = (this.value > 0 ? ('= ' + parseInt(this.value).toLocaleString('vi-VN') + ' ₫') : ''); }">
+                            <span class="input-group-text price-variant-addon">₫</span>
+                          </div>
+                          <div id="edit_price_sub_{{ $v->id }}" class="price-variant-subtext">
+                            {{ (old('variant_price.' . $v->id, $v->price) > 0) ? ('= ' . number_format(old('variant_price.' . $v->id, $v->price), 0, ',', '.') . ' ₫') : '' }}
+                          </div>
+                        </td>
+                        <td class="pe-3 py-2 text-end">
+                          <input type="number" name="variant_stock[{{ $v->id }}]" value="{{ old('variant_stock.' . $v->id, $v->stock) }}" min="0" class="form-control text-end fw-bold font-monospace d-inline-block" style="width: 85px; font-size: 14px; height: 42px; border-radius: 8px; border: 1.5px solid #cbd5e1;">
+                        </td>
+                      </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          @endif
         </div>
       </div>
 
@@ -178,8 +291,32 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label fs-9 fw-semibold">Giá gốc</label>
+            <label class="form-label fs-9 fw-semibold">Giá gốc (Gạch ngang)</label>
             <input type="number" name="original_price" class="form-control" value="{{ old('original_price', $product->original_price) }}">
+          </div>
+
+          <!-- THỜI HẠN KHUYẾN MÃI -->
+          <div class="mb-3 pt-2 border-top border-translucent">
+            <label class="form-label fs-9 fw-semibold text-dark">
+              <i class="fa-regular fa-calendar-days text-primary me-1"></i>Thời Hạn Khuyến Mãi (Sale Period)
+            </label>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label fs-10 text-muted mb-0.5">Bắt đầu:</label>
+                <input type="datetime-local" 
+                       name="sale_starts_at" 
+                       class="form-control form-control-sm fs-9 font-monospace" 
+                       value="{{ old('sale_starts_at', $product->sale_starts_at ? $product->sale_starts_at->format('Y-m-d\TH:i') : '') }}">
+              </div>
+              <div class="col-6">
+                <label class="form-label fs-10 text-muted mb-0.5">Kết thúc (Hết hạn):</label>
+                <input type="datetime-local" 
+                       name="sale_ends_at" 
+                       class="form-control form-control-sm fs-9 font-monospace" 
+                       value="{{ old('sale_ends_at', $product->sale_ends_at ? $product->sale_ends_at->format('Y-m-d\TH:i') : '') }}">
+              </div>
+            </div>
+            <span class="fs-10 text-muted d-block mt-1">Khi hết hạn, hệ thống tự động quay về Giá Gốc và hủy gạch ngang</span>
           </div>
 
           <div class="mb-3">

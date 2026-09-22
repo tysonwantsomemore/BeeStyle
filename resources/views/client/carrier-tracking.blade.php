@@ -560,7 +560,7 @@
               <div>
                 <span class="text-slate-400 uppercase text-[10px] font-bold block">Địa chỉ giao hàng:</span>
                 <p class="text-slate-800 font-medium leading-relaxed mt-0.5">
-                  {{ $order->shipping_address }}{{ $order->city ? ', ' . $order->city : '' }}
+                  {{ $order->full_shipping_address }}
                 </p>
               </div>
 
@@ -703,7 +703,7 @@
             <span class="text-[10px] font-bold text-slate-500 uppercase block">Người Nhận (To):</span>
             <strong class="text-slate-900 block">{{ $order->customer_name }}</strong>
             <span class="text-slate-600 block font-mono font-bold">{{ $order->customer_phone }}</span>
-            <span class="text-slate-600 block leading-tight">{{ $order->shipping_address }}{{ $order->city ? ', ' . $order->city : '' }}</span>
+            <span class="text-slate-600 block leading-tight">{{ $order->full_shipping_address }}</span>
           </div>
         </div>
 

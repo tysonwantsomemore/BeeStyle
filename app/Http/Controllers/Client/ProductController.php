@@ -211,6 +211,9 @@ class ProductController extends Controller
 
         $products = $query->paginate(12)->withQueryString();
 
+        $availableSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+        $availableColors = ['Đen', 'Trắng', 'Xanh Navy', 'Xám Ghi'];
+
         return view('client.products.index', compact(
             'categories',
             'brands',
@@ -221,8 +224,53 @@ class ProductController extends Controller
             'sort',
             'priceRange',
             'selectedSize',
-            'selectedColor'
+            'selectedColor',
+            'availableSizes',
+            'availableColors'
         ));
+    }
+
+    /**
+     * API Tìm kiếm nhanh (Live Search Autocomplete)
+     */
+    public function quickSearch(Request $request)
+    {
+        $q = trim($request->input('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json(['success' => true, 'products' => [], 'total' => 0]);
+        }
+
+        $products = Product::active()
+            ->where(function($query) use ($q) {
+                $query->where('name', 'LIKE', "%{$q}%")
+                      ->orWhere('sku', 'LIKE', "%{$q}%");
+            })
+            ->with(['category', 'primaryImage'])
+            ->take(5)
+            ->get();
+
+        $formatted = $products->map(function($p) {
+            $img = $p->primaryImage->image_path ?? $p->image ?? 'assets/img/products/1.png';
+            if (!str_starts_with($img, 'http') && !str_starts_with($img, '/')) {
+                $img = asset($img);
+            }
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'sku' => $p->sku ?: ('BS-' . $p->id),
+                'price_formatted' => number_format($p->price, 0, ',', '.') . '₫',
+                'image' => $img,
+                'category_name' => $p->category->name ?? 'Beestyle Atelier',
+                'url' => route('client.products.show', $p->id)
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'products' => $formatted,
+            'total' => $products->count(),
+            'all_url' => route('client.products.index', ['q' => $q])
+        ]);
     }
 
     public function show($id)
@@ -362,12 +410,13 @@ class ProductController extends Controller
 
         // Kiểm tra ưu đãi trong ngày
         $runningDeal = \App\Models\DailyDeal::where('product_id', $product->id)->runningNow()->first();
-        $effectivePrice = $product->price;
-        $originalPrice = $product->original_price ?: $product->price;
-        $discountPercent = $product->discount_percent;
+        $effectivePrice = $product->effective_price;
+        $isSaleActive = $product->is_sale_active;
+        $originalPrice = $isSaleActive ? ($product->original_price ?: $product->price) : null;
+        $discountPercent = $isSaleActive ? $product->discount_percent : 0;
 
         if ($runningDeal) {
-            $effectivePrice = max(0, (int) round($product->price * (1 - ($runningDeal->discount_percent / 100))));
+            $effectivePrice = max(0, (int) round($product->effective_price * (1 - ($runningDeal->discount_percent / 100))));
             $discountPercent = $runningDeal->discount_percent;
         }
 
@@ -396,6 +445,7 @@ class ProductController extends Controller
             'original_price' => $originalPrice,
             'original_price_formatted' => $originalPrice ? number_format($originalPrice, 0, ',', '.') . '₫' : null,
             'discount_percent' => $discountPercent,
+            'is_sale_active' => $isSaleActive,
             'is_daily_deal' => (bool)$runningDeal,
             'deal_slot' => $runningDeal ? $runningDeal->formatted_slot : null,
             'image' => asset($product->image),
@@ -404,14 +454,15 @@ class ProductController extends Controller
             'colors' => $colors,
             'sizes' => $sizes,
             'variants' => $product->variants->map(function ($v) use ($runningDeal) {
-                $vPrice = $v->price;
+                $vPrice = $v->effective_price;
                 if ($runningDeal) {
-                    $vPrice = max(0, (int) round($v->price * (1 - ($runningDeal->discount_percent / 100))));
+                    $vPrice = max(0, (int) round($vPrice * (1 - ($runningDeal->discount_percent / 100))));
                 }
                 return [
                     'id' => $v->id,
                     'color' => trim($v->color),
                     'size' => trim($v->size),
+                    'material' => $v->material,
                     'price' => $vPrice,
                     'price_formatted' => number_format($vPrice, 0, ',', '.') . '₫',
                     'stock' => (int) $v->stock,

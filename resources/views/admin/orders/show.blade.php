@@ -32,7 +32,22 @@
 
     <!-- ACTION BUTTONS -->
     <div class="col-auto">
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        @if($order->payment_status !== 'paid' && $order->shipping_status !== 'cancelled')
+          <form action="{{ route('admin.orders.markPaid', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Xác nhận ĐÃ THU ĐỦ TIỀN cho đơn hàng #{{ $order->order_code }} ({{ number_format($order->total_amount, 0, ',', '.') }}₫)?');">
+            @csrf
+            <button type="submit" class="btn btn-phoenix-success btn-sm fw-bold">
+              <i class="fa-solid fa-money-bill-wave me-1"></i> Xác Nhận Thu Tiền
+            </button>
+          </form>
+        @endif
+
+        @if(in_array($order->shipping_status, ['pending', 'confirmed', 'processing', 'shipping']))
+          <button type="button" class="btn btn-phoenix-danger btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#adminCancelOrderModal">
+            <i class="fa-solid fa-ban me-1"></i> Hủy Đơn
+          </button>
+        @endif
+
         <button type="button" class="btn btn-phoenix-primary btn-sm" onclick="window.print()">
           <i class="fa-solid fa-print me-1"></i> In Phiếu Giao Hàng
         </button>
@@ -59,7 +74,7 @@
   <div class="row g-3 small mb-3">
     <div class="col-6">
       <strong>Người Nhận:</strong> {{ $order->customer_name }} - {{ $order->customer_phone }}<br>
-      <strong>Địa Chỉ:</strong> {{ $order->shipping_address }}{{ $order->city ? ', ' . $order->city : '' }}
+      <strong>Địa Chỉ:</strong> {{ $order->full_shipping_address }}
     </div>
     <div class="col-6 text-end">
       <strong>Thanh Toán:</strong> {{ $order->payment_method_name }} ({{ $order->payment_status_label }})<br>
@@ -487,12 +502,21 @@
               </button>
             </form>
           @elseif($order->shipping_status === 'processing')
-            <button type="button" class="btn btn-sm btn-info text-white fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#dispatchCarrierModal">
-              <i class="fa-solid fa-truck-fast me-1"></i> Bước 4: Tạo Vận Đơn &amp; Giao Bưu Tá
+            <form action="{{ route('admin.orders.finishPacking', $order->id) }}" method="POST" class="d-inline">
+              @csrf
+              <button type="submit" class="btn btn-sm text-white fw-bold shadow-xs px-3" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                <i class="fa-solid fa-box-check me-1"></i> Bước 4: Đóng Gói Xong &amp; Chuyển Bưu Tá
+              </button>
+            </form>
+            <button type="button" class="btn btn-sm btn-outline-info fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#dispatchCarrierModal">
+              <i class="fa-solid fa-sliders me-1"></i> Chỉ Định Bưu Tá / Vận Đơn
             </button>
           @elseif($order->shipping_status === 'shipping')
-            <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal">
-              <i class="fa-solid fa-camera me-1"></i> Bước 5: Bưu Tá Báo Giao (Ảnh POD)
+            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 fw-bold fs-10 d-inline-flex align-items-center gap-1.5">
+              <i class="fa-solid fa-motorcycle text-info"></i> Bưu tá {{ $order->shipper ? $order->shipper->name : 'BeeStyle' }} đang giao (Bưu tá sẽ chụp ảnh POD khi giao xong)
+            </span>
+            <button type="button" class="btn btn-xs btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal" title="Hỗ trợ tải ảnh POD nếu cần">
+              <i class="fa-solid fa-camera me-1"></i> Hỗ trợ tải POD
             </button>
           @elseif($order->shipping_status === 'delivered')
             @if($order->delivery_proof_url)
@@ -510,7 +534,7 @@
             </form>
           @endif
 
-          @if($order->payment_status !== 'paid')
+          @if($order->payment_status !== 'paid' && !in_array($order->shipping_status, ['cancelled', 'completed']))
             <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline">
               @csrf
               <input type="hidden" name="shipping_status" value="{{ $order->shipping_status }}">
@@ -522,13 +546,9 @@
           @endif
 
           @if($order->canTransitionTo('cancelled'))
-            <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn HỦY đơn hàng #{{ $order->order_code }}? Toàn bộ sản phẩm sẽ được tự động hoàn lại vào kho hàng!')">
-              @csrf
-              <input type="hidden" name="shipping_status" value="cancelled">
-              <button type="submit" class="btn btn-sm btn-phoenix-danger">
-                <i class="fa-solid fa-xmark me-1"></i> Hủy Đơn
-              </button>
-            </form>
+            <button type="button" class="btn btn-sm btn-phoenix-danger" data-bs-toggle="modal" data-bs-target="#adminCancelOrderModal">
+              <i class="fa-solid fa-xmark me-1"></i> Hủy Đơn
+            </button>
           @endif
         </div>
       </div>
@@ -680,9 +700,11 @@
                     $isCurrent = $order->shipping_status === $optKey;
                     $canSelect = $isCurrent || $order->canTransitionTo($optKey);
                   @endphp
-                  <option value="{{ $optKey }}" {{ $isCurrent ? 'selected' : '' }} {{ !$canSelect ? 'disabled class=text-muted' : '' }}>
-                    {{ $optLabel }} {{ !$canSelect ? '(Đã qua bước này)' : ($isCurrent ? '— [Hiện tại]' : '') }}
-                  </option>
+                  @if($canSelect)
+                    <option value="{{ $optKey }}" {{ $isCurrent ? 'selected' : '' }}>
+                      {{ $optLabel }} {{ $isCurrent ? '— [Hiện tại]' : '' }}
+                    </option>
+                  @endif
                 @endforeach
               </select>
               @if($order->isFinalStatus())
@@ -704,26 +726,60 @@
           </div>
 
           <div class="row g-3 mb-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fs-9 fw-semibold">Đối tác vận chuyển:</label>
               <select name="shipping_carrier" class="form-select">
                 <option value="">-- Chưa gán đơn vị vận chuyển --</option>
+                <option value="BeeStyle Express" {{ str_contains((string)$order->shipping_carrier, 'BeeStyle') ? 'selected' : '' }}>BeeStyle Express (Nội Bộ)</option>
                 <option value="Giao Hàng Tiết Kiệm (GHTK)" {{ str_contains((string)$order->shipping_carrier, 'GHTK') ? 'selected' : '' }}>Giao Hàng Tiết Kiệm (GHTK)</option>
                 <option value="Giao Hàng Nhanh (GHN)" {{ str_contains((string)$order->shipping_carrier, 'GHN') ? 'selected' : '' }}>Giao Hàng Nhanh (GHN)</option>
                 <option value="Viettel Post" {{ str_contains((string)$order->shipping_carrier, 'Viettel') ? 'selected' : '' }}>Viettel Post</option>
                 <option value="J&T Express" {{ str_contains((string)$order->shipping_carrier, 'J&T') ? 'selected' : '' }}>J&T Express</option>
                 <option value="Ninja Van" {{ str_contains((string)$order->shipping_carrier, 'Ninja') ? 'selected' : '' }}>Ninja Van</option>
-                <option value="Shipper Nội Bộ BeeStyle" {{ str_contains((string)$order->shipping_carrier, 'Nội Bộ') ? 'selected' : '' }}>Shipper Nội Bộ BeeStyle</option>
               </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label fs-9 fw-semibold">Mã vận đơn bưu tá (Tracking Code):</label>
+            <div class="col-md-4">
+              <label class="form-label fs-9 fw-semibold">Bưu tá phụ trách:</label>
+              <select name="shipper_id" class="form-select">
+                <option value="">-- Chưa chỉ định bưu tá --</option>
+                @foreach($shippers as $shp)
+                  <option value="{{ $shp->id }}" {{ $order->shipper_id == $shp->id ? 'selected' : '' }}>
+                    {{ $shp->name }} ({{ $shp->phone ?: $shp->email }})
+                  </option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fs-9 fw-semibold">Mã vận đơn (Tracking):</label>
               <div class="input-group">
-                <input type="text" name="tracking_code" value="{{ $order->tracking_code }}" class="form-control font-monospace fw-bold text-primary" placeholder="VD: GHTK-8829182">
+                <input type="text" name="tracking_code" value="{{ $order->tracking_code }}" class="form-control font-monospace fw-bold text-primary" placeholder="VD: BEE-8829182">
                 @if($order->tracking_url)
                   <a href="{{ $order->tracking_url }}" target="_blank" class="btn btn-outline-primary" title="Mở trang tra cứu bưu phẩm của hãng vận chuyển">
-                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Tra cứu
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                   </a>
+                @endif
+              </div>
+            </div>
+          </div>
+
+          <!-- UPLOAD ẢNH KIỆN HÀNG XUẤT KHO (HANDOVER PROOF) -->
+          <div class="p-3 bg-body-tertiary rounded-3 mb-3 border border-translucent">
+            <label class="form-label fs-9 fw-bold text-body-emphasis d-flex align-items-center gap-1.5 mb-1.5">
+              <i class="fa-solid fa-box-open text-info"></i> Ảnh Kiện Hàng Xuất Kho Bàn Giao Bưu Tá (Bắt 1 ảnh khi giao bưu tá):
+            </label>
+            <div class="row g-2 align-items-center">
+              <div class="col-md-6">
+                <input type="file" name="handover_image_file" class="form-control form-control-sm" accept="image/*">
+                <small class="text-body-tertiary fs-11">Chấp nhận JPG, PNG, WEBP (tối đa 10MB)</small>
+              </div>
+              <div class="col-md-6">
+                @if($order->handover_image)
+                  <div class="small text-info fw-semibold d-flex align-items-center gap-1">
+                    <i class="fa-solid fa-circle-check"></i> Đã lưu ảnh xuất kho: 
+                    <a href="{{ $order->handover_image_url }}" target="_blank" class="text-info text-decoration-underline font-monospace">Xem ảnh lưu trữ kho</a>
+                  </div>
+                @else
+                  <small class="text-muted fst-italic">Chưa có ảnh chụp kiện hàng xuất kho</small>
                 @endif
               </div>
             </div>
@@ -828,9 +884,16 @@
             <input type="text" name="admin_notes" class="form-control" value="{{ $order->admin_notes }}" placeholder="VD: Bưu tá đã lấy hàng lúc 14h30, hàng dễ vỡ...">
           </div>
 
-          <button type="submit" class="btn btn-primary btn-sm px-4">
-            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Cập Nhật Đơn Hàng
-          </button>
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary btn-sm px-4">
+              <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Cập Nhật Đơn Hàng
+            </button>
+            @if(in_array($order->shipping_status, ['pending', 'confirmed', 'processing', 'shipping']))
+              <button type="button" class="btn btn-outline-danger btn-sm px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#adminCancelOrderModal">
+                <i class="fa-solid fa-ban me-1"></i> Hủy Đơn Hàng Này
+              </button>
+            @endif
+          </div>
         </form>
       </div>
     </div>
@@ -897,6 +960,70 @@
             </div>
             <h6 class="fw-bold text-body-emphasis mb-1 fs-9">Khách Vãng Lai</h6>
             <small class="text-body-tertiary d-block fs-10">Đơn hàng được đặt mà không đăng nhập tài khoản hệ thống.</small>
+          </div>
+        @endif
+      </div>
+    </div>
+
+    <!-- ẢNH KIỆN HÀNG BÀN GIAO XUẤT KHO (HANDOVER PROOF) -->
+    <div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid {{ $order->handover_image ? '#0ea5e9' : '#94a3b8' }} !important;">
+      <div class="card-header border-bottom border-translucent bg-body-emphasis d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold text-body-emphasis mb-0 d-flex align-items-center gap-2">
+          <i class="fa-solid fa-box-open text-info"></i>
+          <span>Ảnh Kiện Hàng Xuất Kho</span>
+        </h6>
+        @if($order->handover_image)
+          <span class="badge badge-phoenix badge-phoenix-info fs-11">
+            <i class="fa-solid fa-circle-check me-0.5"></i> Đã Có Ảnh
+          </span>
+        @else
+          <span class="badge badge-phoenix badge-phoenix-secondary fs-11">
+            Chưa có ảnh
+          </span>
+        @endif
+      </div>
+
+      <div class="card-body">
+        @if($order->handover_image)
+          <div class="position-relative rounded overflow-hidden border mb-3 text-center bg-dark" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#viewHandoverDetailModal">
+            <img src="{{ $order->handover_image_url }}" alt="Kiện hàng xuất kho" class="img-fluid w-100" style="max-height: 180px; object-fit: cover;">
+            <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75 d-flex justify-content-between align-items-center fs-10">
+              <span><i class="fa-solid fa-shield-check text-info me-1"></i> Bàn giao kho</span>
+              <span class="badge bg-light text-dark fw-bold"><i class="fa-solid fa-magnifying-glass-plus me-1"></i> Xem HD</span>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column gap-2 fs-10">
+            <div class="d-flex justify-content-between">
+              <span class="text-body-tertiary">Bưu tá nhận hàng:</span>
+              <strong class="text-primary">{{ $order->shipper ? $order->shipper->name : 'Chưa chỉ định' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-body-tertiary">Thời gian xuất kho:</span>
+              <strong class="text-body-emphasis font-monospace">{{ $order->shipping_at ? $order->shipping_at->format('d/m/Y H:i:s') : 'N/A' }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-body-tertiary">Mã vận đơn:</span>
+              <span class="font-monospace fw-bold text-primary">{{ $order->tracking_code ?: 'N/A' }}</span>
+            </div>
+            <div class="mt-2 pt-2 border-top border-translucent">
+              <button type="button" class="btn btn-outline-info btn-sm w-100 fw-bold fs-10" data-bs-toggle="modal" data-bs-target="#viewHandoverDetailModal">
+                <i class="fa-solid fa-expand me-1"></i> Phóng To Ảnh Xuất Kho
+              </button>
+            </div>
+          </div>
+        @else
+          <div class="p-3 bg-body-tertiary rounded text-center">
+            <div class="rounded-circle bg-info-subtle text-info d-inline-flex align-items-center justify-content-center mb-2" style="width: 44px; height: 44px;">
+              <i class="fa-solid fa-box-open fs-5"></i>
+            </div>
+            <h6 class="fw-bold text-body-emphasis mb-1 fs-9">Chưa Bàn Giao Xuất Kho</h6>
+            <p class="text-body-tertiary fs-10 mb-2">Đơn hàng cần được chụp 1 ảnh kiện hàng đóng gói trước khi bàn giao cho bưu tá.</p>
+            @if(in_array($order->shipping_status, ['confirmed', 'processing']))
+              <button type="button" class="btn btn-phoenix-info btn-sm px-3 fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#dispatchCarrierModal">
+                <i class="fa-solid fa-truck-fast me-1"></i> Bàn Giao &amp; Chụp Ảnh
+              </button>
+            @endif
           </div>
         @endif
       </div>
@@ -999,7 +1126,7 @@
           <div>
             <span class="text-body-tertiary d-block mb-1">Địa chỉ giao hàng:</span>
             <strong class="text-body-emphasis d-block">
-              <i class="fa-solid fa-house me-1 text-danger"></i> {{ $order->shipping_address }}{{ $order->city ? ', ' . $order->city : '' }}
+              <i class="fa-solid fa-house me-1 text-danger"></i> {{ $order->full_shipping_address }}
             </strong>
           </div>
           <div>
@@ -1024,57 +1151,121 @@
   </div>
 </div>
 
-<!-- MODAL BÀN GIAO CHO BƯU TÁ (BƯỚC 4) -->
+<!-- MODAL BÀN GIAO CHO BƯU TÁ (BƯỚC 4 - BẮT BUỘC 1 ẢNH KIỆN HÀNG XUẤT KHO) -->
 <div class="modal fade" id="dispatchCarrierModal" tabindex="-1" aria-labelledby="dispatchCarrierModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
-    <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header border-bottom border-translucent bg-body-emphasis">
-        <h5 class="modal-title fw-bold text-body-emphasis" id="dispatchCarrierModalLabel">
-          <i class="fa-solid fa-truck-fast text-primary me-2"></i> Bàn Giao Hàng Cho Bưu Tá
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+    <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden">
+      <div class="modal-header bg-info text-white py-3 px-4">
+        <h5 class="modal-title fw-bold text-white mb-0 fs-6" id="dispatchCarrierModalLabel">
+          <i class="fa-solid fa-truck-fast me-2"></i> Bàn Giao Hàng Cho Bưu Tá (#{{ $order->order_code }})
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+      <form action="{{ route('admin.orders.handoverShipper', $order->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
-        <input type="hidden" name="shipping_status" value="shipping">
-        <div class="modal-body py-3">
+        <div class="modal-body p-4 text-start">
+          <div class="alert alert-info-subtle border border-info-subtle py-2 px-3 rounded-3 small mb-3 text-dark">
+            <i class="fa-solid fa-circle-info text-info me-1"></i> Bàn giao kiện hàng cho bưu tá vận chuyển. <strong>Bắt buộc tải lên 1 ảnh kiện hàng xuất kho</strong> để chuyển sang <strong>Bước 4: Đang Giao Hàng</strong>.
+          </div>
+
           <div class="mb-3">
-            <label class="form-label fs-9 fw-semibold text-body-emphasis">Chọn Đơn Vị Vận Chuyển Đối Tác:</label>
-            <select name="shipping_carrier" class="form-select" required id="carrierSelect" onchange="generateTrackingCode(this.value)">
-              <option value="Giao Hàng Tiết Kiệm (GHTK)">Giao Hàng Tiết Kiệm (GHTK)</option>
-              <option value="Giao Hàng Nhanh (GHN)">Giao Hàng Nhanh (GHN)</option>
-              <option value="Viettel Post">Viettel Post</option>
-              <option value="J&T Express">J&T Express</option>
-              <option value="Ninja Van">Ninja Van</option>
-              <option value="Shipper Nội Bộ BeeStyle">Shipper Nội Bộ BeeStyle</option>
+            <label class="form-label small fw-bold text-dark">
+              <i class="fa-solid fa-motorcycle text-primary me-1"></i> Chọn Bưu Tá Phụ Trách <span class="text-danger">*</span>:
+            </label>
+            <select name="shipper_id" class="form-select form-select-sm" required>
+              <option value="">-- Chọn bưu tá nhận đơn giao --</option>
+              @foreach($shippers as $shp)
+                <option value="{{ $shp->id }}" {{ $order->shipper_id == $shp->id ? 'selected' : '' }}>
+                  {{ $shp->name }} ({{ $shp->phone ?: $shp->email }})
+                </option>
+              @endforeach
             </select>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label fs-9 fw-semibold text-body-emphasis">Mã Vận Đơn Bưu Tá (Tracking Code):</label>
-            <div class="input-group">
-              <input type="text" name="tracking_code" id="trackingCodeInput" class="form-control font-monospace fw-bold text-primary" value="{{ $order->tracking_code ?: 'GHTK-' . strtoupper(\Illuminate\Support\Str::random(8)) }}" required>
-              <button type="button" class="btn btn-phoenix-secondary btn-sm" onclick="generateRandomTracking()">
-                <i class="fa-solid fa-arrows-rotate"></i> Tạo Mới
-              </button>
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-dark">Đơn Vị Vận Chuyển:</label>
+              <select name="shipping_carrier" class="form-select form-select-sm" id="carrierSelect" onchange="generateTrackingCode(this.value)">
+                <option value="BeeStyle Express">BeeStyle Express (Nội Bộ)</option>
+                <option value="Giao Hàng Tiết Kiệm (GHTK)">Giao Hàng Tiết Kiệm (GHTK)</option>
+                <option value="Giao Hàng Nhanh (GHN)">Giao Hàng Nhanh (GHN)</option>
+                <option value="Viettel Post">Viettel Post</option>
+                <option value="J&T Express">J&T Express</option>
+              </select>
             </div>
-            <small class="text-body-tertiary fs-10">Mã này sẽ hiển thị trực tiếp trên trang Tra Cứu Đơn Hàng của khách.</small>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-dark">Mã Vận Đơn (Tracking):</label>
+              <div class="input-group input-group-sm">
+                <input type="text" name="tracking_code" id="trackingCodeInput" class="form-control font-monospace fw-bold text-primary" value="{{ $order->tracking_code ?: 'BEE-' . strtoupper(\Illuminate\Support\Str::random(8)) }}" required>
+                <button type="button" class="btn btn-phoenix-secondary btn-sm" onclick="generateRandomTracking()" title="Tạo mã ngẫu nhiên">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div class="alert alert-info py-2 px-3 rounded fs-10 mb-0">
-            <i class="fa-solid fa-circle-info me-1"></i> Sau khi xác nhận, đơn hàng sẽ chuyển sang <strong>"Bước 4: Đang Giao Hàng"</strong>.
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">
+              <i class="fa-solid fa-camera text-primary me-1"></i> Bắt Buộc 1 Ảnh Kiện Hàng Xuất Kho <span class="text-danger">*</span>:
+            </label>
+            <input type="file" name="handover_image_file" class="form-control form-control-sm" accept="image/*" id="showHandoverFileInput" onchange="previewShowHandoverImg(this)">
+            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Ảnh kiện hàng đóng gói nguyên vẹn có dán mã bưu gửi trước khi xuất kho.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted d-block">Xem trước ảnh xuất kho:</label>
+            <div class="rounded-3 border bg-light text-center p-2 position-relative overflow-hidden" style="min-height: 140px; max-height: 200px;">
+              <img id="showHandoverPreviewImg" src="{{ $order->handover_image_url ?: asset('assets/img/delivery-proofs/sample_pod_1.jpg') }}" alt="Handover Preview" class="img-fluid rounded-2 object-fit-contain" style="max-height: 175px; width: auto;">
+              <input type="hidden" name="handover_image" id="showHandoverSampleInput" value="{{ $order->handover_image ?: 'assets/img/delivery-proofs/sample_pod_1.jpg' }}">
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-muted d-block">Hoặc chọn nhanh ảnh mẫu đóng gói tại kho:</label>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill fw-bold small flex-grow-1" onclick="useShowSampleHandover('assets/img/delivery-proofs/sample_pod_1.jpg')">
+                <i class="fa-solid fa-box text-warning me-1"></i> Kiện Niêm Phong
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-pill fw-bold small flex-grow-1" onclick="useShowSampleHandover('assets/img/delivery-proofs/sample_pod_2.jpg')">
+                <i class="fa-solid fa-signature text-primary me-1"></i> Phiếu Bàn Giao
+              </button>
+            </div>
           </div>
         </div>
-        <div class="modal-footer border-top border-translucent bg-body-emphasis">
+        <div class="modal-footer bg-light border-top py-2 px-4 d-flex justify-content-between">
           <button type="button" class="btn btn-phoenix-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-          <button type="submit" class="btn btn-primary btn-sm px-4">
-            <i class="fa-solid fa-paper-plane me-1"></i> Bàn Giao Vận Chuyển
+          <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-4 fw-bold shadow-xs">
+            <i class="fa-solid fa-paper-plane me-1"></i> Xác Nhận Bàn Giao Bưu Tá
           </button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
+<!-- MODAL PHÓNG TO ẢNH XUẤT KHO -->
+@if($order->handover_image)
+<div class="modal fade" id="viewHandoverDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden">
+      <div class="modal-header bg-dark text-white py-3 px-4">
+        <h5 class="modal-title fw-bold mb-0 fs-6">
+          <i class="fa-solid fa-box-open text-info me-2"></i> Ảnh Kiện Hàng Xuất Kho Bàn Giao Bưu Tá - #{{ $order->order_code }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 bg-light text-center">
+        <img src="{{ $order->handover_image_url }}" alt="Handover proof" class="img-fluid rounded-3 shadow-sm" style="max-height: 500px; width: auto; object-fit: contain;">
+        <div class="mt-3">
+          <a href="{{ $order->handover_image_url }}" target="_blank" class="btn btn-sm btn-outline-dark fw-bold rounded-pill px-3">
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Mở Trong Tab Mới
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
 
 <!-- MODAL XÁC NHẬN GIAO HÀNG & TẢI ẢNH POD (BƯỚC 5) -->
 <div class="modal fade" id="adminPodDeliveryModal" tabindex="-1" aria-labelledby="adminPodDeliveryModalLabel" aria-hidden="true">
@@ -1334,15 +1525,7 @@
 
           <!-- FAST ACTIONS INSIDE MODAL -->
           <div class="d-flex gap-2 justify-content-end flex-wrap pt-2 border-top border-translucent">
-            @if($sIndex == 1 && $order->shipping_status !== 'pending')
-              <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn chuyển lại đơn hàng về Bước 1: Chờ Xác Nhận?');">
-                @csrf
-                <input type="hidden" name="shipping_status" value="pending">
-                <button type="submit" class="btn btn-outline-warning btn-sm">
-                  <i class="fa-solid fa-rotate-left me-1"></i> Chuyển Về Bước 1 (Chờ Duyệt)
-                </button>
-              </form>
-            @elseif($sIndex == 2 && $order->shipping_status === 'pending')
+            @if($sIndex == 2 && $order->shipping_status === 'pending')
               <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
                 @csrf
                 <input type="hidden" name="shipping_status" value="confirmed">
@@ -1350,7 +1533,7 @@
                   <i class="fa-solid fa-check me-1"></i> Duyệt Đơn Hàng (Bước 2)
                 </button>
               </form>
-            @elseif($sIndex == 3 && in_array($order->shipping_status, ['pending', 'confirmed']))
+            @elseif($sIndex == 3 && $order->shipping_status === 'confirmed')
               <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
                 @csrf
                 <input type="hidden" name="shipping_status" value="processing">
@@ -1358,15 +1541,15 @@
                   <i class="fa-solid fa-box-open me-1"></i> Cho Kho Đóng Gói (Bước 3)
                 </button>
               </form>
-            @elseif($sIndex == 4 && in_array($order->shipping_status, ['pending', 'confirmed', 'processing']))
+            @elseif($sIndex == 4 && $order->shipping_status === 'processing')
               <button type="button" class="btn btn-info btn-sm fw-bold text-white" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#dispatchCarrierModal">
                 <i class="fa-solid fa-truck-fast me-1"></i> Bàn Giao Bưu Tá (Bước 4)
               </button>
-            @elseif($sIndex == 5 && in_array($order->shipping_status, ['shipping', 'processing']))
+            @elseif($sIndex == 5 && $order->shipping_status === 'shipping')
               <button type="button" class="btn btn-success btn-sm fw-bold" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal">
                 <i class="fa-solid fa-camera me-1"></i> Bưu Tá Báo Giao (POD - Bước 5)
               </button>
-            @elseif($sIndex == 6 && in_array($order->shipping_status, ['delivered', 'shipping']))
+            @elseif($sIndex == 6 && $order->shipping_status === 'delivered')
               <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
                 @csrf
                 <input type="hidden" name="shipping_status" value="completed">
@@ -1384,6 +1567,97 @@
     </div>
   </div>
 @endforeach
+
+<!-- MODAL HỦY ĐƠN HÀNG (ADMIN CHUẨN TMĐT) -->
+<div class="modal fade" id="adminCancelOrderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+    <div class="modal-content border-0 shadow-2xl rounded-4 overflow-hidden">
+      <div class="modal-header bg-danger-subtle text-danger py-3 px-4 border-bottom border-danger-subtle">
+        <div class="d-flex align-items-center gap-2">
+          <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+            <i class="fa-solid fa-triangle-exclamation fs-6"></i>
+          </div>
+          <div>
+            <h6 class="modal-title fw-bold text-danger mb-0">
+              Hủy Đơn Hàng #{{ $order->order_code }}
+            </h6>
+            <small class="text-danger-emphasis fs-11">Xác nhận thao tác hủy đơn từ Quản trị viên</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ route('admin.orders.cancelSingle', $order->id) }}" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<span class=\'spinner-border spinner-border-sm me-1\'></span> Đang xử lý...';">
+        @csrf
+        <div class="modal-body p-4 text-start">
+          <!-- Tóm tắt đơn hàng cần hủy -->
+          <div class="p-3 bg-light rounded-3 border mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-secondary small">Khách hàng:</span>
+              <strong class="text-dark small">{{ $order->customer_name }} @if($order->phone) - {{ $order->phone }} @endif</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-secondary small">Giá trị đơn hàng:</span>
+              <strong class="text-danger fw-bold">{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-secondary small">Thanh toán:</span>
+              <span class="small">
+                {{ $order->payment_method_name ?? $order->payment_method }}
+                @if($order->payment_status === 'paid')
+                  <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">Đã thanh toán (Sẽ hoàn tiền)</span>
+                @else
+                  <span class="badge bg-secondary-subtle text-secondary ms-1">Chưa thu tiền</span>
+                @endif
+              </span>
+            </div>
+          </div>
+
+          <!-- Cảnh báo hoàn kho -->
+          <div class="alert alert-warning py-2 px-3 small border-0 mb-3 d-flex align-items-start gap-2">
+            <i class="fa-solid fa-circle-info text-warning mt-1"></i>
+            <div class="text-dark">
+              Khi xác nhận hủy, hệ thống sẽ <strong>tự động hoàn lại số lượng tồn kho</strong> cho toàn bộ sản phẩm và <strong>khôi phục mã voucher</strong> (nếu có).
+            </div>
+          </div>
+
+          <!-- 1. Lý do hủy đơn -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark mb-1">
+              1. Lý do hủy đơn hàng <span class="text-danger">*</span>
+            </label>
+            <select name="reason" class="form-select form-select-sm" required>
+              <option value="" disabled selected>-- Chọn lý do hủy từ Shop / Vận hành --</option>
+              <option value="Khách hàng liên hệ yêu cầu hủy đơn">Khách hàng liên hệ yêu cầu hủy đơn</option>
+              <option value="Hết hàng tồn kho / Đứt mẫu vải sản xuất">Hết hàng tồn kho / Đứt mẫu vải sản xuất</option>
+              <option value="Không thể liên lạc với khách để xác nhận (Nhiều lần không nghe máy)">Không thể liên lạc với khách để xác nhận (Nhiều lần không nghe máy)</option>
+              <option value="Khách hàng muốn thay đổi địa chỉ nhận hàng">Khách hàng muốn thay đổi địa chỉ nhận hàng</option>
+              <option value="Khách hàng muốn đổi Size / Màu sắc sản phẩm">Khách hàng muốn đổi Size / Màu sắc sản phẩm</option>
+              <option value="Đơn hàng nghi ngờ đặt ảo / Trùng lặp đơn">Đơn hàng nghi ngờ đặt ảo / Trùng lặp đơn</option>
+              <option value="Khách hàng không đồng ý phí giao hàng hoặc thời gian giao">Khách hàng không đồng ý phí giao hàng hoặc thời gian giao</option>
+              <option value="Lý do vận hành / Kỹ thuật khác">Lý do vận hành / Kỹ thuật khác</option>
+            </select>
+          </div>
+
+          <!-- 2. Ghi chú nội bộ -->
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-secondary mb-1">
+              2. Ghi chú chi tiết nội bộ (Không bắt buộc)
+            </label>
+            <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Nhập thêm chi tiết ghi chú cho bộ phận CSKH/Kho (Ví dụ: Khách hẹn sang tuần đặt lại, gọi 3 lần không liên lạc được...)"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light px-4 py-3 border-top d-flex justify-content-between">
+          <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">
+            Giữ Lại Đơn Hàng
+          </button>
+          <button type="submit" class="btn btn-danger btn-sm fw-bold px-3 shadow-xs">
+            <i class="fa-solid fa-ban me-1"></i> Xác Nhận Hủy Đơn
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 @push('scripts')
 <script>
@@ -1407,6 +1681,26 @@
     if (carrierEl) {
       generateTrackingCode(carrierEl.value);
     }
+  }
+
+  function previewShowHandoverImg(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('showHandoverPreviewImg');
+        if (preview) preview.src = e.target.result;
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function useShowSampleHandover(imgPath) {
+    const preview = document.getElementById('showHandoverPreviewImg');
+    const hiddenInput = document.getElementById('showHandoverSampleInput');
+    const fileInput = document.getElementById('showHandoverFileInput');
+    if (preview) preview.src = '{{ asset("") }}' + imgPath;
+    if (hiddenInput) hiddenInput.value = imgPath;
+    if (fileInput) fileInput.value = '';
   }
 
   function previewShowPodImage(input) {

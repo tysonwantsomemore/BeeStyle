@@ -207,7 +207,7 @@
         <div class="info-box">
           <h5><i class="fa-solid fa-user me-1"></i> Thông Tin Người Nhận</h5>
           <strong>{{ $order->customer_name }}</strong> - <strong>{{ $order->customer_phone }}</strong><br>
-          <span>{{ $order->shipping_address }}{{ $order->city ? ', ' . $order->city : '' }}</span><br>
+          <span>{{ $order->full_shipping_address }}</span><br>
           @if($order->notes)
             <em style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">Ghi chú: "{{ $order->notes }}"</em>
           @endif
