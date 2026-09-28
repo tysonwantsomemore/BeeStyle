@@ -128,55 +128,60 @@ class ProductController extends Controller
 
         $categorySlug = $request->query('category');
         $brandSlug = $request->query('brand');
-        $search = $request->query('q');
-        $sort = $request->query('sort', 'popular');
+        $search = trim($request->query('q', ''));
+        $sort = $request->query('sort', 'latest');
         $priceRange = $request->query('price_range');
         $selectedSize = $request->query('size');
         $selectedColor = $request->query('color');
 
-        $query = Product::with(['category', 'brand', 'variants'])->active();
+        $query = Product::with(['category', 'brand', 'variants', 'primaryImage'])->active();
 
-        // Bộ lọc Danh mục
+        // 1. Bộ lọc Danh mục sản phẩm
+        $currentCategory = null;
         if ($categorySlug) {
-            $cat = Category::active()->where('slug', $categorySlug)->first();
-            if ($cat) {
-                if ($cat->children()->exists()) {
-                    $catIds = $cat->children->pluck('id')->push($cat->id);
+            $currentCategory = Category::active()->where('slug', $categorySlug)->first();
+            if ($currentCategory) {
+                if ($currentCategory->children()->exists()) {
+                    $catIds = $currentCategory->children->pluck('id')->push($currentCategory->id);
                     $query->whereIn('category_id', $catIds);
                 } else {
-                    $query->where('category_id', $cat->id);
+                    $query->where('category_id', $currentCategory->id);
                 }
             } else {
-                return redirect()->route('client.products.index');
+                return redirect()->route('client.products.index', $request->except('category'));
             }
         }
 
-        // Bộ lọc Thương hiệu thời trang
+        // 2. Bộ lọc Thương hiệu thời trang
+        $currentBrand = null;
         if ($brandSlug) {
-            $query->whereHas('brand', function ($q) use ($brandSlug) {
-                $q->where('slug', $brandSlug);
-            });
+            $currentBrand = Brand::active()->where('slug', $brandSlug)->first();
+            if ($currentBrand) {
+                $query->where('brand_id', $currentBrand->id);
+            }
         }
 
-        // Bộ lọc Từ khóa tìm kiếm theo tên, SKU, mô tả ngắn
-        if ($search) {
+        // 3. Bộ lọc Từ khóa tìm kiếm theo tên, SKU, mô tả ngắn, danh mục hoặc thương hiệu
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
                   ->orWhere('sku', 'LIKE', "%{$search}%")
-                  ->orWhere('short_description', 'LIKE', "%{$search}%");
+                  ->orWhere('short_description', 'LIKE', "%{$search}%")
+                  ->orWhereHas('category', fn($c) => $c->where('name', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('brand', fn($b) => $b->where('name', 'LIKE', "%{$search}%"));
             });
         }
 
-        // Bộ lọc Khoảng giá bán
+        // 4. Bộ lọc Khoảng giá bán (hỗ trợ cả over_1000 và above_1000)
         if ($priceRange === 'under_500') {
             $query->where('price', '<', 500000);
         } elseif ($priceRange === '500_1000') {
             $query->whereBetween('price', [500000, 1000000]);
-        } elseif ($priceRange === 'over_1000') {
+        } elseif ($priceRange === 'over_1000' || $priceRange === 'above_1000') {
             $query->where('price', '>', 1000000);
         }
 
-        // Bộ lọc Kích cỡ (Size) trong mảng size hoặc bảng biến thể
+        // 5. Bộ lọc Kích cỡ (Size) trong mảng size hoặc bảng biến thể
         if ($selectedSize) {
             $query->where(function($q) use ($selectedSize) {
                 $q->whereJsonContains('sizes', $selectedSize)
@@ -186,7 +191,7 @@ class ProductController extends Controller
             });
         }
 
-        // Bộ lọc Màu sắc trong mảng màu hoặc bảng biến thể
+        // 6. Bộ lọc Màu sắc trong mảng màu hoặc bảng biến thể
         if ($selectedColor) {
             $query->where(function($q) use ($selectedColor) {
                 $q->whereJsonContains('colors', $selectedColor)
@@ -196,17 +201,26 @@ class ProductController extends Controller
             });
         }
 
-        // Sắp xếp kết quả tìm kiếm theo tiêu chí chọn
+        // 7. Sắp xếp kết quả tìm kiếm theo tiêu chí chọn (đồng bộ hóa view và controller)
         if ($sort === 'price_asc') {
             $query->orderBy('price', 'asc');
         } elseif ($sort === 'price_desc') {
             $query->orderBy('price', 'desc');
-        } elseif ($sort === 'newest') {
-            $query->latest();
+        } elseif ($sort === 'bestseller' || $sort === 'popular') {
+            $query->orderByDesc('sold_count')->orderByDesc('rating');
         } elseif ($sort === 'views_desc') {
             $query->orderByDesc('views')->orderByDesc('sold_count');
+        } elseif ($sort === 'rating_desc') {
+            $query->orderByDesc('rating')->orderByDesc('reviews_count');
+        } elseif ($sort === 'latest' || $sort === 'newest') {
+            $query->latest('id');
         } else {
-            $query->orderByDesc('sold_count')->orderByDesc('rating');
+            if ($search !== '') {
+                $query->orderByRaw("CASE WHEN name LIKE ? THEN 1 WHEN name LIKE ? THEN 2 ELSE 3 END", ["{$search}%", "%{$search}%"])
+                      ->latest('id');
+            } else {
+                $query->latest('id');
+            }
         }
 
         $products = $query->paginate(12)->withQueryString();
@@ -214,61 +228,160 @@ class ProductController extends Controller
         $availableSizes = ['S', 'M', 'L', 'XL', 'XXL'];
         $availableColors = ['Đen', 'Trắng', 'Xanh Navy', 'Xám Ghi'];
 
+        // 8. Thu thập danh sách bộ lọc đang áp dụng (Active Filters Pills) để hiển thị trên giao diện
+        $activeFilters = [];
+        if ($search !== '') {
+            $activeFilters['q'] = [
+                'type' => 'q',
+                'label' => 'Từ khóa: "' . $search . '"',
+                'url' => route('client.products.index', $request->except(['q', 'page']))
+            ];
+        }
+        if ($categorySlug && $currentCategory) {
+            $activeFilters['category'] = [
+                'type' => 'category',
+                'label' => 'Danh mục: ' . $currentCategory->name,
+                'url' => route('client.products.index', $request->except(['category', 'page']))
+            ];
+        }
+        if ($brandSlug && $currentBrand) {
+            $activeFilters['brand'] = [
+                'type' => 'brand',
+                'label' => 'Thương hiệu: ' . $currentBrand->name,
+                'url' => route('client.products.index', $request->except(['brand', 'page']))
+            ];
+        }
+        if ($priceRange) {
+            $pLabel = match($priceRange) {
+                'under_500' => 'Giá: Dưới 500.000₫',
+                '500_1000' => 'Giá: 500k — 1.000.000₫',
+                'over_1000', 'above_1000' => 'Giá: Trên 1.000.000₫',
+                default => 'Khoảng giá'
+            };
+            $activeFilters['price_range'] = [
+                'type' => 'price_range',
+                'label' => $pLabel,
+                'url' => route('client.products.index', $request->except(['price_range', 'page']))
+            ];
+        }
+        if ($selectedSize) {
+            $activeFilters['size'] = [
+                'type' => 'size',
+                'label' => 'Size: ' . $selectedSize,
+                'url' => route('client.products.index', $request->except(['size', 'page']))
+            ];
+        }
+        if ($selectedColor) {
+            $activeFilters['color'] = [
+                'type' => 'color',
+                'label' => 'Màu: ' . $selectedColor,
+                'url' => route('client.products.index', $request->except(['color', 'page']))
+            ];
+        }
+
         return view('client.products.index', compact(
             'categories',
             'brands',
             'products',
             'categorySlug',
             'brandSlug',
+            'currentCategory',
+            'currentBrand',
             'search',
             'sort',
             'priceRange',
             'selectedSize',
             'selectedColor',
             'availableSizes',
-            'availableColors'
+            'availableColors',
+            'activeFilters'
         ));
     }
 
     /**
-     * API Tìm kiếm nhanh (Live Search Autocomplete)
+     * API Tìm kiếm nhanh (Live Search Autocomplete & Suggestions)
      */
     public function quickSearch(Request $request)
     {
         $q = trim($request->input('q', ''));
-        if (mb_strlen($q) < 2) {
-            return response()->json(['success' => true, 'products' => [], 'total' => 0]);
+        if (mb_strlen($q) < 1) {
+            return response()->json([
+                'success' => true,
+                'keyword' => $q,
+                'categories' => [],
+                'products' => [],
+                'total' => 0,
+                'all_url' => route('client.products.index')
+            ]);
         }
 
-        $products = Product::active()
-            ->where(function($query) use ($q) {
-                $query->where('name', 'LIKE', "%{$q}%")
-                      ->orWhere('sku', 'LIKE', "%{$q}%");
-            })
-            ->with(['category', 'primaryImage'])
-            ->take(5)
+        // 1. Đếm tổng sản phẩm khớp thực tế
+        $baseQuery = Product::active()->where(function($query) use ($q) {
+            $query->where('name', 'LIKE', "%{$q}%")
+                  ->orWhere('sku', 'LIKE', "%{$q}%")
+                  ->orWhere('short_description', 'LIKE', "%{$q}%")
+                  ->orWhereHas('category', fn($c) => $c->where('name', 'LIKE', "%{$q}%"))
+                  ->orWhereHas('brand', fn($b) => $b->where('name', 'LIKE', "%{$q}%"));
+        });
+
+        $totalFound = (clone $baseQuery)->count();
+
+        // 2. Tìm danh mục khớp từ khóa
+        $matchedCategories = Category::active()
+            ->where('name', 'LIKE', "%{$q}%")
+            ->withCount(['products' => fn($p) => $p->active()])
+            ->take(3)
+            ->get()
+            ->map(function($c) {
+                return [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'slug' => $c->slug,
+                    'products_count' => $c->products_count,
+                    'url' => route('client.products.index', ['category' => $c->slug])
+                ];
+            });
+
+        // 3. Lấy tối đa 6 sản phẩm nổi bật khớp nhất
+        $products = (clone $baseQuery)
+            ->with(['category', 'primaryImage', 'variants', 'dailyDeals'])
+            ->orderByRaw("CASE WHEN name LIKE ? THEN 1 WHEN name LIKE ? THEN 2 ELSE 3 END", ["{$q}%", "%{$q}%"])
+            ->latest('id')
+            ->take(6)
             ->get();
 
         $formatted = $products->map(function($p) {
-            $img = $p->primaryImage->image_path ?? $p->image ?? 'assets/img/products/1.png';
-            if (!str_starts_with($img, 'http') && !str_starts_with($img, '/')) {
-                $img = asset($img);
+            $img = $p->primaryImage->image_path ?? $p->thumbnail ?? 'assets/img/products/1.png';
+            if (!str_starts_with($img, 'http')) {
+                $img = asset(ltrim($img, '/'));
             }
+
+            $effectivePrice = $p->effective_price ?? $p->price;
+            $hasDiscount = $p->is_sale_active && ($p->original_price && $p->original_price > $effectivePrice);
+            $discountPercent = $hasDiscount ? round((($p->original_price - $effectivePrice) / $p->original_price) * 100) : 0;
+
             return [
                 'id' => $p->id,
                 'name' => $p->name,
                 'sku' => $p->sku ?: ('BS-' . $p->id),
-                'price_formatted' => number_format($p->price, 0, ',', '.') . '₫',
+                'price' => $effectivePrice,
+                'price_formatted' => number_format($effectivePrice, 0, ',', '.') . '₫',
+                'original_price_formatted' => $hasDiscount ? (number_format($p->original_price, 0, ',', '.') . '₫') : null,
+                'has_discount' => $hasDiscount,
+                'discount_percent' => $discountPercent,
                 'image' => $img,
                 'category_name' => $p->category->name ?? 'Beestyle Atelier',
+                'brand_name' => $p->brand->name ?? '',
                 'url' => route('client.products.show', $p->id)
             ];
         });
 
         return response()->json([
             'success' => true,
+            'keyword' => $q,
+            'total' => $totalFound,
+            'categories' => $matchedCategories,
             'products' => $formatted,
-            'total' => $products->count(),
             'all_url' => route('client.products.index', ['q' => $q])
         ]);
     }
@@ -487,6 +600,14 @@ class ProductController extends Controller
         $otherReviews = [];
         $userId = null;
 
+        $isAdmin = \Illuminate\Support\Facades\Auth::check() && in_array(\Illuminate\Support\Facades\Auth::user()->role, ['admin', 'staff']);
+        if (!$review || ($review->status !== 'approved' && !$isAdmin)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Đánh giá này hiện không khả dụng hoặc đã bị ẩn.',
+            ], 404);
+        }
+
         if ($review) {
             $userName = $review->user_name;
             $userAvatar = $review->user_avatar_url;
@@ -513,6 +634,7 @@ class ProductController extends Controller
                 }
 
                 $userOtherReviews = \App\Models\Review::where('user_id', $user->id)
+                    ->where('status', 'approved')
                     ->where('id', '!=', $review->id)
                     ->with('product')
                     ->latest()
@@ -533,6 +655,7 @@ class ProductController extends Controller
                 }
             } else {
                 $seedOther = \App\Models\Review::where('user_name', $review->user_name)
+                    ->where('status', 'approved')
                     ->where('id', '!=', $review->id)
                     ->with('product')
                     ->latest()

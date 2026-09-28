@@ -175,6 +175,7 @@ Route::name('client.')->group(function () {
     Route::post('/tra-cuu-don-hang/{code}/khong-nhan-hang', [OrderTrackingController::class, 'rejectDelivery'])->name('order-tracking.reject-delivery');
     Route::post('/don-hang/tra-cuu/{code}/tu-choi-nhan', [OrderTrackingController::class, 'rejectDelivery']);
     Route::post('/tra-cuu-don-hang/{code}/huy-hang-hoan-tien', [OrderTrackingController::class, 'requestRefund'])->name('order-tracking.request-refund');
+    Route::post('/tra-cuu-don-hang/{code}/huy-don', [OrderTrackingController::class, 'cancelTrackingOrder'])->name('order-tracking.cancel');
 
     // Cổng Tra Cứu Vận Đơn Bưu Tá Trực Tuyến (GHTK, GHN, Viettel Post...)
     Route::get('/tra-cuu-van-don/{code?}', [OrderTrackingController::class, 'carrierTracking'])->name('carrier-tracking');
@@ -218,6 +219,12 @@ Route::name('client.')->group(function () {
 
     Route::get('/dat-hang-thanh-cong/{code}', [CheckoutController::class, 'orderSuccess'])->name('checkout.success');
 
+    // Auto-Expiry & Tự Động Khớp Lệnh (Hỗ trợ cả khách vãng lai & thành viên)
+    Route::post('/thanh-toan/{code}/het-han', [CheckoutController::class, 'handleExpired'])->name('checkout.expire');
+    Route::post('/thanh-toan/{code}/expired', [CheckoutController::class, 'handleExpired'])->name('checkout.expired');
+    Route::get('/thanh-toan/{code}/kiem-tra-trang-thai', [CheckoutController::class, 'checkPaymentStatus'])->name('checkout.check-status');
+    Route::post('/thanh-toan/{code}/tu-dong-khop-lenh', [CheckoutController::class, 'autoConfirmTransfer'])->name('checkout.auto-confirm');
+
     /*
     |--------------------------------------------------------------------------
     | CLIENT AUTHENTICATED ROUTES (BẮT BUỘC ĐĂNG NHẬP)
@@ -246,11 +253,6 @@ Route::name('client.')->group(function () {
         Route::get('/thanh-toan/online/{code}', [CheckoutController::class, 'onlineGateway'])->name('checkout.online');
         Route::post('/thanh-toan/online/{code}/xac-nhan', [CheckoutController::class, 'onlineSuccess'])->name('checkout.online.success');
 
-        // Auto-Expiry & Tự Động Khớp Lệnh
-        Route::post('/thanh-toan/{code}/het-han', [CheckoutController::class, 'handleExpired'])->name('checkout.expire');
-        Route::get('/thanh-toan/{code}/kiem-tra-trang-thai', [CheckoutController::class, 'checkPaymentStatus'])->name('checkout.check-status');
-        Route::post('/thanh-toan/{code}/tu-dong-khop-lenh', [CheckoutController::class, 'autoConfirmTransfer'])->name('checkout.auto-confirm');
-
         /*
         |--------------------------------------------------------------------------
         | USER PROFILE & SỔ ĐỊA CHỈ
@@ -274,6 +276,7 @@ Route::name('client.')->group(function () {
         |--------------------------------------------------------------------------
         */
         Route::post('/don-hang/{id}/huy', [OrderReturnController::class, 'cancelOrder'])->name('orders.cancel');
+        Route::post('/don-hang/{id}/cap-nhat-dia-chi', [OrderReturnController::class, 'updateOrderAddress'])->name('orders.update-address');
         Route::post('/don-hang/{id}/yeu-cau-doi-tra', [OrderReturnController::class, 'storeReturn'])->name('orders.return.store');
     });
 
@@ -292,6 +295,7 @@ Route::prefix('shipper')
         Route::get('/', [ShipperOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders', [ShipperOrderController::class, 'index']);
         Route::get('/orders/{id}', [ShipperOrderController::class, 'show'])->name('orders.show');
+        Route::post('/orders/{id}/start-delivery', [ShipperOrderController::class, 'startDelivery'])->name('orders.startDelivery');
         Route::post('/orders/{id}/deliver', [ShipperOrderController::class, 'deliver'])->name('orders.deliver');
         Route::post('/orders/{id}/report-issue', [ShipperOrderController::class, 'reportIssue'])->name('orders.reportIssue');
     });

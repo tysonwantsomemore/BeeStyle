@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\Coupon;
 
 class Order extends Model
 {
@@ -151,19 +155,171 @@ class Order extends Model
     }
 
     /**
-     * Khách hàng có thể tự hủy đơn khi đơn chưa bàn giao đóng gói/giao hàng
+     * Kiểm tra đơn hàng có đang ở trạng thái chờ thanh toán trực tuyến (MoMo, VNPAY, Online Banking)
      */
-    public function canBeCancelledByCustomer(): bool
+    public function isPendingOnlinePayment(): bool
     {
-        return in_array($this->shipping_status, ['pending', 'confirmed']) && $this->shipping_status !== 'cancelled';
+        return in_array($this->payment_method, ['momo', 'vnpay', 'online', 'zalopay'])
+            && in_array(strtoupper((string)$this->payment_status), ['PENDING_PAYMENT', 'UNPAID'])
+            && $this->shipping_status === 'pending';
     }
 
     /**
-     * Khách hàng có thể yêu cầu đổi trả khi đơn đã giao hàng thành công
+     * Thời gian hết hạn thanh toán online (15 phút kể từ khi tạo đơn)
+     */
+    public function getOnlinePaymentExpiresAtAttribute(): ?\Carbon\Carbon
+    {
+        if (!$this->isPendingOnlinePayment() || !$this->created_at) {
+            return null;
+        }
+        return $this->created_at->copy()->addMinutes(15);
+    }
+
+    /**
+     * Số giây còn lại để thanh toán online trước khi hết hạn (tối đa 15 phút = 900 giây)
+     */
+    public function getOnlinePaymentRemainingSecondsAttribute(): int
+    {
+        if (!$this->isPendingOnlinePayment() || !$this->created_at) {
+            return 0;
+        }
+        $expiresAt = $this->created_at->copy()->addMinutes(15);
+        $diff = (int) now()->diffInSeconds($expiresAt, false);
+        return max(0, $diff);
+    }
+
+    /**
+     * Đơn hàng đã quá hạn 15 phút thanh toán online hay chưa
+     */
+    public function isOnlinePaymentExpired(): bool
+    {
+        if (!$this->isPendingOnlinePayment()) {
+            return false;
+        }
+        return $this->online_payment_remaining_seconds <= 0;
+    }
+
+    /**
+     * Hủy đơn hàng do quá 15 phút chờ thanh toán online, hoàn trả tồn kho và lượt voucher
+     */
+    public function cancelAsExpiredOnlinePayment(): bool
+    {
+        if (!$this->isPendingOnlinePayment()) {
+            return false;
+        }
+
+        DB::transaction(function () {
+            // 1. Hoàn trả tồn kho cho sản phẩm & biến thể
+            foreach ($this->items as $item) {
+                if ($item->product_id) {
+                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                    $prod = Product::find($item->product_id);
+                    if ($prod && $prod->sold_count >= $item->quantity) {
+                        $prod->decrement('sold_count', $item->quantity);
+                    }
+
+                    if (!empty($item->color) && !empty($item->size)) {
+                        ProductVariant::where('product_id', $item->product_id)
+                            ->where('color', $item->color)
+                            ->where('size', $item->size)
+                            ->increment('stock', $item->quantity);
+                    }
+                }
+            }
+
+            // 2. Khôi phục lượt sử dụng mã giảm giá
+            if ($this->coupon_code) {
+                $coupon = Coupon::where('code', $this->coupon_code)->first();
+                if ($coupon && $coupon->used_count > 0) {
+                    $coupon->decrement('used_count');
+                }
+            }
+
+            // 3. Đổi trạng thái sang Đã Hủy
+            $this->update([
+                'shipping_status' => 'cancelled',
+                'payment_status'  => 'cancelled',
+                'status_step'     => 0,
+                'cancelled_at'    => now(),
+                'cancelled_by'    => 'system',
+                'cancel_reason'   => 'Đơn hàng tự động hủy do quá thời gian chờ thanh toán trực tuyến (15 phút)',
+            ]);
+        });
+
+        return true;
+    }
+
+    /**
+     * Tự động quét và hủy toàn bộ các đơn hàng online đang pending quá 15 phút
+     */
+    public static function cancelAllExpiredPendingOnlineOrders(): int
+    {
+        $expiredOrders = static::with('items')
+            ->whereIn('payment_method', ['momo', 'vnpay', 'online', 'zalopay'])
+            ->whereIn(DB::raw('UPPER(payment_status)'), ['PENDING_PAYMENT', 'UNPAID'])
+            ->where('shipping_status', 'pending')
+            ->where('created_at', '<=', now()->subMinutes(15))
+            ->get();
+
+        $count = 0;
+        foreach ($expiredOrders as $order) {
+            if ($order->cancelAsExpiredOnlinePayment()) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * Khách hàng có thể tự hủy đơn khi đơn chưa bàn giao cho bưu tá (chưa chuyển sang bước giao hàng)
+     * Quy tắc TMĐT: Đơn đang trên đường giao (shipping / đã giao shipper) thì KHÔNG được hủy đơn.
+     */
+    public function canBeCancelledByCustomer(): bool
+    {
+        if ($this->shipping_status === 'cancelled') {
+            return false;
+        }
+
+        // Đơn hàng đang trên đường giao hoặc đã bàn giao bưu tá -> KHÔNG được tự ý hủy
+        if ($this->shipping_status === 'shipping' || ($this->status_step ?? 1) >= 4 || !empty($this->shipper_id)) {
+            return false;
+        }
+
+        // Đơn đã giao đến tay hoặc hoàn tất -> chuyển sang luồng Đổi trả / Hoàn tiền (RMA)
+        if (in_array($this->shipping_status, ['delivered', 'completed']) || ($this->status_step ?? 1) >= 5) {
+            return false;
+        }
+
+        return in_array($this->shipping_status, ['pending', 'confirmed', 'processing']);
+    }
+
+    /**
+     * Khách hàng có thể yêu cầu hủy đơn & hoàn tiền TRƯỚC KHI XUẤT KHO khi đã thanh toán online / cọc tiền.
+     * Quy tắc: Nếu đơn đang giao (shipping), không được hoàn tiền ngay mà phải đợi nhận hàng rồi ấn hủy/hoàn tiền.
+     */
+    public function canRequestRefundByCustomer(): bool
+    {
+        if (!$this->canBeCancelledByCustomer()) {
+            return false;
+        }
+
+        $isPrePaid = in_array(strtoupper((string)$this->payment_status), ['PAID', 'DEPOSIT_PAID']);
+        if (!$isPrePaid) {
+            return false;
+        }
+
+        // Kiểm tra xem đã có yêu cầu hoàn tiền đang chờ hoặc đang duyệt hay chưa
+        $hasPendingReturn = $this->returns()->whereIn('status', ['pending', 'approved', 'received'])->exists();
+        return !$hasPendingReturn;
+    }
+
+    /**
+     * Khách hàng có thể yêu cầu Đổi trả / Hoàn tiền (RMA) SAU KHI ĐÃ NHẬN HÀNG (đã giao thành công).
      */
     public function canBeReturnedByCustomer(): bool
     {
-        if (!in_array($this->shipping_status, ['delivered', 'completed']) && $this->status_step < 5) {
+        $isDelivered = in_array($this->shipping_status, ['delivered', 'completed']) || ($this->status_step ?? 1) >= 5;
+        if (!$isDelivered) {
             return false;
         }
 
@@ -184,7 +340,7 @@ class Order extends Model
     {
         $transitions = [
             'pending'    => ['confirmed', 'cancelled'],
-            'confirmed'  => ['processing', 'cancelled'],
+            'confirmed'  => ['processing', 'shipping', 'cancelled'],
             'processing' => ['shipping', 'cancelled'],
             'shipping'   => ['delivered', 'cancelled'],
             'delivered'  => ['completed'],
@@ -367,6 +523,37 @@ class Order extends Model
     }
 
     /**
+     * Thời gian dự kiến giao hàng đến tay khách hàng (Estimated Delivery Time)
+     */
+    public function getEstimatedDeliveryTextAttribute(): string
+    {
+        if (in_array($this->shipping_status, ['delivered', 'completed'])) {
+            return 'Đã giao thành công' . ($this->delivered_at ? ' lúc ' . $this->delivered_at->format('H:i, d/m/Y') : '');
+        }
+
+        if ($this->shipping_status === 'cancelled') {
+            return 'Đã hủy đơn';
+        }
+
+        $isHanoi = str_contains(mb_strtolower((string)$this->city, 'UTF-8'), 'hà nội') || str_contains(mb_strtolower((string)$this->shipping_address, 'UTF-8'), 'hà nội');
+        
+        $baseDate = $this->shipping_at ?: ($this->processing_at ?: ($this->confirmed_at ?: $this->created_at ?: now()));
+
+        if ($this->shipping_status === 'shipping') {
+            if ($isHanoi) {
+                return 'Hôm nay (Dự kiến trong 2 - 4 giờ tới)';
+            }
+            return 'Dự kiến: ' . $baseDate->copy()->addDays(2)->format('d/m/Y') . ' (1 - 2 ngày tới)';
+        }
+
+        if ($isHanoi) {
+            return 'Dự kiến: 24h (Trong ngày ' . $baseDate->copy()->addDay()->format('d/m/Y') . ')';
+        }
+
+        return 'Dự kiến: ' . $baseDate->copy()->addDays(2)->format('d/m') . ' - ' . $baseDate->copy()->addDays(3)->format('d/m/Y') . ' (2 - 3 ngày làm việc)';
+    }
+
+    /**
      * Tự động quét và hoàn tất các đơn hàng đã giao quá 7 ngày mà khách hàng không có khiếu nại/đổi trả
      */
     public static function autoCompleteEligibleDeliveredOrders(): int
@@ -374,8 +561,13 @@ class Order extends Model
         $sevenDaysAgo = now()->subDays(7);
 
         $orders = static::where('shipping_status', 'delivered')
-            ->whereNotNull('delivered_at')
-            ->where('delivered_at', '<=', $sevenDaysAgo)
+            ->where(function ($q) use ($sevenDaysAgo) {
+                $q->where('delivered_at', '<=', $sevenDaysAgo)
+                  ->orWhere(function ($q2) use ($sevenDaysAgo) {
+                      $q2->whereNull('delivered_at')
+                         ->where('updated_at', '<=', $sevenDaysAgo);
+                  });
+            })
             ->whereDoesntHave('returns', function ($q) {
                 $q->whereIn('status', ['pending', 'approved', 'received']);
             })
@@ -388,6 +580,7 @@ class Order extends Model
                 'status_step'     => 6,
                 'completed_at'    => now(),
                 'payment_status'  => 'paid',
+                'remaining_amount'=> 0,
                 'paid_at'         => $order->paid_at ?: now(),
                 'review_notified' => false,
             ]);

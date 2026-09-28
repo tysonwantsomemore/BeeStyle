@@ -77,11 +77,11 @@ class HomeController extends Controller
         $periodProductIds = $periodSales->sortDesc()->keys()->toArray();
 
         if (!empty($periodProductIds)) {
-            $idsOrdered = implode(',', $periodProductIds);
+            $cases = collect($periodProductIds)->map(fn($id, $idx) => "WHEN {$id} THEN {$idx}")->implode(' ');
             $bestSellers = Product::with(['category', 'brand', 'variants', 'primaryImage'])
                 ->active()
                 ->whereIn('id', $periodProductIds)
-                ->orderByRaw("FIELD(id, {$idsOrdered})")
+                ->orderByRaw("CASE id {$cases} ELSE " . count($periodProductIds) . " END")
                 ->take(8)
                 ->get();
         } else {

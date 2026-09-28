@@ -80,9 +80,9 @@
         <option value="1" {{ request('rating') == '1' ? 'selected' : '' }}>1 Sao ⭐</option>
       </select>
 
-      <select name="status" class="form-select form-select-sm" style="width: 130px;" onchange="this.form.submit()">
-        <option value="">Trạng thái</option>
-        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Đã duyệt</option>
+      <select name="status" class="form-select form-select-sm" style="width: 140px;" onchange="this.form.submit()">
+        <option value="">Tất cả trạng thái</option>
+        <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Đang hiển thị</option>
         <option value="hidden" {{ request('status') === 'hidden' ? 'selected' : '' }}>Đã ẩn</option>
       </select>
 
@@ -199,7 +199,7 @@
               <!-- Actions -->
               <td class="text-end pe-3 py-2">
                 <div class="d-flex align-items-center justify-content-end gap-1">
-                  <button type="button" class="btn btn-sm btn-phoenix-primary py-1 px-2 fs-10" title="Xem chi tiết" onclick="viewReviewDetail({{ json_encode($rev) }})">
+                  <button type="button" class="btn btn-sm btn-phoenix-primary py-1 px-2 fs-10 btn-view-detail" title="Xem chi tiết" data-review="{{ json_encode($rev, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
                     <i class="fa-regular fa-eye me-1"></i> Chi Tiết
                   </button>
 
@@ -207,21 +207,21 @@
                     <form action="{{ route('admin.reviews.updateStatus', $rev->id) }}" method="POST" class="d-inline">
                       @csrf
                       <input type="hidden" name="status" value="hidden">
-                      <button type="submit" class="btn btn-sm btn-phoenix-secondary py-1 px-2 fs-10" title="Ẩn nhận xét">
-                        <i class="fa-regular fa-eye-slash"></i>
+                      <button type="submit" class="btn btn-sm btn-phoenix-warning py-1 px-2 fs-10" title="Ẩn nhận xét này khỏi website" onclick="return confirm('Bạn có chắc chắn muốn ẩn đánh giá #{{ $rev->id }} khỏi website?');">
+                        <i class="fa-regular fa-eye-slash me-1"></i> Ẩn
                       </button>
                     </form>
                   @else
                     <form action="{{ route('admin.reviews.updateStatus', $rev->id) }}" method="POST" class="d-inline">
                       @csrf
                       <input type="hidden" name="status" value="approved">
-                      <button type="submit" class="btn btn-sm btn-phoenix-success py-1 px-2 fs-10" title="Duyệt hiển thị">
-                        <i class="fa-solid fa-check"></i>
+                      <button type="submit" class="btn btn-sm btn-phoenix-success py-1 px-2 fs-10" title="Duyệt hiển thị lại nhận xét này trên website">
+                        <i class="fa-solid fa-check me-1"></i> Hiện
                       </button>
                     </form>
                   @endif
 
-                  <form action="{{ route('admin.reviews.destroy', $rev->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');" class="d-inline">
+                  <form action="{{ route('admin.reviews.destroy', $rev->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn đánh giá này?');" class="d-inline">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-phoenix-danger py-1 px-2 fs-10" title="Xóa đánh giá">
@@ -394,9 +394,16 @@
         <span class="fs-10 text-body-tertiary">
           <i class="fa-solid fa-circle-check text-success me-1"></i> Đánh giá từ khách hàng đã mua thực tế
         </span>
-        <button type="button" class="btn btn-phoenix-secondary btn-sm px-4" data-bs-dismiss="modal">
-          Đóng Hộp Thoại
-        </button>
+        <div class="d-flex align-items-center gap-2">
+          <form id="mdlToggleStatusForm" method="POST" action="" class="d-inline m-0">
+            @csrf
+            <input type="hidden" name="status" id="mdlToggleStatusValue" value="">
+            <button type="submit" id="mdlToggleStatusBtn" class="btn btn-sm py-1.5 px-3 fs-10"></button>
+          </form>
+          <button type="button" class="btn btn-phoenix-secondary btn-sm px-3" data-bs-dismiss="modal">
+            Đóng Hộp Thoại
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -477,7 +484,7 @@
     document.getElementById('mdlStarsContainer').innerHTML = starsHtml;
     document.getElementById('mdlRatingText').textContent = `(${rev.rating}/5 Sao)`;
     document.getElementById('mdlReviewComment').textContent = `"${rev.comment}"`;
-    document.getElementById('mdlReviewTime').textContent = rev.created_at ? new Date(rev.created_at).toLocaleString('vi-VN') : '';
+    document.getElementById('mdlReviewTime').textContent = rev.created_at ? new Date(rev.created_at).toLocaleDateString('vi-VN') : '';
 
     const photosSection = document.getElementById('mdlPhotosSection');
     const photosContainer = document.getElementById('mdlReviewPhotos');
@@ -495,15 +502,47 @@
       photosSection.style.display = 'none';
     }
 
-    if (rev.status === 'approved') {
+    const isApproved = rev.status === 'approved';
+    if (isApproved) {
       document.getElementById('mdlStatusBadge').innerHTML = '<span class="badge badge-phoenix badge-phoenix-success"><i class="fa-solid fa-circle-check me-1"></i> Hiển thị công khai</span>';
     } else {
       document.getElementById('mdlStatusBadge').innerHTML = '<span class="badge badge-phoenix badge-phoenix-secondary"><i class="fa-solid fa-eye-slash me-1"></i> Đang bị ẩn</span>';
     }
 
+    const toggleForm = document.getElementById('mdlToggleStatusForm');
+    const toggleVal = document.getElementById('mdlToggleStatusValue');
+    const toggleBtn = document.getElementById('mdlToggleStatusBtn');
+    if (toggleForm && toggleVal && toggleBtn) {
+      toggleForm.action = `/admin/reviews/${rev.id}/status`;
+      if (isApproved) {
+        toggleVal.value = 'hidden';
+        toggleBtn.className = 'btn btn-sm btn-phoenix-warning py-1.5 px-3 fs-10';
+        toggleBtn.innerHTML = '<i class="fa-regular fa-eye-slash me-1"></i> Ẩn Khỏi Website';
+        toggleBtn.onclick = function() { return confirm('Bạn có chắc chắn muốn ẩn đánh giá #' + rev.id + ' khỏi website?'); };
+      } else {
+        toggleVal.value = 'approved';
+        toggleBtn.className = 'btn btn-sm btn-phoenix-success py-1.5 px-3 fs-10';
+        toggleBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Duyệt Hiển Thị Lại';
+        toggleBtn.onclick = null;
+      }
+    }
+
     const bsModal = new bootstrap.Modal(modalEl);
     bsModal.show();
   }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.btn-view-detail').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        try {
+          const revData = JSON.parse(this.getAttribute('data-review'));
+          viewReviewDetail(revData);
+        } catch (e) {
+          console.error('Lỗi đọc dữ liệu review:', e);
+        }
+      });
+    });
+  });
 </script>
 @endpush
 @endsection

@@ -368,6 +368,12 @@ class ProductController extends Controller
         $colors = $request->input('colors', $product->colors ?: ['Đen', 'Trắng']);
         $sizes = $request->input('sizes', $product->sizes ?: ['S', 'M', 'L', 'XL']);
 
+        $oldPrice = (float) $product->price;
+        $oldOriginalPrice = (float) ($product->original_price ?? 0);
+        $syncAllVariants = $request->boolean('sync_variant_prices', false);
+        $priceChanged = abs($price - $oldPrice) > 0.01;
+        $originalPriceChanged = ($originalPrice != $oldOriginalPrice);
+
         $product->update([
             'name' => $validated['name'],
             'sku' => $sku,
@@ -428,10 +434,36 @@ class ProductController extends Controller
                 $vData['stock'] = max(0, (int)$variantStocksInput[$variant->id]);
                 $hasUpdate = true;
             }
-            if (isset($variantPricesInput[$variant->id]) && is_numeric($variantPricesInput[$variant->id]) && (float)$variantPricesInput[$variant->id] > 0) {
+
+            // Xử lý đồng bộ giá bán & giá gốc cho biến thể
+            if ($syncAllVariants) {
+                // Admin yêu cầu đồng bộ toàn bộ biến thể theo giá chung
+                $vData['price'] = $price;
+                $vData['original_price'] = $originalPrice;
+                $hasUpdate = true;
+            } elseif ($priceChanged && isset($variantPricesInput[$variant->id]) && abs((float)$variantPricesInput[$variant->id] - $oldPrice) < 0.01) {
+                // Giá sản phẩm cha thay đổi và biến thể này trước đó đang giữ giá cũ của cha -> tự động cập nhật sang giá cha mới
+                $vData['price'] = $price;
+                if ($originalPriceChanged) {
+                    $vData['original_price'] = $originalPrice;
+                }
+                $hasUpdate = true;
+            } elseif (isset($variantPricesInput[$variant->id]) && is_numeric($variantPricesInput[$variant->id]) && (float)$variantPricesInput[$variant->id] > 0) {
+                // Admin chủ động nhập giá riêng cho biến thể này
                 $vData['price'] = (float)$variantPricesInput[$variant->id];
+                if ($originalPriceChanged && empty($variant->original_price)) {
+                    $vData['original_price'] = $originalPrice;
+                }
+                $hasUpdate = true;
+            } elseif ($priceChanged) {
+                // Giá cha thay đổi mà không có input biến thể riêng lẻ -> đồng bộ theo giá cha
+                $vData['price'] = $price;
+                if ($originalPriceChanged) {
+                    $vData['original_price'] = $originalPrice;
+                }
                 $hasUpdate = true;
             }
+
             if (isset($variantMaterialsInput[$variant->id])) {
                 $vData['material'] = trim($variantMaterialsInput[$variant->id]) !== '' ? trim($variantMaterialsInput[$variant->id]) : null;
                 $hasUpdate = true;

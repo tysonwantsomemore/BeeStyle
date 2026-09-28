@@ -215,9 +215,37 @@ class Product extends Model
      */
     public function getCurrentDailyDealAttribute()
     {
+        if ($this->relationLoaded('runningDailyDeal')) {
+            return $this->getRelation('runningDailyDeal');
+        }
         if ($this->relationLoaded('dailyDeals')) {
             return $this->dailyDeals->first(fn($deal) => $deal->is_running);
         }
+
+        // Tối ưu N+1: Truy vấn 1 lần các ID sản phẩm đang có Flash Deal trong request hiện tại
+        static $activeDealProductIds = null;
+        if ($activeDealProductIds === null) {
+            $today = now()->toDateString();
+            $nowTime = now()->toTimeString();
+            $activeDealProductIds = \App\Models\DailyDeal::where('is_active', true)
+                ->where(function ($q) use ($today) {
+                    $q->whereNull('deal_date')->orWhereDate('deal_date', $today);
+                })
+                ->where('start_time', '<=', $nowTime)
+                ->where('end_time', '>=', $nowTime)
+                ->where(function ($q) {
+                    $q->where('quantity_limit', 0)->orWhereColumn('sold_count', '<', 'quantity_limit');
+                })
+                ->pluck('product_id')
+                ->filter()
+                ->unique()
+                ->all();
+        }
+
+        if (!in_array($this->id, $activeDealProductIds)) {
+            return null;
+        }
+
         return $this->runningDailyDeal;
     }
 

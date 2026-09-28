@@ -29,6 +29,10 @@ class ValidAdministrativeCascade implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        if (!Province::exists()) {
+            return;
+        }
+
         // 1. Kiểm tra District có thuộc Province không
         if ($this->provinceId && $this->districtId) {
             $districtExists = District::where('id', $this->districtId)

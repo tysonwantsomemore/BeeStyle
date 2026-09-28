@@ -50,12 +50,18 @@ class ProfileController extends Controller
             return redirect()->route('auth.login')->with('error', 'Vui lòng đăng nhập để xem thông tin tài khoản!');
         }
 
+        Order::cancelAllExpiredPendingOnlineOrders();
+        Order::autoCompleteEligibleDeliveredOrders();
+
         $orders = Order::with(['items.product.variants', 'items.product.images', 'returns'])->where('user_id', $user->id)->latest()->get();
         $returns = \App\Models\OrderReturn::with(['order.items.product', 'orderItem.product'])->where('user_id', $user->id)->latest()->get();
         $addresses = UserAddress::where('user_id', $user->id)->orderBy('is_default', 'desc')->latest()->get();
         $pendingReviewItems = method_exists($user, 'getPendingReviewItems') ? $user->getPendingReviewItems() : collect();
 
-        return view('client.profile', compact('user', 'orders', 'addresses', 'pendingReviewItems', 'returns'));
+        $administrativeController = new \App\Http\Controllers\Api\AdministrativeController();
+        $provinces = $administrativeController->provinces()->getData()->data ?? [];
+
+        return view('client.profile', compact('user', 'orders', 'addresses', 'pendingReviewItems', 'returns', 'provinces'));
     }
 
     /**

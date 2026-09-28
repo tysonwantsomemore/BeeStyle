@@ -24,17 +24,26 @@ class ShipperOrderController extends Controller
         $tab = $request->query('tab', 'shipping');
         $search = trim((string)$request->query('q', ''));
 
-        // Query đơn hàng: Bưu tá chỉ xem đơn của chính mình, Admin có thể xem toàn bộ
+        // Query đơn hàng: Bưu tá xem đơn được gán (hoặc đơn chờ lấy hàng tại kho), Admin có thể xem toàn bộ hoặc lọc theo bưu tá
         $query = Order::with(['items.product', 'user']);
 
         if (!$user->isAdmin()) {
-            $query->where('shipper_id', $user->id);
+            if ($tab === 'pickup') {
+                $query->where(function ($q) use ($user) {
+                    $q->where('shipper_id', $user->id)
+                      ->orWhereNull('shipper_id');
+                });
+            } else {
+                $query->where('shipper_id', $user->id);
+            }
         } elseif ($request->filled('shipper_id')) {
             $query->where('shipper_id', $request->query('shipper_id'));
         }
 
         // Lọc theo Tab trạng thái
-        if ($tab === 'shipping') {
+        if ($tab === 'pickup') {
+            $query->whereIn('shipping_status', ['confirmed', 'processing']);
+        } elseif ($tab === 'shipping') {
             $query->where('shipping_status', 'shipping');
         } elseif ($tab === 'delivered') {
             $query->where('shipping_status', 'delivered');
@@ -55,30 +64,62 @@ class ShipperOrderController extends Controller
             });
         }
 
-        $orders = $query->latest('shipping_at')->paginate(10)->withQueryString();
+        // Luôn hiển thị các đơn hàng mới nhất trên cùng
+        $orders = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
         // Thống kê nhanh cho Bưu tá
         $statQuery = Order::query();
         if (!$user->isAdmin()) {
             $statQuery->where('shipper_id', $user->id);
+        } elseif ($request->filled('shipper_id')) {
+            $statQuery->where('shipper_id', $request->query('shipper_id'));
         }
 
+        $pickupStatQuery = Order::query();
+        if (!$user->isAdmin()) {
+            $pickupStatQuery->where(function ($q) use ($user) {
+                $q->where('shipper_id', $user->id)
+                  ->orWhereNull('shipper_id');
+            });
+        } elseif ($request->filled('shipper_id')) {
+            $pickupStatQuery->where('shipper_id', $request->query('shipper_id'));
+        }
+
+        $pickupCount = $pickupStatQuery->whereIn('shipping_status', ['confirmed', 'processing'])->count();
         $deliveringCount = (clone $statQuery)->where('shipping_status', 'shipping')->count();
+        $deliveredCount = (clone $statQuery)->where('shipping_status', 'delivered')->count();
         $deliveredTodayCount = (clone $statQuery)->where('shipping_status', 'delivered')
             ->whereDate('delivered_at', Carbon::today())
             ->count();
 
-        // Tổng tiền COD cần thu hôm nay của các đơn đang giao
-        $codNeedToCollect = (clone $statQuery)->where('shipping_status', 'shipping')
-            ->where('payment_method', 'cod')
-            ->where('payment_status', '!=', 'paid')
-            ->sum('total_amount');
+        // Tổng tiền COD cần thu hôm nay của các đơn đang giao (bao gồm đơn COD và đơn cọc 50% còn lại)
+        $shippingOrders = (clone $statQuery)->where('shipping_status', 'shipping')->get();
+        $codNeedToCollect = $shippingOrders->sum(function ($order) {
+            if ($order->payment_status === 'paid') {
+                return 0;
+            }
+            if ($order->payment_status === 'deposit_paid' || ($order->is_deposit_required && $order->deposit_status === 'paid')) {
+                return $order->remaining_amount > 0 ? $order->remaining_amount : ($order->total_amount - $order->deposit_amount);
+            }
+            if ($order->payment_method === 'cod') {
+                return $order->is_deposit_required ? ($order->remaining_amount ?: ($order->total_amount - $order->deposit_amount)) : $order->total_amount;
+            }
+            return 0;
+        });
 
         // Tổng tiền COD đã thu thành công hôm nay
-        $codCollectedToday = (clone $statQuery)->whereIn('shipping_status', ['delivered', 'completed'])
-            ->where('payment_method', 'cod')
+        $collectedOrders = (clone $statQuery)->whereIn('shipping_status', ['delivered', 'completed'])
             ->whereDate('delivered_at', Carbon::today())
-            ->sum('total_amount');
+            ->get();
+        $codCollectedToday = $collectedOrders->sum(function ($order) {
+            if ($order->is_deposit_required || $order->payment_status === 'deposit_paid') {
+                return $order->total_amount - $order->deposit_amount;
+            }
+            if ($order->payment_method === 'cod') {
+                return $order->total_amount;
+            }
+            return 0;
+        });
 
         $shippersList = $user->isAdmin() ? User::where('role', 'shipper')->get() : collect();
 
@@ -86,7 +127,9 @@ class ShipperOrderController extends Controller
             'orders',
             'tab',
             'search',
+            'pickupCount',
             'deliveringCount',
+            'deliveredCount',
             'deliveredTodayCount',
             'codNeedToCollect',
             'codCollectedToday',
@@ -99,16 +142,59 @@ class ShipperOrderController extends Controller
      */
     public function show($id)
     {
+        // Tự động quét hoàn tất đơn hàng quá 7 ngày
+        Order::autoCompleteEligibleDeliveredOrders();
+
         $user = Auth::user();
         $query = Order::with(['items.product', 'user']);
 
         if (!$user->isAdmin()) {
-            $query->where('shipper_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('shipper_id', $user->id)
+                  ->orWhereNull('shipper_id');
+            });
         }
 
         $order = $query->findOrFail($id);
 
         return view('shipper.orders.show', compact('order'));
+    }
+
+    /**
+     * Bưu tá tiếp nhận đơn hàng tại kho và bắt đầu đi giao
+     */
+    public function startDelivery(Request $request, $id)
+    {
+        $user = Auth::user();
+        $query = Order::query();
+
+        if (!$user->isAdmin()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('shipper_id', $user->id)
+                  ->orWhereNull('shipper_id');
+            });
+        }
+
+        $order = $query->findOrFail($id);
+
+        if (!in_array($order->shipping_status, ['confirmed', 'processing'])) {
+            return back()->with('error', 'Chỉ các đơn hàng đang ở trạng thái Chuẩn Bị Hàng / Đang Đóng Gói mới có thể tiếp nhận giao!');
+        }
+
+        $now = now();
+        $order->update([
+            'shipping_status'  => 'shipping',
+            'status_step'      => 4,
+            'shipper_id'       => $user->id,
+            'shipping_carrier' => $order->shipping_carrier ?: ('BeeStyle Express - ' . $user->name),
+            'tracking_code'    => $order->tracking_code ?: ('BEE-' . strtoupper(\Illuminate\Support\Str::random(8))),
+            'shipping_at'      => $order->shipping_at ?: $now,
+            'confirmed_at'     => $order->confirmed_at ?: $now,
+            'processing_at'    => $order->processing_at ?: $now,
+        ]);
+
+        return redirect()->route('shipper.orders.index', ['tab' => 'shipping'])
+            ->with('success', "Đã tiếp nhận đơn hàng #{$order->order_code}! Bưu tá bắt đầu di chuyển phát hàng tới khách.");
     }
 
     /**
@@ -165,9 +251,10 @@ class ShipperOrderController extends Controller
             'review_notified'      => false,
         ];
 
-        // Nếu là COD, tự động đánh dấu đã thu đủ tiền
-        if ($order->payment_method === 'cod') {
+        // Nếu là COD hoặc đơn có cọc 50%, tự động đánh dấu đã thu đủ tiền mặt
+        if ($order->payment_method === 'cod' || $order->is_deposit_required || $order->payment_status === 'deposit_paid') {
             $updateData['payment_status'] = 'paid';
+            $updateData['remaining_amount'] = 0;
             $updateData['paid_at'] = $now;
         }
 

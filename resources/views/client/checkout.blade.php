@@ -291,85 +291,135 @@
             <h3 class="font-serif-luxury text-xl font-bold text-neutral-900">Phương Thức Thanh Toán</h3>
           </div>
 
-          @if(!empty($depositInfo['is_required']))
-            <!-- Thông Báo Đặt Cọc 50% Cho Đơn Hàng >= 10 Sản Phẩm -->
-            <div class="p-4 mb-6 rounded-xl border border-amber-300 bg-amber-50 text-xs">
-              <div class="flex items-start gap-3">
-                <div class="w-9 h-9 rounded-full bg-amber-400 text-neutral-950 flex items-center justify-center shrink-0 shadow-sm">
-                  <i data-lucide="coins" class="w-5 h-5"></i>
+          @php
+            $isDepositRequired = !empty($depositInfo['is_required']);
+            $dep50Amount = (int)round($total * 0.5);
+            $rem50Amount = (int)($total - $dep50Amount);
+          @endphp
+
+          @if($isDepositRequired)
+          <!-- KHỐI CHỌN MỨC THANH TOÁN (CHỈ HIỂN THỊ KHI ĐƠN HÀNG CÓ TỪ 10 SẢN PHẨM TRỞ LÊN) -->
+          <div class="p-4 md:p-5 mb-6 rounded-2xl border-2 border-amber-400 bg-amber-50/60" id="paymentChoiceSection">
+            <div class="flex items-center justify-between flex-wrap gap-2 mb-3.5">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-amber-400 text-neutral-950 flex items-center justify-center shrink-0 shadow-2xs font-bold">
+                  <i data-lucide="coins" class="w-4 h-4"></i>
                 </div>
-                <div class="w-full space-y-2">
-                  <div class="flex items-center justify-between flex-wrap gap-2">
-                    <strong class="text-neutral-950 font-bold uppercase tracking-wide flex items-center gap-1.5">
-                      <i data-lucide="shield-alert" class="w-4 h-4 text-amber-700"></i> Chính Sách Đặt Cọc 50% Đơn Hàng Số Lượng Lớn
-                    </strong>
-                    <span class="px-2 py-0.5 bg-amber-200 text-amber-900 rounded font-mono font-bold text-[10px]">
-                      {{ $depositInfo['total_quantity'] }} Sản Phẩm (≥ 10)
-                    </span>
-                  </div>
-                  <p class="text-neutral-700 leading-relaxed text-[11px]">
-                    Đơn hàng của quý khách có tổng <strong>{{ $depositInfo['total_quantity'] }} sản phẩm</strong>. Theo chính sách của BeeStyle, quý khách vui lòng <strong>đặt cọc trước 50%</strong> để xưởng chuẩn bị may đo và đóng gói xuất kho. Số tiền 50% còn lại thanh toán cho bưu tá khi nhận hàng.
-                  </p>
-                  <div class="p-3 bg-white rounded-lg border border-amber-200 flex items-center justify-between flex-wrap gap-3">
-                    <div>
-                      <span class="text-neutral-400 text-[10px] block uppercase">Cọc trước (50%):</span>
-                      <strong class="text-rose-600 font-mono text-sm">{{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫</strong>
-                    </div>
-                    <div class="text-right">
-                      <span class="text-neutral-400 text-[10px] block uppercase">Còn lại thanh toán COD (50%):</span>
-                      <strong class="text-neutral-900 font-mono text-sm">{{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫</strong>
-                    </div>
-                  </div>
+                <div>
+                  <strong class="text-neutral-950 text-xs md:text-sm font-bold block uppercase tracking-wide">
+                    Chính Sách &amp; Mức Thanh Toán Đơn Hàng Số Lượng Lớn
+                  </strong>
+                  <span class="text-[11px] text-neutral-600 block">
+                    Đơn hàng của quý khách có <strong>{{ $depositInfo['total_quantity'] }} sản phẩm (≥ 10)</strong>. Quý khách có thể chọn <strong>Đặt cọc trước 50%</strong> hoặc <strong>Thanh toán trọn gói 100%</strong>:
+                  </span>
                 </div>
               </div>
+              <span class="px-2.5 py-1 bg-amber-200 text-amber-950 rounded-full font-mono font-bold text-[10px]">
+                ≥ 10 SẢN PHẨM
+              </span>
             </div>
+
+            <!-- Input ẩn gửi giá trị mức thanh toán lên server (deposit_50 hoặc full_100) -->
+            <input type="hidden" name="payment_deposit_choice" id="payment_deposit_choice" value="deposit_50">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="depositChoiceCardsGrid">
+              
+              <!-- Card 1: Cọc trước 50% -->
+              <div onclick="selectPaymentDepositChoice('deposit_50')" id="card_choice_deposit_50" class="cursor-pointer p-3.5 rounded-xl border-2 transition-all relative border-amber-600 bg-white ring-2 ring-amber-500/20 shadow-sm">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <input type="radio" name="_display_deposit_choice" id="radio_choice_deposit_50" value="deposit_50" checked class="text-amber-600 focus:ring-amber-500 mt-0.5 pointer-events-none">
+                    <strong class="text-neutral-950 font-bold text-xs md:text-sm">Đặt Cọc Trước 50%</strong>
+                  </div>
+                  <span class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">
+                    Cọc 50% + COD 50%
+                  </span>
+                </div>
+                <div class="space-y-1 text-[11px] pl-6">
+                  <div class="flex justify-between items-center">
+                    <span class="text-neutral-500">Cọc trước ngay:</span>
+                    <strong class="text-rose-600 font-mono font-bold">{{ number_format($dep50Amount, 0, ',', '.') }}₫</strong>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-neutral-500">Tiền mặt trả khi nhận (COD):</span>
+                    <strong class="text-neutral-900 font-mono font-bold">{{ number_format($rem50Amount, 0, ',', '.') }}₫</strong>
+                  </div>
+                  <p class="text-[10px] text-amber-800 pt-1.5 leading-tight border-t border-dashed border-neutral-200 flex items-center gap-1">
+                    <i data-lucide="info" class="w-3 h-3 text-amber-700 shrink-0"></i>
+                    <span>Khách trả tiền mặt 50% còn lại cho bưu tá khi kiện hàng giao đến tay.</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Card 2: Thanh toán hết 100% -->
+              <div onclick="selectPaymentDepositChoice('full_100')" id="card_choice_full_100" class="cursor-pointer p-3.5 rounded-xl border-2 transition-all relative border-neutral-200 bg-white hover:border-neutral-400">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <input type="radio" name="_display_deposit_choice" id="radio_choice_full_100" value="full_100" class="text-neutral-950 focus:ring-neutral-900 mt-0.5 pointer-events-none">
+                    <strong class="text-neutral-950 font-bold text-xs md:text-sm">Thanh Toán Toàn Bộ 100%</strong>
+                  </div>
+                  <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">
+                    0₫ COD Khi Nhận
+                  </span>
+                </div>
+                <div class="space-y-1 text-[11px] pl-6">
+                  <div class="flex justify-between items-center">
+                    <span class="text-neutral-500">Thanh toán trọn gói ngay:</span>
+                    <strong class="text-emerald-700 font-mono font-bold">{{ number_format($total, 0, ',', '.') }}₫</strong>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-neutral-500">Tiền thu khi nhận hàng:</span>
+                    <strong class="text-emerald-700 font-mono font-bold">0₫ (Miễn thu tiền mặt)</strong>
+                  </div>
+                  <p class="text-[10px] text-emerald-800 pt-1.5 leading-tight border-t border-dashed border-neutral-200 flex items-center gap-1">
+                    <i data-lucide="check" class="w-3 h-3 text-emerald-700 shrink-0"></i>
+                    <span>Thanh toán online 100% 1 lần duy nhất, không cần chuẩn bị tiền mặt khi nhận.</span>
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          @else
+            <!-- ĐƠN HÀNG THƯỜNG DƯỚI 10 SẢN PHẨM: Ẩn khối chọn cọc, mặc định thanh toán 100% -->
+            <input type="hidden" name="payment_deposit_choice" id="payment_deposit_choice" value="full_100">
           @endif
 
           <div class="space-y-3.5 text-xs" id="paymentMethodContainer">
             
-            <!-- COD -->
+            @if(!$isDepositRequired)
+            <!-- COD (Chỉ áp dụng cho đơn hàng thông thường < 10 sản phẩm) -->
             <label class="pay-option-card block p-4 border-2 border-neutral-950 bg-neutral-50 rounded-xl cursor-pointer transition-all active" id="card_pay_cod">
               <div class="flex items-center justify-between">
                 <div class="flex items-start gap-3">
                   <input type="radio" name="payment_method" id="pay_cod" value="cod" checked class="pay-radio mt-0.5 text-neutral-900 focus:ring-neutral-900" onchange="updatePayOptionCards()">
                   <div>
                     <div class="flex items-center gap-2 flex-wrap">
-                      <strong class="text-neutral-950 text-sm font-semibold">
-                        @if(!empty($depositInfo['is_required']))
-                          Đặt cọc 50% &amp; Thu COD 50% khi nhận hàng
-                        @else
-                          Thanh toán khi nhận hàng (COD)
-                        @endif
+                      <strong class="text-neutral-950 text-sm font-semibold" id="label_pay_cod_title">
+                        Thanh toán khi nhận hàng (COD)
                       </strong>
-                      <span class="px-2 py-0.5 {{ !empty($depositInfo['is_required']) ? 'bg-amber-100 text-amber-800' : 'bg-neutral-200 text-neutral-800' }} rounded text-[10px] font-bold">
-                        {{ !empty($depositInfo['is_required']) ? 'Cọc 50%' : 'Phổ Biến' }}
+                      <span class="px-2 py-0.5 bg-neutral-200 text-neutral-800 rounded text-[10px] font-bold" id="badge_pay_cod">
+                        Phổ Biến
                       </span>
                     </div>
-                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
-                      @if(!empty($depositInfo['is_required']))
-                        Cọc trước 50% ({{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫) để xưởng chuẩn bị hàng. Số tiền {{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫ còn lại thanh toán trực tiếp cho bưu tá.
-                      @else
-                        Kiểm tra sản phẩm tận tay và thanh toán tiền mặt trực tiếp cho nhân viên bưu tá.
-                      @endif
+                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed" id="label_pay_cod_desc">
+                      Kiểm tra sản phẩm tận tay và thanh toán tiền mặt trực tiếp cho nhân viên bưu tá.
                     </p>
                   </div>
                 </div>
                 <i data-lucide="banknote" class="w-5 h-5 text-neutral-700 shrink-0 ml-2"></i>
               </div>
               <div class="pay-desc-box mt-3 pt-2.5 border-t border-neutral-200 text-neutral-600 text-[11px]" id="desc_pay_cod">
-                @if(!empty($depositInfo['is_required']))
-                  <span class="text-amber-700 font-semibold">• Lưu ý:</span> Nhân viên Atelier sẽ liên hệ xác nhận và hướng dẫn chuyển khoản tiền cọc 50% trước khi xử lý đơn hàng.
-                @else
-                  <span class="text-emerald-700 font-semibold">• Đặc quyền:</span> Quý khách được mở gói hàng đồng kiểm và thử form dáng trang phục trước khi thanh toán.
-                @endif
+                <span class="text-emerald-700 font-semibold">• Đặc quyền:</span> Quý khách được mở gói hàng đồng kiểm và thử form dáng trang phục trước khi thanh toán.
               </div>
             </label>
+            @endif
 
             <!-- MoMo Payment (ATM) -->
-            <label class="pay-option-card block p-4 md:p-5 border border-neutral-200 rounded-2xl cursor-pointer hover:border-[#a50064] transition-all group relative overflow-hidden" id="card_pay_momo">
+            <label class="pay-option-card block p-4 md:p-5 border {{ $isDepositRequired ? 'border-[#a50064] bg-pink-50/20 ring-1 ring-[#a50064]/20' : 'border-neutral-200' }} rounded-2xl cursor-pointer hover:border-[#a50064] transition-all group relative overflow-hidden" id="card_pay_momo">
               <div class="flex items-center justify-between">
                 <div class="flex items-start gap-3.5">
-                  <input type="radio" name="payment_method" id="pay_momo" value="momo" class="pay-radio mt-1.5 text-[#a50064] focus:ring-[#a50064]" onchange="updatePayOptionCards()">
+                  <input type="radio" name="payment_method" id="pay_momo" value="momo" {{ $isDepositRequired ? 'checked' : '' }} class="pay-radio mt-1.5 text-[#a50064] focus:ring-[#a50064]" onchange="updatePayOptionCards()">
                   <div class="flex items-center gap-3.5">
                     <div class="w-12 h-12 rounded-2xl bg-white border-2 border-pink-300 p-1.5 shadow-sm flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <img src="{{ asset('assets/img/logos/momo.svg') }}" alt="MoMo Logo" class="w-full h-full object-contain rounded-xl" onerror="this.src='{{ asset('assets/img/logos/momo.png') }}'">
@@ -384,8 +434,12 @@
                         </span>
                         <span class="px-2 py-0.5 bg-pink-50 text-[#a50064] font-mono text-[10px] rounded-md border border-pink-200 font-bold">NAPAS 24/7</span>
                       </div>
-                      <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
-                        Thanh toán trực tuyến an toàn qua Cổng MoMo bằng Thẻ ATM nội địa mọi ngân hàng Việt Nam (Không yêu cầu quét mã QR).
+                      <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed" id="label_pay_momo_desc">
+                        @if($isDepositRequired)
+                          Thanh toán cọc 50% ({{ number_format($dep50Amount, 0, ',', '.') }}₫) trực tuyến an toàn qua Cổng MoMo bằng Thẻ ATM mọi ngân hàng. 50% còn lại ({{ number_format($rem50Amount, 0, ',', '.') }}₫) trả tiền mặt cho bưu tá khi nhận hàng.
+                        @else
+                          Thanh toán trực tuyến an toàn qua Cổng MoMo bằng Thẻ ATM nội địa mọi ngân hàng Việt Nam (Không yêu cầu quét mã QR).
+                        @endif
                       </p>
                     </div>
                   </div>
@@ -414,8 +468,12 @@
                       </span>
                       <span class="px-2 py-0.5 bg-blue-50 text-[#005baa] font-mono text-[10px] rounded-md border border-blue-200 font-bold">VNPAY-QR</span>
                     </div>
-                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed">
-                      Quét mã VNPAY-QR từ ứng dụng ngân hàng, thanh toán qua Thẻ ATM nội địa (30+ ngân hàng Napas) hoặc Thẻ quốc tế.
+                    <p class="text-neutral-500 mt-1 text-[11px] leading-relaxed" id="label_pay_vnpay_desc">
+                      @if($isDepositRequired)
+                        Quét mã VNPAY-QR hoặc Thẻ ATM thanh toán cọc 50% ({{ number_format($dep50Amount, 0, ',', '.') }}₫). Số tiền 50% còn lại ({{ number_format($rem50Amount, 0, ',', '.') }}₫) trả tiền mặt cho bưu tá khi nhận hàng.
+                      @else
+                        Quét mã VNPAY-QR từ ứng dụng ngân hàng, thanh toán qua Thẻ ATM nội địa (30+ ngân hàng Napas) hoặc Thẻ quốc tế.
+                      @endif
                     </p>
                   </div>
                 </div>
@@ -427,7 +485,6 @@
               </div>
             </label>
 
-
           </div>
         </div>
 
@@ -435,7 +492,7 @@
         <div class="block lg:hidden pt-2">
           <button type="submit" class="w-full py-4 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-[0.25em] uppercase rounded-xl shadow-xl transition-all flex items-center justify-center gap-2">
             <i data-lucide="lock" class="w-4 h-4"></i>
-            <span>{{ !empty($depositInfo['is_required']) ? 'Xác Nhận Đặt Cọc 50% & Đặt Hàng' : 'Xác Nhận Đặt Hàng An Toàn' }}</span>
+            <span id="btnSubmitMobileText">{{ $isDepositRequired ? 'Xác Nhận Đặt Cọc 50% & Đặt Hàng (' . number_format($dep50Amount, 0, ',', '.') . '₫)' : 'Xác Nhận Đặt Hàng (' . number_format($total, 0, ',', '.') . '₫)' }}</span>
           </button>
         </div>
 
@@ -541,24 +598,26 @@
         </div>
 
         <!-- Chi tiết Cọc hoặc Tổng Thanh Toán -->
-        @if(!empty($depositInfo['is_required']))
-          <div class="p-3.5 rounded-xl border border-amber-300 bg-amber-50 text-xs space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-neutral-900">Số tiền đặt cọc trước (50%):</span>
-              <strong class="text-rose-600 font-mono text-base">{{ number_format($depositInfo['deposit_amount'], 0, ',', '.') }}₫</strong>
-            </div>
-            <div class="flex justify-between items-center text-neutral-600">
-              <span>Thu COD khi nhận hàng (50%):</span>
-              <strong class="text-neutral-900 font-mono">{{ number_format($depositInfo['remaining_amount'], 0, ',', '.') }}₫</strong>
-            </div>
-            <div class="pt-2 border-t border-amber-200 flex justify-between items-baseline text-neutral-500 text-[11px]">
-              <span>Tổng giá trị đơn hàng:</span>
-              <span class="font-semibold text-neutral-900">{{ number_format($total, 0, ',', '.') }}₫</span>
-            </div>
+        <div id="summary_deposit_box" class="p-3.5 rounded-xl border border-amber-300 bg-amber-50 text-xs space-y-2 {{ $isDepositRequired ? '' : 'hidden' }}">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-neutral-900">Số tiền đặt cọc trước (50%):</span>
+            <strong class="text-rose-600 font-mono text-base">{{ number_format($dep50Amount, 0, ',', '.') }}₫</strong>
           </div>
-        @else
+          <div class="flex justify-between items-center text-neutral-600">
+            <span>Thu tiền mặt khi nhận hàng (50% COD):</span>
+            <strong class="text-neutral-900 font-mono font-bold">{{ number_format($rem50Amount, 0, ',', '.') }}₫</strong>
+          </div>
+          <div class="pt-2 border-t border-amber-200 flex justify-between items-baseline text-neutral-500 text-[11px]">
+            <span>Tổng giá trị đơn hàng:</span>
+            <span class="font-semibold text-neutral-900">{{ number_format($total, 0, ',', '.') }}₫</span>
+          </div>
+        </div>
+
+        <div id="summary_full_box" class="space-y-2 {{ $isDepositRequired ? 'hidden' : '' }}">
           <div class="flex justify-between items-baseline">
-            <span class="text-xs uppercase font-bold tracking-wider text-neutral-900">Tổng Thanh Toán:</span>
+            <span class="text-xs uppercase font-bold tracking-wider text-neutral-900" id="summary_total_label">
+              {{ $isDepositRequired ? 'Tổng Thanh Toán (100%):' : 'Tổng Đơn Hàng:' }}
+            </span>
             <div class="text-right">
               <span class="font-serif-luxury text-2xl md:text-3xl font-bold text-neutral-950 block">
                 {{ number_format($total, 0, ',', '.') }}₫
@@ -566,12 +625,21 @@
               <span class="text-[10px] text-neutral-400">Đã gồm VAT &amp; Phí đóng gói Atelier</span>
             </div>
           </div>
-        @endif
+          <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 flex justify-between items-center text-xs text-emerald-900" id="summary_cod_status_box">
+            <span class="font-semibold flex items-center gap-1">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600" id="summary_cod_status_icon"></i>
+              <span id="summary_cod_status_label">Thu COD khi nhận:</span>
+            </span>
+            <strong class="font-mono font-bold text-emerald-700" id="summary_cod_status_amount">
+              {{ $isDepositRequired ? '0₫ (Miễn thu tiền mặt)' : number_format($total, 0, ',', '.') . '₫' }}
+            </strong>
+          </div>
+        </div>
 
         <!-- Desktop Submit Button -->
         <button type="submit" class="hidden lg:flex w-full py-4 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-semibold tracking-[0.25em] uppercase rounded-xl shadow-xl transition-all items-center justify-center gap-2">
           <i data-lucide="lock" class="w-4 h-4"></i>
-          <span>{{ !empty($depositInfo['is_required']) ? 'Xác Nhận Đặt Cọc 50% & Đặt Hàng' : 'Xác Nhận Đặt Hàng An Toàn' }}</span>
+          <span id="btnSubmitDesktopText">{{ $isDepositRequired ? 'Xác Nhận Đặt Cọc 50% & Đặt Hàng (' . number_format($dep50Amount, 0, ',', '.') . '₫)' : 'Xác Nhận Đặt Hàng (' . number_format($total, 0, ',', '.') . '₫)' }}</span>
         </button>
 
         <!-- Guarantees Badge -->
@@ -1052,13 +1120,20 @@
     updateAddressVerification();
   });
 
+  const IS_LARGE_ORDER = {{ $isDepositRequired ? 'true' : 'false' }};
+  const ORDER_TOTAL = {{ (int)$total }};
+  const DEPOSIT_50_AMOUNT = {{ (int)round($total * 0.5) }};
+  const REMAINING_50_AMOUNT = {{ (int)($total - round($total * 0.5)) }};
+
   function updatePayOptionCards() {
     const radios = document.querySelectorAll('.pay-radio');
+    let selectedMethod = 'cod';
     radios.forEach(radio => {
       const card = document.getElementById('card_' + radio.id);
       const desc = document.getElementById('desc_' + radio.id);
 
       if (radio.checked) {
+        selectedMethod = radio.value;
         if (card) {
           if (radio.id === 'pay_momo') {
             card.classList.add('border-[#a50064]', 'bg-pink-50/20', 'ring-1', 'ring-[#a50064]/20');
@@ -1080,6 +1155,49 @@
         if (desc) desc.classList.add('hidden');
       }
     });
+
+    const depositChoice = document.getElementById('payment_deposit_choice')?.value || (IS_LARGE_ORDER ? 'deposit_50' : 'full_100');
+    const formattedDeposit = new Intl.NumberFormat('vi-VN').format(DEPOSIT_50_AMOUNT) + '₫';
+    const formattedTotal = new Intl.NumberFormat('vi-VN').format(ORDER_TOTAL) + '₫';
+
+    const desktopBtnText = document.getElementById('btnSubmitDesktopText');
+    const mobileBtnText = document.getElementById('btnSubmitMobileText');
+    const codSummaryAmount = document.getElementById('summary_cod_status_amount');
+    const totalLabel = document.getElementById('summary_total_label');
+
+    if (IS_LARGE_ORDER && depositChoice === 'deposit_50') {
+      let btnLabel = `Xác Nhận Đặt Cọc 50% & Đặt Hàng (${formattedDeposit})`;
+      if (selectedMethod === 'momo') {
+        btnLabel = `Thanh Toán Cọc 50% qua MoMo (${formattedDeposit})`;
+      } else if (selectedMethod === 'vnpay') {
+        btnLabel = `Thanh Toán Cọc 50% qua VNPAY (${formattedDeposit})`;
+      }
+      if (desktopBtnText) desktopBtnText.textContent = btnLabel;
+      if (mobileBtnText) mobileBtnText.textContent = btnLabel;
+    } else {
+      // Đơn hàng thông thường (< 10 sản phẩm) HOẶC Đơn lớn đã chọn thanh toán 100%
+      if (totalLabel) {
+        totalLabel.textContent = IS_LARGE_ORDER ? 'Tổng Thanh Toán (100%):' : 'Tổng Đơn Hàng:';
+      }
+
+      let btnLabel = `Xác Nhận Đặt Hàng (${formattedTotal})`;
+      if (selectedMethod === 'cod') {
+        if (codSummaryAmount) codSummaryAmount.textContent = formattedTotal;
+        btnLabel = IS_LARGE_ORDER ? `Xác Nhận Thanh Toán 100% & Đặt Hàng (${formattedTotal})` : `Xác Nhận Đặt Hàng (${formattedTotal})`;
+      } else if (selectedMethod === 'momo') {
+        if (codSummaryAmount) codSummaryAmount.textContent = '0₫ (Miễn thu tiền mặt)';
+        btnLabel = `Thanh Toán MoMo Ngay (${formattedTotal})`;
+      } else if (selectedMethod === 'vnpay') {
+        if (codSummaryAmount) codSummaryAmount.textContent = '0₫ (Miễn thu tiền mặt)';
+        btnLabel = `Thanh Toán VNPAY Ngay (${formattedTotal})`;
+      } else {
+        if (codSummaryAmount) codSummaryAmount.textContent = '0₫ (Miễn thu tiền mặt)';
+        btnLabel = `Thanh Toán Ngay (${formattedTotal})`;
+      }
+
+      if (desktopBtnText) desktopBtnText.textContent = btnLabel;
+      if (mobileBtnText) mobileBtnText.textContent = btnLabel;
+    }
   }
 
   function openVoucherModal() {
@@ -1209,6 +1327,81 @@
       console.error('Error removing coupon:', err);
       window.location.reload();
     });
+  }
+
+  function selectPaymentDepositChoice(choice) {
+    const hiddenInput = document.getElementById('payment_deposit_choice');
+    if (hiddenInput) hiddenInput.value = choice;
+
+    const radio50 = document.getElementById('radio_choice_deposit_50');
+    const radio100 = document.getElementById('radio_choice_full_100');
+    const card50 = document.getElementById('card_choice_deposit_50');
+    const card100 = document.getElementById('card_choice_full_100');
+
+    const depositBox = document.getElementById('summary_deposit_box');
+    const fullBox = document.getElementById('summary_full_box');
+
+    const codTitle = document.getElementById('label_pay_cod_title');
+    const codDesc = document.getElementById('label_pay_cod_desc');
+    const badgeCod = document.getElementById('badge_pay_cod');
+    const momoDesc = document.getElementById('label_pay_momo_desc');
+    const vnpayDesc = document.getElementById('label_pay_vnpay_desc');
+
+    const formattedDeposit = new Intl.NumberFormat('vi-VN').format(DEPOSIT_50_AMOUNT) + '₫';
+    const formattedRemaining = new Intl.NumberFormat('vi-VN').format(REMAINING_50_AMOUNT) + '₫';
+    const formattedTotal = new Intl.NumberFormat('vi-VN').format(ORDER_TOTAL) + '₫';
+
+    if (choice === 'deposit_50') {
+      if (radio50) radio50.checked = true;
+      if (radio100) radio100.checked = false;
+
+      if (card50) {
+        card50.className = 'cursor-pointer p-3.5 rounded-xl border-2 transition-all relative border-amber-600 bg-white ring-2 ring-amber-500/20 shadow-sm';
+      }
+      if (card100) {
+        card100.className = 'cursor-pointer p-3.5 rounded-xl border-2 transition-all relative border-neutral-200 bg-white hover:border-neutral-400';
+      }
+
+      if (depositBox) depositBox.classList.remove('hidden');
+      if (fullBox) fullBox.classList.add('hidden');
+
+      if (codTitle) codTitle.innerHTML = 'Đặt cọc 50% &amp; Thu COD 50% khi nhận hàng';
+      if (badgeCod) {
+        badgeCod.textContent = 'Cọc 50%';
+        badgeCod.className = 'px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold';
+      }
+      if (codDesc) codDesc.textContent = `Cọc trước 50% (${formattedDeposit}) để xưởng chuẩn bị hàng. Số tiền ${formattedRemaining} còn lại thanh toán trực tiếp cho bưu tá khi nhận.`;
+      if (momoDesc) momoDesc.textContent = `Thanh toán cọc 50% (${formattedDeposit}) trực tuyến an toàn qua Cổng MoMo bằng Thẻ ATM mọi ngân hàng. 50% còn lại (${formattedRemaining}) trả tiền mặt cho bưu tá khi nhận hàng.`;
+      if (vnpayDesc) vnpayDesc.textContent = `Quét mã VNPAY-QR hoặc Thẻ ATM thanh toán cọc 50% (${formattedDeposit}). Số tiền 50% còn lại (${formattedRemaining}) trả tiền mặt cho bưu tá khi nhận hàng.`;
+    } else {
+      if (radio100) radio100.checked = true;
+      if (radio50) radio50.checked = false;
+
+      if (card100) {
+        card100.className = 'cursor-pointer p-3.5 rounded-xl border-2 transition-all relative border-neutral-950 bg-white ring-2 ring-neutral-950/20 shadow-sm';
+      }
+      if (card50) {
+        card50.className = 'cursor-pointer p-3.5 rounded-xl border-2 transition-all relative border-neutral-200 bg-white hover:border-neutral-400';
+      }
+
+      if (depositBox) depositBox.classList.add('hidden');
+      if (fullBox) fullBox.classList.remove('hidden');
+
+      if (codTitle) codTitle.innerHTML = 'Thanh toán khi nhận hàng (COD)';
+      if (badgeCod) {
+        badgeCod.textContent = 'Phổ Biến';
+        badgeCod.className = 'px-2 py-0.5 bg-neutral-200 text-neutral-800 rounded text-[10px] font-bold';
+      }
+      if (codDesc) codDesc.textContent = 'Kiểm tra sản phẩm tận tay và thanh toán tiền mặt trực tiếp cho nhân viên bưu tá.';
+      if (momoDesc) momoDesc.textContent = `Thanh toán trọn gói 100% (${formattedTotal}) trực tuyến an toàn qua Cổng MoMo bằng Thẻ ATM mọi ngân hàng. Khi nhận hàng không cần trả thêm tiền mặt (COD 0₫).`;
+      if (vnpayDesc) vnpayDesc.textContent = `Quét mã VNPAY-QR hoặc Thẻ ATM thanh toán 100% (${formattedTotal}). Khi nhận hàng không cần trả thêm tiền mặt (COD 0₫).`;
+    }
+
+    updatePayOptionCards();
+
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function() {

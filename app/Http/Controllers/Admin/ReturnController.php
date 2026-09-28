@@ -131,17 +131,22 @@ class ReturnController extends Controller
                 $data['refund_amount'] = (int) $validated['refund_amount'];
             }
 
+            $isDirectCancel = $return->isDirectCancelRefund();
+
             // Xử lý bước 2: Duyệt yêu cầu
             if ($status === 'approved' && $previousStatus !== 'approved') {
                 if (!$return->approved_at) {
                     $data['approved_at'] = now();
                 }
-                if (!empty($validated['warehouse_instruction'])) {
+                if ($isDirectCancel) {
+                    $notice = "[Đã duyệt lệnh hoàn tiền trực tiếp (Đơn online hủy chưa giao) - Sẵn sàng sang Bước 4: Hoàn Tất Quyết Toán]";
+                    $data['admin_notes'] = $notice . ($data['admin_notes'] ? " - " . $data['admin_notes'] : "");
+                } elseif (!empty($validated['warehouse_instruction'])) {
                     $instruction = "[Hướng dẫn gửi hàng: " . trim($validated['warehouse_instruction']) . "]";
                     $data['admin_notes'] = $instruction . ($data['admin_notes'] ? " - " . $data['admin_notes'] : "");
                 }
             } 
-            // Xử lý bước 3: Kho nhận hàng
+            // Xử lý bước 3: Kho nhận hàng (Chỉ dành cho đơn đổi trả vật lý có gửi hàng)
             elseif ($status === 'received' && $previousStatus !== 'received') {
                 if (!$return->received_at) {
                     $data['received_at'] = now();
@@ -154,6 +159,9 @@ class ReturnController extends Controller
             // Xử lý bước 4: Hoàn tất & Hoàn tiền / Đổi hàng
             elseif ($status === 'completed' && $previousStatus !== 'completed') {
                 $data['completed_at'] = now();
+                if (!$return->approved_at) {
+                    $data['approved_at'] = now();
+                }
 
                 // Ghi nhận mã giao dịch chuyển tiền hoặc mã vận đơn đổi hàng
                 if (!empty($validated['bank_ref_code'])) {
@@ -165,12 +173,17 @@ class ReturnController extends Controller
                     $data['admin_notes'] = $exchangeLog . ($data['admin_notes'] ? " - " . $data['admin_notes'] : "");
                 }
 
-                // 1. Tự động nhập kho lại sản phẩm trả hàng
-                if ($request->boolean('restock', true) && in_array($return->type, ['return_refund', 'refund_only'])) {
+                // 1. Tự động nhập kho lại sản phẩm trả hàng (tránh nhập lần 2 nếu đơn hủy online đã hoàn kho từ trước)
+                $alreadyRestocked = ($isDirectCancel && $return->order && $return->order->shipping_status === 'cancelled');
+
+                if (!$alreadyRestocked && $request->boolean('restock', true) && in_array($return->type, ['return_refund', 'refund_only'])) {
                     if ($return->order_item_id && $return->orderItem) {
                         $item = $return->orderItem;
                         Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                        Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                        $prod = Product::find($item->product_id);
+                        if ($prod && $prod->sold_count >= $item->quantity) {
+                            $prod->decrement('sold_count', $item->quantity);
+                        }
 
                         if (!empty($item->color) && !empty($item->size)) {
                             ProductVariant::where('product_id', $item->product_id)
@@ -183,7 +196,10 @@ class ReturnController extends Controller
                         foreach ($return->order->items as $item) {
                             if ($item->product_id) {
                                 Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                                Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
+                                $prod = Product::find($item->product_id);
+                                if ($prod && $prod->sold_count >= $item->quantity) {
+                                    $prod->decrement('sold_count', $item->quantity);
+                                }
 
                                 if (!empty($item->color) && !empty($item->size)) {
                                     ProductVariant::where('product_id', $item->product_id)
@@ -262,9 +278,14 @@ class ReturnController extends Controller
                     }
                 }
 
-                // 2. Cập nhật trạng thái thanh toán của Order sang Refunded
+                // 2. Cập nhật trạng thái thanh toán của Order sang Refunded & hủy đơn
                 if ($return->type === 'return_refund' || $return->type === 'refund_only') {
-                    $return->order->update(['payment_status' => 'refunded']);
+                    $return->order->update([
+                        'payment_status' => 'refunded',
+                        'shipping_status' => 'cancelled',
+                        'status_step' => 0,
+                        'admin_notes' => ($return->order->admin_notes ? $return->order->admin_notes . " | " : "") . "[Hoàn tiền RMA #{$return->return_code} lúc " . now()->format('d/m/Y H:i') . "]",
+                    ]);
                 }
             } 
             // Xử lý từ chối

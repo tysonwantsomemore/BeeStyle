@@ -222,12 +222,17 @@
     <ul class="nav nav-tabs nav-tabs-shipper bg-white rounded-3 shadow-xs mb-3 px-2">
       <li class="nav-item">
         <a class="nav-link {{ $tab === 'shipping' ? 'active' : '' }}" href="{{ route('shipper.orders.index', array_merge(request()->query(), ['tab' => 'shipping'])) }}">
-          <i class="fa-solid fa-truck-fast me-1"></i> Cần Giao ({{ $deliveringCount }})
+          <i class="fa-solid fa-truck-fast me-1 text-primary"></i> Đang Đi Giao ({{ $deliveringCount }})
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {{ $tab === 'pickup' ? 'active' : '' }}" href="{{ route('shipper.orders.index', array_merge(request()->query(), ['tab' => 'pickup'])) }}">
+          <i class="fa-solid fa-boxes-packing me-1 text-warning"></i> Chờ Lấy Hàng ({{ $pickupCount }})
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {{ $tab === 'delivered' ? 'active' : '' }}" href="{{ route('shipper.orders.index', array_merge(request()->query(), ['tab' => 'delivered'])) }}">
-          <i class="fa-solid fa-circle-check me-1 text-success"></i> Đã Giao
+          <i class="fa-solid fa-circle-check me-1 text-success"></i> Đã Giao ({{ $deliveredCount }})
         </a>
       </li>
       <li class="nav-item">
@@ -252,8 +257,14 @@
                   <i class="fa-solid fa-barcode me-1 text-muted"></i>{{ $order->tracking_code }}
                 </span>
               @endif
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-10 d-none d-sm-inline-block">
+                <i class="fa-regular fa-clock me-1"></i> {{ $order->estimated_delivery_text }}
+              </span>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-1.5">
+              <a href="{{ route('shipper.orders.show', $order->id) }}" class="btn btn-outline-secondary btn-xs rounded-pill px-2.5 py-0.5 fw-bold fs-10">
+                Chi Tiết
+              </a>
               @if($order->shipping_status === 'shipping')
                 <span class="badge bg-info-subtle text-info fw-bold rounded-pill px-2.5 py-1">
                   <i class="fa-solid fa-truck-moving me-1"></i> Đang Đi Giao
@@ -332,15 +343,41 @@
               <div>
                 <span class="text-muted fs-10 d-block">Hình thức thanh toán:</span>
                 <span class="fw-bold text-dark fs-9">{{ $order->payment_method_name }}</span>
+                @if($order->is_deposit_required || $order->payment_status === 'deposit_paid')
+                  <span class="badge bg-warning text-dark border border-warning ms-1 fs-11 fw-bold">
+                    Đã cọc 50% ({{ number_format($order->deposit_amount ?: round($order->total_amount * 0.5), 0, ',', '.') }}₫)
+                  </span>
+                @endif
               </div>
               <div>
-                @if($order->payment_method === 'cod' && $order->payment_status !== 'paid')
-                  <span class="cod-badge">
-                    <i class="fa-solid fa-hand-holding-dollar me-1"></i> Thu COD: {{ number_format($order->total_amount, 0, ',', '.') }}₫
+                @php
+                  $isFullyPaid = ($order->payment_status === 'paid');
+                  $hasRemainingCod = false;
+                  $codAmount = 0;
+
+                  if (!$isFullyPaid) {
+                    if ($order->payment_status === 'deposit_paid' || ($order->is_deposit_required && $order->deposit_status === 'paid')) {
+                      $hasRemainingCod = true;
+                      $codAmount = $order->remaining_amount ?: ($order->total_amount - $order->deposit_amount);
+                    } elseif ($order->payment_method === 'cod') {
+                      $hasRemainingCod = true;
+                      $codAmount = $order->is_deposit_required ? ($order->remaining_amount ?: ($order->total_amount - $order->deposit_amount)) : $order->total_amount;
+                    }
+                  }
+                @endphp
+
+                @if($hasRemainingCod && $codAmount > 0)
+                  <span class="cod-badge {{ ($order->is_deposit_required || $order->payment_status === 'deposit_paid') ? 'bg-warning bg-opacity-25 text-dark border-warning' : '' }}">
+                    <i class="fa-solid fa-hand-holding-dollar me-1 text-danger"></i>
+                    @if($order->is_deposit_required || $order->payment_status === 'deposit_paid')
+                      Thu COD (50% còn lại): {{ number_format($codAmount, 0, ',', '.') }}₫
+                    @else
+                      Thu COD: {{ number_format($codAmount, 0, ',', '.') }}₫
+                    @endif
                   </span>
                 @else
                   <span class="paid-badge">
-                    <i class="fa-solid fa-circle-check me-1"></i> Đã Thu Đủ (0₫)
+                    <i class="fa-solid fa-circle-check me-1"></i> Đã Thu Đủ 100% (Thu 0₫)
                   </span>
                 @endif
               </div>
@@ -368,6 +405,18 @@
                   <i class="fa-solid fa-image me-1"></i> Xem Ảnh Giao (POD)
                 </button>
               @endif
+            @elseif(in_array($order->shipping_status, ['confirmed', 'processing']))
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 w-100">
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning fs-10 fw-bold">
+                  <i class="fa-solid fa-boxes-packing me-1"></i> Kho Đã Đóng Gói (Chờ Lấy Hàng)
+                </span>
+                <form action="{{ route('shipper.orders.startDelivery', $order->id) }}" method="POST" class="d-inline">
+                  @csrf
+                  <button type="submit" class="btn btn-primary btn-sm fw-bold rounded-pill px-4 shadow-sm">
+                    <i class="fa-solid fa-truck-ramp-box me-1.5"></i> Tiếp Nhận &amp; Bắt Đầu Đi Giao
+                  </button>
+                </form>
+              </div>
             @else
               <span class="text-muted fs-10">Đơn hàng đang ở trạng thái: {{ $order->status_label }}</span>
             @endif
@@ -427,13 +476,33 @@
                     </div>
 
                     <!-- XÁC NHẬN TIỀN COD ĐÃ THU -->
-                    @if($order->payment_method === 'cod')
+                    @if($hasRemainingCod && $codAmount > 0)
                       <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-3">
                         <div class="d-flex justify-content-between align-items-center">
-                          <span class="fw-bold text-danger fs-9"><i class="fa-solid fa-coins me-1"></i> Tiền COD phải thu:</span>
-                          <span class="fs-7 fw-black text-danger">{{ number_format($order->total_amount, 0, ',', '.') }}₫</span>
+                          <span class="fw-bold text-danger fs-9">
+                            <i class="fa-solid fa-coins me-1"></i>
+                            @if($order->is_deposit_required || $order->payment_status === 'deposit_paid')
+                              Tiền mặt phải thu (50% còn lại):
+                            @else
+                              Tiền COD phải thu từ khách:
+                            @endif
+                          </span>
+                          <span class="fs-7 fw-black text-danger">{{ number_format($codAmount, 0, ',', '.') }}₫</span>
                         </div>
-                        <small class="text-muted fs-11 d-block mt-1">Khi bấm xác nhận, hệ thống sẽ tự động cập nhật đơn hàng sang trạng thái "ĐÃ THANH TOÁN (COD)".</small>
+                        @if($order->is_deposit_required || $order->payment_status === 'deposit_paid')
+                          <div class="text-primary fs-11 fw-bold mt-1">
+                            <i class="fa-solid fa-circle-info me-1"></i> Khách hàng đã thanh toán trước 50% tiền cọc ({{ number_format($order->deposit_amount ?: round($order->total_amount * 0.5), 0, ',', '.') }}₫) qua {{ $order->payment_method_name }}. Bưu tá chỉ thu đúng số tiền 50% còn lại.
+                          </div>
+                        @endif
+                        <small class="text-muted fs-11 d-block mt-1">Khi bấm xác nhận, hệ thống sẽ tự động cập nhật đơn hàng sang trạng thái "ĐÃ THANH TOÁN ĐỦ (100%)".</small>
+                      </div>
+                    @else
+                      <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span class="fw-bold text-success fs-9"><i class="fa-solid fa-circle-check me-1"></i> Tiền COD phải thu:</span>
+                          <span class="fs-7 fw-black text-success">0₫ (Đã thanh toán trước 100%)</span>
+                        </div>
+                        <small class="text-muted fs-11 d-block mt-1">Đơn hàng đã được thanh toán trực tuyến 100%. Bưu tá chỉ giao kiện hàng và chụp ảnh POD xác nhận, KHÔNG thu thêm tiền mặt từ khách.</small>
                       </div>
                     @endif
                   </div>

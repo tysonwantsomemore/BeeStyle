@@ -575,7 +575,9 @@
             <span class="text-neutral-200 font-medium">Tiền thu người nhận (COD):</span>
             <strong class="text-amber-300 font-mono text-base font-bold">
               @if($currentOrder->payment_status === 'paid')
-                0₫ (Đã thanh toán trước)
+                0₫ (Đã thanh toán trước 100%)
+              @elseif($currentOrder->payment_status === 'deposit_paid' || ($currentOrder->is_deposit_required && $currentOrder->deposit_status === 'paid'))
+                {{ number_format($currentOrder->remaining_amount ?: ($currentOrder->total_amount - $currentOrder->deposit_amount), 0, ',', '.') }}₫ (50% tiền mặt khi nhận hàng)
               @elseif($currentOrder->is_deposit_required)
                 {{ number_format($currentOrder->remaining_amount ?: ($currentOrder->total_amount - $currentOrder->deposit_amount), 0, ',', '.') }}₫
               @else
@@ -583,10 +585,10 @@
               @endif
             </strong>
           </div>
-          @if($currentOrder->is_deposit_required)
+          @if($currentOrder->is_deposit_required || $currentOrder->payment_status === 'deposit_paid')
             <div class="flex justify-between items-center text-amber-200">
               <span class="font-medium">Đã đặt cọc trước (50%):</span>
-              <strong class="font-mono text-white font-bold">{{ number_format($currentOrder->deposit_amount, 0, ',', '.') }}₫ ({{ $currentOrder->deposit_status === 'paid' ? 'Đã cọc' : 'Chờ cọc' }})</strong>
+              <strong class="font-mono text-white font-bold">{{ number_format($currentOrder->deposit_amount ?: round($currentOrder->total_amount * 0.5), 0, ',', '.') }}₫ ({{ (in_array($currentOrder->deposit_status, ['paid']) || $currentOrder->payment_status === 'deposit_paid') ? 'Đã cọc 50%' : 'Chờ cọc' }})</strong>
             </div>
           @endif
           <div class="flex items-center gap-2 pt-2 border-t border-white/15 flex-wrap">
@@ -599,9 +601,9 @@
                 Cổng {{ $carrierShort }}
               </a>
             @endif
-            @if((!Auth::check() || Auth::id() === $currentOrder->user_id || !$currentOrder->user_id) && $currentOrder->canBeCancelledByCustomer())
+            @if($currentOrder->canRequestRefundByCustomer() || $currentOrder->canBeCancelledByCustomer())
               <button type="button" onclick="openCancelModal()" class="py-2.5 px-3 bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white rounded-lg text-xs font-bold transition-colors border border-rose-500/40">
-                Hủy Đơn
+                {{ in_array(strtoupper((string)$currentOrder->payment_status), ['PAID', 'DEPOSIT_PAID']) ? 'Hủy Hàng Hoàn Tiền' : 'Hủy Đơn' }}
               </button>
             @endif
           </div>
@@ -680,12 +682,13 @@
     <!-- 5. KHỐI THÔNG BÁO HÀNH ĐỘNG GIAO HÀNG / HOÀN TẤT / ĐỔI TRẢ (CALLOUT) -->
     <!-- ========================================================================= -->
     @php
-      $isDeliveringOrDelivered = in_array($currentOrder->shipping_status, ['shipping', 'delivered']) || in_array($currentOrder->status_step, [4, 5]);
+      $isOrderDeliveredCallout = ($currentOrder->shipping_status === 'delivered' || ($currentOrder->status_step ?? 1) == 5);
+      $isOrderShippingCallout = ($currentOrder->shipping_status === 'shipping' || ($currentOrder->status_step ?? 1) == 4);
       $hasActiveReturn = $currentOrder->latestReturn && in_array($currentOrder->latestReturn->status, ['pending', 'approved', 'received', 'completed']);
     @endphp
 
-    @if($isDeliveringOrDelivered && $currentOrder->shipping_status !== 'completed' && $currentOrder->shipping_status !== 'cancelled' && !$hasActiveReturn)
-      <!-- THÔNG BÁO BƯU TÁ ĐÃ PHÁT: 2 NÚT HÀNH ĐỘNG SONG SONG RÕ RÀNG -->
+    @if($isOrderDeliveredCallout && !$hasActiveReturn)
+      <!-- THÔNG BÁO BƯU TÁ ĐÃ PHÁT TỚI TAY KHÁCH: 2 NÚT HÀNH ĐỘNG SONG SONG RÕ RÀNG -->
       <div class="bg-gradient-to-r from-emerald-50 via-white to-sky-50 border-2 border-emerald-500 rounded-2xl shadow-md p-6 md:p-7 mb-8 relative overflow-hidden">
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div class="flex items-start gap-4">
@@ -716,16 +719,56 @@
 
           <!-- 2 NÚT HÀNH ĐỘNG NẰM CẠNH NHAU (SIDE-BY-SIDE) -->
           <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap w-full lg:w-auto shrink-0 justify-end">
-            <!-- Nút 1: ĐÃ NHẬN ĐƯỢC HÀNG -->
-            <button type="button" onclick="openDeliveredModal()" class="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow flex items-center justify-center gap-2">
+            <!-- Nút 1: ĐÃ NHẬN ĐƯỢC HÀNG - CHỈ XUẤT HIỆN KHI ĐÃ GIAO TỚI TAY -->
+            <button type="button" onclick="openDeliveredModal()" class="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 cursor-pointer">
               <i data-lucide="check-circle" class="w-4 h-4"></i>
               <span>Đã Nhận Được Hàng</span>
             </button>
 
             <!-- Nút 2: HỦY HÀNG & HOÀN TIỀN -->
-            <button type="button" onclick="openRefundModal()" class="w-full sm:w-auto px-6 py-3 bg-white hover:bg-rose-50 border-2 border-rose-500 text-rose-700 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow flex items-center justify-center gap-2">
+            <button type="button" onclick="openRefundModal()" class="w-full sm:w-auto px-6 py-3 bg-white hover:bg-rose-50 border-2 border-rose-500 text-rose-700 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 cursor-pointer">
               <i data-lucide="hand-coins" class="w-4 h-4 text-rose-600"></i>
               <span>Hủy Hàng &amp; Hoàn Tiền</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    @elseif($isOrderShippingCallout && !$hasActiveReturn)
+      <!-- THÔNG BÁO BƯU TÁ ĐANG TRÊN ĐƯỜNG GIAO HÀNG (IN-TRANSIT - CHƯA GIAO TỚI TAY) -->
+      <div class="bg-gradient-to-r from-amber-50 via-white to-sky-50 border-2 border-amber-400 rounded-2xl shadow-sm p-6 md:p-7 mb-8 relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-neutral-950 flex items-center justify-center shrink-0 shadow-xs text-xl font-bold">
+              <i data-lucide="truck" class="w-6 h-6 animate-pulse"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 bg-amber-500 text-neutral-950 text-[11px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-neutral-950 animate-pulse"></span> BƯU TÁ ĐANG TRÊN ĐƯỜNG GIAO HÀNG
+                </span>
+                @if($currentOrder->tracking_code)
+                  <span class="px-2.5 py-0.5 bg-white border border-neutral-300 font-mono text-neutral-800 text-xs font-bold rounded-full">
+                    Mã vận đơn: {{ $currentOrder->tracking_code }}
+                  </span>
+                @endif
+              </div>
+              <h3 class="font-serif-luxury text-lg md:text-xl font-bold text-neutral-950 mb-1">
+                Kiện hàng đang được bưu tá chuyển phát đến địa chỉ của bạn
+              </h3>
+              <p class="text-neutral-700 text-xs leading-relaxed max-w-2xl font-normal">
+                Bưu tá <strong>{{ $currentOrder->shipping_carrier ?: 'Giao Hàng Tiết Kiệm (GHTK)' }}</strong> đang trên hành trình giao kiện hàng đến bạn. Quý khách vui lòng chú ý điện thoại để nhận hàng. Sau khi nhận kiện hàng, bạn có thể kiểm tra trang phục và bấm <strong>"Đã Nhận Được Hàng"</strong> hoặc gửi yêu cầu <strong>Hủy Hàng Hoàn Tiền / Đổi Size</strong> nếu cần.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap w-full lg:w-auto shrink-0 justify-end">
+            <a href="tel:0988123456" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1.5">
+              <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+              <span>Liên Hệ Bưu Tá</span>
+            </a>
+            <button type="button" onclick="toggleCheckpoints()" class="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-800 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-600"></i>
+              <span>Xem Lộ Trình</span>
             </button>
           </div>
         </div>
@@ -787,6 +830,168 @@
           <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i> Xử lý trong 24h làm việc
         </span>
       </div>
+    @elseif(in_array($currentOrder->shipping_status, ['pending', 'confirmed', 'processing']) && !$currentOrder->isPendingOnlinePayment())
+      <!-- THÔNG BÁO ĐƠN HÀNG ĐANG ĐƯỢC CHUẨN BỊ / ĐÓNG GÓI -->
+      <div class="bg-gradient-to-r from-amber-50 via-white to-sky-50 border-2 border-amber-400 rounded-2xl shadow-sm p-6 md:p-7 mb-8 relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-neutral-950 flex items-center justify-center shrink-0 shadow-xs text-xl font-bold">
+              <i data-lucide="package-search" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span class="px-2.5 py-0.5 bg-amber-500 text-neutral-950 text-[11px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-neutral-950 animate-pulse"></span>
+                  {{ $currentOrder->shipping_status === 'processing' ? 'KHO ĐANG ĐÓNG GÓI KIỆN HÀNG' : 'ĐƠN HÀNG ĐÃ ĐƯỢC TIẾP NHẬN' }}
+                </span>
+                @if($currentOrder->tracking_code)
+                  <span class="px-2.5 py-0.5 bg-white border border-neutral-300 font-mono text-neutral-800 text-xs font-bold rounded-full">
+                    Mã vận đơn bưu tá: {{ $currentOrder->tracking_code }}
+                  </span>
+                @endif
+              </div>
+              <h3 class="font-serif-luxury text-lg md:text-xl font-bold text-neutral-950 mb-1">
+                @if($currentOrder->payment_status === 'deposit_paid' || ($currentOrder->is_deposit_required && $currentOrder->deposit_status === 'paid'))
+                  Đã nhận tiền cọc 50% ({{ number_format($currentOrder->deposit_amount ?: round($currentOrder->total_amount * 0.5), 0, ',', '.') }}₫) • Kho đang đóng gói
+                @elseif($currentOrder->payment_status === 'paid')
+                  Đã thanh toán trọn gói 100% online • Kho đang hoàn thiện kiện hàng
+                @else
+                  Đơn hàng COD đang được kho chuẩn bị đóng gói &amp; phân loại
+                @endif
+              </h3>
+              <p class="text-neutral-700 text-xs leading-relaxed max-w-2xl font-normal">
+                @if($currentOrder->payment_status === 'deposit_paid' || ($currentOrder->is_deposit_required && $currentOrder->deposit_status === 'paid'))
+                  Quý khách đã đặt cọc trước 50% thành công. Số tiền 50% còn lại (<strong class="text-rose-600 font-mono font-bold">{{ number_format($currentOrder->remaining_amount ?: ($currentOrder->total_amount - $currentOrder->deposit_amount), 0, ',', '.') }}₫</strong>) sẽ thanh toán tiền mặt cho bưu tá khi nhận kiện hàng.
+                @elseif($currentOrder->payment_status === 'paid')
+                  Đơn hàng đã được thanh toán trọn gói 100%. Khi bưu tá phát hàng đến nơi, bạn chỉ cần đồng kiểm và nhận hàng (không thu thêm tiền mặt).
+                @else
+                  Kiện hàng sẽ sớm được bàn giao cho đơn vị vận chuyển <strong>{{ $currentOrder->shipping_carrier ?: 'GHTK' }}</strong>.
+                @endif
+              </p>
+            </div>
+          </div>
+
+          <!-- Nút thao tác: Hủy Đơn Hàng -->
+          <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap w-full lg:w-auto shrink-0 justify-end">
+            @if($currentOrder->canRequestRefundByCustomer() || $currentOrder->canBeCancelledByCustomer())
+              <button type="button" onclick="openCancelModal()" class="w-full sm:w-auto px-6 py-3 bg-white hover:bg-rose-50 border-2 border-rose-500 text-rose-700 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-xs hover:shadow flex items-center justify-center gap-2 cursor-pointer">
+                <i data-lucide="rotate-ccw" class="w-4 h-4 text-rose-600"></i>
+                <span>{{ in_array(strtoupper((string)$currentOrder->payment_status), ['PAID', 'DEPOSIT_PAID']) ? 'Hủy Hàng Hoàn Tiền' : 'Hủy Đơn Hàng' }}</span>
+              </button>
+            @endif
+          </div>
+        </div>
+      </div>
+    @endif
+
+    @if($currentOrder->isPendingOnlinePayment())
+      <!-- THÔNG BÁO ĐƠN HÀNG CHỜ THANH TOÁN ONLINE (CÓ BỘ ĐẾM NGƯỢC 15 PHÚT) -->
+      <div class="bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-2 border-amber-400 p-5 md:p-6 rounded-2xl shadow-md mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500 text-neutral-950 flex items-center justify-center shrink-0 shadow-sm animate-pulse">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+              <strong class="text-neutral-950 font-bold text-base">Đơn Hàng Đang Ở Trạng Thái Chờ Thanh Toán Online</strong>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-900 font-mono">
+                {{ $currentOrder->payment_method_name }}
+              </span>
+            </div>
+            <p class="text-neutral-700 text-xs leading-relaxed">
+              Giao dịch của bạn chưa hoàn tất hoặc bạn vừa quay lại từ cổng thanh toán. Đơn hàng đang ở trạng thái chờ để bạn hoàn tất thanh toán. Thời gian chờ thanh toán là <strong>15 phút</strong>, nếu quá thời hạn này đơn hàng sẽ tự động hủy và hoàn trả tồn kho.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0 flex-wrap w-full md:w-auto justify-end">
+          <div class="text-center px-4 py-2 bg-neutral-950 text-white rounded-xl shadow-inner border border-neutral-800 min-w-[120px]">
+            <span class="text-[10px] text-amber-300 uppercase tracking-wider block font-semibold">Tự động hủy sau</span>
+            <span id="onlinePaymentCountdown" class="text-xl font-mono font-bold text-amber-400" data-remaining="{{ $currentOrder->online_payment_remaining_seconds }}">
+              --:--
+            </span>
+          </div>
+          @php
+            $payUrl = match($currentOrder->payment_method) {
+              'momo' => route('client.checkout.momo', $currentOrder->order_code),
+              'vnpay' => route('client.checkout.vnpay', $currentOrder->order_code),
+              'online' => route('client.checkout.online', $currentOrder->order_code),
+              default => route('client.checkout.online', $currentOrder->order_code),
+            };
+          @endphp
+          <a href="{{ $payUrl }}" class="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+            <i data-lucide="credit-card" class="w-4 h-4"></i>
+            <span>Thanh Toán Ngay ({{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫)</span>
+          </a>
+          @if(Auth::check() && Auth::id() === $currentOrder->user_id)
+            <button type="button" onclick="openCancelModal()" class="px-4 py-3 bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-700 rounded-xl text-xs font-bold transition-all">
+              Hủy Đơn
+            </button>
+          @endif
+        </div>
+      </div>
+    @elseif($currentOrder->payment_status === 'refunded')
+      <!-- THÔNG BÁO ĐƠN HÀNG ĐÃ HOÀN TIỀN THÀNH CÔNG -->
+      <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-400 p-5 rounded-2xl shadow-sm mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <strong class="text-emerald-950 font-bold block text-base">Đơn Hàng Đã Hoàn Tiền Thành Công</strong>
+              <span class="px-2.5 py-0.5 bg-emerald-200 text-emerald-900 rounded-full font-bold text-[10px] font-mono">ĐÃ QUYẾT TOÁN</span>
+            </div>
+            <p class="text-emerald-800 text-xs leading-relaxed">
+              Quản trị viên đã duyệt và chuyển khoản hoàn tiền thành công số tiền <strong>{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</strong> về tài khoản ngân hàng của bạn.
+            </p>
+          </div>
+        </div>
+        <a href="{{ route('client.products.index') }}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors shrink-0 shadow-xs flex items-center gap-1.5">
+          <i data-lucide="shopping-bag" class="w-4 h-4"></i> Mua Sắm Tiếp
+        </a>
+      </div>
+    @elseif($currentOrder->payment_status === 'refund_pending')
+      <!-- THÔNG BÁO ĐANG CHỜ DUYỆT HOÀN TIỀN -->
+      <div class="bg-amber-50 border-2 border-amber-300 p-5 rounded-2xl shadow-xs mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <strong class="text-amber-950 font-bold block text-base">Đang Chờ Admin Duyệt Chuyển Khoản Hoàn Tiền</strong>
+              <span class="px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full font-bold text-[10px] font-mono">CHỜ DUYỆT</span>
+            </div>
+            <p class="text-amber-800 text-xs leading-relaxed">
+              Yêu cầu hoàn tiền số tiền <strong>{{ number_format($currentOrder->total_amount, 0, ',', '.') }}₫</strong> của bạn đã được tiếp nhận và đang được xử lý. Số tiền sẽ được chuyển khoản trực tiếp vào tài khoản ngân hàng của bạn ngay khi Admin duyệt.
+            </p>
+          </div>
+        </div>
+      </div>
+    @elseif($currentOrder->shipping_status === 'cancelled')
+      <!-- THÔNG BÁO ĐƠN HÀNG ĐÃ HỦY -->
+      <div class="bg-rose-50 border-l-4 border-rose-500 p-5 rounded-2xl shadow-2xs mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+            <i data-lucide="ban" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <strong class="text-rose-950 font-bold block text-sm">Đơn Hàng Đã Hủy</strong>
+              @if(str_contains(strtolower($currentOrder->cancel_reason ?? ''), '15 phút') || str_contains(strtolower($currentOrder->cancel_reason ?? ''), 'quá thời gian'))
+                <span class="px-2 py-0.5 bg-rose-200 text-rose-800 rounded font-bold text-[10px]">Tự động hủy do hết 15 phút thanh toán</span>
+              @endif
+            </div>
+            <p class="text-neutral-700 text-xs">
+              Lý do: <strong class="text-rose-700">{{ $currentOrder->cancel_reason ?: 'Đã hủy theo yêu cầu' }}</strong>
+              {{ $currentOrder->cancelled_at ? ' • Lúc ' . $currentOrder->cancelled_at->format('H:i, d/m/Y') : '' }}
+            </p>
+          </div>
+        </div>
+        <a href="{{ route('client.products.index') }}" class="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl transition-colors shrink-0">
+          Mua Sắm Tiếp
+        </a>
+      </div>
     @endif
 
     <!-- ========================================================================= -->
@@ -798,21 +1003,71 @@
           <span class="text-xs tracking-widest text-amber-800 uppercase font-mono font-bold">MÃ ĐƠN HÀNG #{{ $currentOrder->order_code }}</span>
           <h3 class="font-serif-luxury text-xl font-bold text-neutral-900 mt-0.5">Tiến Độ Xử Lý &amp; Vận Chuyển</h3>
         </div>
+        @php
+          $isOtCancelled = ($currentOrder->shipping_status === 'cancelled');
+          $isOtCompleted = ($currentOrder->shipping_status === 'completed' || ($currentOrder->status_step ?? 1) >= 6);
+          $isOtJustDelivered = !$isOtCancelled && !$isOtCompleted && ($currentOrder->shipping_status === 'delivered' || ($currentOrder->status_step ?? 1) == 5);
+          $isOtShipping = !$isOtCancelled && !$isOtCompleted && !$isOtJustDelivered && ($currentOrder->shipping_status === 'shipping' || (($currentOrder->status_step ?? 1) == 4) || !empty($currentOrder->shipper_id));
+          $isOtPreShipping = !$isOtCancelled && !$isOtCompleted && !$isOtJustDelivered && !$isOtShipping && in_array($currentOrder->shipping_status, ['pending', 'confirmed', 'processing']);
+          $isOtPrePaid = in_array(strtoupper((string)$currentOrder->payment_status), ['PAID', 'DEPOSIT_PAID']);
+        @endphp
+
         <div class="flex items-center gap-2 flex-wrap">
-          @if(in_array($currentOrder->shipping_status, ['shipping', 'delivered']) || in_array($currentOrder->status_step, [4, 5]))
-            <button type="button" onclick="openDeliveredModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
+          <!-- 1. ĐƠN ĐANG TRÊN ĐƯỜNG GIAO HÀNG (SHIPPER ĐANG GIAO - CHƯA TỚI TAY KHÁCH) -->
+          @if($isOtShipping)
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs font-semibold shadow-2xs" title="Bưu tá đang phát kiện hàng đến bạn. Khi nhận hàng xong bạn có thể bấm Đã Nhận Được Hàng hoặc Hủy / Đổi Trả.">
+              <i data-lucide="truck" class="w-3.5 h-3.5 text-amber-600 animate-pulse"></i>
+              <span>Bưu tá đang trên đường giao hàng đến bạn</span>
+            </span>
+          @endif
+
+          <!-- 2. ĐƠN ĐÃ GIAO ĐẾN TAY KHÁCH (DELIVERED) -->
+          @if($isOtJustDelivered)
+            <!-- Nút Đã Nhận Được Hàng CHỈ XUẤT HIỆN KHI ĐƠN HÀNG ĐÃ GIAO TỚI TAY KHÁCH HÀNG -->
+            <button type="button" onclick="openDeliveredModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
               <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
               <span>Đã Nhận Được Hàng</span>
             </button>
-            <button type="button" onclick="openRejectModal()" class="px-4 py-2 border border-rose-500 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-              <i data-lucide="truck" class="w-3.5 h-3.5"></i>
-              <span>Không Nhận Hàng</span>
+            <button type="button" onclick="openRefundModal()" class="px-4 py-2 border-2 border-rose-500 bg-white hover:bg-rose-50 text-rose-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Yêu cầu trả hàng và hoàn tiền">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i>
+              <span>Hủy Hàng Hoàn Tiền</span>
             </button>
           @endif
-          @if($currentOrder->canBeCancelledByCustomer())
-            <button type="button" onclick="openCancelModal()" class="px-4 py-2 border border-neutral-300 text-neutral-700 hover:text-rose-600 hover:border-rose-300 rounded-xl text-xs font-bold transition-all">
-              Hủy Đơn
+
+          <!-- 3. ĐƠN ĐÃ HOÀN TẤT (COMPLETED - ĐÃ NHẬN HÀNG XONG) -->
+          @if($isOtCompleted)
+            <button type="button" onclick="openRefundModal()" class="px-4 py-2 border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer" title="Yêu cầu trả hàng và hoàn tiền">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-neutral-600"></i>
+              <span>Hủy Hàng Hoàn Tiền</span>
             </button>
+          @endif
+
+          <!-- 4. ĐƠN CHUẨN BỊ TẠI KHO (CHƯA GIAO SHIPPER) -->
+          @if($isOtPreShipping)
+            <button type="button" onclick="openCancelModal()" class="px-4 py-2 border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i>
+              <span>{{ $isOtPrePaid ? 'Hủy Hàng Hoàn Tiền' : 'Hủy Đơn Hàng' }}</span>
+            </button>
+          @endif
+
+          <!-- 5. ĐƠN ĐÃ HỦY / HOÀN TIỀN -->
+          @if($isOtCancelled)
+            @if($currentOrder->payment_status === 'refunded')
+              <span class="px-3.5 py-1.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Đã Hoàn Tiền Thành Công</span>
+              </span>
+            @elseif($currentOrder->payment_status === 'refund_pending')
+              <span class="px-3.5 py-1.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span>Chờ Duyệt Hoàn Tiền</span>
+              </span>
+            @else
+              <span class="px-3.5 py-1.5 bg-neutral-100 border border-neutral-300 text-neutral-700 rounded-xl text-xs font-medium flex items-center gap-1.5 shadow-2xs">
+                <i data-lucide="ban" class="w-3.5 h-3.5 text-neutral-400"></i>
+                <span>Đã Hủy Đơn</span>
+              </span>
+            @endif
           @endif
         </div>
       </div>
@@ -978,7 +1233,7 @@
       </div>
     </div>
 
-    <!-- MODAL 2: YÊU CẦU HỦY HÀNG & HOÀN TIỀN / ĐỔI TRẢ (THUẦN TAILWIND) -->
+    <!-- MODAL 2: YÊU CẦU HỦY ĐƠN & HOÀN TIỀN / ĐỔI TRẢ (THUẦN TAILWIND) -->
     <div id="modalRequestRefund" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden overflow-y-auto">
       <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden my-8 max-h-[90vh] flex flex-col">
         <form action="{{ route('client.order-tracking.request-refund', $currentOrder->order_code) }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-grow overflow-hidden">
@@ -986,9 +1241,9 @@
           
           <div class="flex items-center justify-between p-5 border-b border-neutral-200 bg-neutral-50 shrink-0">
             <div>
-              <h3 class="font-serif-luxury text-lg md:text-xl font-bold text-rose-700 flex items-center gap-2">
+              <h3 class="font-serif-luxury text-lg md:text-xl font-bold text-neutral-900 flex items-center gap-2">
                 <i data-lucide="hand-coins" class="w-5 h-5 text-rose-600"></i>
-                <span>Yêu Cầu Hủy Hàng, Đổi Hàng &amp; Hoàn Tiền</span>
+                <span>Yêu Cầu Hủy Đơn, Đổi Trả &amp; Hoàn Tiền (RMA)</span>
               </h3>
               <span class="text-neutral-600 text-xs mt-0.5 block">Đơn hàng <strong class="font-mono text-neutral-900">#{{ $currentOrder->order_code }}</strong> • CSKH BeeStyle hỗ trợ 24/7</span>
             </div>
@@ -1000,71 +1255,96 @@
           <div class="p-6 text-xs text-neutral-800 space-y-4 overflow-y-auto">
             <!-- HỘP THÔNG TIN SỐ TIỀN HOÀN DỰ KIẾN -->
             @php
-              $estRefund = $currentOrder->is_deposit_required && $currentOrder->payment_status === 'deposit_paid' ? $currentOrder->deposit_amount : $currentOrder->total_amount;
+              $isDepositTrackingOrder = ($currentOrder->is_deposit_required && $currentOrder->payment_status === 'deposit_paid');
+              $estRefund = $isDepositTrackingOrder ? $currentOrder->deposit_amount : $currentOrder->total_amount;
             @endphp
-            <div class="p-4 rounded-xl bg-gradient-to-r from-rose-50 to-white border border-rose-200 flex items-center justify-between flex-wrap gap-3">
+            <div class="p-4 rounded-xl bg-gradient-to-r from-amber-50/80 via-white to-rose-50/70 border border-amber-300 flex items-center justify-between flex-wrap gap-3 shadow-2xs">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <i data-lucide="banknote" class="w-5 h-5"></i>
                 </div>
                 <div>
                   <span class="text-neutral-600 text-xs block font-medium">Số tiền dự kiến hoàn trả:</span>
-                  <strong class="text-xl font-mono text-rose-600 font-bold">{{ number_format($estRefund, 0, ',', '.') }}₫</strong>
+                  <strong id="trackingRefundAmountDisplay" class="text-xl font-mono text-rose-600 font-bold">{{ number_format($estRefund, 0, ',', '.') }}₫</strong>
                 </div>
               </div>
               <div class="text-right">
-                <span class="px-3 py-1 bg-white border border-neutral-300 rounded-full font-bold text-neutral-800 text-xs">
+                <span class="px-3 py-1 bg-white border border-neutral-300 rounded-full font-bold text-neutral-800 text-xs shadow-2xs">
                   {{ $currentOrder->payment_status_label }}
                 </span>
-                <span class="text-neutral-500 text-[11px] block mt-1">Hoàn tiền 100% trong 24h làm việc</span>
+                <span class="text-neutral-500 text-[11px] block mt-1">Chuyển khoản trực tiếp trong 24h làm việc</span>
               </div>
             </div>
 
-            <!-- HÌNH THỨC YÊU CẦU -->
+            <!-- 1. CHỌN SẢN PHẨM CẦN ĐỔI TRẢ / HOÀN TIỀN -->
             <div>
-              <label class="block font-bold text-neutral-900 text-xs mb-2">Hình thức bạn mong muốn <span class="text-rose-600">*</span></label>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <label class="p-3 rounded-xl border-2 border-neutral-300 bg-neutral-50 cursor-pointer hover:border-neutral-900 transition-colors flex items-start gap-2">
+              <div class="flex justify-between items-center mb-2">
+                <label class="block font-bold text-neutral-900 text-xs">1. Chọn Sản Phẩm Cần Đổi Trả / Hoàn Tiền <span class="text-rose-600">*</span></label>
+                <span id="trackingSelectedItemBadge" class="text-[10px] font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">
+                  {{ $currentOrder->items->count() > 1 ? 'Toàn bộ đơn hàng' : $currentOrder->items->first()->product_name }}
+                </span>
+              </div>
+              <div id="trackingOrderItemsList" class="space-y-2 max-h-52 overflow-y-auto p-1.5 border border-neutral-200 rounded-xl bg-neutral-50/60">
+                @if($currentOrder->items->count() > 1)
+                  <label class="tracking-item-label p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-amber-50/80 border-amber-300 ring-1 ring-amber-300 shadow-2xs">
+                    <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                      <input type="radio" name="order_item_id" value="" checked onchange="handleTrackingItemSelected(this, 'Toàn bộ đơn hàng', {{ $estRefund }})" class="accent-neutral-950 shrink-0">
+                      <div class="w-10 h-10 rounded-lg bg-neutral-200 text-neutral-700 flex items-center justify-center shrink-0">
+                        <i data-lucide="package" class="w-5 h-5"></i>
+                      </div>
+                      <div class="min-w-0">
+                        <strong class="text-xs text-neutral-950 block font-bold">Toàn bộ đơn hàng ({{ $currentOrder->items->count() }} sản phẩm)</strong>
+                        <span class="text-[11px] text-neutral-600">Yêu cầu hoàn trả cho tất cả các món trong đơn #{{ $currentOrder->order_code }}</span>
+                      </div>
+                    </div>
+                    <span class="font-bold font-mono text-neutral-900 shrink-0 ml-2">{{ number_format($estRefund, 0, ',', '.') }}₫</span>
+                  </label>
+                @endif
+
+                @foreach($currentOrder->items as $idx => $item)
+                  @php
+                    $itemRawSubtotal = $item->subtotal ?? ($item->price * $item->quantity);
+                    $itemSubtotal = $isDepositTrackingOrder ? round($itemRawSubtotal * 0.5) : $itemRawSubtotal;
+                    if ($isDepositTrackingOrder && $itemSubtotal > $currentOrder->deposit_amount) {
+                      $itemSubtotal = $currentOrder->deposit_amount;
+                    }
+                    $isChecked = ($currentOrder->items->count() === 1);
+                  @endphp
+                  <label class="tracking-item-label p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all {{ $isChecked ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300 shadow-2xs' : 'bg-white border-neutral-200 hover:border-neutral-300' }}">
+                    <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                      <input type="radio" name="order_item_id" value="{{ $item->id }}" class="accent-neutral-950 shrink-0" {{ $isChecked ? 'checked' : '' }} onchange="handleTrackingItemSelected(this, '{{ addslashes($item->product_name) }}', {{ $itemSubtotal }})">
+                      <img src="{{ asset($item->product->primaryImage->image_path ?? $item->product->thumbnail ?? 'assets/img/products/1.png') }}" alt="{{ $item->product_name }}" class="w-11 h-13 rounded-lg object-cover border border-neutral-200 shrink-0">
+                      <div class="min-w-0">
+                        <strong class="block text-neutral-950 text-xs font-bold truncate">{{ $item->product_name }} ({{ number_format($itemSubtotal, 0, ',', '.') }}₫)</strong>
+                        <span class="text-neutral-600 text-[11px] block mt-0.5">
+                          Màu: <strong class="text-neutral-900">{{ $item->color ?? 'Chuẩn' }}</strong> | Size: <strong class="text-neutral-900">{{ $item->size ?? 'M' }}</strong> • SL: <strong class="text-neutral-900">x{{ $item->quantity }}</strong>
+                        </span>
+                      </div>
+                    </div>
+                    <span class="font-bold font-mono text-neutral-900 shrink-0 ml-2">{{ number_format($itemSubtotal, 0, ',', '.') }}₫</span>
+                  </label>
+                @endforeach
+              </div>
+            </div>
+
+            <!-- 2. HÌNH THỨC MONG MUỐN -->
+            <div>
+              <label class="block font-bold text-neutral-900 text-xs mb-2">2. Hình Thức Mong Muốn <span class="text-rose-600">*</span></label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <label class="p-3 rounded-xl border-2 border-neutral-300 bg-neutral-50 cursor-pointer hover:border-neutral-900 transition-colors flex items-start gap-2.5">
                   <input type="radio" name="type" value="return_refund" class="mt-0.5 accent-neutral-950" checked>
                   <div>
-                    <strong class="block text-neutral-950 text-xs font-bold">Trả Hàng Hoàn Tiền</strong>
-                    <span class="text-neutral-600 text-[11px]">Chuyển hoàn kiện &amp; nhận lại tiền</span>
+                    <strong class="block text-neutral-950 text-xs font-bold">Trả Hàng &amp; Hoàn Tiền</strong>
+                    <span class="text-neutral-600 text-[11px]">Hủy đơn/chuyển hoàn và nhận lại tiền qua tài khoản ngân hàng</span>
                   </div>
                 </label>
-                <label class="p-3 rounded-xl border-2 border-neutral-300 bg-neutral-50 cursor-pointer hover:border-neutral-900 transition-colors flex items-start gap-2">
-                  <input type="radio" name="type" value="refund_only" class="mt-0.5 accent-neutral-950">
-                  <div>
-                    <strong class="block text-neutral-950 text-xs font-bold">Từ Chối Nhận Ngay</strong>
-                    <span class="text-neutral-600 text-[11px]">Bưu tá chuyển hoàn về kho shop</span>
-                  </div>
-                </label>
-                <label class="p-3 rounded-xl border-2 border-neutral-300 bg-neutral-50 cursor-pointer hover:border-neutral-900 transition-colors flex items-start gap-2">
+                <label class="p-3 rounded-xl border-2 border-neutral-300 bg-neutral-50 cursor-pointer hover:border-neutral-900 transition-colors flex items-start gap-2.5">
                   <input type="radio" name="type" value="exchange" class="mt-0.5 accent-neutral-950">
                   <div>
                     <strong class="block text-neutral-950 text-xs font-bold">Đổi Size / Đổi Màu</strong>
-                    <span class="text-neutral-600 text-[11px]">Shop gửi đổi sản phẩm vừa vặn</span>
+                    <span class="text-neutral-600 text-[11px]">Shop đổi sang kích cỡ hoặc màu sắc vừa vặn hơn</span>
                   </div>
                 </label>
-              </div>
-            </div>
-
-            <!-- CHỌN SẢN PHẨM CẦN HỖ TRỢ TRONG ĐƠN -->
-            <div>
-              <label class="block font-bold text-neutral-900 text-xs mb-2">Sản phẩm cần hỗ trợ trong đơn <span class="text-rose-600">*</span></label>
-              <div class="space-y-2 max-h-40 overflow-y-auto p-1 border border-neutral-200 rounded-xl bg-neutral-50">
-                @foreach($currentOrder->items as $idx => $item)
-                  <label class="flex items-center justify-between p-2.5 rounded-lg border border-neutral-200 bg-white cursor-pointer hover:border-neutral-400 transition-colors">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                      <input type="radio" name="order_item_id" value="{{ $item->id }}" class="accent-neutral-950 shrink-0" {{ $loop->first ? 'checked' : '' }}>
-                      <img src="{{ asset($item->product->primaryImage->image_path ?? $item->product->thumbnail ?? 'assets/img/products/1.png') }}" alt="{{ $item->product_name }}" class="w-10 h-10 rounded object-cover border border-neutral-200 shrink-0">
-                      <div class="min-w-0">
-                        <strong class="block text-neutral-950 text-xs font-bold truncate">{{ $item->product_name }}</strong>
-                        <span class="text-neutral-600 text-[11px]">Màu: {{ $item->color ?? 'Mặc định' }} | Size: <strong class="text-neutral-900 font-bold">{{ $item->size ?? 'M' }}</strong> • SL: x{{ $item->quantity }}</span>
-                      </div>
-                    </div>
-                    <span class="font-bold font-mono text-neutral-900 shrink-0 ml-2">{{ number_format($item->subtotal ?? ($item->price * $item->quantity), 0, ',', '.') }}₫</span>
-                  </label>
-                @endforeach
               </div>
             </div>
 
@@ -1096,49 +1376,109 @@
               </div>
             </div>
 
-            <!-- LÝ DO HỦY HOÀN TIỀN -->
+            <!-- 3. LÝ DO ĐỔI TRẢ -->
             <div>
-              <label class="block font-bold text-neutral-900 text-xs mb-1">Lý do yêu cầu đổi trả / hoàn tiền <span class="text-rose-600">*</span></label>
+              <label class="block font-bold text-neutral-900 text-xs mb-1">3. Lý Do Đổi Trả *</label>
               <select name="reason" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-medium focus:outline-none focus:border-neutral-950" required>
-                <option value="" selected disabled>-- Vui lòng chọn lý do chi tiết --</option>
-                <option value="Tôi mặc thử không vừa kích cỡ (cần hỗ trợ đổi size hoặc hoàn tiền)">Tôi mặc thử không vừa kích cỡ (cần hỗ trợ đổi size hoặc hoàn tiền)</option>
-                <option value="Muốn đổi sang màu sắc hoặc mẫu mã khác hợp phong cách hơn">Muốn đổi sang màu sắc hoặc mẫu mã khác hợp phong cách hơn</option>
-                <option value="Sản phẩm bị lỗi may mặc, sờn rách, phai màu hoặc hư hỏng">Sản phẩm bị lỗi may mặc, sờn rách, phai màu hoặc hư hỏng</option>
-                <option value="Bưu tá giao sai mẫu mã, sai màu sắc hoặc kích cỡ so với đơn đặt">Bưu tá giao sai mẫu mã, sai màu sắc hoặc kích cỡ so với đơn đặt</option>
-                <option value="Sản phẩm không đúng với hình ảnh / mô tả quảng cáo">Sản phẩm không đúng với hình ảnh / mô tả quảng cáo trên web</option>
-                <option value="Hộp/Thùng hàng bị móp méo, rách vỡ, mất niêm phong bưu tá">Hộp/Thùng hàng bị móp méo, rách vỡ, mất niêm phong bưu tá</option>
-                <option value="Thời gian giao hàng quá trễ, tôi không còn nhu cầu mua nữa">Thời gian giao hàng quá trễ, tôi không còn nhu cầu mua nữa</option>
-                <option value="Lý do khác">Lý do khác (chi tiết trong phần ghi chú)</option>
+                <option value="" selected disabled>-- Chọn lý do đổi trả --</option>
+                <option value="Tôi đổi ý, không có nhu cầu mua sản phẩm này nữa">Tôi đổi ý, không có nhu cầu mua sản phẩm này nữa</option>
+                <option value="Tôi muốn thay đổi thông tin người nhận / địa chỉ giao hàng">Tôi muốn thay đổi thông tin người nhận / địa chỉ giao hàng</option>
+                <option value="Tôi đặt nhầm kích cỡ / màu sắc (muốn đổi size/màu hoặc hoàn tiền)">Tôi đặt nhầm kích cỡ / màu sắc (muốn đổi size/màu hoặc hoàn tiền)</option>
+                <option value="Tôi mặc thử không vừa kích cỡ (cần hỗ trợ đổi size khác)">Tôi mặc thử không vừa kích cỡ (cần hỗ trợ đổi size khác)</option>
+                <option value="Tôi tìm thấy giá tốt hơn hoặc sản phẩm khác phù hợp hơn">Tôi tìm thấy giá tốt hơn hoặc sản phẩm khác phù hợp hơn</option>
+                <option value="Thời gian giao hàng quá lâu, không còn nhu cầu mua nữa">Thời gian giao hàng quá lâu, không còn nhu cầu mua nữa</option>
+                <option value="Đặt trùng đơn hàng (đã tạo 2 đơn giống nhau)">Đặt trùng đơn hàng (đã tạo 2 đơn giống nhau)</option>
+                <option value="Sản phẩm bị lỗi may mặc, sờn rách, bung chỉ hoặc phai màu">Sản phẩm bị lỗi may mặc, sờn rách, bung chỉ hoặc phai màu</option>
+                <option value="Bưu tá giao sai mẫu mã, sai màu hoặc size so với đơn đặt">Bưu tá giao sai mẫu mã, sai màu hoặc size so với đơn đặt</option>
+                <option value="Sản phẩm không đúng với hình ảnh / mô tả quảng cáo trên website">Sản phẩm không đúng với hình ảnh / mô tả quảng cáo trên website</option>
+                <option value="Lý do khác">Lý do khác (chi tiết trong phần ghi chú bên dưới)</option>
               </select>
             </div>
 
-            <!-- THÔNG TIN TÀI KHOẢN NHẬN TIỀN HOÀN -->
-            <div id="trackingBankSection" class="p-4 rounded-xl bg-neutral-50 border border-neutral-300 space-y-3">
-              <div class="flex items-center justify-between">
-                <label class="font-bold text-neutral-950 text-xs flex items-center gap-1.5">
-                  <i data-lucide="landmark" class="w-4 h-4 text-sky-700"></i>
-                  <span>Thông tin tài khoản nhận tiền hoàn:</span>
-                </label>
-                <span class="text-neutral-500 text-[11px] font-medium">Chuyển khoản 24/7</span>
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <input type="text" name="bank_name" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-medium focus:outline-none focus:border-neutral-950" placeholder="Tên Ngân Hàng (VD: Techcombank, Vietcombank, MB...)">
-                <input type="text" name="bank_account_number" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs font-mono text-neutral-900 font-bold focus:outline-none focus:border-neutral-950" placeholder="Số Tài Khoản Ngân Hàng...">
-                <div class="sm:col-span-2">
-                  <input type="text" name="bank_account_name" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs uppercase font-bold text-neutral-900 focus:outline-none focus:border-neutral-950" placeholder="Họ Tên Chủ Tài Khoản (Không dấu)...">
-                </div>
-              </div>
+            <!-- 4. GHI CHÚ CHI TIẾT (TÙY CHỌN) -->
+            <div>
+              <label class="block font-bold text-neutral-900 text-xs mb-1">4. Ghi Chú Chi Tiết (Tùy chọn)</label>
+              <textarea name="customer_notes" rows="2" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-normal focus:outline-none focus:border-neutral-950" placeholder="Ghi chú thêm về thời gian thuận tiện hoặc tình trạng kiện hàng..."></textarea>
             </div>
 
-            <!-- GHI CHÚ BỔ SUNG -->
-            <div>
-              <label class="block font-bold text-neutral-900 text-xs mb-1">Ghi chú bổ sung (tùy chọn):</label>
-              <textarea name="customer_notes" rows="2" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-normal focus:outline-none focus:border-neutral-950" placeholder="Ghi chú thêm về thời gian thuận tiện nhận hàng hoàn hoặc phản ánh chất lượng..."></textarea>
+            <!-- THÔNG TIN NHẬN TIỀN HOÀN -->
+            <div id="trackingBankSection" class="p-4 rounded-xl bg-amber-50/70 border border-amber-300 space-y-3.5 shadow-2xs">
+              <div class="flex items-center justify-between pb-1 border-b border-amber-200">
+                <span class="font-bold text-neutral-900 uppercase text-xs flex items-center gap-1.5">
+                  <i data-lucide="landmark" class="w-4 h-4 text-amber-700"></i>
+                  <span>Thông Tin Nhận Tiền Hoàn: <span class="text-rose-600">*</span></span>
+                </span>
+                <span class="text-[10px] text-amber-900 font-semibold bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">NAPAS 24/7</span>
+              </div>
+              <p class="text-[11px] text-neutral-600 leading-tight">
+                Số tiền hoàn sẽ được chuyển khoản trực tiếp vào tài khoản ngân hàng của bạn sau khi yêu cầu được xác nhận.
+              </p>
+
+              <!-- Chọn Ngân Hàng Thụ Hưởng -->
+              <div>
+                <label class="block text-[11px] font-bold text-neutral-800 mb-1 flex items-center justify-between">
+                  <span>Ngân Hàng Thụ Hưởng <span class="text-rose-600">*</span></span>
+                  <span id="trackingSelectedBankBadge" class="text-[10px] font-semibold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-full">Chưa chọn ngân hàng</span>
+                </label>
+
+                <!-- Top 10 ngân hàng phổ biến (Click chọn ngay) -->
+                <div class="mb-2">
+                  <span class="text-[10px] text-neutral-500 block mb-1">Ngân hàng phổ biến (Click chọn nhanh):</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    @foreach(($vietnamBanks['Ngân hàng phổ biến nhất'] ?? []) as $qb)
+                      <button type="button" onclick="selectQuickBankTracking('{{ $qb['short_name'] }}')" data-bank-name="{{ $qb['short_name'] }}" class="quick-bank-btn-tracking px-2.5 py-1 text-[11px] font-semibold rounded-lg border border-neutral-200 bg-white hover:border-amber-400 hover:bg-amber-50 text-neutral-800 transition-all cursor-pointer shadow-2xs flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span>{{ $qb['short_name'] }}</span>
+                      </button>
+                    @endforeach
+                  </div>
+                </div>
+
+                <!-- Dropdown sổ đầy đủ ngân hàng -->
+                <select name="bank_name" id="trackingBankSelect" onchange="handleTrackingBankSelectChange(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-medium focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 shadow-2xs">
+                  <option value="" disabled selected>-- Chọn ngân hàng thụ hưởng --</option>
+                  @foreach(($vietnamBanks ?? []) as $groupName => $bankGroup)
+                    <optgroup label="{{ $groupName }}">
+                      @foreach($bankGroup as $b)
+                        <option value="{{ $b['short_name'] }}">{{ $b['full_name'] }}</option>
+                      @endforeach
+                    </optgroup>
+                  @endforeach
+                </select>
+              </div>
+
+              <!-- Số Tài Khoản Ngân Hàng -->
+              <div>
+                <label class="block text-[11px] font-bold text-neutral-800 mb-1">
+                  Số Tài Khoản Ngân Hàng <span class="text-rose-600">*</span>
+                </label>
+                <input type="text" inputmode="numeric" name="bank_account_number" id="trackingBankAccountNumber" placeholder="Nhập số tài khoản ngân hàng (chỉ gồm chữ số)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs font-mono font-bold tracking-wider text-neutral-900 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 shadow-2xs">
+              </div>
+
+              <!-- Tên Chủ Tài Khoản (VIẾT HOA KHÔNG DẤU) -->
+              <div>
+                <label class="block text-[11px] font-bold text-neutral-800 mb-1 flex items-center justify-between">
+                  <span>Tên Chủ Tài Khoản (Người Thụ Hưởng) <span class="text-rose-600">*</span></span>
+                  <span class="text-[10px] text-neutral-500 font-normal">VIẾT HOA KHÔNG DẤU</span>
+                </label>
+                <input type="text" name="bank_account_name" id="trackingBankAccountName" placeholder="Ví dụ: NGUYEN VAN A" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs uppercase font-bold text-neutral-900 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600 shadow-2xs">
+                <p class="text-[10px] text-neutral-500 mt-1 italic leading-tight">
+                  * Vui lòng nhập đúng họ tên in trên thẻ/tài khoản ngân hàng để hệ thống chuyển khoản chính xác.
+                </p>
+              </div>
+
+              <!-- Chi Nhánh Ngân Hàng -->
+              <div>
+                <label class="block text-[10px] font-semibold text-neutral-600 mb-0.5">
+                  Chi Nhánh Ngân Hàng (Tùy chọn)
+                </label>
+                <input type="text" name="bank_branch" id="trackingBankBranch" placeholder="Ví dụ: Chi nhánh Ba Đình, Hà Nội..." class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-800 focus:outline-none focus:border-neutral-900">
+              </div>
             </div>
 
             <!-- TẢI ẢNH MINH HỌA -->
             <div>
-              <label class="block font-bold text-neutral-900 text-xs mb-1">Ảnh hoặc Video minh chứng (Hỏng hóc, tem mác, nhầm mẫu - tối đa 5 tệp):</label>
+              <label class="block font-bold text-neutral-900 text-xs mb-1">Ảnh hoặc Video minh chứng (Hỏng hóc, tem mác, nhầm mẫu - tùy chọn, tối đa 5 tệp):</label>
               <input type="file" name="proof_images[]" multiple accept="image/*" class="text-xs text-neutral-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-neutral-200 file:text-neutral-800 hover:file:bg-neutral-300 cursor-pointer">
             </div>
           </div>
@@ -1147,7 +1487,7 @@
             <button type="button" onclick="closeRefundModal()" class="px-5 py-2.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 rounded-xl text-xs font-bold transition-colors">Hủy Bỏ</button>
             <button type="submit" id="btnSubmitTrackingRefund" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow transition-colors flex items-center gap-2">
               <i data-lucide="send" class="w-4 h-4"></i>
-              <span>Gửi Yêu Cầu Hủy Hàng &amp; Hoàn Tiền</span>
+              <span>Gửi Yêu Cầu Hoàn Tiền</span>
             </button>
           </div>
         </form>
@@ -1194,10 +1534,10 @@
     </div>
 
     <!-- MODAL 4: HỦY ĐƠN HÀNG DÀNH CHO KHÁCH -->
-    @if(Auth::check() && Auth::id() === $currentOrder->user_id && $currentOrder->canBeCancelledByCustomer())
+    @if((!Auth::check() || Auth::id() === $currentOrder->user_id || !$currentOrder->user_id) && $currentOrder->canBeCancelledByCustomer())
       <div id="cancelTrackingOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden">
-          <form action="{{ route('client.orders.cancel', $currentOrder->id) }}" method="POST">
+          <form action="{{ route('client.order-tracking.cancel', $currentOrder->order_code) }}" method="POST">
             @csrf
             <div class="flex items-center justify-between p-5 border-b border-neutral-200 bg-neutral-50">
               <h3 class="font-serif-luxury text-lg font-bold text-rose-700 flex items-center gap-2">
@@ -1370,7 +1710,7 @@
     });
   }
 
-  // Countdown timer 15 phút
+  // Countdown timer 15 phút (VietQR)
   let timeLeft = 15 * 60;
   const countdownEl = document.getElementById('vietqrCountdown');
   if (countdownEl) {
@@ -1387,6 +1727,41 @@
     }, 1000);
   }
 
+  // Bộ đếm ngược 15 phút cho đơn hàng Online đang Chờ thanh toán (MoMo, VNPAY, Online VietQR)
+  const onlineCountdownEl = document.getElementById('onlinePaymentCountdown');
+  if (onlineCountdownEl) {
+    let remaining = parseInt(onlineCountdownEl.getAttribute('data-remaining') || '0', 10);
+    if (remaining > 0) {
+      const updateOnlineTimer = () => {
+        if (remaining <= 0) {
+          clearInterval(onlineTimer);
+          onlineCountdownEl.textContent = '00:00 (Hết hạn)';
+          @if(isset($currentOrder) && $currentOrder)
+            fetch("{{ route('client.checkout.expire', $currentOrder->order_code) }}", {
+              method: 'POST',
+              headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            }).finally(() => {
+              window.location.reload();
+            });
+          @endif
+          return;
+        }
+        const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+        const s = (remaining % 60).toString().padStart(2, '0');
+        onlineCountdownEl.textContent = `${m}:${s}`;
+        remaining--;
+      };
+      updateOnlineTimer();
+      const onlineTimer = setInterval(updateOnlineTimer, 1000);
+    } else {
+      onlineCountdownEl.textContent = '00:00 (Hết hạn)';
+    }
+  }
+
   // Pure Tailwind Modal Handlers
   function openDeliveredModal() { document.getElementById('modalConfirmDelivered')?.classList.remove('hidden'); }
   function closeDeliveredModal() { document.getElementById('modalConfirmDelivered')?.classList.add('hidden'); }
@@ -1397,11 +1772,76 @@
   function openRejectModal() { document.getElementById('modalRejectDelivery')?.classList.remove('hidden'); }
   function closeRejectModal() { document.getElementById('modalRejectDelivery')?.classList.add('hidden'); }
 
-  function openCancelModal() { document.getElementById('cancelTrackingOrderModal')?.classList.remove('hidden'); }
+  function openCancelModal() {
+    @if($isOtShipping)
+      alert('Đơn hàng #{{ $currentOrder->order_code }} đang được bưu tá tiếp nhận và phát tận nơi. Để đảm bảo an toàn đơn hàng, quý khách vui lòng nhận kiện hàng và ấn "Hủy Hàng Hoàn Tiền" hoặc "Đổi Trả" sau khi nhận hàng.');
+      return;
+    @endif
+    document.getElementById('cancelTrackingOrderModal')?.classList.remove('hidden');
+  }
   function closeCancelModal() { document.getElementById('cancelTrackingOrderModal')?.classList.add('hidden'); }
 
   function openPodModal() { document.getElementById('clientPodModal')?.classList.remove('hidden'); }
   function closePodModal() { document.getElementById('clientPodModal')?.classList.add('hidden'); }
+
+  // Chọn ngân hàng nhanh (Top 10 ngân hàng phổ biến)
+  function selectQuickBankTracking(bankName) {
+    const select = document.getElementById('trackingBankSelect');
+    if (select) {
+      let found = false;
+      for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value === bankName || select.options[i].text.includes(bankName)) {
+          select.selectedIndex = i;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        select.value = bankName;
+      }
+      handleTrackingBankSelectChange(select.value || bankName);
+    }
+  }
+
+  // Thay đổi lựa chọn dropdown ngân hàng
+  function handleTrackingBankSelectChange(val) {
+    const badge = document.getElementById('trackingSelectedBankBadge');
+    if (badge) {
+      if (val) {
+        badge.textContent = val;
+        badge.className = 'text-[10px] font-bold text-amber-900 bg-amber-200 px-2 py-0.5 rounded-full border border-amber-300';
+      } else {
+        badge.textContent = 'Chưa chọn ngân hàng';
+        badge.className = 'text-[10px] font-semibold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-full';
+      }
+    }
+
+    // Highlight button in quick buttons
+    document.querySelectorAll('.quick-bank-btn-tracking').forEach(btn => {
+      if (btn.getAttribute('data-bank-name') === val) {
+        btn.className = 'quick-bank-btn-tracking px-2.5 py-1 text-[11px] font-bold rounded-lg border-2 border-amber-500 bg-amber-100 text-amber-950 transition-all cursor-pointer shadow-xs flex items-center gap-1 ring-1 ring-amber-400';
+      } else {
+        btn.className = 'quick-bank-btn-tracking px-2.5 py-1 text-[11px] font-semibold rounded-lg border border-neutral-200 bg-white hover:border-amber-400 hover:bg-amber-50 text-neutral-800 transition-all cursor-pointer shadow-2xs flex items-center gap-1';
+      }
+    });
+  }
+
+  // Chọn sản phẩm đổi trả / hoàn tiền
+  function handleTrackingItemSelected(radio, label, amount) {
+    const badge = document.getElementById('trackingSelectedItemBadge');
+    if (badge) {
+      badge.textContent = `${label} (${Number(amount).toLocaleString('vi-VN')}₫)`;
+    }
+    // Update active highlight on all item cards in the container
+    document.querySelectorAll('#trackingOrderItemsList label.tracking-item-label').forEach(lbl => {
+      const r = lbl.querySelector('input[type="radio"]');
+      if (r && r.checked) {
+        lbl.className = 'tracking-item-label p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-amber-50/80 border-amber-300 ring-1 ring-amber-300 shadow-2xs';
+      } else {
+        lbl.className = 'tracking-item-label p-2.5 border rounded-xl flex items-center justify-between cursor-pointer transition-all bg-white border-neutral-200 hover:border-neutral-300';
+      }
+    });
+  }
 
   // Đóng modal khi bấm phím ESC hoặc bấm ra ngoài nền mờ
   window.addEventListener('keydown', function (e) {
@@ -1440,6 +1880,37 @@
         if (typeof lucide !== 'undefined') lucide.createIcons();
       });
     });
+
+    // Validate form hoàn tiền
+    const refundForm = document.querySelector('#modalRequestRefund form');
+    if (refundForm) {
+      refundForm.addEventListener('submit', function(e) {
+        const type = document.querySelector('#modalRequestRefund input[name="type"]:checked')?.value;
+        if (type === 'return_refund') {
+          const bankSelect = document.getElementById('trackingBankSelect');
+          const bankAccNum = document.getElementById('trackingBankAccountNumber');
+          const bankAccName = document.getElementById('trackingBankAccountName');
+          if (!bankSelect || !bankSelect.value) {
+            e.preventDefault();
+            alert('Vui lòng chọn ngân hàng bạn mong muốn nhận tiền hoàn!');
+            bankSelect?.focus();
+            return false;
+          }
+          if (!bankAccNum || !bankAccNum.value.trim()) {
+            e.preventDefault();
+            alert('Vui lòng nhập số tài khoản ngân hàng để nhận tiền hoàn!');
+            bankAccNum?.focus();
+            return false;
+          }
+          if (!bankAccName || !bankAccName.value.trim()) {
+            e.preventDefault();
+            alert('Vui lòng nhập tên chủ tài khoản ngân hàng thụ hưởng (VIẾT HOA KHÔNG DẤU)!');
+            bankAccName?.focus();
+            return false;
+          }
+        }
+      });
+    }
 
     if (typeof lucide !== 'undefined') {
       lucide.createIcons();

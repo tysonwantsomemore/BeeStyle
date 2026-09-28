@@ -282,23 +282,31 @@
                       <span class="font-mono font-bold text-neutral-950 text-sm">#{{ $order->order_code }}</span>
                       <span class="text-neutral-400 text-[11px] ml-2">{{ $order->created_at->format('d/m/Y H:i') }}</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                      @if($order->shipping_status === 'completed')
-                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Hoàn tất</span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      @if($order->payment_status === 'refunded')
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full font-bold text-[11px] flex items-center gap-1 border border-emerald-200">
+                          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i> Đã hoàn tiền thành công
+                        </span>
+                      @elseif($order->payment_status === 'refund_pending')
+                        <span class="px-2.5 py-1 bg-amber-50 text-amber-900 rounded-full font-bold text-[11px] flex items-center gap-1 border border-amber-300">
+                          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i> Chờ duyệt hoàn tiền
+                        </span>
+                      @elseif($order->shipping_status === 'completed')
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full font-bold text-[11px] border border-emerald-200">Hoàn tất</span>
                       @elseif($order->shipping_status === 'delivered')
-                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">Đã giao hàng</span>
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full font-bold text-[11px] border border-emerald-200">Đã giao hàng</span>
                       @elseif($order->shipping_status === 'shipping')
-                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">Đang giao hàng</span>
+                        <span class="px-2.5 py-1 bg-amber-50 text-amber-900 rounded-full font-bold text-[11px] border border-amber-300">Đang giao hàng</span>
                       @elseif($order->shipping_status === 'processing')
-                        <span class="px-2.5 py-0.5 bg-sky-100 text-sky-800 rounded font-bold text-[10px]">Đang đóng gói</span>
+                        <span class="px-2.5 py-1 bg-sky-50 text-sky-800 rounded-full font-bold text-[11px] border border-sky-200">Đang đóng gói</span>
                       @elseif($order->shipping_status === 'cancelled')
                         @if(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
-                          <span class="px-2.5 py-0.5 bg-rose-600 text-white rounded font-bold text-[10px]">Khách không nhận (Chuyển hoàn)</span>
+                          <span class="px-2.5 py-1 bg-rose-600 text-white rounded-full font-bold text-[11px] shadow-2xs">Khách không nhận (Chuyển hoàn)</span>
                         @else
-                          <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded font-bold text-[10px]">Đã hủy</span>
+                          <span class="px-2.5 py-1 bg-rose-50 text-rose-800 rounded-full font-bold text-[11px] border border-rose-200">Đã hủy</span>
                         @endif
                       @else
-                        <span class="px-2.5 py-0.5 bg-neutral-200 text-neutral-800 rounded font-bold text-[10px]">Chờ xác nhận</span>
+                        <span class="px-2.5 py-1 bg-neutral-100 text-neutral-800 rounded-full font-bold text-[11px] border border-neutral-200">Chờ xác nhận</span>
                       @endif
 
                       <span class="font-serif-luxury text-base font-bold text-neutral-950 ml-1">
@@ -307,8 +315,136 @@
                     </div>
                   </div>
 
-                  <!-- Banner cảnh báo Đơn hàng từ chối nhận / Đã hủy -->
-                  @if(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
+                  <script>
+                    window.profileOrdersData = window.profileOrdersData || {};
+                    window.profileOrdersData[{{ $order->id }}] = {
+                      id: {{ $order->id }},
+                      code: @json($order->order_code),
+                      amount: {{ (int)$order->total_amount }},
+                      itemsCount: {{ $order->items->count() }},
+                      isPrePaid: {{ in_array(strtoupper((string)$order->payment_status), ['PAID', 'DEPOSIT_PAID']) ? 'true' : 'false' }},
+                      paymentMethod: @json($order->payment_method_name ?? $order->payment_method),
+                      customerName: @json($order->customer_name ?? $user->name),
+                      customerPhone: @json($order->customer_phone ?? $user->phone),
+                      shippingAddress: @json($order->shipping_address ?? ''),
+                      city: @json($order->city ?? ''),
+                      district: @json($order->district ?? ''),
+                      ward: @json($order->ward ?? ''),
+                      shippingStatus: @json($order->shipping_status),
+                      statusStep: {{ (int)($order->status_step ?? 1) }},
+                      isHandedToShipper: {{ (!empty($order->shipper_id) || in_array($order->shipping_status, ['shipping', 'delivered', 'completed']) || ($order->status_step ?? 1) >= 4) ? 'true' : 'false' }},
+                      isDelivered: {{ (in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed' || ($order->status_step ?? 1) >= 5) ? 'true' : 'false' }},
+                      items: [
+                        @foreach($order->items as $item)
+                          {
+                            id: {{ $item->id }},
+                            productId: {{ $item->product_id ?: 0 }},
+                            productName: @json($item->product_name),
+                            image: @json(asset($item->product->primaryImage->image_path ?? $item->product->thumbnail ?? 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop')),
+                            color: @json($item->color ?? 'Chuẩn'),
+                            size: @json($item->size ?? 'M'),
+                            quantity: {{ $item->quantity }},
+                            price: {{ (int)$item->price }},
+                            variants: [
+                              @if($item->product && $item->product->variants)
+                                @foreach($item->product->variants as $variant)
+                                  {
+                                    color: @json($variant->color),
+                                    colorCode: @json($variant->color_code),
+                                    size: @json($variant->size),
+                                    stock: {{ (int)$variant->stock }}
+                                  },
+                                @endforeach
+                              @endif
+                            ]
+                          },
+                        @endforeach
+                      ]
+                    };
+                  </script>
+
+                  <!-- Banner Chờ Thanh Toán Online (15 Phút) -->
+                  @if($order->isPendingOnlinePayment())
+                    <div class="p-4 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-2 border-amber-400 rounded-xl text-neutral-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-neutral-950 flex items-center justify-center shrink-0 shadow-xs animate-pulse">
+                          <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-xs">
+                          <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                            <strong class="text-neutral-950 font-bold">Chờ Thanh Toán Online ({{ $order->payment_method_name }})</strong>
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200 text-amber-950 font-mono flex items-center gap-1 border border-amber-300">
+                              <span>Tự hủy sau:</span>
+                              <span class="profile-online-countdown font-bold text-rose-700" data-code="{{ $order->order_code }}" data-remaining="{{ $order->online_payment_remaining_seconds }}">--:--</span>
+                            </span>
+                          </div>
+                          <p class="text-neutral-600 text-[11px] leading-tight">
+                            Vui lòng hoàn tất thanh toán trong vòng 15 phút. Nếu quá thời gian trên, hệ thống sẽ tự động hủy đơn và hoàn trả tồn kho.
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                        @php
+                          $payUrl = match($order->payment_method) {
+                            'momo' => route('client.checkout.momo', $order->order_code),
+                            'vnpay' => route('client.checkout.vnpay', $order->order_code),
+                            'online' => route('client.checkout.online', $order->order_code),
+                            default => route('client.checkout.online', $order->order_code),
+                          };
+                        @endphp
+                        <a href="{{ $payUrl }}" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1.5">
+                          <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                          <span>Thanh Toán Ngay</span>
+                        </a>
+                        <button type="button" onclick="openCancelModal({{ $order->id }})" class="px-3 py-2 bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-700 rounded-lg text-xs font-bold transition-all">
+                          Hủy Đơn
+                        </button>
+                      </div>
+                    </div>
+                  @endif
+
+                  <!-- Banner cảnh báo Đơn hàng Hoàn tiền thành công / Chờ hoàn tiền / Đã từ chối nhận / Đã hủy -->
+                  @if($order->payment_status === 'refunded')
+                    <div class="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-400 rounded-xl text-emerald-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-xs">
+                          <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                            <strong class="text-emerald-950 font-bold text-sm">Đơn Hàng Đã Hoàn Tiền Thành Công</strong>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-200 text-emerald-900 font-mono">ĐÃ QUYẾT TOÁN</span>
+                          </div>
+                          <p class="text-emerald-800 text-[11px] leading-relaxed">
+                            Quản trị viên đã duyệt và chuyển khoản hoàn tiền thành công số tiền <strong>{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong> về tài khoản ngân hàng của bạn.
+                          </p>
+                          @if($order->latestReturn && $order->latestReturn->bank_name)
+                            <span class="block text-emerald-700 text-[10px] mt-1 font-mono">
+                              Tài khoản nhận: {{ $order->latestReturn->bank_name }} - STK: {{ $order->latestReturn->bank_account_number }} ({{ $order->latestReturn->bank_account_name }})
+                              @if($order->latestReturn->completed_at)
+                                • Hoàn tất lúc: {{ $order->latestReturn->completed_at->format('d/m/Y H:i') }}
+                              @endif
+                            </span>
+                          @endif
+                        </div>
+                      </div>
+                      <span class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold shrink-0 flex items-center gap-1 shadow-2xs">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> Đã Nhận Tiền
+                      </span>
+                    </div>
+                  @elseif($order->payment_status === 'refund_pending')
+                    <div class="p-3.5 bg-amber-50 border-2 border-amber-300 rounded-xl text-amber-950 flex items-start gap-3 shadow-xs">
+                      <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="clock" class="w-4 h-4"></i>
+                      </div>
+                      <div class="text-xs">
+                        <strong class="font-bold text-amber-950 block mb-0.5">Đơn hàng đang chờ Admin duyệt chuyển khoản hoàn tiền:</strong>
+                        <p class="text-amber-800 text-[11px] leading-relaxed">
+                          Yêu cầu hoàn tiền số tiền <strong>{{ number_format($order->total_amount, 0, ',', '.') }}₫</strong> của bạn đã được tiếp nhận thành công. Bộ phận Kế toán BeeStyle đang xử lý chuyển khoản hoàn tiền vào tài khoản ngân hàng của bạn.
+                        </p>
+                      </div>
+                    </div>
+                  @elseif(method_exists($order, 'isCustomerRejected') && $order->isCustomerRejected())
                     <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 flex items-start gap-2.5">
                       <i data-lucide="truck" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
                       <div class="text-[11px]">
@@ -370,13 +506,13 @@
                             {{ number_format($item->price * $item->quantity, 0, ',', '.') }}₫
                           </span>
                           
-                          <!-- Nút Đổi Trả & Đánh Giá Cho Đơn Đã Giao -->
+                          <!-- Nút Đổi Trả & Đánh Giá -->
                           @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
                             <div class="flex items-center gap-1.5">
-                              <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, {{ $item->id }})" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 rounded-md font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-sm" title="Yêu cầu đổi trả riêng cho sản phẩm này">
-                                <i data-lucide="rotate-ccw" class="w-3 h-3 text-amber-700"></i> Đổi trả
+                              <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, {{ $item->id }}, 'exchange')" class="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-900 rounded-lg font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-2xs" title="Yêu cầu đổi size / đổi màu riêng cho sản phẩm này">
+                                <i data-lucide="refresh-cw" class="w-3 h-3 text-sky-700"></i> Đổi size/màu
                               </button>
-                              <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: 1 }}, '{{ addslashes($item->product_name) }}')" class="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-md font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-sm">
+                              <button type="button" onclick="openQuickReviewModal({{ $item->product_id ?: 1 }}, '{{ addslashes($item->product_name) }}')" class="px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg font-semibold text-[11px] flex items-center gap-1 transition-colors shadow-2xs">
                                 <i data-lucide="star" class="w-3 h-3 text-amber-400"></i> Đánh giá
                               </button>
                             </div>
@@ -390,43 +526,107 @@
                   <div class="pt-3 border-t border-neutral-200 flex flex-wrap justify-between items-center gap-3">
                     <div class="text-neutral-500 text-[11px]">
                       Hình thức: <strong>{{ $order->payment_method_name ?? $order->payment_method }}</strong>
-                      @if($order->is_deposit_required)
-                        <span class="ml-1.5 px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">Cọc 50%: {{ number_format($order->deposit_amount, 0, ',', '.') }}₫</span>
+                      @if($order->is_deposit_required || $order->payment_status === 'deposit_paid')
+                        <span class="ml-1.5 px-2 py-0.5 bg-amber-100 text-amber-900 rounded font-bold text-[10px]">
+                          Cọc 50%: {{ number_format($order->deposit_amount ?: round($order->total_amount * 0.5), 0, ',', '.') }}₫
+                        </span>
+                        @if($order->payment_status !== 'paid')
+                          <span class="ml-1 px-2 py-0.5 bg-rose-100 text-rose-900 rounded font-bold text-[10px]">
+                            Thu COD 50% khi nhận: {{ number_format($order->remaining_amount ?: ($order->total_amount - $order->deposit_amount), 0, ',', '.') }}₫
+                          </span>
+                        @else
+                          <span class="ml-1 px-2 py-0.5 bg-emerald-100 text-emerald-900 rounded font-bold text-[10px]">
+                            Đã thu đủ 100%
+                          </span>
+                        @endif
+                      @elseif($order->payment_status === 'paid')
+                        <span class="ml-1.5 px-2 py-0.5 bg-emerald-100 text-emerald-900 rounded font-bold text-[10px]">
+                          Đã thanh toán 100% (0₫ COD)
+                        </span>
                       @endif
                     </div>
                     
+                    @php
+                      $isCardCancelled = ($order->shipping_status === 'cancelled');
+                      $isCardCompleted = ($order->shipping_status === 'completed' || ($order->status_step ?? 1) >= 6);
+                      $isCardJustDelivered = !$isCardCancelled && !$isCardCompleted && ($order->shipping_status === 'delivered' || ($order->status_step ?? 1) == 5);
+                      $isCardShipping = !$isCardCancelled && !$isCardCompleted && !$isCardJustDelivered && ($order->shipping_status === 'shipping' || (($order->status_step ?? 1) == 4) || !empty($order->shipper_id));
+                      $isCardPreShipping = !$isCardCancelled && !$isCardCompleted && !$isCardJustDelivered && !$isCardShipping && in_array($order->shipping_status, ['pending', 'confirmed', 'processing']);
+                      $isCardPrePaid = in_array(strtoupper((string)$order->payment_status), ['PAID', 'DEPOSIT_PAID']);
+                    @endphp
+
                     <div class="flex items-center gap-2 flex-wrap">
-                      <!-- Hủy đơn hàng trước khi giao -->
-                      @if(method_exists($order, 'canBeCancelledByCustomer') ? $order->canBeCancelledByCustomer() : in_array($order->shipping_status, ['pending', 'processing']))
-                        <button type="button" onclick="openCancelModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, {{ $order->items->count() }})" class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition-colors">
-                          Hủy Đơn
+                      <!-- 1. GIAI ĐOẠN CHUẨN BỊ TẠI KHO (CHỜ XÁC NHẬN, ĐÃ XÁC NHẬN, ĐANG ĐÓNG GÓI) -->
+                      @if($isCardPreShipping)
+                        <button type="button" onclick="openCancelModal({{ $order->id }})" class="px-3.5 py-1.5 bg-white hover:bg-rose-50 border border-rose-300 hover:border-rose-400 text-rose-700 font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i>
+                          <span>{{ $isCardPrePaid ? 'Hủy Hàng Hoàn Tiền' : 'Hủy Đơn Hàng' }}</span>
                         </button>
                       @endif
 
-                      <!-- Xác nhận đã nhận / Hủy hàng hoàn tiền cho đơn đang giao -->
-                      @if(in_array($order->shipping_status, ['shipping', 'delivered']) || (isset($order->status_step) && in_array($order->status_step, [4, 5])))
+                      <!-- 2. GIAI ĐOẠN SHIPPER ĐANG GIAO HÀNG (ĐÃ BÀN GIAO CHO BƯU TÁ - CHƯA GIAO TỚI TAY KHÁCH) -->
+                      @if($isCardShipping)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50/90 border border-amber-200 text-amber-900 rounded-xl text-xs font-semibold shadow-2xs" title="Bưu tá đang phát kiện hàng đến bạn. Khi nhận hàng xong bạn có thể bấm Đã Nhận Được Hàng hoặc Hủy / Đổi Trả.">
+                          <i data-lucide="truck" class="w-3.5 h-3.5 text-amber-600 animate-pulse"></i>
+                          <span>Đang giao — Chờ nhận hàng</span>
+                        </span>
+                      @endif
+
+                      <!-- 3. GIAI ĐOẠN ĐÃ GIAO TỚI TAY KHÁCH HÀNG (DELIVERED) -->
+                      @if($isCardJustDelivered)
+                        <!-- Nút Đã Nhận Được Hàng CHỈ XUẤT HIỆN KHI ĐƠN HÀNG ĐÃ GIAO TỚI TAY KHÁCH HÀNG -->
                         <form action="{{ route('client.order-tracking.confirm-delivered', $order->order_code) }}" method="POST" class="inline" onsubmit="return confirm('Bạn xác nhận ĐÃ NHẬN ĐƯỢC ĐỦ HÀNG và hài lòng với chất lượng kiện hàng #{{ $order->order_code }}?');">
                           @csrf
-                          <button type="submit" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs transition-colors flex items-center gap-1.5">
+                          <button type="submit" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer" title="Xác nhận bạn đã nhận được kiện hàng này vào tay">
                             <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
                             <span>Đã Nhận Được Hàng</span>
                           </button>
                         </form>
-                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, null, 'exchange')" class="px-3.5 py-1.5 bg-white hover:bg-sky-50 border border-sky-300 hover:border-sky-500 text-sky-800 font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Yêu cầu đổi size hoặc đổi màu sắc khác tận nhà miễn phí">
+                          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-sky-600"></i>
+                          <span>Đổi Size / Đổi Màu</span>
+                        </button>
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, null, 'return_refund')" class="px-3.5 py-1.5 bg-white hover:bg-rose-50 border border-rose-300 hover:border-rose-400 text-rose-700 font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Yêu cầu trả hàng và hoàn tiền">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i>
                           <span>Hủy Hàng Hoàn Tiền</span>
                         </button>
                       @endif
 
-                      <!-- Yêu cầu đổi trả RMA sau khi nhận (Toàn bộ đơn hàng) -->
-                      @if(in_array($order->shipping_status, ['delivered', 'completed']) || $order->status === 'completed')
-                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }})" class="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-neutral-950 font-bold rounded-lg text-xs transition-colors flex items-center gap-1 shadow-xs">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đổi Hàng / Hoàn Tiền (7 Ngày)
+                      <!-- 4. GIAI ĐOẠN ĐƠN ĐÃ HOÀN TẤT (COMPLETED - ĐÃ NHẬN HÀNG XONG) -->
+                      @if($isCardCompleted)
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, null, 'exchange')" class="px-3.5 py-1.5 bg-white hover:bg-sky-50 border border-sky-300 hover:border-sky-500 text-sky-800 font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Yêu cầu đổi size hoặc đổi màu sắc khác tận nhà miễn phí">
+                          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-sky-600"></i>
+                          <span>Đổi Size / Đổi Màu</span>
+                        </button>
+                        <button type="button" onclick="openReturnModal({{ $order->id }}, '{{ $order->order_code }}', {{ $order->total_amount }}, null, 'return_refund')" class="px-3.5 py-1.5 bg-white hover:bg-rose-50 border border-rose-300 hover:border-rose-400 text-rose-700 font-bold rounded-xl text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Yêu cầu trả hàng và hoàn tiền">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i>
+                          <span>Hủy Hàng Hoàn Tiền</span>
                         </button>
                       @endif
 
+                      <!-- 4. GIAI ĐOẠN ĐƠN ĐÃ HỦY / ĐÃ HOÀN TIỀN -->
+                      @if($isCardCancelled)
+                        @if($order->payment_status === 'refunded')
+                          <span class="px-3.5 py-1.5 bg-emerald-50 border border-emerald-300 text-emerald-900 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-2xs">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>Đã Hoàn Tiền Thành Công</span>
+                          </span>
+                        @elseif($order->payment_status === 'refund_pending')
+                          <span class="px-3.5 py-1.5 bg-amber-50 border border-amber-300 text-amber-900 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-2xs">
+                            <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i>
+                            <span>Chờ Duyệt Hoàn Tiền</span>
+                          </span>
+                        @else
+                          <span class="px-3.5 py-1.5 bg-neutral-100 border border-neutral-200 text-neutral-600 font-medium rounded-xl text-xs flex items-center gap-1.5 shadow-2xs">
+                            <i data-lucide="ban" class="w-3.5 h-3.5 text-neutral-400"></i>
+                            <span>Đã Hủy Đơn</span>
+                          </span>
+                        @endif
+                      @endif
+
                       <!-- Chi tiết vận chuyển -->
-                      <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="px-3 py-1.5 bg-white border border-neutral-300 rounded-lg text-neutral-800 hover:bg-neutral-100 font-semibold transition-colors flex items-center gap-1">
+                      <a href="{{ route('client.order-tracking', ['code' => $order->order_code]) }}" class="px-3 py-1.5 bg-white border border-neutral-300 rounded-xl text-neutral-800 hover:bg-neutral-100 font-semibold transition-colors flex items-center gap-1">
                         <i data-lucide="truck" class="w-3.5 h-3.5 text-neutral-500"></i> Tra Cứu
                       </a>
                     </div>
@@ -1188,11 +1388,17 @@
         <label class="block font-semibold uppercase text-neutral-700 mb-1">3. Lý Do Đổi Trả *</label>
         <select name="reason" required class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950">
           <option value="" disabled selected>-- Chọn lý do đổi trả --</option>
-          <option value="Mặc không vừa kích cỡ (Yêu cầu đổi sang size khác)">Mặc không vừa kích cỡ (Yêu cầu đổi size)</option>
-          <option value="Sản phẩm bị lỗi vải, rách hoặc bung chỉ từ xưởng">Sản phẩm bị lỗi chỉ/vải từ xưởng</option>
-          <option value="Giao sai mẫu, sai màu hoặc sai kích thước">Giao sai mẫu hoặc sai màu</option>
-          <option value="Sản phẩm không đúng với hình ảnh và mô tả">Sản phẩm không giống mô tả</option>
-          <option value="Lý do khác">Lý do khác</option>
+          <option value="Tôi đổi ý, không có nhu cầu mua sản phẩm này nữa">Tôi đổi ý, không có nhu cầu mua sản phẩm này nữa</option>
+          <option value="Tôi muốn thay đổi thông tin người nhận / địa chỉ giao hàng">Tôi muốn thay đổi thông tin người nhận / địa chỉ giao hàng</option>
+          <option value="Tôi đặt nhầm kích cỡ / màu sắc (muốn đổi size/màu hoặc hoàn tiền)">Tôi đặt nhầm kích cỡ / màu sắc (muốn đổi size/màu hoặc hoàn tiền)</option>
+          <option value="Tôi mặc thử không vừa kích cỡ (cần hỗ trợ đổi size khác)">Tôi mặc thử không vừa kích cỡ (cần hỗ trợ đổi size khác)</option>
+          <option value="Tôi tìm thấy giá tốt hơn hoặc sản phẩm khác phù hợp hơn">Tôi tìm thấy giá tốt hơn hoặc sản phẩm khác phù hợp hơn</option>
+          <option value="Thời gian giao hàng quá lâu, không còn nhu cầu mua nữa">Thời gian giao hàng quá lâu, không còn nhu cầu mua nữa</option>
+          <option value="Đặt trùng đơn hàng (đã tạo 2 đơn giống nhau)">Đặt trùng đơn hàng (đã tạo 2 đơn giống nhau)</option>
+          <option value="Sản phẩm bị lỗi may mặc, sờn rách, bung chỉ hoặc phai màu">Sản phẩm bị lỗi may mặc, sờn rách, bung chỉ hoặc phai màu</option>
+          <option value="Giao sai mẫu mã, sai màu hoặc sai kích cỡ so với đơn đặt">Giao sai mẫu mã, sai màu hoặc sai kích cỡ so với đơn đặt</option>
+          <option value="Sản phẩm không đúng với hình ảnh và mô tả trên website">Sản phẩm không đúng với hình ảnh và mô tả trên website</option>
+          <option value="Lý do khác">Lý do khác (chi tiết trong phần ghi chú)</option>
         </select>
       </div>
 
@@ -1202,19 +1408,19 @@
         <textarea name="customer_notes" rows="2" placeholder="Ghi chú thêm về tình trạng sản phẩm, yêu cầu chi tiết..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 focus:outline-none focus:border-neutral-950"></textarea>
       </div>
 
-      <!-- BẮT BUỘC: Upload Hình Ảnh Minh Chứng -->
+      <!-- TÙY CHỌN: Upload Hình Ảnh Minh Chứng -->
       <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-200 space-y-2">
         <div class="flex items-center justify-between">
           <label class="font-bold uppercase text-neutral-900 text-xs flex items-center gap-1.5">
             <i data-lucide="camera" class="w-4 h-4 text-amber-700"></i>
-            <span>5. Ảnh Minh Chứng Sản Phẩm / Tem Mác <span class="text-rose-600">*</span></span>
+            <span>5. Ảnh Minh Chứng Sản Phẩm / Tem Mác (Tùy chọn)</span>
           </label>
           <span class="text-[10px] text-amber-800 font-semibold">1 - 5 ảnh (Tối đa 8MB/ảnh)</span>
         </div>
         <p class="text-[11px] text-neutral-500 leading-tight">
-          Vui lòng chụp rõ tem mác Atelier, toàn cảnh sản phẩm và vị trí lỗi (nếu có).
+          Vui lòng chụp rõ tem mác Atelier, toàn cảnh sản phẩm và vị trí lỗi (nếu áp dụng đổi trả hàng lỗi).
         </p>
-        <input type="file" id="returnImageProofsInput" name="image_proofs[]" multiple accept="image/jpeg,image/png,image/jpg,image/webp" required onchange="handleReturnImagesPreview(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-neutral-800 cursor-pointer">
+        <input type="file" id="returnImageProofsInput" name="image_proofs[]" multiple accept="image/jpeg,image/png,image/jpg,image/webp" onchange="handleReturnImagesPreview(this)" class="w-full text-xs text-neutral-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-neutral-900 file:text-white hover:file:bg-neutral-800 cursor-pointer">
         <div id="returnImagesPreviewList" class="flex gap-2 flex-wrap empty:hidden pt-1"></div>
       </div>
 
@@ -1322,71 +1528,374 @@
   </div>
 </div>
 
-<!-- 2. MODAL HỦY ĐƠN HÀNG (CLIENT) -->
-<div id="cancelOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-  <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border border-neutral-200 animate-fade-in text-xs">
+<!-- 2. MODAL HỦY ĐƠN HÀNG (CLIENT: HỦY ĐƠN, ĐỔI ĐỊA CHỈ, ĐỔI SIZE/MÀU, HOÀN TIỀN) -->
+<div id="cancelOrderModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-4">
+  <div class="bg-white max-w-lg w-full rounded-2xl p-5 sm:p-7 shadow-2xl border border-neutral-200 animate-fade-in text-xs max-h-[92vh] overflow-y-auto">
     <div class="flex justify-between items-center pb-3 mb-4 border-b border-neutral-100">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-sm shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
           <i data-lucide="alert-triangle" class="w-4 h-4"></i>
         </div>
         <div>
-          <h3 class="font-serif-luxury text-base font-bold text-neutral-900" id="cancelModalOrderCode">Hủy Đơn Hàng #BS-000</h3>
-          <p class="text-[10px] text-neutral-500">Xác nhận yêu cầu hủy đơn hàng</p>
+          <h3 class="font-serif-luxury text-base font-bold text-neutral-900" id="cancelModalOrderCode">Hủy Hàng &amp; Hoàn Tiền #BS-000</h3>
+          <p class="text-[10px] text-neutral-500">Xác nhận yêu cầu hủy hàng hoàn tiền, đổi size/màu hoặc cập nhật địa chỉ mới</p>
         </div>
       </div>
-      <button onclick="closeCancelModal()" class="text-neutral-400 hover:text-black text-lg">&times;</button>
+      <button onclick="closeCancelModal()" class="text-neutral-400 hover:text-black text-xl leading-none">&times;</button>
     </div>
 
     <!-- Tóm tắt đơn hàng cần hủy -->
-    <div id="cancelModalOrderSummary" class="p-3 bg-neutral-50 rounded-xl border border-neutral-200 mb-3 flex items-center justify-between">
+    <div id="cancelModalOrderSummary" class="p-3 bg-neutral-50 rounded-xl border border-neutral-200 mb-4 flex items-center justify-between flex-wrap gap-2">
       <div>
         <span class="text-[10px] text-neutral-500 block">Giá trị đơn hàng:</span>
         <strong id="cancelModalOrderAmount" class="font-serif-luxury text-sm text-neutral-900">0₫</strong>
       </div>
-      <span id="cancelModalOrderItemsCount" class="text-[10px] bg-neutral-200 text-neutral-700 font-semibold px-2 py-0.5 rounded-full">1 sản phẩm</span>
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span id="cancelModalOrderItemsCount" class="text-[10px] bg-neutral-200 text-neutral-700 font-semibold px-2 py-0.5 rounded-full">1 sản phẩm</span>
+        <span id="cancelModalPrePaidBadge" class="hidden text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">Đã thanh toán online</span>
+      </div>
     </div>
 
-    <form id="cancelOrderForm" method="POST" onsubmit="handleCancelOrderSubmit(this)" class="space-y-3.5">
-      @csrf
-      <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px] border border-rose-100 leading-relaxed">
-        <i data-lucide="info" class="w-3.5 h-3.5 inline mr-1 text-rose-600"></i>
-        Khi xác nhận hủy đơn, hệ thống sẽ <strong>tự động hoàn lại số lượng tồn kho</strong> và <strong>khôi phục mã giảm giá (voucher)</strong> cho bạn.
+    <!-- Thông báo khi đơn hàng đang trong hành trình giao hàng (Shipper đang giữ) -->
+    <div id="cancelModalShippingNotice" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl mb-3 text-xs text-amber-900 flex items-start gap-2">
+      <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+      <div>
+        <strong>Đơn hàng đang trên đường giao hàng:</strong>
+        <p class="text-[11px] text-amber-800 mt-0.5">
+          Kiện hàng đã được bàn giao cho bưu tá nên không thể đổi địa chỉ nhận hàng hoặc đổi size/màu giữa chặng. Nếu muốn đổi size/màu khác, quý khách vui lòng nhận hàng và chọn Đổi Hàng Miễn Phí Tận Nhà sau khi nhận, hoặc bấm Xác Nhận Hủy Hàng Hoàn Tiền bên dưới.
+        </p>
+      </div>
+    </div>
+
+    <!-- 1. CHỌN LÝ DO HỦY ĐƠN -->
+    <div class="mb-4">
+      <label class="block font-bold text-neutral-800 uppercase text-[10px] mb-1.5 flex items-center justify-between">
+        <span>1. Bạn muốn hủy đơn vì lý do gì? <span class="text-rose-600">*</span></span>
+        <span class="text-[10px] text-amber-800 font-semibold">Chọn đúng để được hỗ trợ tốt nhất</span>
+      </label>
+      <select id="cancelOrderReasonSelect" name="reason" onchange="handleCancelReasonChange(this.value)" class="w-full bg-white border border-neutral-300 rounded-xl p-2.5 text-xs text-neutral-900 font-semibold focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 shadow-2xs">
+        <option value="" disabled selected>-- Click vào đây để chọn lý do bạn muốn hủy đơn --</option>
+        <option value="Tôi muốn thay đổi địa chỉ nhận hàng" id="cancelReasonOptAddress">Tôi muốn thay đổi địa chỉ nhận hàng (Cập nhật địa chỉ mới)</option>
+        <option value="Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm" id="cancelReasonOptExchange">Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm (Gửi Admin duyệt)</option>
+        <option value="Tôi tìm thấy sản phẩm giá tốt hơn ở nơi khác">Tôi tìm thấy sản phẩm giá tốt hơn ở nơi khác</option>
+        <option value="Tôi đổi ý, không có nhu cầu mua nữa">Tôi đổi ý, không có nhu cầu mua nữa</option>
+        <option value="Đặt nhầm hoặc bị trùng lặp đơn hàng">Đặt nhầm hoặc bị trùng lặp đơn hàng</option>
+        <option value="Thời gian giao hàng dự kiến quá lâu">Thời gian giao hàng dự kiến quá lâu</option>
+        <option value="Lý do khác">Lý do khác</option>
+      </select>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- KHỐI DYNAMIC 1: THAY ĐỔI ĐỊA CHỈ NHẬN HÀNG (Hiển thị khi chọn đổi địa chỉ) -->
+    <!-- ========================================================================= -->
+    <div id="cancelAddressSection" class="hidden p-4 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/50 rounded-xl border-2 border-amber-300 space-y-3 mb-4 shadow-2xs">
+      <div class="flex items-center justify-between pb-2 border-b border-amber-200">
+        <span class="font-bold text-amber-950 uppercase text-xs flex items-center gap-1.5">
+          <i data-lucide="map-pin" class="w-4 h-4 text-amber-700"></i>
+          <span>Cập Nhật Địa Chỉ Mới Cho Đơn Hàng</span>
+        </span>
+        <span class="text-[10px] text-amber-900 font-bold bg-amber-200 px-2 py-0.5 rounded-full">Không cần đặt lại đơn</span>
       </div>
 
-      <div>
-        <label class="block font-bold text-neutral-800 uppercase text-[10px] mb-1">
-          1. Lý Do Hủy Đơn Hàng <span class="text-rose-600">*</span>
+      <!-- Địa chỉ hiện tại của đơn hàng -->
+      <div class="p-2.5 bg-white rounded-lg border border-neutral-200 text-[11px] text-neutral-700">
+        <span class="text-[10px] font-bold text-neutral-500 uppercase block mb-0.5">Địa chỉ giao hàng hiện tại:</span>
+        <div id="cancelCurrentAddressDisplay" class="font-medium text-neutral-900 leading-snug">
+          Đang tải...
+        </div>
+      </div>
+
+      <!-- Chọn nhanh từ sổ địa chỉ đã lưu nếu có -->
+      @if(isset($addresses) && $addresses->isNotEmpty())
+        <div class="space-y-1">
+          <label class="block text-[10px] font-bold text-neutral-700 uppercase">
+            Chọn nhanh từ Sổ Địa Chỉ của bạn:
+          </label>
+          <select id="cancelSavedAddressSelect" onchange="handlePickSavedAddress(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-medium text-neutral-800 focus:outline-none focus:border-amber-600">
+            <option value="">-- Chọn một địa chỉ có sẵn trong sổ địa chỉ --</option>
+            @foreach($addresses as $addr)
+              <option value="{{ $addr->id }}"
+                data-name="{{ $addr->recipient_name }}"
+                data-phone="{{ $addr->phone }}"
+                data-address="{{ $addr->address }}"
+                data-city="{{ $addr->city }}"
+                data-district="{{ $addr->district }}"
+                data-ward="{{ $addr->ward }}">
+                {{ $addr->recipient_name }} - {{ $addr->phone }} ({{ $addr->address }}, {{ $addr->city }}) {{ $addr->is_default ? '★ [Mặc định]' : '' }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+      @endif
+
+      <!-- Form nhập địa chỉ mới -->
+      <form id="cancelAddressForm" method="POST" class="space-y-2.5">
+        @csrf
+        <input type="hidden" name="action_after" id="cancelAddressActionAfter" value="keep">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold text-neutral-800 uppercase mb-0.5">Họ Tên Người Nhận <span class="text-rose-600">*</span></label>
+            <input type="text" id="cancel_new_customer_name" name="customer_name" required placeholder="Ví dụ: Nguyễn Văn A" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-900 focus:outline-none focus:border-amber-600">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-neutral-800 uppercase mb-0.5">Số Điện Thoại <span class="text-rose-600">*</span></label>
+            <input type="tel" id="cancel_new_customer_phone" name="customer_phone" required placeholder="Ví dụ: 0987654321" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-900 focus:outline-none focus:border-amber-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-neutral-800 uppercase mb-0.5">Địa Chỉ Nhà / Tên Đường <span class="text-rose-600">*</span></label>
+          <input type="text" id="cancel_new_shipping_address" name="shipping_address" required oninput="updateCancelAddressPreview()" placeholder="Số nhà, ngõ, tên đường..." class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-900 focus:outline-none focus:border-amber-600">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <!-- Tỉnh / TP -->
+          <div>
+            <label class="block text-[10px] font-bold text-neutral-800 uppercase mb-0.5 flex items-center justify-between">
+              <span>Tỉnh / TP <span class="text-rose-600">*</span></span>
+            </label>
+            <div class="relative">
+              <select id="cancel_new_province_select" onchange="onCancelProvinceChange(this)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 pr-7 text-xs text-neutral-900 font-medium focus:outline-none focus:border-amber-600 cursor-pointer shadow-2xs">
+                <option value="">-- Chọn Tỉnh / TP --</option>
+                @if(!empty($provinces))
+                  @foreach($provinces as $p)
+                    @php
+                      $pCode = is_array($p) ? $p['code'] : $p->code;
+                      $pName = is_array($p) ? $p['name'] : $p->name;
+                    @endphp
+                    <option value="{{ $pCode }}" data-name="{{ $pName }}">{{ $pName }}</option>
+                  @endforeach
+                @endif
+              </select>
+              <div id="cancelProvinceLoading" class="hidden absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <i data-lucide="loader-2" class="w-3.5 h-3.5 text-amber-600 animate-spin"></i>
+              </div>
+            </div>
+            <input type="hidden" id="cancel_new_city" name="city">
+          </div>
+
+          <!-- Quận / Huyện -->
+          <div>
+            <label class="block text-[10px] font-bold text-neutral-800 uppercase mb-0.5 flex items-center justify-between">
+              <span>Quận / Huyện <span class="text-rose-600">*</span></span>
+            </label>
+            <div class="relative">
+              <select id="cancel_new_district_select" onchange="onCancelDistrictChange(this)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 pr-7 text-xs text-neutral-900 font-medium focus:outline-none focus:border-amber-600 cursor-pointer shadow-2xs">
+                <option value="">-- Chọn Quận / Huyện --</option>
+              </select>
+              <div id="cancelDistrictLoading" class="hidden absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <i data-lucide="loader-2" class="w-3.5 h-3.5 text-amber-600 animate-spin"></i>
+              </div>
+            </div>
+            <input type="hidden" id="cancel_new_district" name="district">
+          </div>
+
+          <!-- Phường / Xã -->
+          <div>
+            <label class="block text-[10px] font-bold text-neutral-800 uppercase mb-0.5 flex items-center justify-between">
+              <span>Phường / Xã <span class="text-rose-600">*</span></span>
+            </label>
+            <div class="relative">
+              <select id="cancel_new_ward_select" onchange="onCancelWardChange(this)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 pr-7 text-xs text-neutral-900 font-medium focus:outline-none focus:border-amber-600 cursor-pointer shadow-2xs">
+                <option value="">-- Chọn Phường / Xã --</option>
+              </select>
+              <div id="cancelWardLoading" class="hidden absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <i data-lucide="loader-2" class="w-3.5 h-3.5 text-amber-600 animate-spin"></i>
+              </div>
+            </div>
+            <input type="hidden" id="cancel_new_ward" name="ward">
+          </div>
+        </div>
+
+        <!-- Realtime Address Preview Box -->
+        <div id="cancelAddressPreviewBox" class="hidden p-2.5 bg-amber-50/70 border border-amber-300/80 rounded-xl">
+          <div class="flex items-center justify-between mb-0.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-600"></i>
+              <span>Địa chỉ mới cập nhật:</span>
+            </span>
+            <span id="cancelAddressPreviewBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              Đầy đủ 4 cấp
+            </span>
+          </div>
+          <div id="cancelAddressPreviewText" class="text-xs font-semibold text-neutral-900 leading-snug break-words">
+          </div>
+        </div>
+
+        <!-- 2 NÚT LỰA CHỌN SAU KHI ĐỔI ĐỊA CHỈ: GIAO TIẾP HOẶC HỦY DO KHÔNG MUỐN ĐẶT NỮA -->
+        <div class="pt-2 border-t border-amber-200/80 space-y-2">
+          <p class="text-[11px] text-neutral-600 leading-tight">
+            * Sau khi cập nhật địa chỉ mới, bạn có thể chọn tiếp tục giao đơn này đến địa chỉ mới hoặc xác nhận hủy nếu không muốn đặt nữa:
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button type="button" onclick="submitOrderAddressAction('keep')" id="btnSubmitAddressKeep" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 text-xs">
+              <i data-lucide="truck" class="w-4 h-4"></i>
+              <span>Cập Nhật &amp; Tiếp Tục Giao</span>
+            </button>
+            <button type="button" onclick="submitOrderAddressAction('cancel')" id="btnSubmitAddressCancel" class="py-2.5 px-3 bg-white hover:bg-rose-50 border border-rose-300 text-rose-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 text-xs">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+              <span>Hủy Đơn Do Không Đặt Nữa</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- KHỐI DYNAMIC 2: ĐỔI SIZE / ĐỔI MÀU (Hiển thị khi chọn đổi size hoặc màu) -->
+    <!-- ========================================================================= -->
+    <div id="cancelExchangeSection" class="hidden p-4 bg-gradient-to-br from-sky-50/80 via-white to-sky-50/50 rounded-xl border-2 border-sky-300 space-y-3 mb-4 shadow-2xs">
+      <div class="flex items-center justify-between pb-2 border-b border-sky-200">
+        <span class="font-bold text-sky-950 uppercase text-xs flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-sky-700"></i>
+          <span>Yêu Cầu Đổi Màu Sắc / Size Cụ Thể</span>
+        </span>
+        <span class="text-[10px] text-sky-900 font-bold bg-sky-200 px-2 py-0.5 rounded-full">Gửi Admin duyệt</span>
+      </div>
+
+      <!-- Chọn sản phẩm nếu đơn có nhiều món -->
+      <div id="cancelExchangeItemSelectorBox" class="space-y-1">
+        <label class="block text-[10px] font-bold text-neutral-800 uppercase">
+          Chọn sản phẩm bạn muốn đổi size / màu:
         </label>
-        <select name="reason" required class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-medium focus:outline-none focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950 shadow-2xs">
-          <option value="" disabled selected>-- Chọn lý do bạn muốn hủy đơn --</option>
-          <option value="Tôi muốn thay đổi địa chỉ nhận hàng">Tôi muốn thay đổi địa chỉ nhận hàng</option>
-          <option value="Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm">Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm</option>
-          <option value="Tôi tìm thấy sản phẩm giá tốt hơn ở nơi khác">Tôi tìm thấy sản phẩm giá tốt hơn ở nơi khác</option>
-          <option value="Tôi đổi ý, không có nhu cầu mua nữa">Tôi đổi ý, không có nhu cầu mua nữa</option>
-          <option value="Đặt nhầm hoặc bị trùng lặp đơn hàng">Đặt nhầm hoặc bị trùng lặp đơn hàng</option>
-          <option value="Thời gian giao hàng dự kiến quá lâu">Thời gian giao hàng dự kiến quá lâu</option>
-          <option value="Lý do khác">Lý do khác</option>
+        <select id="cancelExchangeItemSelect" onchange="handleCancelExchangeItemSelect(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-sky-600">
         </select>
       </div>
 
-      <div>
-        <label class="block font-semibold text-neutral-700 text-[10px] mb-1">
-          2. Ghi Chú Thêm Chi Tiết (Không bắt buộc)
-        </label>
-        <textarea name="notes" rows="2" placeholder="Nhập thêm chi tiết nếu có (Ví dụ: Đổi sang áo sơ mi trắng, giao vào tuần sau...)" class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-neutral-950 focus:bg-white"></textarea>
+      <!-- Tóm tắt sản phẩm đang chọn -->
+      <div class="p-2.5 bg-white rounded-xl border border-sky-200 flex items-center gap-3 shadow-2xs">
+        <img id="cancelExchangeThumb" src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop" alt="Thumbnail" class="w-12 h-14 object-cover rounded-lg border border-neutral-200 shrink-0">
+        <div class="min-w-0 flex-1">
+          <p id="cancelExchangeProdName" class="font-bold text-xs text-neutral-900 truncate">Tên sản phẩm...</p>
+          <div class="flex items-center gap-1.5 mt-1 flex-wrap text-[10px]">
+            <span id="cancelExchangeCurrentColor" class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded font-medium">
+              Màu hiện tại: ...
+            </span>
+            <span id="cancelExchangeCurrentSize" class="px-2 py-0.5 bg-neutral-100 border border-neutral-200 text-neutral-800 rounded font-medium">
+              Size hiện tại: ...
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 pt-1">
-        <button type="button" onclick="closeCancelModal()" class="py-2.5 px-3 border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 font-bold rounded-xl transition-colors text-center text-xs">
-          Giữ Lại Đơn Hàng
-        </button>
-        <button type="submit" id="btnSubmitCancelOrder" class="py-2.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors shadow flex items-center justify-center gap-1.5 text-xs">
-          <i data-lucide="x-circle" class="w-4 h-4"></i>
-          <span>Xác Nhận Hủy Đơn</span>
-        </button>
+      <!-- 1. CHỌN MÀU SẮC MỚI -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between items-center">
+          <label class="block text-[11px] font-bold text-neutral-800">
+            Màu Sắc Mới Mong Muốn <span class="text-rose-600">*</span>
+          </label>
+          <span id="cancelExchangeColorBadge" class="text-[10px] font-semibold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full">Chọn màu</span>
+        </div>
+        <div id="cancelExchangeColorSwatches" class="flex flex-wrap gap-1.5"></div>
+        <select id="cancelExchangeColorSelect" onchange="handleCancelColorSelectChange(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-sky-600">
+        </select>
       </div>
-    </form>
+
+      <!-- 2. CHỌN SIZE MỚI -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between items-center">
+          <label class="block text-[11px] font-bold text-neutral-800">
+            Kích Cỡ (Size) Mới Mong Muốn <span class="text-rose-600">*</span>
+          </label>
+          <span id="cancelExchangeSizeBadge" class="text-[10px] font-semibold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full">Chọn size</span>
+        </div>
+        <div id="cancelExchangeSizeSwatches" class="flex flex-wrap gap-1.5"></div>
+        <select id="cancelExchangeSizeSelect" onchange="handleCancelSizeSelectChange(this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-sky-600">
+        </select>
+      </div>
+
+      <!-- Ghi chú thêm cho Admin -->
+      <div>
+        <label class="block text-[10px] font-semibold text-neutral-700 mb-0.5">Ghi Chú Thêm Cho Admin (Tùy chọn)</label>
+        <textarea id="cancelExchangeNotes" rows="2" placeholder="Ghi chú thêm về yêu cầu đổi size/màu (ví dụ: giao sớm cho mình, lấy form vừa người...)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-800 focus:outline-none focus:border-sky-600"></textarea>
+      </div>
+
+      <div class="p-2.5 bg-sky-100/70 rounded-xl flex items-start gap-2 text-[10px] text-sky-900 border border-sky-200">
+        <i data-lucide="info" class="w-3.5 h-3.5 text-sky-700 shrink-0 mt-0.5"></i>
+        <span>Yêu cầu đổi màu sắc và kích cỡ sẽ được gửi trực tiếp đến Quản trị viên để kiểm tra và giữ tồn kho mới cho bạn trước khi đơn hàng xuất kho.</span>
+      </div>
+
+      <button type="button" onclick="submitCancelExchangeRequest()" id="btnSubmitCancelExchange" class="w-full py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 text-xs">
+        <i data-lucide="send" class="w-4 h-4"></i>
+        <span>Gửi Yêu Cầu Đổi Size / Màu Cho Admin Duyệt</span>
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- KHỐI DYNAMIC 3: HỦY ĐƠN CHUẨN HOẶC HỦY ĐƠN HOÀN TIỀN (Các lý do khác) -->
+    <!-- ========================================================================= -->
+    <div id="cancelDefaultSection" class="space-y-3.5">
+      <form id="cancelOrderForm" method="POST" onsubmit="handleCancelOrderSubmit(this)" class="space-y-3.5">
+        @csrf
+        <input type="hidden" name="reason" id="cancelFormHiddenReason" value="">
+
+        <div class="p-3 bg-rose-50 text-rose-800 rounded-xl text-[11px] border border-rose-100 leading-relaxed">
+          <i data-lucide="info" class="w-3.5 h-3.5 inline mr-1 text-rose-600"></i>
+          Khi xác nhận hủy đơn, hệ thống sẽ tự động <strong>khôi phục mã giảm giá (voucher)</strong> và hỗ trợ giải quyết hoàn tiền nhanh chóng cho bạn.
+        </div>
+
+        <!-- Khối Thông tin Ngân hàng Hoàn Tiền (Hiển thị khi đơn hàng đã thanh toán online) -->
+        <div id="cancelModalBankBox" class="hidden p-3.5 bg-amber-50/70 rounded-xl border border-amber-300 space-y-3">
+          <div class="flex items-center justify-between pb-1.5 border-b border-amber-200">
+            <span class="font-bold text-neutral-900 uppercase text-xs flex items-center gap-1.5">
+              <i data-lucide="landmark" class="w-4 h-4 text-amber-700"></i>
+              <span>Thông Tin Nhận Tiền Hoàn (NAPAS 24/7):</span>
+            </span>
+            <span class="text-[10px] text-amber-900 font-bold bg-amber-200 px-2 py-0.5 rounded-full">Admin Chuyển Tiền</span>
+          </div>
+          <p class="text-[11px] text-neutral-600 leading-tight">
+            Đơn hàng của bạn đã thanh toán trực tuyến. Sau khi xác nhận hủy, Admin sẽ duyệt và hoàn tiền vào tài khoản ngân hàng dưới đây:
+          </p>
+
+          <!-- Chọn Ngân hàng -->
+          <div>
+            <label class="block text-[11px] font-bold text-neutral-800 mb-1">Ngân Hàng Thụ Hưởng <span class="text-rose-600">*</span></label>
+            <select name="bank_name" id="cancelBankSelect" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 font-medium focus:outline-none focus:border-amber-600 shadow-2xs">
+              <option value="" disabled selected>-- Click để chọn ngân hàng thụ hưởng --</option>
+              @foreach(($vietnamBanks ?? []) as $groupName => $bankGroup)
+                <optgroup label="{{ $groupName }}">
+                  @foreach($bankGroup as $b)
+                    <option value="{{ $b['short_name'] }}" {{ ($user->bank_name ?? '') === $b['short_name'] ? 'selected' : '' }}>
+                      {{ $b['full_name'] }}
+                    </option>
+                  @endforeach
+                </optgroup>
+              @endforeach
+            </select>
+          </div>
+
+          <!-- Số tài khoản -->
+          <div>
+            <label class="block text-[11px] font-bold text-neutral-800 mb-1">Số Tài Khoản Ngân Hàng <span class="text-rose-600">*</span></label>
+            <input type="text" inputmode="numeric" name="bank_account_number" id="cancelBankAccountNumber" value="{{ $user->bank_account_number ?? '' }}" placeholder="Nhập số tài khoản ngân hàng..." oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs font-mono font-bold tracking-wider text-neutral-900 focus:outline-none focus:border-amber-600 shadow-2xs">
+          </div>
+
+          <!-- Tên chủ tài khoản -->
+          <div>
+            <label class="block text-[11px] font-bold text-neutral-800 mb-1">Tên Chủ Tài Khoản (VIẾT HOA KHÔNG DẤU) <span class="text-rose-600">*</span></label>
+            <input type="text" name="bank_account_name" id="cancelBankAccountName" value="{{ $user->bank_account_name ?? $user->name ?? '' }}" placeholder="Ví dụ: NGUYEN VAN A" oninput="this.value = this.value.toUpperCase()" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-xs uppercase font-bold text-neutral-900 focus:outline-none focus:border-amber-600 shadow-2xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-neutral-700 text-[10px] mb-1">
+            Ghi Chú Thêm Chi Tiết (Không bắt buộc)
+          </label>
+          <textarea name="notes" id="cancelDefaultNotes" rows="2" placeholder="Nhập thêm chi tiết nếu có..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg p-2.5 text-xs text-neutral-800 focus:outline-none focus:border-neutral-950 focus:bg-white"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="closeCancelModal()" class="py-2.5 px-3 border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 font-bold rounded-xl transition-colors text-center text-xs">
+            Giữ Lại Đơn Hàng
+          </button>
+          <button type="submit" id="btnSubmitCancelOrder" class="py-2.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors shadow flex items-center justify-center gap-1.5 text-xs">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span id="btnSubmitCancelOrderText">Xác Nhận Hủy Hàng Hoàn Tiền</span>
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -1973,7 +2482,7 @@
   // RMA Return Modal
   let selectedReturnFiles = [];
 
-  function openReturnModal(orderId, orderCode, totalAmount, preselectedItemId = null) {
+  function openReturnModal(orderId, orderCode, totalAmount, preselectedItemId = null, defaultType = 'return_refund') {
     document.getElementById('returnModalOrderCode').textContent = `Đơn hàng #${orderCode} (Tổng: ${Number(totalAmount).toLocaleString('vi-VN')}₫)`;
     document.getElementById('returnOrderForm').action = `/don-hang/${orderId}/yeu-cau-doi-tra`;
 
@@ -2063,10 +2572,11 @@
     if (imgInput) imgInput.value = '';
     removeReturnVideo();
 
-    // Set radio & fields về default (Trả hàng hoàn tiền)
-    const radioRefund = document.querySelector('input[name="type"][value="return_refund"]');
-    if (radioRefund) radioRefund.checked = true;
-    handleProfileReturnTypeChange('return_refund');
+    // Set radio & fields về defaultType (Trả hàng hoàn tiền hoặc Đổi Size / Đổi Màu)
+    const targetType = (defaultType === 'exchange') ? 'exchange' : 'return_refund';
+    const radioTarget = document.querySelector(`input[name="type"][value="${targetType}"]`);
+    if (radioTarget) radioTarget.checked = true;
+    handleProfileReturnTypeChange(targetType);
 
     document.getElementById('returnOrderModal').classList.remove('hidden');
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -2211,45 +2721,742 @@
     if (previewBox) previewBox.classList.add('hidden');
   }
 
-  // Cancel Order Modal
-  function openCancelModal(orderId, orderCode, totalAmount = 0, itemsCount = 1) {
-    const titleEl = document.getElementById('cancelModalOrderCode');
-    if (titleEl) titleEl.textContent = `Hủy Đơn Hàng #${orderCode}`;
+  // =========================================================================
+  // CANCEL ORDER MODAL & MULTI-FLOW LOGIC (ĐỔI ĐỊA CHỈ, ĐỔI SIZE/MÀU, HOÀN TIỀN)
+  // =========================================================================
+  let currentCancelOrderId = null;
+  let currentCancelSelectedItemId = null;
 
-    const formEl = document.getElementById('cancelOrderForm');
-    if (formEl) {
-      formEl.action = `/don-hang/${orderId}/huy`;
-      formEl.reset();
+  function openCancelModal(orderId) {
+    currentCancelOrderId = orderId;
+    const orderData = (window.profileOrdersData && window.profileOrdersData[orderId]) ? window.profileOrdersData[orderId] : null;
+
+    if (!orderData) {
+      console.warn('Order data not found for ID:', orderId);
+      return;
     }
+
+    if (orderData.isHandedToShipper || orderData.shippingStatus === 'shipping' || (orderData.statusStep >= 4)) {
+      alert('Đơn hàng #' + orderData.code + ' đã được bưu tá tiếp nhận và đang trên đường giao đến bạn. Để đảm bảo an toàn đơn hàng, quý khách vui lòng nhận kiện hàng và ấn "Hủy Hàng Hoàn Tiền" hoặc "Đổi Trả" sau khi nhận hàng.');
+      return;
+    }
+
+    const titleEl = document.getElementById('cancelModalOrderCode');
+    if (titleEl) titleEl.textContent = `Hủy Hàng & Hoàn Tiền #${orderData.code}`;
 
     const amountEl = document.getElementById('cancelModalOrderAmount');
     if (amountEl) {
-      amountEl.textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount || 0);
+      amountEl.textContent = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(orderData.amount || 0);
     }
 
     const itemsCountEl = document.getElementById('cancelModalOrderItemsCount');
     if (itemsCountEl) {
-      itemsCountEl.textContent = `${itemsCount || 1} sản phẩm`;
+      itemsCountEl.textContent = `${orderData.itemsCount || 1} sản phẩm`;
     }
 
-    const btnSubmit = document.getElementById('btnSubmitCancelOrder');
-    if (btnSubmit) {
-      btnSubmit.disabled = false;
-      btnSubmit.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4"></i><span>Xác Nhận Hủy Đơn</span>`;
+    const prePaidBadge = document.getElementById('cancelModalPrePaidBadge');
+    const bankBox = document.getElementById('cancelModalBankBox');
+    const btnSubmitText = document.getElementById('btnSubmitCancelOrderText');
+
+    if (orderData.isPrePaid) {
+      if (prePaidBadge) prePaidBadge.classList.remove('hidden');
+      if (bankBox) bankBox.classList.remove('hidden');
+      if (btnSubmitText) btnSubmitText.textContent = 'Xác Nhận Hủy Hàng Hoàn Tiền';
+    } else {
+      if (prePaidBadge) prePaidBadge.classList.add('hidden');
+      if (bankBox) bankBox.classList.add('hidden');
+      if (btnSubmitText) btnSubmitText.textContent = 'Xác Nhận Hủy Hàng Hoàn Tiền';
     }
+
+    // Set form actions
+    const cancelForm = document.getElementById('cancelOrderForm');
+    if (cancelForm) {
+      cancelForm.action = `/don-hang/${orderId}/huy`;
+    }
+    const addressForm = document.getElementById('cancelAddressForm');
+    if (addressForm) {
+      addressForm.action = `/don-hang/${orderId}/cap-nhat-dia-chi`;
+    }
+
+    // Populate Current Address Box
+    const currentAddrDisplay = document.getElementById('cancelCurrentAddressDisplay');
+    if (currentAddrDisplay) {
+      const fullAddr = [orderData.shippingAddress, orderData.ward, orderData.district, orderData.city].filter(Boolean).join(', ');
+      currentAddrDisplay.innerHTML = `<strong>${orderData.customerName}</strong> - <span class="font-mono font-bold">${orderData.customerPhone}</span><br><span class="text-neutral-600">${fullAddr || 'Chưa cập nhật'}</span>`;
+    }
+
+    // Kiểm tra trạng thái đơn: ĐÃ BÀN GIAO CHO BƯU TÁ / ĐANG GIAO hay CHƯA?
+    const shippingNotice = document.getElementById('cancelModalShippingNotice');
+    const optAddress = document.getElementById('cancelReasonOptAddress');
+    const optExchange = document.getElementById('cancelReasonOptExchange');
+
+    if (orderData.isHandedToShipper || orderData.shippingStatus === 'shipping') {
+      // Đang giao / đã giao shipper:
+      // - Ẩn phần đổi địa chỉ (k được có phần đổi địa chỉ)
+      // - Ẩn phần đổi size/màu (chỉ được đổi sau khi đã nhận hàng)
+      if (shippingNotice) shippingNotice.classList.remove('hidden');
+      if (optAddress) {
+        optAddress.disabled = true;
+        optAddress.style.display = 'none';
+      }
+      if (optExchange) {
+        optExchange.disabled = true;
+        optExchange.style.display = 'none';
+      }
+    } else {
+      // Chưa giao shipper (pending, confirmed, processing):
+      if (shippingNotice) shippingNotice.classList.add('hidden');
+      if (optAddress) {
+        optAddress.disabled = false;
+        optAddress.style.display = '';
+      }
+      if (optExchange) {
+        optExchange.disabled = false;
+        optExchange.style.display = '';
+      }
+    }
+
+    // Pre-fill editable address inputs
+    if (document.getElementById('cancel_new_customer_name')) document.getElementById('cancel_new_customer_name').value = orderData.customerName || '';
+    if (document.getElementById('cancel_new_customer_phone')) document.getElementById('cancel_new_customer_phone').value = orderData.customerPhone || '';
+    if (document.getElementById('cancel_new_shipping_address')) document.getElementById('cancel_new_shipping_address').value = orderData.shippingAddress || '';
+
+    // Khởi tạo các dropdown hành chính Tỉnh/TP, Quận/Huyện, Phường/Xã từ API
+    initCancelAddressSelects(orderData.city, orderData.district, orderData.ward);
+
+    // Populate items in exchange dropdown
+    const exchangeItemSelect = document.getElementById('cancelExchangeItemSelect');
+    if (exchangeItemSelect) {
+      exchangeItemSelect.innerHTML = '';
+      if (orderData.items && orderData.items.length > 0) {
+        orderData.items.forEach(it => {
+          const opt = document.createElement('option');
+          opt.value = it.id;
+          opt.textContent = `${it.productName} (Màu: ${it.color} | Size: ${it.size}) - x${it.quantity}`;
+          exchangeItemSelect.appendChild(opt);
+        });
+        handleCancelExchangeItemSelect(orderData.items[0].id);
+      }
+    }
+
+    // Reset Reason Dropdown & Sections
+    const reasonSelect = document.getElementById('cancelOrderReasonSelect');
+    if (reasonSelect) reasonSelect.value = '';
+    handleCancelReasonChange('');
+
+    const btnSubmit = document.getElementById('btnSubmitCancelOrder');
+    if (btnSubmit) btnSubmit.disabled = false;
 
     document.getElementById('cancelOrderModal').classList.remove('hidden');
     if (window.lucide) window.lucide.createIcons();
   }
+
   function closeCancelModal() {
     document.getElementById('cancelOrderModal').classList.add('hidden');
   }
+
+  function handleCancelReasonChange(reason) {
+    const hiddenReasonInput = document.getElementById('cancelFormHiddenReason');
+    if (hiddenReasonInput) hiddenReasonInput.value = reason;
+
+    const addressSection = document.getElementById('cancelAddressSection');
+    const exchangeSection = document.getElementById('cancelExchangeSection');
+    const defaultSection = document.getElementById('cancelDefaultSection');
+
+    if (reason === 'Tôi muốn thay đổi địa chỉ nhận hàng') {
+      if (addressSection) addressSection.classList.remove('hidden');
+      if (exchangeSection) exchangeSection.classList.add('hidden');
+      if (defaultSection) defaultSection.classList.add('hidden');
+    } else if (reason === 'Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm') {
+      if (addressSection) addressSection.classList.add('hidden');
+      if (exchangeSection) exchangeSection.classList.remove('hidden');
+      if (defaultSection) defaultSection.classList.add('hidden');
+    } else {
+      if (addressSection) addressSection.classList.add('hidden');
+      if (exchangeSection) exchangeSection.classList.add('hidden');
+      if (defaultSection) defaultSection.classList.remove('hidden');
+    }
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // =========================================================================
+  // ADMINISTRATIVE API LOGIC CHO CẬP NHẬT ĐỊA CHỈ HỦY ĐƠN
+  // =========================================================================
+  const cancelCachedDistricts = {};
+  const cancelCachedWards = {};
+
+  async function onCancelProvinceChange(selectEl) {
+    const provCode = selectEl.value;
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const cityName = provCode ? (selectedOpt.getAttribute('data-name') || selectedOpt.text.trim()) : '';
+    document.getElementById('cancel_new_city').value = cityName;
+
+    const districtSelect = document.getElementById('cancel_new_district_select');
+    const wardSelect = document.getElementById('cancel_new_ward_select');
+    document.getElementById('cancel_new_district').value = '';
+    document.getElementById('cancel_new_ward').value = '';
+
+    wardSelect.innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+
+    if (!provCode) {
+      districtSelect.innerHTML = '<option value="">-- Vui lòng chọn Tỉnh/TP trước --</option>';
+      updateCancelAddressPreview();
+      return;
+    }
+
+    districtSelect.innerHTML = '<option value="">-- Đang tải danh sách Quận/Huyện... --</option>';
+    await loadCancelDistricts(provCode);
+    updateCancelAddressPreview();
+  }
+
+  async function loadCancelDistricts(provCode, preselectedDistrictName = null, preselectedWardName = null) {
+    const districtSelect = document.getElementById('cancel_new_district_select');
+    const districtLoading = document.getElementById('cancelDistrictLoading');
+    if (districtLoading) districtLoading.classList.remove('hidden');
+
+    try {
+      let districts = cancelCachedDistricts[provCode] || [];
+      if (districts.length === 0) {
+        try {
+          const res = await fetch(`/api/administrative/districts/${provCode}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+              districts = json.data;
+            }
+          }
+        } catch(e) {
+          console.warn('API districts fallback:', e);
+        }
+
+        if (districts.length === 0) {
+          try {
+            const resExt = await fetch(`https://provinces.open-api.vn/api/p/${provCode}?depth=2`);
+            if (resExt.ok) {
+              const jsonExt = await resExt.json();
+              districts = jsonExt.districts || [];
+            }
+          } catch(e2) {}
+        }
+        cancelCachedDistricts[provCode] = districts;
+      }
+
+      districtSelect.innerHTML = '<option value="">-- Chọn Quận / Huyện --</option>';
+      let matchedDistCode = null;
+
+      districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.code;
+        opt.textContent = d.name;
+        opt.setAttribute('data-name', d.name);
+
+        if (preselectedDistrictName && (
+          d.name.toLowerCase() === preselectedDistrictName.toLowerCase() ||
+          d.name.toLowerCase().includes(preselectedDistrictName.toLowerCase()) ||
+          preselectedDistrictName.toLowerCase().includes(d.name.toLowerCase())
+        )) {
+          opt.selected = true;
+          matchedDistCode = d.code;
+        }
+        districtSelect.appendChild(opt);
+      });
+
+      if (matchedDistCode) {
+        const selectedOpt = districtSelect.options[districtSelect.selectedIndex];
+        document.getElementById('cancel_new_district').value = selectedOpt.getAttribute('data-name') || selectedOpt.text.trim();
+        await loadCancelWards(matchedDistCode, preselectedWardName);
+      } else {
+        document.getElementById('cancel_new_district').value = '';
+        document.getElementById('cancel_new_ward_select').innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+      }
+    } catch(err) {
+      console.error('Lỗi khi tải Quận/Huyện:', err);
+    } finally {
+      if (districtLoading) districtLoading.classList.add('hidden');
+      updateCancelAddressPreview();
+    }
+  }
+
+  async function onCancelDistrictChange(selectEl) {
+    const distCode = selectEl.value;
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const distName = distCode ? (selectedOpt.getAttribute('data-name') || selectedOpt.text.trim()) : '';
+    document.getElementById('cancel_new_district').value = distName;
+
+    const wardSelect = document.getElementById('cancel_new_ward_select');
+    document.getElementById('cancel_new_ward').value = '';
+
+    if (!distCode) {
+      wardSelect.innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+      updateCancelAddressPreview();
+      return;
+    }
+
+    wardSelect.innerHTML = '<option value="">-- Đang tải danh sách Phường/Xã... --</option>';
+    await loadCancelWards(distCode);
+    updateCancelAddressPreview();
+  }
+
+  async function loadCancelWards(distCode, preselectedWardName = null) {
+    const wardSelect = document.getElementById('cancel_new_ward_select');
+    const wardLoading = document.getElementById('cancelWardLoading');
+    if (wardLoading) wardLoading.classList.remove('hidden');
+
+    try {
+      let wards = cancelCachedWards[distCode] || [];
+      if (wards.length === 0) {
+        try {
+          const res = await fetch(`/api/administrative/wards/${distCode}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+              wards = json.data;
+            }
+          }
+        } catch(e) {
+          console.warn('API wards fallback:', e);
+        }
+
+        if (wards.length === 0) {
+          try {
+            const resExt = await fetch(`https://provinces.open-api.vn/api/d/${distCode}?depth=2`);
+            if (resExt.ok) {
+              const jsonExt = await resExt.json();
+              wards = jsonExt.wards || [];
+            }
+          } catch(e2) {}
+        }
+        cancelCachedWards[distCode] = wards;
+      }
+
+      wardSelect.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+
+      wards.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.code;
+        opt.textContent = w.name;
+        opt.setAttribute('data-name', w.name);
+
+        if (preselectedWardName && (
+          w.name.toLowerCase() === preselectedWardName.toLowerCase() ||
+          w.name.toLowerCase().includes(preselectedWardName.toLowerCase()) ||
+          preselectedWardName.toLowerCase().includes(w.name.toLowerCase())
+        )) {
+          opt.selected = true;
+        }
+        wardSelect.appendChild(opt);
+      });
+
+      if (wardSelect.value) {
+        const selectedOpt = wardSelect.options[wardSelect.selectedIndex];
+        document.getElementById('cancel_new_ward').value = selectedOpt.getAttribute('data-name') || selectedOpt.text.trim();
+      } else {
+        document.getElementById('cancel_new_ward').value = '';
+      }
+    } catch(err) {
+      console.error('Lỗi khi tải Phường/Xã:', err);
+    } finally {
+      if (wardLoading) wardLoading.classList.add('hidden');
+      updateCancelAddressPreview();
+    }
+  }
+
+  function onCancelWardChange(selectEl) {
+    const wardCode = selectEl.value;
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const wardName = wardCode ? (selectedOpt.getAttribute('data-name') || selectedOpt.text.trim()) : '';
+    document.getElementById('cancel_new_ward').value = wardName;
+    updateCancelAddressPreview();
+  }
+
+  function updateCancelAddressPreview() {
+    const street = (document.getElementById('cancel_new_shipping_address')?.value || '').trim();
+    const ward = (document.getElementById('cancel_new_ward')?.value || '').trim();
+    const district = (document.getElementById('cancel_new_district')?.value || '').trim();
+    const city = (document.getElementById('cancel_new_city')?.value || '').trim();
+
+    const previewBox = document.getElementById('cancelAddressPreviewBox');
+    const previewText = document.getElementById('cancelAddressPreviewText');
+    const badge = document.getElementById('cancelAddressPreviewBadge');
+
+    if (!previewBox || !previewText) return;
+
+    const parts = [street, ward, district, city].filter(Boolean);
+    if (parts.length > 0) {
+      previewBox.classList.remove('hidden');
+      previewText.textContent = parts.join(', ');
+      if (street && ward && district && city) {
+        if (badge) {
+          badge.className = 'text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200';
+          badge.textContent = 'Đầy đủ 4 cấp';
+        }
+      } else {
+        if (badge) {
+          badge.className = 'text-[9px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200';
+          badge.textContent = 'Đang nhập...';
+        }
+      }
+    } else {
+      previewBox.classList.add('hidden');
+    }
+  }
+
+  function initCancelAddressSelects(targetCity, targetDistrict, targetWard) {
+    const provSelect = document.getElementById('cancel_new_province_select');
+    if (!provSelect) return;
+
+    if (!targetCity) {
+      provSelect.value = '';
+      document.getElementById('cancel_new_city').value = '';
+      document.getElementById('cancel_new_district').value = '';
+      document.getElementById('cancel_new_ward').value = '';
+      document.getElementById('cancel_new_district_select').innerHTML = '<option value="">-- Vui lòng chọn Tỉnh/TP trước --</option>';
+      document.getElementById('cancel_new_ward_select').innerHTML = '<option value="">-- Vui lòng chọn Quận/Huyện trước --</option>';
+      updateCancelAddressPreview();
+      return;
+    }
+
+    let matchedOpt = null;
+    const cleanTargetCity = targetCity.toLowerCase().replace(/^(tỉnh|thành phố|tp\.)\s+/i, '').trim();
+
+    for (let i = 0; i < provSelect.options.length; i++) {
+      const opt = provSelect.options[i];
+      const optName = (opt.getAttribute('data-name') || opt.text).toLowerCase();
+      const cleanOptName = optName.replace(/^(tỉnh|thành phố|tp\.)\s+/i, '').trim();
+
+      if (opt.value && (cleanOptName === cleanTargetCity || optName.includes(cleanTargetCity) || cleanTargetCity.includes(cleanOptName))) {
+        matchedOpt = opt;
+        break;
+      }
+    }
+
+    if (matchedOpt) {
+      provSelect.value = matchedOpt.value;
+      document.getElementById('cancel_new_city').value = matchedOpt.getAttribute('data-name') || matchedOpt.text.trim();
+      loadCancelDistricts(matchedOpt.value, targetDistrict, targetWard);
+    } else {
+      provSelect.value = '';
+      document.getElementById('cancel_new_city').value = targetCity;
+      document.getElementById('cancel_new_district').value = targetDistrict || '';
+      document.getElementById('cancel_new_ward').value = targetWard || '';
+      updateCancelAddressPreview();
+    }
+  }
+
+  function handlePickSavedAddress(addrId) {
+    if (!addrId) return;
+    const select = document.getElementById('cancelSavedAddressSelect');
+    const opt = select ? select.querySelector(`option[value="${addrId}"]`) : null;
+    if (opt) {
+      const name = opt.getAttribute('data-name') || '';
+      const phone = opt.getAttribute('data-phone') || '';
+      const addr = opt.getAttribute('data-address') || '';
+      const city = opt.getAttribute('data-city') || '';
+      const district = opt.getAttribute('data-district') || '';
+      const ward = opt.getAttribute('data-ward') || '';
+
+      if (document.getElementById('cancel_new_customer_name')) document.getElementById('cancel_new_customer_name').value = name;
+      if (document.getElementById('cancel_new_customer_phone')) document.getElementById('cancel_new_customer_phone').value = phone;
+      if (document.getElementById('cancel_new_shipping_address')) document.getElementById('cancel_new_shipping_address').value = addr;
+
+      initCancelAddressSelects(city, district, ward);
+    }
+  }
+
+  function submitOrderAddressAction(action) {
+    const orderData = (window.profileOrdersData && window.profileOrdersData[currentCancelOrderId]) ? window.profileOrdersData[currentCancelOrderId] : null;
+    if (orderData && (orderData.isHandedToShipper || orderData.shippingStatus === 'shipping')) {
+      alert('Đơn hàng đã được bàn giao cho bưu tá hoặc đang trên đường giao, không thể thay đổi địa chỉ nhận hàng!');
+      return;
+    }
+
+    const name = document.getElementById('cancel_new_customer_name')?.value?.trim();
+    const phone = document.getElementById('cancel_new_customer_phone')?.value?.trim();
+    const address = document.getElementById('cancel_new_shipping_address')?.value?.trim();
+    const city = document.getElementById('cancel_new_city')?.value?.trim();
+    const district = document.getElementById('cancel_new_district')?.value?.trim();
+    const ward = document.getElementById('cancel_new_ward')?.value?.trim();
+
+    if (!name || !phone || !address) {
+      alert('Vui lòng nhập đầy đủ Họ tên, Số điện thoại và Địa chỉ giao hàng chi tiết!');
+      return;
+    }
+
+    if (!city || !district || !ward) {
+      alert('Vui lòng chọn đầy đủ Tỉnh/Thành phố, Quận/Huyện và Phường/Xã!');
+      return;
+    }
+
+    const actionInput = document.getElementById('cancelAddressActionAfter');
+    if (actionInput) actionInput.value = action;
+
+    const btnKeep = document.getElementById('btnSubmitAddressKeep');
+    const btnCancel = document.getElementById('btnSubmitAddressCancel');
+
+    if (action === 'keep') {
+      if (!confirm('Bạn xác nhận CẬP NHẬT ĐỊA CHỈ MỚI và TIẾP TỤC GIAO đơn hàng này đến địa chỉ mới?')) return;
+      if (btnKeep) {
+        btnKeep.disabled = true;
+        btnKeep.innerHTML = `<svg class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang cập nhật...`;
+      }
+    } else {
+      if (!confirm('Bạn xác nhận muốn HỦY ĐƠN HÀNG này sau khi cập nhật địa chỉ (do không có nhu cầu đặt nữa)?')) return;
+      if (btnCancel) {
+        btnCancel.disabled = true;
+        btnCancel.innerHTML = `<svg class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-rose-700 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang hủy đơn...`;
+      }
+    }
+
+    document.getElementById('cancelAddressForm')?.submit();
+  }
+
+  function handleCancelExchangeItemSelect(itemId) {
+    currentCancelSelectedItemId = itemId;
+    const orderData = (window.profileOrdersData && window.profileOrdersData[currentCancelOrderId]) ? window.profileOrdersData[currentCancelOrderId] : null;
+    if (!orderData || !orderData.items) return;
+
+    const item = orderData.items.find(it => it.id == itemId) || orderData.items[0];
+    if (!item) return;
+
+    const thumb = document.getElementById('cancelExchangeThumb');
+    const nameEl = document.getElementById('cancelExchangeProdName');
+    const colorEl = document.getElementById('cancelExchangeCurrentColor');
+    const sizeEl = document.getElementById('cancelExchangeCurrentSize');
+
+    if (thumb) thumb.src = item.image || 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=200&auto=format&fit=crop';
+    if (nameEl) nameEl.textContent = item.productName || 'Sản phẩm';
+    if (colorEl) colorEl.textContent = 'Màu hiện tại: ' + (item.color || 'Chuẩn');
+    if (sizeEl) sizeEl.textContent = 'Size hiện tại: ' + (item.size || 'M');
+
+    // Extract available colors & sizes from product variants
+    let colors = [];
+    let sizes = [];
+
+    if (item.variants && item.variants.length > 0) {
+      item.variants.forEach(v => {
+        if (v.color && !colors.some(c => c.name === v.color)) {
+          colors.push({ name: v.color, code: v.colorCode || '#000000' });
+        }
+        if (v.size && !sizes.includes(v.size)) {
+          sizes.push(v.size);
+        }
+      });
+    }
+
+    if (colors.length === 0) {
+      colors = [
+        { name: 'Đen Sang Trọng', code: '#1a1a1a' },
+        { name: 'Trắng Tinh Khôi', code: '#ffffff' },
+        { name: 'Xanh Navy', code: '#1e3a8a' },
+        { name: 'Beige Kem', code: '#f5f5dc' },
+        { name: 'Xám Ghi', code: '#6b7280' }
+      ];
+    }
+    if (sizes.length === 0) {
+      sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+    }
+
+    // Populate Color Swatches & Select
+    const colorSwatches = document.getElementById('cancelExchangeColorSwatches');
+    const colorSelect = document.getElementById('cancelExchangeColorSelect');
+    if (colorSwatches && colorSelect) {
+      colorSwatches.innerHTML = '';
+      colorSelect.innerHTML = '<option value="" disabled selected>-- Chọn màu sắc mong muốn đổi --</option>';
+
+      colors.forEach((c, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `cancel-color-btn px-2.5 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1.5 transition-all ${idx === 0 ? 'border-sky-600 bg-sky-50 text-sky-900 font-bold' : 'border-neutral-200 bg-white text-neutral-800 hover:border-sky-300'}`;
+        btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full border border-black/20" style="background-color: ${c.code}"></span><span>${c.name}</span>`;
+        btn.onclick = () => selectCancelColor(c.name);
+        colorSwatches.appendChild(btn);
+
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = c.name;
+        if (idx === 0) opt.selected = true;
+        colorSelect.appendChild(opt);
+      });
+
+      selectCancelColor(colors[0].name);
+    }
+
+    // Populate Size Swatches & Select
+    const sizeSwatches = document.getElementById('cancelExchangeSizeSwatches');
+    const sizeSelect = document.getElementById('cancelExchangeSizeSelect');
+    if (sizeSwatches && sizeSelect) {
+      sizeSwatches.innerHTML = '';
+      sizeSelect.innerHTML = '<option value="" disabled selected>-- Chọn size mong muốn đổi --</option>';
+
+      sizes.forEach((s, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `cancel-size-btn px-3 py-1 rounded-lg border text-[11px] font-semibold transition-all ${idx === 0 ? 'border-sky-600 bg-sky-50 text-sky-900 font-bold' : 'border-neutral-200 bg-white text-neutral-800 hover:border-sky-300'}`;
+        btn.textContent = s;
+        btn.onclick = () => selectCancelSize(s);
+        sizeSwatches.appendChild(btn);
+
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = `Size ${s}`;
+        if (idx === 0) opt.selected = true;
+        sizeSelect.appendChild(opt);
+      });
+
+      selectCancelSize(sizes[0]);
+    }
+  }
+
+  function selectCancelColor(colorName) {
+    const select = document.getElementById('cancelExchangeColorSelect');
+    if (select) select.value = colorName;
+
+    const badge = document.getElementById('cancelExchangeColorBadge');
+    if (badge) badge.textContent = colorName;
+
+    document.querySelectorAll('.cancel-color-btn').forEach(btn => {
+      if (btn.textContent.trim().includes(colorName)) {
+        btn.className = 'cancel-color-btn px-2.5 py-1 rounded-lg border text-[11px] font-bold flex items-center gap-1.5 transition-all border-sky-600 bg-sky-50 text-sky-900 shadow-2xs';
+      } else {
+        btn.className = 'cancel-color-btn px-2.5 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1.5 transition-all border-neutral-200 bg-white text-neutral-800 hover:border-sky-300';
+      }
+    });
+  }
+
+  function handleCancelColorSelectChange(val) {
+    selectCancelColor(val);
+  }
+
+  function selectCancelSize(sizeVal) {
+    const select = document.getElementById('cancelExchangeSizeSelect');
+    if (select) select.value = sizeVal;
+
+    const badge = document.getElementById('cancelExchangeSizeBadge');
+    if (badge) badge.textContent = `Size ${sizeVal}`;
+
+    document.querySelectorAll('.cancel-size-btn').forEach(btn => {
+      if (btn.textContent.trim() === sizeVal) {
+        btn.className = 'cancel-size-btn px-3 py-1 rounded-lg border text-[11px] font-bold transition-all border-sky-600 bg-sky-50 text-sky-900 shadow-2xs';
+      } else {
+        btn.className = 'cancel-size-btn px-3 py-1 rounded-lg border text-[11px] font-semibold transition-all border-neutral-200 bg-white text-neutral-800 hover:border-sky-300';
+      }
+    });
+  }
+
+  function handleCancelSizeSelectChange(val) {
+    selectCancelSize(val);
+  }
+
+  function submitCancelExchangeRequest() {
+    const color = document.getElementById('cancelExchangeColorSelect')?.value;
+    const size = document.getElementById('cancelExchangeSizeSelect')?.value;
+    const notes = document.getElementById('cancelExchangeNotes')?.value?.trim();
+
+    if (!color || !size) {
+      alert('Vui lòng chọn màu sắc và kích cỡ (size) mới bạn muốn đổi!');
+      return;
+    }
+
+    if (!confirm(`Bạn xác nhận gửi yêu cầu đổi sang Size: ${size} và Màu: ${color} cho Quản trị viên duyệt?`)) {
+      return;
+    }
+
+    const btn = document.getElementById('btnSubmitCancelExchange');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang gửi yêu cầu...`;
+    }
+
+    // Submit via dynamic form to orders.cancel with exchange data
+    const tempForm = document.createElement('form');
+    tempForm.method = 'POST';
+    tempForm.action = `/don-hang/${currentCancelOrderId}/huy`;
+
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'hidden';
+    tokenInput.name = '_token';
+    tokenInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    tempForm.appendChild(tokenInput);
+
+    const reasonInput = document.createElement('input');
+    reasonInput.type = 'hidden';
+    reasonInput.name = 'reason';
+    reasonInput.value = 'Tôi muốn thay đổi Size hoặc Màu sắc sản phẩm';
+    tempForm.appendChild(reasonInput);
+
+    const itemInput = document.createElement('input');
+    itemInput.type = 'hidden';
+    itemInput.name = 'order_item_id';
+    itemInput.value = currentCancelSelectedItemId || '';
+    tempForm.appendChild(itemInput);
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'hidden';
+    colorInput.name = 'exchange_color';
+    colorInput.value = color;
+    tempForm.appendChild(colorInput);
+
+    const sizeInput = document.createElement('input');
+    sizeInput.type = 'hidden';
+    sizeInput.name = 'exchange_size';
+    sizeInput.value = size;
+    tempForm.appendChild(sizeInput);
+
+    if (notes) {
+      const notesInput = document.createElement('input');
+      notesInput.type = 'hidden';
+      notesInput.name = 'notes';
+      notesInput.value = notes;
+      tempForm.appendChild(notesInput);
+    }
+
+    document.body.appendChild(tempForm);
+    tempForm.submit();
+  }
+
   function handleCancelOrderSubmit(form) {
+    const reason = document.getElementById('cancelFormHiddenReason')?.value;
+    if (!reason) {
+      alert('Vui lòng chọn lý do bạn muốn hủy đơn hàng!');
+      document.getElementById('cancelOrderReasonSelect')?.focus();
+      return false;
+    }
+
+    const orderData = (window.profileOrdersData && window.profileOrdersData[currentCancelOrderId]) ? window.profileOrdersData[currentCancelOrderId] : null;
+
+    if (orderData && orderData.isPrePaid) {
+      const bankSelect = document.getElementById('cancelBankSelect');
+      const bankAccNum = document.getElementById('cancelBankAccountNumber');
+      const bankAccName = document.getElementById('cancelBankAccountName');
+
+      if (!bankSelect || !bankSelect.value) {
+        alert('Đơn hàng đã thanh toán online. Vui lòng chọn ngân hàng nhận tiền hoàn!');
+        bankSelect?.focus();
+        return false;
+      }
+      if (!bankAccNum || !bankAccNum.value.trim()) {
+        alert('Đơn hàng đã thanh toán online. Vui lòng nhập số tài khoản ngân hàng để nhận tiền hoàn!');
+        bankAccNum?.focus();
+        return false;
+      }
+      if (!bankAccName || !bankAccName.value.trim()) {
+        alert('Đơn hàng đã thanh toán online. Vui lòng nhập tên chủ tài khoản ngân hàng (viết hoa không dấu)!');
+        bankAccName?.focus();
+        return false;
+      }
+    }
+
+    if (!confirm('Bạn có chắc chắn muốn xác nhận HỦY ĐƠN HÀNG này?')) {
+      return false;
+    }
+
     const btn = document.getElementById('btnSubmitCancelOrder');
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xử lý hủy...`;
     }
+    return true;
   }
 
   // Quick Review Modal
@@ -2376,5 +3583,46 @@
       alert('Không thể kết nối máy chủ.');
     });
   }
+
+  // Bộ đếm ngược 15 phút cho các đơn hàng online pending trên trang Profile
+  document.addEventListener('DOMContentLoaded', function() {
+    const countdownEls = document.querySelectorAll('.profile-online-countdown');
+    if (countdownEls.length > 0) {
+      const updateProfileCountdowns = () => {
+        let hasActive = false;
+        countdownEls.forEach(el => {
+          let rem = parseInt(el.getAttribute('data-remaining') || '0', 10);
+          if (rem > 0) {
+            hasActive = true;
+            const m = Math.floor(rem / 60).toString().padStart(2, '0');
+            const s = (rem % 60).toString().padStart(2, '0');
+            el.textContent = `${m}:${s}`;
+            rem--;
+            el.setAttribute('data-remaining', rem);
+          } else {
+            el.textContent = '00:00 (Hết hạn)';
+            const orderCode = el.getAttribute('data-code');
+            if (orderCode && !el.dataset.expiredTriggered) {
+              el.dataset.expiredTriggered = 'true';
+              fetch(`/thanh-toan/${orderCode}/het-han`, {
+                method: 'POST',
+                headers: {
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                  'Accept': 'application/json'
+                }
+              }).finally(() => {
+                window.location.reload();
+              });
+            }
+          }
+        });
+        if (!hasActive) {
+          clearInterval(profileTimer);
+        }
+      };
+      updateProfileCountdowns();
+      const profileTimer = setInterval(updateProfileCountdowns, 1000);
+    }
+  });
 </script>
 @endpush

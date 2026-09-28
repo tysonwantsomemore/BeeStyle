@@ -334,7 +334,7 @@ class DatabaseSeeder extends Seeder
                     ['sku' => 'BS-THUN-07', 'name' => 'Áo Thun Nam Trắng Tinh Khôi Cổ Bo Dệt Không Gião', 'price' => 229000, 'orig' => 300000, 'img' => '/assets/img/products/tshirt_white.jpg', 'sold' => 1480, 'rating' => 4.9, 'rev' => 112, 'featured' => true],
                     ['sku' => 'BS-THUN-08', 'name' => 'Áo Thun Nam Thể Thao Tập Gym Thoát Mồ Hôi Tức Thì', 'price' => 239000, 'orig' => 320000, 'img' => '/assets/img/products/tshirt_1.jpg', 'sold' => 920, 'rating' => 4.8, 'rev' => 64, 'featured' => false],
                     ['sku' => 'BS-THUN-09', 'name' => 'Áo Thun Nam Dài Tay Thu Đông Giữ Nhiệt Nhẹ Nhàng', 'price' => 279000, 'orig' => 370000, 'img' => '/assets/img/products/tshirt_2.jpg', 'sold' => 860, 'rating' => 4.8, 'rev' => 60, 'featured' => false],
-                    ['sku' => 'BS-THUN-10', 'name' => 'Áo Thun Nam Thể Thao Phối Viền Cổ Thoáng Khí Siêu Co Giãn', 'price' => 239000, 'orig' => 320000, 'img' => '/assets/img/products/polo_sport_dry.jpg', 'sold' => 1050, 'rating' => 4.9, 'rev' => 78, 'featured' => true],
+                    ['sku' => 'BS-THUN-10', 'name' => 'Áo Thun Nam Phối Viền Bo Cổ Retro Ringer Phong Cách Thể Thao', 'price' => 239000, 'orig' => 320000, 'img' => '/assets/img/products/tshirt_raglan.jpg', 'sold' => 1050, 'rating' => 4.9, 'rev' => 78, 'featured' => true],
                 ]
             ],
 
@@ -399,6 +399,22 @@ class DatabaseSeeder extends Seeder
                     'image_path' => $p->image,
                     'sort_order' => 1,
                 ]);
+
+                // Lưu các ảnh phụ chi tiết nếu có
+                $detailKeys = [
+                    2 => "prod_{$p->id}_collar.jpg",
+                    3 => "prod_{$p->id}_fabric.jpg",
+                    4 => "prod_{$p->id}_fit.jpg",
+                ];
+                foreach ($detailKeys as $sort => $detailFile) {
+                    if (file_exists(public_path("assets/img/products/{$detailFile}"))) {
+                        ProductImage::create([
+                            'product_id' => $p->id,
+                            'image_path' => "/assets/img/products/{$detailFile}",
+                            'sort_order' => $sort,
+                        ]);
+                    }
+                }
 
                 // Tạo các biến thể màu sắc và kích cỡ (ProductVariants)
                 $variantColors = [

@@ -61,7 +61,7 @@ class UserManagementController extends Controller
             'oldest'      => $query->oldest(),
             'name_asc'    => $query->orderBy('name', 'asc'),
             'name_desc'   => $query->orderBy('name', 'desc'),
-            'admin_first' => $query->orderByRaw("FIELD(role, 'admin', 'shipper', 'customer')")->latest(),
+            'admin_first' => $query->orderByRaw("CASE role WHEN 'admin' THEN 1 WHEN 'shipper' THEN 2 WHEN 'customer' THEN 3 ELSE 4 END")->latest(),
             default       => $query->latest(),
         };
 

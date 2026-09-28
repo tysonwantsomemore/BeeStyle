@@ -49,17 +49,18 @@ class ProductVariant extends Model
 
     public function getIsSaleActiveAttribute(): bool
     {
-        return $this->product ? $this->product->is_sale_active : false;
+        $product = $this->relationLoaded('product') ? $this->product : null;
+        return $product ? $product->is_sale_active : false;
     }
 
     public function getEffectivePriceAttribute(): int
     {
-        $product = $this->product;
+        $product = $this->relationLoaded('product') ? $this->product : null;
         if ($product && ($product->sale_starts_at || $product->sale_ends_at)) {
             if (!$product->is_sale_active) {
                 return (int) ($this->original_price ?: ($product->original_price ?: $this->price));
             }
         }
-        return (int) $this->price;
+        return (int) ($this->price ?: ($this->original_price ?: 0));
     }
 }

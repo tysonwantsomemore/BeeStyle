@@ -19,6 +19,12 @@ class OrderTrackingController extends Controller
 {
     public function index(Request $request)
     {
+        // 1. Tự động quét và hủy các đơn hàng trực tuyến quá 15 phút chưa thanh toán
+        Order::cancelAllExpiredPendingOnlineOrders();
+
+        // 2. Tự động quét và hoàn tất các đơn hàng đã giao quá 7 ngày
+        Order::autoCompleteEligibleDeliveredOrders();
+
         $code = trim($request->query('code', ''));
         $searchType = $request->query('type', 'auto'); // 'order', 'tracking', or 'auto'
         $cleanCode = ltrim($code, '#');
@@ -49,6 +55,12 @@ class OrderTrackingController extends Controller
             }
         }
 
+        // Nếu đơn hàng đang tra cứu đã hết hạn 15 phút thanh toán online: hủy ngay
+        if ($currentOrder && $currentOrder->isOnlinePaymentExpired()) {
+            $currentOrder->cancelAsExpiredOnlinePayment();
+            $currentOrder->refresh();
+        }
+
         // Lấy danh sách đơn hàng gần đây của khách hàng để gợi ý tra cứu nhanh
         $userRecentOrders = collect();
         if (Auth::check()) {
@@ -64,7 +76,55 @@ class OrderTrackingController extends Controller
             $matchedBy = 'tracking';
         }
 
-        return view('client.order-tracking', compact('currentOrder', 'code', 'searchType', 'userRecentOrders', 'sampleOrders', 'matchedBy'));
+        $vietnamBanks = [
+            'Ngân hàng phổ biến nhất' => [
+                ['code' => 'VCB', 'short_name' => 'Vietcombank', 'full_name' => 'Vietcombank - Ngân hàng Ngoại Thương Việt Nam (VCB)'],
+                ['code' => 'MB', 'short_name' => 'MB Bank', 'full_name' => 'MB Bank - Ngân hàng TMCP Quân Đội (MB)'],
+                ['code' => 'TCB', 'short_name' => 'Techcombank', 'full_name' => 'Techcombank - Ngân hàng Kỹ Thương Việt Nam (TCB)'],
+                ['code' => 'CTG', 'short_name' => 'VietinBank', 'full_name' => 'VietinBank - Ngân hàng Công Thương Việt Nam (CTG)'],
+                ['code' => 'BIDV', 'short_name' => 'BIDV', 'full_name' => 'BIDV - Ngân hàng Đầu Tư & Phát Triển Việt Nam'],
+                ['code' => 'VPB', 'short_name' => 'VPBank', 'full_name' => 'VPBank - Ngân hàng Việt Nam Thịnh Vượng (VPB)'],
+                ['code' => 'ACB', 'short_name' => 'ACB', 'full_name' => 'ACB - Ngân hàng TMCP Á Châu (ACB)'],
+                ['code' => 'TPB', 'short_name' => 'TPBank', 'full_name' => 'TPBank - Ngân hàng Tiên Phong (TPB)'],
+                ['code' => 'STB', 'short_name' => 'Sacombank', 'full_name' => 'Sacombank - Ngân hàng Sài Gòn Thương Tín (STB)'],
+                ['code' => 'VBA', 'short_name' => 'Agribank', 'full_name' => 'Agribank - Ngân hàng Nông Nghiệp & PTNT (VBA)'],
+            ],
+            'Ngân hàng Thương mại Cổ phần' => [
+                ['code' => 'VIB', 'short_name' => 'VIB', 'full_name' => 'VIB - Ngân hàng Quốc Tế Việt Nam'],
+                ['code' => 'HDB', 'short_name' => 'HDBank', 'full_name' => 'HDBank - Ngân hàng Phát Triển TP.HCM'],
+                ['code' => 'SHB', 'short_name' => 'SHB', 'full_name' => 'SHB - Ngân hàng Sài Gòn - Hà Nội'],
+                ['code' => 'MSB', 'short_name' => 'MSB', 'full_name' => 'MSB - Ngân hàng Hàng Hải Việt Nam'],
+                ['code' => 'OCB', 'short_name' => 'OCB', 'full_name' => 'OCB - Ngân hàng Phương Đông'],
+                ['code' => 'SSB', 'short_name' => 'SeABank', 'full_name' => 'SeABank - Ngân hàng Đông Nam Á'],
+                ['code' => 'LPB', 'short_name' => 'LPBank', 'full_name' => 'LPBank - Ngân hàng Lộc Phát Việt Nam'],
+                ['code' => 'EIB', 'short_name' => 'Eximbank', 'full_name' => 'Eximbank - Ngân hàng Xuất Nhập Khẩu Việt Nam'],
+                ['code' => 'PVB', 'short_name' => 'PVcomBank', 'full_name' => 'PVcomBank - Ngân hàng Đại Chúng Việt Nam'],
+                ['code' => 'BAB', 'short_name' => 'Bac A Bank', 'full_name' => 'Bac A Bank - Ngân hàng TMCP Bắc Á'],
+                ['code' => 'BVB', 'short_name' => 'BaoViet Bank', 'full_name' => 'BaoViet Bank - Ngân hàng Bảo Việt'],
+                ['code' => 'ABB', 'short_name' => 'ABBANK', 'full_name' => 'ABBANK - Ngân hàng An Bình'],
+                ['code' => 'NAB', 'short_name' => 'Nam A Bank', 'full_name' => 'Nam A Bank - Ngân hàng Nam Á'],
+                ['code' => 'KLB', 'short_name' => 'Kienlongbank', 'full_name' => 'Kienlongbank - Ngân hàng Kiên Long'],
+                ['code' => 'BVBANK', 'short_name' => 'BVBank', 'full_name' => 'BVBank - Ngân hàng Bản Việt'],
+                ['code' => 'PGB', 'short_name' => 'PG Bank', 'full_name' => 'PG Bank - Ngân hàng Xăng Dầu Petrolimex'],
+                ['code' => 'SGB', 'short_name' => 'Saigonbank', 'full_name' => 'Saigonbank - Ngân hàng Sài Gòn Công Thương'],
+                ['code' => 'VAB', 'short_name' => 'VietABank', 'full_name' => 'VietABank - Ngân hàng Việt Á'],
+            ],
+            'Ngân hàng số & Ví điện tử' => [
+                ['code' => 'CAKE', 'short_name' => 'Cake by VPBank', 'full_name' => 'Cake by VPBank - Ngân hàng số Cake'],
+                ['code' => 'TNEX', 'short_name' => 'TNEX', 'full_name' => 'TNEX - Ngân hàng số TNEX (MSB)'],
+                ['code' => 'TIMO', 'short_name' => 'Timo', 'full_name' => 'Timo - Ngân hàng số Timo (BVBank)'],
+                ['code' => 'VIETTEL', 'short_name' => 'Viettel Money', 'full_name' => 'Viettel Money - Dịch vụ số Viettel'],
+                ['code' => 'VNPT', 'short_name' => 'VNPT Money', 'full_name' => 'VNPT Money - Tập đoàn VNPT'],
+            ],
+            'Ngân hàng Quốc tế & Liên doanh' => [
+                ['code' => 'SHBVN', 'short_name' => 'Shinhan Bank', 'full_name' => 'Shinhan Bank - Ngân hàng MTV Shinhan Việt Nam'],
+                ['code' => 'WRB', 'short_name' => 'Woori Bank', 'full_name' => 'Woori Bank - Ngân hàng MTV Woori Việt Nam'],
+                ['code' => 'HSBC', 'short_name' => 'HSBC', 'full_name' => 'HSBC - Ngân hàng HSBC Việt Nam'],
+                ['code' => 'SCVN', 'short_name' => 'Standard Chartered', 'full_name' => 'Standard Chartered - Standard Chartered VN'],
+            ],
+        ];
+
+        return view('client.order-tracking', compact('currentOrder', 'code', 'searchType', 'userRecentOrders', 'sampleOrders', 'matchedBy', 'vietnamBanks'));
     }
 
     /**
@@ -114,15 +174,13 @@ class OrderTrackingController extends Controller
         
         $order->update([
             'payment_status' => 'paid',
-            'shipping_status' => 'processing',
-            'status_step' => 3,
+            'shipping_status' => 'pending',
+            'status_step' => 1,
             'paid_at' => now(),
-            'confirmed_at' => $order->confirmed_at ?: now(),
-            'processing_at' => now(),
         ]);
 
         return redirect()->route('client.order-tracking', ['code' => $code])
-            ->with('success', "Thành công! BeeStyle đã nhận được xác nhận thanh toán VietQR cho đơn hàng #{$code}. Chúng tôi đang chuẩn bị gửi hàng cho bạn!");
+            ->with('success', "Thành công! BeeStyle đã nhận được xác nhận thanh toán VietQR cho đơn hàng #{$code}. Đơn hàng đã chuyển sang bộ phận duyệt đơn & đóng gói!");
     }
 
     /**
@@ -145,6 +203,10 @@ class OrderTrackingController extends Controller
             return back()->with('error', 'Không thể xác nhận nhận hàng cho đơn hàng đã bị hủy.');
         }
 
+        if ($order->shipping_status !== 'delivered' && ($order->status_step ?? 1) < 5) {
+            return back()->with('error', 'Đơn hàng #' . $order->order_code . ' đang trong quá trình vận chuyển và chưa được giao tới tay bạn. Vui lòng nhận kiện hàng từ bưu tá trước khi ấn xác nhận.');
+        }
+
         $now = now();
         $updateData = [
             'shipping_status' => 'completed',
@@ -160,7 +222,10 @@ class OrderTrackingController extends Controller
 
         if ($order->payment_status !== 'paid') {
             $updateData['payment_status'] = 'paid';
+            $updateData['remaining_amount'] = 0;
             $updateData['paid_at'] = $now;
+        } else {
+            $updateData['remaining_amount'] = 0;
         }
 
         $order->update($updateData);
@@ -325,31 +390,49 @@ class OrderTrackingController extends Controller
             'reason' => 'required|string|max:255',
             'customer_notes' => 'nullable|string|max:1000',
             'refund_method' => 'nullable|string|in:bank,voucher',
-            'bank_name' => 'nullable|string|max:100',
-            'bank_account_number' => 'nullable|string|max:50',
-            'bank_account_name' => 'nullable|string|max:150',
+            'bank_name' => 'required_if:type,return_refund|nullable|string|max:100',
+            'bank_account_number' => 'required_if:type,return_refund|nullable|string|max:50',
+            'bank_account_name' => 'required_if:type,return_refund|nullable|string|max:150',
             'bank_branch' => 'nullable|string|max:150',
             'image_proofs' => 'nullable|array|max:5',
             'image_proofs.*' => 'image|mimes:jpeg,png,jpg,webp|max:8192',
+            'proof_images' => 'nullable|array|max:5',
+            'proof_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:8192',
         ], [
-            'type.required' => 'Vui lòng chọn hình thức hoàn tiền hoặc đổi hàng.',
-            'reason.required' => 'Vui lòng chọn lý do yêu cầu đổi trả.',
+            'type.required' => 'Vui lòng chọn hình thức mong muốn (Trả Hàng & Hoàn Tiền hoặc Đổi Size / Đổi Màu).',
+            'reason.required' => 'Vui lòng chọn lý do đổi trả / hoàn tiền.',
+            'bank_name.required_if' => 'Vui lòng chọn ngân hàng thụ hưởng nhận tiền hoàn.',
+            'bank_account_number.required_if' => 'Vui lòng nhập số tài khoản ngân hàng để nhận tiền hoàn.',
+            'bank_account_name.required_if' => 'Vui lòng nhập tên chủ tài khoản nhận tiền hoàn.',
             'image_proofs.*.image' => 'File tải lên phải là hình ảnh (JPEG, PNG, WEBP).',
             'image_proofs.*.max' => 'Dung lượng mỗi ảnh không vượt quá 8MB.',
+            'proof_images.*.image' => 'File tải lên phải là hình ảnh (JPEG, PNG, WEBP).',
+            'proof_images.*.max' => 'Dung lượng mỗi ảnh không vượt quá 8MB.',
         ]);
 
         $imageUrls = [];
-        if ($request->hasFile('image_proofs')) {
-            foreach ($request->file('image_proofs') as $image) {
-                $path = $image->store('returns/images', 'public');
-                $imageUrls[] = '/storage/' . $path;
+        $uploadedImages = $request->file('image_proofs') ?: $request->file('proof_images');
+        if ($uploadedImages && is_array($uploadedImages)) {
+            foreach ($uploadedImages as $image) {
+                if ($image && $image->isValid()) {
+                    $path = $image->store('returns/images', 'public');
+                    $imageUrls[] = '/storage/' . $path;
+                }
             }
         }
 
-        // Tính số tiền hoàn: nếu là đổi hàng thì refund_amount = 0; nếu hoàn tiền thì lấy tổng tiền/tiền cọc
-        $refundAmount = $order->total_amount;
-        if ($order->is_deposit_required && $order->payment_status === 'deposit_paid') {
-            $refundAmount = $order->deposit_amount;
+        // Tính số tiền hoàn: nếu là đổi hàng thì refund_amount = 0; nếu hoàn tiền thì lấy theo sản phẩm hoặc toàn bộ đơn
+        $isDepositOnly = ($order->is_deposit_required && $order->payment_status === 'deposit_paid');
+        $refundAmount = $isDepositOnly ? (float)$order->deposit_amount : (float)$order->total_amount;
+        if (!empty($validated['order_item_id'])) {
+            $selectedItem = $order->items->firstWhere('id', $validated['order_item_id']);
+            if ($selectedItem) {
+                $rawSubtotal = (float)($selectedItem->subtotal ?: ($selectedItem->price * $selectedItem->quantity));
+                $refundAmount = $isDepositOnly ? round($rawSubtotal * 0.5) : $rawSubtotal;
+                if ($isDepositOnly && $refundAmount > (float)$order->deposit_amount) {
+                    $refundAmount = (float)$order->deposit_amount;
+                }
+            }
         }
         if ($validated['type'] === 'exchange') {
             $refundAmount = 0;
@@ -364,6 +447,11 @@ class OrderTrackingController extends Controller
         $userId = $order->user_id ?? Auth::id();
 
         DB::transaction(function () use ($order, $validated, $imageUrls, $refundAmount, $returnCode, $userId) {
+            $bankAccName = !empty($validated['bank_account_name']) ? mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8') : null;
+            $bankAccNum = !empty($validated['bank_account_number']) ? trim($validated['bank_account_number']) : null;
+            $bankName = $validated['bank_name'] ?? null;
+            $bankBranch = !empty($validated['bank_branch']) ? trim($validated['bank_branch']) : null;
+
             // 1. Tạo bản ghi OrderReturn
             OrderReturn::create([
                 'return_code' => $returnCode,
@@ -378,10 +466,10 @@ class OrderTrackingController extends Controller
                 'exchange_color' => $validated['exchange_color'] ?? null,
                 'refund_amount' => $refundAmount,
                 'refund_method' => $validated['refund_method'] ?? 'bank',
-                'bank_name' => $validated['bank_name'] ?? null,
-                'bank_account_number' => $validated['bank_account_number'] ?? null,
-                'bank_account_name' => !empty($validated['bank_account_name']) ? mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8') : null,
-                'bank_branch' => $validated['bank_branch'] ?? null,
+                'bank_name' => $bankName,
+                'bank_account_number' => $bankAccNum,
+                'bank_account_name' => $bankAccName,
+                'bank_branch' => $bankBranch,
                 'status' => 'pending',
             ]);
 
@@ -403,43 +491,48 @@ class OrderTrackingController extends Controller
                 'cancelled_at' => now(),
             ];
 
-            // Nếu là từ chối nhận lúc shipper giao (hoặc hủy đơn khi chưa hoàn tất):
-            if ($validated['type'] === 'refund_only' || in_array($order->shipping_status, ['shipping', 'delivered'])) {
-                $updateData['shipping_status'] = 'cancelled';
-                $updateData['status_step'] = 0;
-                $updateData['payment_status'] = $isPrePaid ? 'refund_pending' : 'cancelled';
+            // Nếu là hủy đơn/hoàn tiền khi đơn chưa hoàn tất (pending, confirmed, processing, shipping, delivered):
+            if ($validated['type'] === 'refund_only' || $order->shipping_status !== 'completed') {
+                if ($validated['type'] !== 'exchange') {
+                    $updateData['shipping_status'] = 'cancelled';
+                    $updateData['status_step'] = 0;
+                    $updateData['payment_status'] = $isPrePaid ? 'refund_pending' : 'cancelled';
 
-                // Hoàn lại tồn kho cho sản phẩm
-                foreach ($order->items as $item) {
-                    if ($item->product_id) {
-                        Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                        $prod = Product::find($item->product_id);
-                        if ($prod && $prod->sold_count >= $item->quantity) {
-                            $prod->decrement('sold_count', $item->quantity);
-                        }
+                    // Hoàn lại tồn kho cho sản phẩm & biến thể
+                    foreach ($order->items as $item) {
+                        if ($item->product_id) {
+                            Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                            $prod = Product::find($item->product_id);
+                            if ($prod && $prod->sold_count >= $item->quantity) {
+                                $prod->decrement('sold_count', $item->quantity);
+                            }
 
-                        if (!empty($item->color) && !empty($item->size)) {
-                            ProductVariant::where('product_id', $item->product_id)
-                                ->where('color', $item->color)
-                                ->where('size', $item->size)
-                                ->increment('stock', $item->quantity);
+                            if (!empty($item->color) && !empty($item->size)) {
+                                ProductVariant::where('product_id', $item->product_id)
+                                    ->where('color', $item->color)
+                                    ->where('size', $item->size)
+                                    ->increment('stock', $item->quantity);
+                            }
                         }
                     }
-                }
 
-                // Khôi phục coupon
-                if ($order->coupon_code) {
-                    $coupon = Coupon::where('code', $order->coupon_code)->first();
-                    if ($coupon && $coupon->used_count > 0) {
-                        $coupon->decrement('used_count');
+                    // Khôi phục coupon
+                    if ($order->coupon_code) {
+                        $coupon = Coupon::where('code', $order->coupon_code)->first();
+                        if ($coupon && $coupon->used_count > 0) {
+                            $coupon->decrement('used_count');
+                        }
                     }
+                } else {
+                    // Nếu là exchange khi chưa hoàn tất: giữ đơn
+                    unset($updateData['cancelled_by']);
+                    unset($updateData['cancelled_at']);
                 }
             } else {
                 // Đơn hàng đã completed:
                 if ($validated['type'] === 'return_refund' && $isPrePaid) {
                     $updateData['payment_status'] = 'refund_pending';
                 }
-                // Nếu là exchange (đổi hàng): không đổi shipping_status thành cancelled mà giữ completed
                 if ($validated['type'] === 'exchange') {
                     unset($updateData['cancelled_by']);
                     unset($updateData['cancelled_at']);
@@ -455,12 +548,12 @@ class OrderTrackingController extends Controller
             $order->update($updateData);
 
             // Lưu STK vào tài khoản user nếu có
-            if (Auth::check() && !empty($validated['bank_name']) && !empty($validated['bank_account_number'])) {
+            if (Auth::check() && !empty($bankName) && !empty($bankAccNum)) {
                 Auth::user()->update([
-                    'bank_name' => $validated['bank_name'],
-                    'bank_account_number' => trim($validated['bank_account_number']),
-                    'bank_account_name' => !empty($validated['bank_account_name']) ? mb_strtoupper(trim($validated['bank_account_name']), 'UTF-8') : null,
-                    'bank_branch' => !empty($validated['bank_branch']) ? trim($validated['bank_branch']) : null,
+                    'bank_name' => $bankName,
+                    'bank_account_number' => $bankAccNum,
+                    'bank_account_name' => $bankAccName,
+                    'bank_branch' => $bankBranch,
                 ]);
             }
         });
@@ -470,7 +563,7 @@ class OrderTrackingController extends Controller
         } elseif ($validated['type'] === 'refund_only') {
             $msg = "Đã ghi nhận yêu cầu TỪ CHỐI NHẬN HÀNG [Mã: {$returnCode}]. Kiện hàng sẽ được bưu tá chuyển hoàn về kho BeeStyle.";
         } else {
-            $msg = "Đã gửi yêu cầu TRẢ HÀNG & HOÀN TIỀN thành công [Mã: {$returnCode}]! CSKH BeeStyle sẽ liên hệ hướng dẫn thu hồi sản phẩm và hoàn tiền vào tài khoản ngân hàng của bạn.";
+            $msg = "Yêu cầu hủy đơn & hoàn tiền [Mã: {$returnCode}] cho đơn hàng #{$order->order_code} đã được gửi thành công! CSKH BeeStyle sẽ xác nhận và chuyển khoản hoàn tiền vào tài khoản của bạn trong vòng 24h làm việc.";
         }
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -488,6 +581,81 @@ class OrderTrackingController extends Controller
 
         return redirect()->route('client.order-tracking', ['code' => $code])
             ->with('success', $msg);
+    }
+
+    /**
+     * Khách hàng hủy đơn hàng trực tiếp từ trang tra cứu (hỗ trợ cả khách vãng lai và thành viên)
+     */
+    public function cancelTrackingOrder(Request $request, $code)
+    {
+        $order = Order::with('items')->where('order_code', $code)->firstOrFail();
+
+        // Kiểm tra quyền sở hữu đơn hàng nếu đã đăng nhập và đơn có user_id
+        if (Auth::check() && $order->user_id && $order->user_id !== Auth::id()) {
+            abort(403, 'Bạn không có quyền thực hiện thao tác này trên đơn hàng.');
+        }
+
+        if (!$order->canBeCancelledByCustomer()) {
+            return back()->with('error', 'Đơn hàng #' . $order->order_code . ' đang trong quá trình vận chuyển hoặc đã hoàn tất, không thể tự hủy!');
+        }
+
+        $validated = $request->validate([
+            'reason' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:500',
+        ], [
+            'reason.required' => 'Vui lòng chọn lý do hủy đơn hàng.',
+        ]);
+
+        $cancelReason = $validated['reason'] . ($request->filled('notes') ? ' - ' . trim($validated['notes']) : '');
+
+        DB::transaction(function () use ($order, $cancelReason) {
+            // 1. Hoàn trả tồn kho cho các sản phẩm & biến thể
+            foreach ($order->items as $item) {
+                if ($item->product_id) {
+                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                    $prod = Product::find($item->product_id);
+                    if ($prod && $prod->sold_count >= $item->quantity) {
+                        $prod->decrement('sold_count', $item->quantity);
+                    }
+
+                    if (!empty($item->color) && !empty($item->size)) {
+                        ProductVariant::where('product_id', $item->product_id)
+                            ->where('color', $item->color)
+                            ->where('size', $item->size)
+                            ->increment('stock', $item->quantity);
+                    }
+                }
+            }
+
+            // 2. Khôi phục lượt sử dụng mã giảm giá (Voucher)
+            if ($order->coupon_code) {
+                $coupon = Coupon::where('code', $order->coupon_code)->first();
+                if ($coupon && $coupon->used_count > 0) {
+                    $coupon->decrement('used_count');
+                }
+            }
+
+            // 3. Xử lý trạng thái thanh toán nếu đơn đã thanh toán trước
+            $paymentStatus = $order->payment_status;
+            if (in_array($order->payment_status, ['paid', 'deposit_paid'])) {
+                $paymentStatus = 'refund_pending';
+            } else {
+                $paymentStatus = 'cancelled';
+            }
+
+            // 4. Cập nhật đơn hàng sang Đã Hủy
+            $order->update([
+                'shipping_status' => 'cancelled',
+                'payment_status' => $paymentStatus,
+                'status_step' => 0,
+                'cancel_reason' => $cancelReason,
+                'cancelled_by' => 'customer',
+                'cancelled_at' => now(),
+            ]);
+        });
+
+        return redirect()->route('client.order-tracking', ['code' => $code])
+            ->with('success', "Đơn hàng #{$order->order_code} đã được hủy thành công. Tồn kho sản phẩm và mã giảm giá đã được khôi phục!");
     }
 }
 

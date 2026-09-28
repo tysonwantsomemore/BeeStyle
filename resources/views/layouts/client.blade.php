@@ -365,14 +365,47 @@
       </div>
 
       <!-- Action Icons Right -->
-      <div class="flex items-center gap-4 lg:gap-5 text-neutral-800">
+      <div class="flex items-center gap-3 lg:gap-5 text-neutral-800">
         
-        <!-- Quick Search Bar (Desktop) -->
-        <div class="hidden lg:block relative">
-          <form action="{{ route('client.products.index') }}" method="GET" class="relative">
-            <input type="text" name="q" value="{{ request('q') }}" placeholder="Tìm kiếm may đo..." class="w-44 xl:w-52 bg-neutral-100 text-neutral-900 placeholder:text-neutral-500 text-xs rounded-full pl-8 pr-3 py-1.5 border border-transparent focus:border-neutral-300 focus:bg-white focus:outline-none transition-all">
-            <i data-lucide="search" class="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-2"></i>
+        <!-- Mobile Search Trigger Button (< lg) -->
+        <button type="button" 
+                onclick="toggleMobileSearchOverlay()" 
+                class="lg:hidden text-neutral-700 hover:text-black p-1.5 transition-colors relative rounded-full hover:bg-neutral-100" 
+                title="Tìm kiếm tác phẩm">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Quick Search Bar with Live Suggestions (Desktop >= lg) -->
+        <div class="hidden lg:block relative" id="headerSearchWrapperDesktop">
+          <form action="{{ route('client.products.index') }}" method="GET" class="relative group/searchform" id="headerSearchFormDesktop">
+            <div class="relative flex items-center">
+              <input type="text" 
+                     name="q" 
+                     id="headerSearchInputDesktop" 
+                     value="{{ request('q') }}" 
+                     placeholder="Tìm kiếm may đo, sơ mi, polo, blazer..." 
+                     autocomplete="off"
+                     class="w-56 xl:w-64 2xl:w-72 focus:w-72 xl:focus:w-80 bg-neutral-100 hover:bg-neutral-50/80 focus:bg-white text-neutral-900 placeholder:text-neutral-500 text-xs rounded-full pl-9 pr-8 py-2 border border-transparent focus:border-neutral-300 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all duration-300 shadow-xs">
+              
+              <!-- Submit Button with Lucide Search Icon -->
+              <button type="submit" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-950 transition-colors p-0.5 cursor-pointer" title="Tìm kiếm tác phẩm">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </button>
+
+              <!-- Clear input button -->
+              <button type="button" 
+                      id="headerSearchClearDesktop" 
+                      onclick="clearHeaderSearch('Desktop')" 
+                      class="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 p-0.5 cursor-pointer {{ request('q') ? '' : 'hidden' }}" 
+                      title="Xóa từ khóa">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
           </form>
+
+          <!-- Autocomplete Dropdown Suggestions (Desktop) -->
+          <div id="headerSearchDropdownDesktop" class="hidden absolute right-0 top-full mt-2 w-96 xl:w-[450px] bg-white border border-neutral-200/90 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-50 overflow-hidden text-left divide-y divide-neutral-100 animate-fade-in">
+          </div>
         </div>
         
         <!-- Wishlist Link -->
@@ -550,9 +583,43 @@
 
       </div>
     </div>
+
+    <!-- Mobile Search Dropdown Bar (< lg) -->
+    <div id="mobileSearchOverlay" class="hidden lg:hidden border-t border-neutral-200 bg-white/95 backdrop-blur-md px-4 py-3 shadow-lg animate-fade-in relative z-40">
+      <form action="{{ route('client.products.index') }}" method="GET" class="relative" id="headerSearchFormMobile">
+        <div class="relative flex items-center gap-2">
+          <div class="relative flex-grow flex items-center">
+            <input type="text" 
+                   name="q" 
+                   id="headerSearchInputMobile" 
+                   value="{{ request('q') }}" 
+                   placeholder="Tìm kiếm sơ mi, polo, blazer..." 
+                   autocomplete="off"
+                   class="w-full bg-neutral-100 text-neutral-900 placeholder:text-neutral-500 text-xs rounded-full pl-9 pr-8 py-2.5 border border-transparent focus:border-neutral-300 focus:bg-white focus:outline-none transition-all">
+            <button type="submit" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-950 p-0.5 cursor-pointer" title="Tìm kiếm">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </button>
+            <button type="button" 
+                    id="headerSearchClearMobile" 
+                    onclick="clearHeaderSearch('Mobile')" 
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 p-0.5 cursor-pointer {{ request('q') ? '' : 'hidden' }}" 
+                    title="Xóa từ khóa">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <button type="button" onclick="toggleMobileSearchOverlay()" class="text-xs text-neutral-600 hover:text-neutral-950 font-semibold px-2 py-2 shrink-0">
+            Đóng
+          </button>
+        </div>
+      </form>
+      <!-- Mobile Autocomplete Dropdown -->
+      <div id="headerSearchDropdownMobile" class="hidden mt-2 bg-white border border-neutral-200 rounded-xl shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto divide-y divide-neutral-100 text-left">
+      </div>
+    </div>
+
     <!-- Mobile Navigation Drawer -->
     <div id="mobile-nav" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden">
-      <div class="w-4/5 max-w-sm h-full bg-white p-6 flex flex-col justify-between shadow-2xl animate-fade-in">
+      <div class="w-4/5 max-w-sm h-full bg-white p-6 flex flex-col justify-between shadow-2xl animate-fade-in overflow-y-auto">
         <div>
           <div class="flex justify-between items-center pb-4 border-b border-neutral-200">
             <a href="{{ route('client.home') }}" class="inline-flex items-center gap-2 text-decoration-none">
@@ -568,6 +635,17 @@
               <i data-lucide="x" class="w-5 h-5"></i>
             </button>
           </div>
+
+          <!-- Drawer Quick Search Input -->
+          <div class="mt-4">
+            <form action="{{ route('client.products.index') }}" method="GET" class="relative">
+              <input type="text" name="q" value="{{ request('q') }}" placeholder="Tìm kiếm sản phẩm may đo..." class="w-full bg-neutral-100 text-neutral-900 placeholder:text-neutral-500 text-xs rounded-xl pl-9 pr-4 py-2.5 border border-neutral-200 focus:outline-none focus:border-neutral-900 focus:bg-white transition-colors">
+              <button type="submit" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-950">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </button>
+            </form>
+          </div>
+
           <nav class="flex flex-col gap-4 mt-6 text-sm tracking-[0.2em] uppercase font-medium">
             <a href="{{ route('client.home') }}" onclick="toggleMobileNav()" class="py-2 border-b border-neutral-100">Trang Chủ</a>
             <a href="{{ route('client.products.index') }}" class="py-2 border-b border-neutral-100 text-neutral-950 font-bold">Tất Cả Sản Phẩm</a>
@@ -2065,6 +2143,476 @@
           openGlobalReviewModal({{ session('open_review_modal_product_id') }}, 'Sản phẩm của bạn', '', '');
         }, 500);
       @endif
+    });
+
+    // =========================================================================
+    // HỆ THỐNG TÌM KIẾM NHANH VÀ GỢI Ý LIVE SEARCH CHUYÊN NGHIỆP (BEE-SEARCH)
+    // =========================================================================
+    const TRENDING_SEARCH_KEYWORDS = [
+      'Áo Polo Nam',
+      'Áo Sơ Mi Lụa',
+      'Áo Khoác Blazer',
+      'Áo Thun Boxy',
+      'Áo Thu Đông'
+    ];
+
+    let desktopSearchAbortController = null;
+    let mobileSearchAbortController = null;
+    let desktopDebounceTimer = null;
+    let mobileDebounceTimer = null;
+    let activeSuggestIndexDesktop = -1;
+    let activeSuggestIndexMobile = -1;
+
+    function getRecentSearches() {
+      try {
+        const stored = localStorage.getItem('beestyle_recent_searches');
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveRecentSearch(keyword) {
+      if (!keyword || !keyword.trim()) return;
+      keyword = keyword.trim();
+      let list = getRecentSearches();
+      list = list.filter(item => item.toLowerCase() !== keyword.toLowerCase());
+      list.unshift(keyword);
+      if (list.length > 6) list = list.slice(0, 6);
+      try {
+        localStorage.setItem('beestyle_recent_searches', JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function removeSingleRecentSearch(keyword, type, event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      let list = getRecentSearches();
+      list = list.filter(item => item !== keyword);
+      try {
+        localStorage.setItem('beestyle_recent_searches', JSON.stringify(list));
+      } catch (e) {}
+      renderSearchSuggestions('', type);
+    }
+
+    function clearAllRecentSearches(type, event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      try {
+        localStorage.removeItem('beestyle_recent_searches');
+      } catch (e) {}
+      renderSearchSuggestions('', type);
+    }
+
+    function toggleMobileSearchOverlay() {
+      const overlay = document.getElementById('mobileSearchOverlay');
+      if (!overlay) return;
+      const isHidden = overlay.classList.contains('hidden');
+      if (isHidden) {
+        overlay.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+        const input = document.getElementById('headerSearchInputMobile');
+        if (input) {
+          setTimeout(() => {
+            input.focus();
+            renderSearchSuggestions(input.value.trim(), 'Mobile');
+          }, 100);
+        }
+      } else {
+        overlay.classList.add('hidden');
+        closeHeaderSearchDropdown('Mobile');
+      }
+    }
+
+    function clearHeaderSearch(type) {
+      const input = document.getElementById('headerSearchInput' + type);
+      const clearBtn = document.getElementById('headerSearchClear' + type);
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      if (clearBtn) {
+        clearBtn.classList.add('hidden');
+      }
+      renderSearchSuggestions('', type);
+    }
+
+    function closeHeaderSearchDropdown(type) {
+      const dropdown = document.getElementById('headerSearchDropdown' + type);
+      if (dropdown) {
+        dropdown.classList.add('hidden');
+      }
+      if (type === 'Desktop') activeSuggestIndexDesktop = -1;
+      else activeSuggestIndexMobile = -1;
+    }
+
+    function highlightKeyword(text, keyword) {
+      if (!keyword || !text) return text;
+      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<span class="bg-amber-100 text-amber-900 font-extrabold px-0.5 rounded">$1</span>');
+    }
+
+    function selectSuggestionItem(url, keyword) {
+      if (keyword) saveRecentSearch(keyword);
+      window.location.href = url;
+    }
+
+    function executeQuickSearchKeyword(keyword) {
+      saveRecentSearch(keyword);
+      const targetUrl = '{{ route("client.products.index") }}?q=' + encodeURIComponent(keyword);
+      window.location.href = targetUrl;
+    }
+
+    function renderSearchSuggestions(query, type) {
+      const dropdown = document.getElementById('headerSearchDropdown' + type);
+      const clearBtn = document.getElementById('headerSearchClear' + type);
+      if (!dropdown) return;
+
+      if (clearBtn) {
+        if (query.length > 0) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+
+      // Trạng thái 1: Khi chưa nhập từ khóa (gợi ý xu hướng & lịch sử tìm kiếm)
+      if (query.length === 0) {
+        const recentList = getRecentSearches();
+        let html = `
+          <div class="p-4 bg-white">
+            <div class="mb-4">
+              <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span>Xu Hướng Tìm Kiếm Hàng Đầu</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                ${TRENDING_SEARCH_KEYWORDS.map(item => `
+                  <button type="button" 
+                          onclick="executeQuickSearchKeyword('${item.replace(/'/g, "\\'")}')" 
+                          class="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-neutral-900 hover:text-white text-neutral-700 text-xs font-medium transition-all duration-200 cursor-pointer border border-neutral-200/60 shadow-2xs">
+                    ${item}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+        `;
+
+        if (recentList.length > 0) {
+          html += `
+            <div class="pt-3 border-t border-neutral-100">
+              <div class="flex items-center justify-between text-[11px] mb-2">
+                <span class="font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+                  <i data-lucide="history" class="w-3.5 h-3.5 text-neutral-400"></i>
+                  <span>Lịch Sử Tìm Kiếm Gần Đây</span>
+                </span>
+                <button type="button" onclick="clearAllRecentSearches('${type}', event)" class="text-neutral-400 hover:text-rose-600 font-semibold transition-colors">
+                  Xóa tất cả
+                </button>
+              </div>
+              <div class="space-y-1">
+                ${recentList.map(item => `
+                  <div class="flex items-center justify-between group/recent py-1.5 px-2 rounded-lg hover:bg-neutral-50 transition-colors">
+                    <button type="button" 
+                            onclick="executeQuickSearchKeyword('${item.replace(/'/g, "\\'")}')" 
+                            class="flex items-center gap-2 text-xs text-neutral-700 group-hover/recent:text-neutral-950 font-medium truncate flex-grow text-left">
+                      <i data-lucide="clock" class="w-3.5 h-3.5 text-neutral-400 shrink-0"></i>
+                      <span class="truncate">${item}</span>
+                    </button>
+                    <button type="button" 
+                            onclick="removeSingleRecentSearch('${item.replace(/'/g, "\\'")}', '${type}', event)" 
+                            class="text-neutral-400 hover:text-rose-600 p-1 opacity-0 group-hover/recent:opacity-100 transition-opacity" 
+                            title="Xóa mục này">
+                      <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+            <div class="mt-3 pt-3 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
+              <span>Gợi ý: Nhấn <kbd class="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200 rounded text-[10px] text-neutral-700 font-mono">Enter</kbd> để tìm toàn bộ</span>
+              <a href="{{ route('client.products.index') }}" class="text-neutral-700 hover:text-black font-semibold flex items-center gap-0.5">
+                Xem BST &rarr;
+              </a>
+            </div>
+          </div>
+        `;
+
+        dropdown.innerHTML = html;
+        dropdown.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      // Trạng thái 2: Đang tải kết quả từ server
+      dropdown.innerHTML = `
+        <div class="p-6 text-center text-xs text-neutral-500 bg-white">
+          <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-50 text-amber-600 mb-2">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+          </div>
+          <p class="font-medium text-neutral-700 mb-0">Đang tìm tác phẩm phù hợp với "<strong class="text-neutral-900">${query}</strong>"...</p>
+        </div>
+      `;
+      dropdown.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+
+      // Gọi API với Debounce và Cancel request trước
+      if (type === 'Desktop') {
+        if (desktopSearchAbortController) desktopSearchAbortController.abort();
+        desktopSearchAbortController = new AbortController();
+      } else {
+        if (mobileSearchAbortController) mobileSearchAbortController.abort();
+        mobileSearchAbortController = new AbortController();
+      }
+
+      const signal = type === 'Desktop' ? desktopSearchAbortController.signal : mobileSearchAbortController.signal;
+      const apiUrl = '{{ route("client.products.quickSearch") }}?q=' + encodeURIComponent(query);
+
+      fetch(apiUrl, { signal })
+        .then(res => res.json())
+        .then(data => {
+          if (!data || !data.success) return;
+
+          const total = data.total || 0;
+          const categories = data.categories || [];
+          const products = data.products || [];
+
+          // Nếu không tìm thấy sản phẩm nào
+          if (total === 0 && categories.length === 0) {
+            dropdown.innerHTML = `
+              <div class="p-6 text-center text-xs bg-white">
+                <div class="w-10 h-10 rounded-full bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto mb-2.5">
+                  <i data-lucide="search-x" class="w-5 h-5"></i>
+                </div>
+                <h5 class="text-xs font-bold text-neutral-900 mb-1">Không tìm thấy sản phẩm nào</h5>
+                <p class="text-[11px] text-neutral-500 max-w-xs mx-auto mb-3">Rất tiếc, chúng tôi không tìm thấy kết quả phù hợp cho "<strong>${data.keyword || query}</strong>".</p>
+                <div class="flex flex-wrap justify-center gap-1.5 pt-1">
+                  <span class="text-[10px] text-neutral-400 uppercase tracking-wider block w-full mb-1">Gợi ý từ khóa hot:</span>
+                  ${TRENDING_SEARCH_KEYWORDS.slice(0, 3).map(k => `
+                    <button type="button" onclick="executeQuickSearchKeyword('${k}')" class="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-900 hover:text-white rounded-full text-[11px] font-medium transition-colors">
+                      ${k}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+          }
+
+          // Render kết quả gợi ý
+          let html = '<div class="divide-y divide-neutral-100 bg-white">';
+
+          // Khối Danh mục gợi ý (nếu có)
+          if (categories.length > 0) {
+            html += `
+              <div class="p-3 bg-neutral-50/80">
+                <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2">
+                  <i data-lucide="folder-tree" class="w-3.5 h-3.5 text-amber-600"></i>
+                  <span>Danh Mục Gợi Ý</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  ${categories.map(c => `
+                    <a href="${c.url}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-neutral-200 hover:border-neutral-900 text-xs text-neutral-800 font-semibold shadow-2xs hover:bg-neutral-950 hover:text-white transition-all">
+                      <span>${highlightKeyword(c.name, query)}</span>
+                      <span class="text-[10px] text-neutral-400 group-hover:text-neutral-300">(${c.products_count})</span>
+                    </a>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          // Khối Sản phẩm gợi ý
+          if (products.length > 0) {
+            html += `
+              <div class="p-2">
+                <div class="px-2.5 py-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  <span>Tác Phẩm Nổi Bật (${products.length}/${total})</span>
+                  <span class="text-neutral-400">Nhấn để xem</span>
+                </div>
+                <div class="space-y-1" id="searchSuggestItemsList${type}">
+                  ${products.map((p, idx) => `
+                    <a href="${p.url}" 
+                       onclick="saveRecentSearch('${(p.name || '').replace(/'/g, "\\'")}')" 
+                       data-index="${idx}"
+                       class="search-suggest-item-${type} flex items-center gap-3 p-2 rounded-xl hover:bg-neutral-50 transition-colors group/item block text-decoration-none">
+                      <div class="w-12 h-14 rounded-lg bg-neutral-100 border border-neutral-200/70 overflow-hidden shrink-0 relative">
+                        <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-300">
+                        ${p.has_discount ? `<span class="absolute top-0.5 left-0.5 px-1 py-0.2 bg-rose-600 text-white text-[8px] font-black rounded">-` + p.discount_percent + `%</span>` : ''}
+                      </div>
+                      <div class="flex-grow min-w-0">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-amber-700 block mb-0.5 truncate">${p.category_name || 'Beestyle Studio'}</span>
+                        <h4 class="text-xs font-semibold text-neutral-900 group-hover/item:text-amber-800 transition-colors truncate mb-1 leading-tight">
+                          ${highlightKeyword(p.name, query)}
+                        </h4>
+                        <div class="flex items-baseline gap-2">
+                          <span class="font-serif-luxury text-sm font-bold text-neutral-950">${p.price_formatted}</span>
+                          ${p.has_discount && p.original_price_formatted ? `<span class="text-[10px] text-neutral-400 line-through">${p.original_price_formatted}</span>` : ''}
+                        </div>
+                      </div>
+                      <div class="shrink-0 text-neutral-300 group-hover/item:text-neutral-900 group-hover/item:translate-x-0.5 transition-all pr-1">
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                      </div>
+                    </a>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          // Khối Chân trang Xem tất cả kết quả
+          html += `
+            <div class="p-3 bg-neutral-50 flex items-center justify-between">
+              <span class="text-xs text-neutral-600">
+                Tìm thấy <strong class="text-neutral-950 font-bold">${total}</strong> sản phẩm
+              </span>
+              <a href="${data.all_url}" 
+                 onclick="saveRecentSearch('${query.replace(/'/g, "\\'")}')" 
+                 class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-neutral-950 hover:bg-neutral-800 text-white text-xs font-bold rounded-lg shadow-sm transition-colors">
+                <span>Xem tất cả kết quả</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+          </div>`;
+
+          dropdown.innerHTML = html;
+          dropdown.classList.remove('hidden');
+          if (window.lucide) lucide.createIcons();
+        })
+        .catch(err => {
+          if (err.name === 'AbortError') return;
+          console.error('Quick search error:', err);
+        });
+    }
+
+    // Đăng ký sự kiện input, focus, keydown, click ngoài cho Desktop & Mobile Search
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. SETUP DESKTOP SEARCH
+      const deskInput = document.getElementById('headerSearchInputDesktop');
+      const deskForm = document.getElementById('headerSearchFormDesktop');
+      const deskWrapper = document.getElementById('headerSearchWrapperDesktop');
+
+      if (deskInput) {
+        deskInput.addEventListener('focus', function() {
+          renderSearchSuggestions(this.value.trim(), 'Desktop');
+        });
+
+        deskInput.addEventListener('input', function() {
+          clearTimeout(desktopDebounceTimer);
+          const val = this.value.trim();
+          desktopDebounceTimer = setTimeout(() => {
+            renderSearchSuggestions(val, 'Desktop');
+          }, 250);
+        });
+
+        deskInput.addEventListener('keydown', function(e) {
+          const items = document.querySelectorAll('.search-suggest-item-Desktop');
+          if (items.length === 0) return;
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeSuggestIndexDesktop = (activeSuggestIndexDesktop + 1) % items.length;
+            updateSuggestHighlight(items, activeSuggestIndexDesktop);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeSuggestIndexDesktop = (activeSuggestIndexDesktop - 1 + items.length) % items.length;
+            updateSuggestHighlight(items, activeSuggestIndexDesktop);
+          } else if (e.key === 'Enter') {
+            if (activeSuggestIndexDesktop >= 0 && items[activeSuggestIndexDesktop]) {
+              e.preventDefault();
+              items[activeSuggestIndexDesktop].click();
+            } else {
+              saveRecentSearch(deskInput.value.trim());
+            }
+          } else if (e.key === 'Escape') {
+            closeHeaderSearchDropdown('Desktop');
+          }
+        });
+      }
+
+      if (deskForm) {
+        deskForm.addEventListener('submit', function() {
+          const val = deskInput?.value?.trim();
+          if (val) saveRecentSearch(val);
+        });
+      }
+
+      // 2. SETUP MOBILE SEARCH
+      const mobInput = document.getElementById('headerSearchInputMobile');
+      const mobForm = document.getElementById('headerSearchFormMobile');
+
+      if (mobInput) {
+        mobInput.addEventListener('focus', function() {
+          renderSearchSuggestions(this.value.trim(), 'Mobile');
+        });
+
+        mobInput.addEventListener('input', function() {
+          clearTimeout(mobileDebounceTimer);
+          const val = this.value.trim();
+          mobileDebounceTimer = setTimeout(() => {
+            renderSearchSuggestions(val, 'Mobile');
+          }, 250);
+        });
+
+        mobInput.addEventListener('keydown', function(e) {
+          const items = document.querySelectorAll('.search-suggest-item-Mobile');
+          if (items.length === 0) return;
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeSuggestIndexMobile = (activeSuggestIndexMobile + 1) % items.length;
+            updateSuggestHighlight(items, activeSuggestIndexMobile);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeSuggestIndexMobile = (activeSuggestIndexMobile - 1 + items.length) % items.length;
+            updateSuggestHighlight(items, activeSuggestIndexMobile);
+          } else if (e.key === 'Enter') {
+            if (activeSuggestIndexMobile >= 0 && items[activeSuggestIndexMobile]) {
+              e.preventDefault();
+              items[activeSuggestIndexMobile].click();
+            } else {
+              saveRecentSearch(mobInput.value.trim());
+            }
+          } else if (e.key === 'Escape') {
+            closeHeaderSearchDropdown('Mobile');
+          }
+        });
+      }
+
+      if (mobForm) {
+        mobForm.addEventListener('submit', function() {
+          const val = mobInput?.value?.trim();
+          if (val) saveRecentSearch(val);
+        });
+      }
+
+      function updateSuggestHighlight(items, index) {
+        items.forEach((it, idx) => {
+          if (idx === index) {
+            it.classList.add('bg-neutral-100', 'ring-1', 'ring-neutral-300');
+            it.scrollIntoView({ block: 'nearest' });
+          } else {
+            it.classList.remove('bg-neutral-100', 'ring-1', 'ring-neutral-300');
+          }
+        });
+      }
+
+      // Đóng dropdown khi click bên ngoài
+      document.addEventListener('click', function(e) {
+        if (deskWrapper && !deskWrapper.contains(e.target)) {
+          closeHeaderSearchDropdown('Desktop');
+        }
+        const mobOverlay = document.getElementById('mobileSearchOverlay');
+        if (mobOverlay && !mobOverlay.contains(e.target) && !e.target.closest('[onclick="toggleMobileSearchOverlay()"]')) {
+          closeHeaderSearchDropdown('Mobile');
+        }
+      });
     });
   </script>
 

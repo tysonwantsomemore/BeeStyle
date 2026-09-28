@@ -976,9 +976,10 @@ class OrderController extends Controller
             if (empty($updateData['delivered_at']) && !$order->delivered_at) {
                 $updateData['delivered_at'] = $now;
             }
-            if ($order->payment_method === 'cod') {
+            if ($order->payment_method === 'cod' || $order->is_deposit_required || $order->payment_status === 'deposit_paid') {
                 $paymentStatus = 'paid';
                 $updateData['payment_status'] = 'paid';
+                $updateData['remaining_amount'] = 0;
                 $updateData['paid_at'] = $now;
             }
         } elseif ($stepStatus === 'completed') {
@@ -1000,7 +1001,10 @@ class OrderController extends Controller
             if ($paymentStatus !== 'paid') {
                 $paymentStatus = 'paid';
                 $updateData['payment_status'] = 'paid';
+                $updateData['remaining_amount'] = 0;
                 $updateData['paid_at'] = $now;
+            } else {
+                $updateData['remaining_amount'] = 0;
             }
         }
 

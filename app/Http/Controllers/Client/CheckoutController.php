@@ -162,24 +162,47 @@ class CheckoutController extends Controller
             $verifiedShipping = (int)$cartData['shipping'];
             $verifiedTotal = max(0, $verifiedSubtotal - $verifiedDiscount + $verifiedShipping);
 
-            // Xác định payment_status: MoMo & VNPAY cần đợi webhook/callback, COD & VietQR là chưa trả
+            // Xác định payment_status: Các phương thức thanh toán trực tuyến (MoMo, VNPAY, Online) cần trạng thái PENDING_PAYMENT
             $paymentStatus = match ($validated['payment_method']) {
-                'momo', 'vnpay' => 'PENDING_PAYMENT',
-                'cod', 'vietqr', 'online', 'zalopay' => 'unpaid',
+                'momo', 'vnpay', 'online', 'zalopay' => 'PENDING_PAYMENT',
+                'cod', 'vietqr' => 'unpaid',
                 default => 'unpaid',
             };
 
+            $depositChoice = $request->input('payment_deposit_choice');
             $depositPolicy = CartService::checkDepositPolicy($cartData['items'], $verifiedTotal, $user);
-            $isDepositRequired = $depositPolicy['is_required'];
-            $depositAmount = $depositPolicy['deposit_amount'];
-            $remainingAmount = $depositPolicy['remaining_amount'];
+            $isLargeOrder = !empty($depositPolicy['is_required']);
+
+            if (!$isLargeOrder) {
+                // Đơn hàng thông thường dưới 10 sản phẩm: KHÔNG áp dụng đặt cọc, thanh toán chuẩn
+                $isDepositRequired = false;
+                $depositAmount = 0;
+                $remainingAmount = ($validated['payment_method'] === 'cod') ? $verifiedTotal : 0;
+                $depositStatus = 'none';
+            } elseif ($depositChoice === 'full_100') {
+                // Đơn hàng lớn từ 10 sản phẩm nhưng khách hàng chủ động chọn thanh toán trọn gói 100%
+                $isDepositRequired = false;
+                $depositAmount = 0;
+                $remainingAmount = 0;
+                $depositStatus = 'none';
+            } else {
+                // Đơn hàng lớn từ 10 sản phẩm mặc định hoặc khách chọn đặt cọc 50%
+                $isDepositRequired = true;
+                $depositAmount = (int) round($verifiedTotal * 0.5);
+                $remainingAmount = $verifiedTotal - $depositAmount;
+                $depositStatus = 'unpaid';
+            }
 
             $orderNotes = $validated['notes'] ?? null;
             $adminNotes = null;
             if ($isDepositRequired) {
-                $depositNotice = "[CHÍNH SÁCH ĐẶT CỌC 50%: {$depositPolicy['reason']} - Tiền cọc: " . number_format($depositAmount, 0, ',', '.') . "₫, Còn lại thu COD: " . number_format($remainingAmount, 0, ',', '.') . "₫]";
+                $depositNotice = "[CHÍNH SÁCH ĐẶT CỌC 50%: Đơn hàng đặt cọc trước 50% (" . number_format($depositAmount, 0, ',', '.') . "₫), số tiền 50% còn lại (" . number_format($remainingAmount, 0, ',', '.') . "₫) thu tiền mặt khi bưu tá giao hàng]";
                 $adminNotes = $depositNotice;
                 $orderNotes = $orderNotes ? "{$orderNotes} | {$depositNotice}" : $depositNotice;
+            } elseif ($isLargeOrder && $depositChoice === 'full_100') {
+                $fullNotice = "[THANH TOÁN 100%: Khách hàng chọn thanh toán toàn bộ 100% (" . number_format($verifiedTotal, 0, ',', '.') . "₫) qua " . strtoupper($validated['payment_method']) . ", miễn thu tiền mặt khi nhận hàng (COD 0₫)]";
+                $adminNotes = $fullNotice;
+                $orderNotes = $orderNotes ? "{$orderNotes} | {$fullNotice}" : $fullNotice;
             }
 
             // Chuẩn hóa địa chỉ hành chính thực tế
@@ -394,15 +417,20 @@ class CheckoutController extends Controller
      */
     public function onlineGateway($code)
     {
+        Order::cancelAllExpiredPendingOnlineOrders();
         $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
 
         if ($order->payment_status === 'paid') {
             return redirect()->route('client.order-tracking', ['code' => $code])
                 ->with('success', "Đơn hàng #{$code} đã được thanh toán thành công!");
         }
-        if ($order->shipping_status === 'cancelled') {
-            return redirect()->route('client.cart')
-                ->with('warning', "Đơn hàng #{$code} đã bị hủy do hết hạn thanh toán.");
+
+        if ($order->shipping_status === 'cancelled' || $order->isOnlinePaymentExpired()) {
+            if ($order->shipping_status !== 'cancelled') {
+                $order->cancelAsExpiredOnlinePayment();
+            }
+            return redirect()->route('client.order-tracking', ['code' => $code])
+                ->with('warning', "Đơn hàng #{$code} đã bị tự động hủy do quá thời gian chờ thanh toán (15 phút).");
         }
 
         return view('client.payment.online', compact('order'));
@@ -417,20 +445,23 @@ class CheckoutController extends Controller
 
         $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
         if ($isDeposit) {
+            $rem = $order->remaining_amount ?: ($order->total_amount - $order->deposit_amount);
             $order->update([
                 'deposit_status' => 'paid',
                 'deposit_paid_at' => now(),
                 'payment_status' => 'deposit_paid',
+                'remaining_amount' => $rem,
                 'shipping_status' => 'processing',
                 'status_step' => 3,
                 'confirmed_at' => $order->confirmed_at ?: now(),
                 'processing_at' => now(),
             ]);
             $successAmount = $order->deposit_amount;
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$code}! Số tiền 50% còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$code}! Số tiền 50% còn lại (" . number_format($rem, 0, ',', '.') . "₫) sẽ được thanh toán bằng tiền mặt cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
         } else {
             $order->update([
                 'payment_status' => 'paid',
+                'remaining_amount' => 0,
                 'shipping_status' => 'processing',
                 'status_step' => 3,
                 'paid_at' => now(),
@@ -438,7 +469,7 @@ class CheckoutController extends Controller
                 'processing_at' => now(),
             ]);
             $successAmount = $order->total_amount;
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 100% đơn hàng #{$code}! Quý khách không cần thanh toán thêm bất kỳ đồng nào khi nhận hàng (COD 0₫). Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.";
         }
         $this->sendOrderInvoiceEmail($order);
 
@@ -531,15 +562,19 @@ class CheckoutController extends Controller
      */
     public function momoGateway(Request $request, $code)
     {
+        Order::cancelAllExpiredPendingOnlineOrders();
         $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
 
         if (in_array(strtoupper((string)$order->payment_status), ['PAID', 'DEPOSIT_PAID'])) {
             return redirect()->route('client.checkout.success', ['code' => $code])
                 ->with('success', "Đơn hàng #{$code} đã được thanh toán qua MoMo thành công!");
         }
-        if ($order->shipping_status === 'cancelled' || strtoupper((string)$order->payment_status) === 'CANCELLED') {
-            return redirect()->route('client.cart')
-                ->with('warning', "Đơn hàng #{$code} đã bị hủy do hết hạn thanh toán.");
+        if ($order->shipping_status === 'cancelled' || $order->isOnlinePaymentExpired() || strtoupper((string)$order->payment_status) === 'CANCELLED') {
+            if ($order->shipping_status !== 'cancelled') {
+                $order->cancelAsExpiredOnlinePayment();
+            }
+            return redirect()->route('client.order-tracking', ['code' => $code])
+                ->with('warning', "Đơn hàng #{$code} đã bị tự động hủy do quá thời gian chờ thanh toán (15 phút).");
         }
 
         // Hỗ trợ truy vấn trạng thái giao dịch (Query API) nếu có yêu cầu
@@ -758,20 +793,23 @@ class CheckoutController extends Controller
         $transId = 'MOMO' . time();
 
         if ($isDeposit) {
+            $rem = $order->remaining_amount ?: ($order->total_amount - $order->deposit_amount);
             $order->update([
                 'deposit_status' => 'paid',
                 'deposit_paid_at' => now(),
                 'payment_status' => 'deposit_paid',
+                'remaining_amount' => $rem,
                 'shipping_status' => 'processing',
                 'status_step' => 3,
                 'momo_trans_id' => $transId,
                 'confirmed_at' => $order->confirmed_at ?: now(),
                 'processing_at' => now(),
             ]);
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) qua Cổng MoMo Payment! Đơn hàng #{$code} đã được chuyển sang xưởng đóng gói.";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) qua Cổng MoMo Payment! Số tiền 50% còn lại (" . number_format($rem, 0, ',', '.') . "₫) sẽ được thanh toán bằng tiền mặt cho bưu tá khi nhận hàng (COD). Đơn hàng #{$code} đã được chuyển sang xưởng đóng gói.";
         } else {
             $order->update([
                 'payment_status' => 'paid',
+                'remaining_amount' => 0,
                 'shipping_status' => 'processing',
                 'status_step' => 2,
                 'paid_at' => now(),
@@ -779,7 +817,7 @@ class CheckoutController extends Controller
                 'confirmed_at' => $order->confirmed_at ?: now(),
                 'processing_at' => now(),
             ]);
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Cổng MoMo Payment!";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 100% đơn hàng #{$code} qua Cổng MoMo Payment! Quý khách không cần thanh toán thêm bất kỳ đồng nào khi nhận hàng (COD 0₫).";
         }
 
         $this->sendOrderInvoiceEmail($order);
@@ -812,10 +850,12 @@ class CheckoutController extends Controller
         $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
 
         if ($isDeposit) {
+            $rem = $order->remaining_amount ?: ($order->total_amount - $order->deposit_amount);
             $order->update([
                 'deposit_status' => 'paid',
                 'deposit_paid_at' => now(),
                 'payment_status' => 'deposit_paid',
+                'remaining_amount' => $rem,
                 'shipping_status' => 'processing',
                 'status_step' => 3,
                 'momo_trans_id' => 'MOMO' . time(),
@@ -823,10 +863,11 @@ class CheckoutController extends Controller
                 'processing_at' => now(),
             ]);
             $successAmount = $order->deposit_amount;
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) qua Cổng MoMo Payment!";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) qua Cổng MoMo Payment! Số tiền 50% còn lại (" . number_format($rem, 0, ',', '.') . "₫) sẽ được thanh toán bằng tiền mặt cho bưu tá khi nhận hàng (COD).";
         } else {
             $order->update([
                 'payment_status' => 'paid',
+                'remaining_amount' => 0,
                 'shipping_status' => 'processing',
                 'status_step' => 2,
                 'paid_at' => now(),
@@ -835,7 +876,7 @@ class CheckoutController extends Controller
                 'processing_at' => now(),
             ]);
             $successAmount = $order->total_amount;
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Cổng MoMo Payment!";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 100% đơn hàng #{$code} qua Cổng MoMo Payment! Quý khách không cần thanh toán thêm bất kỳ đồng nào khi nhận hàng (COD 0₫).";
         }
         $this->sendOrderInvoiceEmail($order);
 
@@ -947,34 +988,33 @@ class CheckoutController extends Controller
             $transId = $request->input('transId') ?: ($data['transId'] ?? null);
             $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
             if ($isDeposit) {
+                $rem = $order->remaining_amount ?: ($order->total_amount - $order->deposit_amount);
                 $order->update([
                     'deposit_status' => 'paid',
                     'deposit_paid_at' => now(),
                     'payment_status' => 'deposit_paid',
-                    'shipping_status' => 'processing',
-                    'status_step' => 3,
+                    'remaining_amount' => $rem,
+                    'shipping_status' => 'pending',
+                    'status_step' => 1,
                     'momo_trans_id' => $transId ?: ($order->momo_trans_id ?: 'MOMO' . time()),
-                    'confirmed_at' => $order->confirmed_at ?: now(),
-                    'processing_at' => now(),
                 ]);
                 $this->sendOrderInvoiceEmail($order);
                 $successAmount = $order->deposit_amount;
-                $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$order->order_code} qua Cổng MoMo Payment! Số tiền 50% còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
+                $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$order->order_code} qua Cổng MoMo Payment! Số tiền 50% còn lại (" . number_format($rem, 0, ',', '.') . "₫) sẽ được thanh toán bằng tiền mặt cho bưu tá khi nhận hàng (COD). Đơn hàng đã được tiếp nhận và chuyển sang bộ phận duyệt đơn!";
             } else {
                 if ($order->payment_status !== 'paid') {
                     $order->update([
                         'payment_status' => 'paid',
-                        'shipping_status' => 'processing',
-                        'status_step' => 3,
+                        'remaining_amount' => 0,
+                        'shipping_status' => 'pending',
+                        'status_step' => 1,
                         'paid_at' => now(),
                         'momo_trans_id' => $transId ?: ($order->momo_trans_id ?: 'MOMO' . time()),
-                        'confirmed_at' => $order->confirmed_at ?: now(),
-                        'processing_at' => now(),
                     ]);
                     $this->sendOrderInvoiceEmail($order);
                 }
                 $successAmount = $order->total_amount;
-                $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$order->order_code} qua Cổng MoMo Payment! Kho hàng BeeStyle đã tiếp nhận và đang xử lý đóng gói sản phẩm.";
+                $successMsg = "Chúc mừng bạn đã thanh toán thành công 100% đơn hàng #{$order->order_code} qua Cổng MoMo Payment! Quý khách không cần thanh toán thêm bất kỳ đồng nào khi nhận hàng (COD 0₫). Đơn hàng đã được tiếp nhận và chuyển sang bộ phận duyệt đơn & đóng gói.";
             }
 
             return redirect()->route('client.checkout.success', ['code' => $order->order_code])
@@ -984,8 +1024,13 @@ class CheckoutController extends Controller
                 ->with('success', $successMsg);
         }
 
+        // Đơn hàng giữ nguyên trạng thái Chờ thanh toán với thời gian chờ 15 phút
+        if ($order->shipping_status === 'pending') {
+            $order->update(['payment_status' => 'PENDING_PAYMENT']);
+        }
+
         return redirect()->route('client.order-tracking', ['code' => $order->order_code])
-            ->with('error', "Giao dịch MoMo chưa hoàn tất hoặc bạn đã hủy ({$message}). Bạn có thể thanh toán lại từ trang chi tiết đơn hàng.");
+            ->with('info', "Giao dịch MoMo chưa hoàn tất hoặc bạn đã quay lại ({$message}). Đơn hàng #{$order->order_code} đang ở trạng thái Chờ thanh toán. Quý khách vui lòng bấm 'Thanh toán ngay' trong vòng 15 phút trước khi đơn hàng tự động bị hủy.");
     }
 
     /**
@@ -1019,23 +1064,19 @@ class CheckoutController extends Controller
                     'deposit_status' => 'paid',
                     'deposit_paid_at' => now(),
                     'payment_status' => 'deposit_paid',
-                    'shipping_status' => 'processing',
-                    'status_step' => 3,
+                    'shipping_status' => 'pending',
+                    'status_step' => 1,
                     'momo_trans_id' => $transId ?: ($order->momo_trans_id ?: 'MOMO' . time()),
-                    'confirmed_at' => $order->confirmed_at ?: now(),
-                    'processing_at' => now(),
                 ]);
                 $this->sendOrderInvoiceEmail($order);
             } else {
                 if ($order->payment_status !== 'paid') {
                     $order->update([
                         'payment_status' => 'paid',
-                        'shipping_status' => 'processing',
-                        'status_step' => 3,
+                        'shipping_status' => 'pending',
+                        'status_step' => 1,
                         'paid_at' => now(),
                         'momo_trans_id' => $transId ?: ($order->momo_trans_id ?: 'MOMO' . time()),
-                        'confirmed_at' => $order->confirmed_at ?: now(),
-                        'processing_at' => now(),
                     ]);
                     $this->sendOrderInvoiceEmail($order);
                 }
@@ -1077,24 +1118,20 @@ class CheckoutController extends Controller
                 'deposit_status' => 'paid',
                 'deposit_paid_at' => now(),
                 'payment_status' => 'deposit_paid',
-                'shipping_status' => 'processing',
-                'status_step' => 3,
-                'confirmed_at' => $order->confirmed_at ?: now(),
-                'processing_at' => now(),
+                'shipping_status' => 'pending',
+                'status_step' => 1,
             ]);
             $successAmount = $order->deposit_amount;
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$code} qua ZaloPay! Số tiền còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$code} qua ZaloPay! Số tiền còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Đơn hàng đã chuyển sang bộ phận duyệt đơn & đóng gói!";
         } else {
             $order->update([
                 'payment_status' => 'paid',
-                'shipping_status' => 'processing',
-                'status_step' => 3,
+                'shipping_status' => 'pending',
+                'status_step' => 1,
                 'paid_at' => now(),
-                'confirmed_at' => $order->confirmed_at ?: now(),
-                'processing_at' => now(),
             ]);
             $successAmount = $order->total_amount;
-            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví ZaloPay! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.";
+            $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code} qua Ví ZaloPay! Đơn hàng đã được tiếp nhận và chuyển sang bộ phận duyệt đơn & đóng gói.";
         }
         $this->sendOrderInvoiceEmail($order);
 
@@ -1124,6 +1161,7 @@ class CheckoutController extends Controller
      */
     public function vnpayGateway(Request $request, $code)
     {
+        Order::cancelAllExpiredPendingOnlineOrders();
         $order = Order::with(['items.product'])->where('order_code', $code)->firstOrFail();
 
         if (in_array(strtoupper((string)$order->payment_status), ['PAID', 'DEPOSIT_PAID'])) {
@@ -1131,9 +1169,12 @@ class CheckoutController extends Controller
                 ->with('success', "Đơn hàng #{$code} đã được thanh toán thành công!");
         }
 
-        if ($order->shipping_status === 'cancelled' || strtoupper((string)$order->payment_status) === 'CANCELLED') {
-            return redirect()->route('client.cart')
-                ->with('warning', "Đơn hàng #{$code} đã bị hủy do hết hạn thanh toán.");
+        if ($order->shipping_status === 'cancelled' || $order->isOnlinePaymentExpired() || strtoupper((string)$order->payment_status) === 'CANCELLED') {
+            if ($order->shipping_status !== 'cancelled') {
+                $order->cancelAsExpiredOnlinePayment();
+            }
+            return redirect()->route('client.order-tracking', ['code' => $code])
+                ->with('warning', "Đơn hàng #{$code} đã bị tự động hủy do quá thời gian chờ thanh toán (15 phút).");
         }
 
         $bankCode = $request->input('bank_code') ?: $request->input('bankCode');
@@ -1205,34 +1246,33 @@ class CheckoutController extends Controller
         if ($responseCode === '00') {
             $isDeposit = ($order->is_deposit_required && $order->deposit_status !== 'paid');
             if ($isDeposit) {
+                $rem = $order->remaining_amount ?: ($order->total_amount - $order->deposit_amount);
                 $order->update([
                     'deposit_status' => 'paid',
                     'deposit_paid_at' => now(),
                     'payment_status' => 'deposit_paid',
-                    'shipping_status' => 'processing',
-                    'status_step' => 3,
+                    'remaining_amount' => $rem,
+                    'shipping_status' => 'pending',
+                    'status_step' => 1,
                     'vnpay_trans_id' => $transactionNo ?: ('VNP' . time()),
-                    'confirmed_at' => $order->confirmed_at ?: now(),
-                    'processing_at' => now(),
                 ]);
                 $this->sendOrderInvoiceEmail($order);
                 $successAmount = $order->deposit_amount;
-                $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$order->order_code} qua Cổng VNPAY (" . ($bankCode ?: 'Ngân hàng') . ")! Số tiền 50% còn lại (" . number_format($order->remaining_amount, 0, ',', '.') . "₫) sẽ được thanh toán cho bưu tá khi nhận hàng (COD). Kho hàng BeeStyle đang đóng gói sản phẩm để giao đến bạn!";
+                $successMsg = "Chúc mừng bạn đã thanh toán thành công 50% tiền cọc (" . number_format($order->deposit_amount, 0, ',', '.') . "₫) cho đơn hàng #{$order->order_code} qua Cổng VNPAY (" . ($bankCode ?: 'Ngân hàng') . ")! Số tiền 50% còn lại (" . number_format($rem, 0, ',', '.') . "₫) sẽ được thanh toán bằng tiền mặt cho bưu tá khi nhận hàng (COD). Đơn hàng đã chuyển sang bộ phận duyệt đơn & đóng gói!";
             } else {
                 if ($order->payment_status !== 'paid') {
                     $order->update([
                         'payment_status' => 'paid',
-                        'shipping_status' => 'processing',
-                        'status_step' => 3,
+                        'remaining_amount' => 0,
+                        'shipping_status' => 'pending',
+                        'status_step' => 1,
                         'paid_at' => now(),
                         'vnpay_trans_id' => $transactionNo ?: ('VNP' . time()),
-                        'confirmed_at' => $order->confirmed_at ?: now(),
-                        'processing_at' => now(),
                     ]);
                     $this->sendOrderInvoiceEmail($order);
                 }
                 $successAmount = $order->total_amount;
-                $successMsg = "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$order->order_code} qua Cổng VNPAY (" . ($bankCode ?: 'Ngân hàng') . ")! Kho hàng BeeStyle đã tiếp nhận và đang xử lý đóng gói sản phẩm.";
+                $successMsg = "Chúc mừng bạn đã thanh toán thành công 100% đơn hàng #{$order->order_code} qua Cổng VNPAY (" . ($bankCode ?: 'Ngân hàng') . ")! Quý khách không cần thanh toán thêm bất kỳ đồng nào khi nhận hàng (COD 0₫). Đơn hàng đã tiếp nhận và chuyển sang bộ phận duyệt đơn & đóng gói.";
             }
 
             return redirect()->route('client.checkout.success', ['code' => $order->order_code])
@@ -1243,8 +1283,12 @@ class CheckoutController extends Controller
         }
 
         // 4. Nếu không thành công hoặc khách hàng hủy (Mã 24)
+        if ($order->shipping_status === 'pending') {
+            $order->update(['payment_status' => 'PENDING_PAYMENT']);
+        }
+
         return redirect()->route('client.order-tracking', ['code' => $order->order_code])
-            ->with('error', "Giao dịch VNPAY chưa hoàn tất ({$message}). Quý khách có thể bấm 'Thanh toán lại' bên dưới để thử lại.");
+            ->with('info', "Giao dịch VNPAY chưa hoàn tất hoặc bạn đã quay lại ({$message}). Đơn hàng #{$order->order_code} đang ở trạng thái Chờ thanh toán. Quý khách vui lòng bấm 'Thanh toán ngay' trong vòng 15 phút trước khi đơn hàng tự động bị hủy.");
     }
 
     /**
@@ -1300,21 +1344,17 @@ class CheckoutController extends Controller
                     'deposit_status' => 'paid',
                     'deposit_paid_at' => now(),
                     'payment_status' => 'deposit_paid',
-                    'shipping_status' => 'processing',
-                    'status_step' => 3,
+                    'shipping_status' => 'pending',
+                    'status_step' => 1,
                     'vnpay_trans_id' => $transactionNo,
-                    'confirmed_at' => $order->confirmed_at ?: now(),
-                    'processing_at' => now(),
                 ]);
             } else {
                 $order->update([
                     'payment_status' => 'paid',
-                    'shipping_status' => 'processing',
-                    'status_step' => 3,
+                    'shipping_status' => 'pending',
+                    'status_step' => 1,
                     'paid_at' => now(),
                     'vnpay_trans_id' => $transactionNo,
-                    'confirmed_at' => $order->confirmed_at ?: now(),
-                    'processing_at' => now(),
                 ]);
             }
             $this->sendOrderInvoiceEmail($order);
@@ -1325,53 +1365,26 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Xử lý Hết hạn thời gian chờ thanh toán (Auto-Expiry & Restock Kho)
+     * Xử lý Hết hạn thời gian chờ thanh toán (Auto-Expiry & Restock Kho sau 15 phút)
      */
     public function handleExpired($code)
     {
         $order = Order::with('items')->where('order_code', $code)->firstOrFail();
 
-        if ($order->payment_status !== 'paid' && $order->shipping_status === 'pending') {
-            DB::transaction(function () use ($order) {
-                $order->update([
-                    'shipping_status' => 'cancelled',
-                    'status_step' => 0,
-                    'cancelled_at' => now(),
-                    'cancelled_by' => 'system',
-                    'cancel_reason' => 'Đơn hàng tự động hủy do hết hạn thời gian chờ thanh toán (10 phút)',
-                ]);
-
-                foreach ($order->items as $item) {
-                    Product::where('id', $item->product_id)->increment('stock', $item->quantity);
-                    Product::where('id', $item->product_id)->decrement('sold_count', $item->quantity);
-
-                    if (!empty($item->color) && !empty($item->size)) {
-                        \App\Models\ProductVariant::where('product_id', $item->product_id)
-                            ->where('color', $item->color)
-                            ->where('size', $item->size)
-                            ->increment('stock', $item->quantity);
-                    }
-                }
-
-                if ($order->coupon_code) {
-                    $coupon = Coupon::where('code', $order->coupon_code)->first();
-                    if ($coupon && $coupon->used_count > 0) {
-                        $coupon->decrement('used_count');
-                    }
-                }
-            });
+        if ($order->isPendingOnlinePayment()) {
+            $order->cancelAsExpiredOnlinePayment();
         }
 
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => "Đơn hàng #{$code} đã hết hạn thời gian thanh toán và được tự động hủy để hoàn trả kho.",
-                'redirect' => route('client.cart')
+                'message' => "Đơn hàng #{$code} đã hết hạn thời gian thanh toán (15 phút) và được tự động hủy để hoàn trả kho.",
+                'redirect' => route('client.order-tracking', ['code' => $code])
             ]);
         }
 
-        return redirect()->route('client.cart')
-            ->with('warning', "Đơn hàng #{$code} đã hết hạn thời gian thanh toán (10 phút) và đã được tự động hủy để hoàn trả kho hàng.");
+        return redirect()->route('client.order-tracking', ['code' => $code])
+            ->with('warning', "Đơn hàng #{$code} đã hết hạn thời gian thanh toán (15 phút) và đã được tự động hủy để hoàn trả kho hàng.");
     }
 
     /**
@@ -1409,18 +1422,16 @@ class CheckoutController extends Controller
         if ($order->payment_status !== 'paid') {
             $order->update([
                 'payment_status' => 'paid',
-                'shipping_status' => 'processing',
-                'status_step' => 3,
+                'shipping_status' => 'pending',
+                'status_step' => 1,
                 'paid_at' => now(),
-                'confirmed_at' => $order->confirmed_at ?: now(),
-                'processing_at' => now(),
             ]);
             $this->sendOrderInvoiceEmail($order);
 
             session()->flash('payment_success_order', $code);
             session()->flash('payment_success_amount', $order->total_amount);
             session()->flash('payment_success_method', $order->payment_method_name);
-            session()->flash('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Kho hàng BeeStyle đã tiếp nhận và đang đóng gói sản phẩm để chuyển đến bạn sớm nhất.");
+            session()->flash('success', "Chúc mừng bạn đã thanh toán thành công đơn hàng #{$code}! Đơn hàng đã được tiếp nhận và chuyển sang bộ phận duyệt đơn & đóng gói.");
         }
 
         return response()->json([

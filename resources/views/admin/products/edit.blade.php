@@ -189,10 +189,15 @@
 
           @if($product->variants && $product->variants->count() > 0)
             <div class="mt-4 pt-3 border-top border-translucent">
-              <label class="form-label fs-9 fw-bold text-dark mb-1">
-                <i class="fa-solid fa-table-cells text-warning me-1"></i> Danh Sách Biến Thể (Chất Liệu &amp; Giá Bán Từng Mẫu)
-              </label>
-              <p class="fs-10 text-muted mb-2">Biến thể có chất liệu cao cấp hơn (VD: Cotton Compact, Lụa Bamboo) có thể sửa giá bán cao hơn ở cột Giá Bán</p>
+              <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+                <label class="form-label fs-9 fw-bold text-dark mb-0">
+                  <i class="fa-solid fa-table-cells text-warning me-1"></i> Danh Sách Biến Thể (Chất Liệu &amp; Giá Bán Từng Mẫu)
+                </label>
+                <button type="button" class="btn btn-phoenix-primary btn-xs py-0.5 px-2.5 fw-bold" onclick="syncPriceToAllVariants()" title="Gán giá bán chung hiện tại cho toàn bộ các biến thể">
+                  <i class="fa-solid fa-arrows-rotate me-1"></i>Đồng Bộ Theo Giá Bán Chung
+                </button>
+              </div>
+              <p class="fs-10 text-muted mb-2">Giá bán từng biến thể có thể điều chỉnh độc lập hoặc dùng nút Đồng Bộ để cập nhật tất cả theo giá bán chung</p>
               <div class="table-responsive border rounded-3 bg-white" style="max-height: 380px; overflow-y: auto;">
                 <table class="table table-hover mb-0 align-middle">
                   <thead class="bg-body-secondary text-body-emphasis sticky-top">
@@ -286,13 +291,41 @@
         </div>
         <div class="card-body">
           <div class="mb-3">
-            <label class="form-label fs-9 fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
-            <input type="number" name="price" class="form-control fw-bold text-danger" value="{{ old('price', $product->price) }}" required>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fs-9 fw-semibold mb-0">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+              <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none fw-bold" onclick="syncPriceToAllVariants()" title="Gán ngay giá này cho toàn bộ biến thể">
+                <i class="fa-solid fa-arrows-rotate me-1"></i>Áp dụng cho biến thể
+              </button>
+            </div>
+            <input type="number" 
+                   name="price" 
+                   id="adminProductPriceInput" 
+                   class="form-control fw-bold text-danger fs-8" 
+                   value="{{ old('price', $product->price) }}" 
+                   required 
+                   step="1000" 
+                   min="0" 
+                   oninput="onMainPriceChange(this.value)">
           </div>
 
           <div class="mb-3">
             <label class="form-label fs-9 fw-semibold">Giá gốc (Gạch ngang)</label>
-            <input type="number" name="original_price" class="form-control" value="{{ old('original_price', $product->original_price) }}">
+            <input type="number" 
+                   name="original_price" 
+                   id="adminProductOriginalPriceInput" 
+                   class="form-control" 
+                   value="{{ old('original_price', $product->original_price) }}" 
+                   step="1000" 
+                   min="0">
+          </div>
+
+          <!-- Đồng bộ giá cho toàn bộ biến thể -->
+          <div class="form-check form-switch mb-3 p-2 bg-light rounded border border-translucent">
+            <input class="form-check-input ms-0 me-2" type="checkbox" name="sync_variant_prices" id="syncVariantPricesSwitch" value="1" checked>
+            <label class="form-check-label fs-9 fw-semibold text-primary" for="syncVariantPricesSwitch">
+              <i class="fa-solid fa-sync me-1"></i>Tự động cập nhật giá mới này cho tất cả biến thể
+            </label>
+            <div class="fs-10 text-muted mt-0.5">Khi lưu, giá của các biến thể con sẽ tự động được cập nhật theo giá bán này để khách hàng thấy giá mới ngay lập tức.</div>
           </div>
 
           <!-- THỜI HẠN KHUYẾN MÃI -->
@@ -385,4 +418,45 @@
     </div>
   </div>
 </form>
+
+@push('scripts')
+<script>
+  function onMainPriceChange(newVal) {
+    const switchEl = document.getElementById('syncVariantPricesSwitch');
+    if (switchEl && switchEl.checked && newVal > 0) {
+      document.querySelectorAll('.price-variant-input').forEach(input => {
+        input.value = newVal;
+        const subId = input.name.replace('variant_price[', 'edit_price_sub_').replace(']', '');
+        const sub = document.getElementById(subId);
+        if (sub) {
+          sub.innerText = '= ' + parseInt(newVal).toLocaleString('vi-VN') + ' ₫';
+        }
+      });
+    }
+  }
+
+  function syncPriceToAllVariants() {
+    const mainVal = document.getElementById('adminProductPriceInput')?.value;
+    if (!mainVal || mainVal <= 0) {
+      alert('Vui lòng nhập giá bán hợp lệ trước.');
+      return;
+    }
+    document.querySelectorAll('.price-variant-input').forEach(input => {
+      input.value = mainVal;
+      const subId = input.name.replace('variant_price[', 'edit_price_sub_').replace(']', '');
+      const sub = document.getElementById(subId);
+      if (sub) {
+        sub.innerText = '= ' + parseInt(mainVal).toLocaleString('vi-VN') + ' ₫';
+      }
+    });
+    const switchEl = document.getElementById('syncVariantPricesSwitch');
+    if (switchEl) switchEl.checked = true;
+
+    // Toast nhỏ thông báo
+    if (typeof showToast === 'function') {
+      showToast('Đã áp dụng giá ' + parseInt(mainVal).toLocaleString('vi-VN') + '₫ cho tất cả biến thể', 'success');
+    }
+  }
+</script>
+@endpush
 @endsection

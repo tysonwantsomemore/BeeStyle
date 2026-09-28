@@ -449,6 +449,13 @@
                       </button>
                     @endif
 
+                    <!-- DỰ KIẾN GIAO HÀNG (EDD) -->
+                    @if($order->estimated_delivery_text && !in_array($order->shipping_status, ['cancelled', 'completed', 'delivered']))
+                      <div class="text-primary fw-semibold mt-0.5" style="font-size: 0.68rem;" title="Thời gian ước tính giao hàng">
+                        <i class="fa-solid fa-business-time me-0.5"></i> {{ $order->estimated_delivery_text }}
+                      </div>
+                    @endif
+
                     @if($order->delivered_at && $order->shipping_status === 'delivered')
                       @php
                         $daysAgo = (int)$order->delivered_at->diffInDays(now());
@@ -460,9 +467,16 @@
                     @endif
                   </div>
                 @elseif(in_array($order->shipping_status, ['processing', 'confirmed']))
-                  <span class="badge bg-light text-muted border font-monospace" style="font-size: 0.72rem;">
-                    <i class="fa-solid fa-box-open me-1 text-warning"></i> Chờ bưu tá
-                  </span>
+                  <div class="d-flex flex-column gap-1">
+                    <span class="badge bg-light text-muted border font-monospace" style="font-size: 0.72rem;">
+                      <i class="fa-solid fa-box-open me-1 text-warning"></i> Chờ bưu tá
+                    </span>
+                    @if($order->estimated_delivery_text)
+                      <span class="text-primary fw-semibold" style="font-size: 0.68rem;">
+                        <i class="fa-solid fa-business-time me-0.5"></i> {{ $order->estimated_delivery_text }}
+                      </span>
+                    @endif
+                  </div>
                 @elseif($order->shipping_status === 'pending')
                   <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">Chưa duyệt</span>
                 @else

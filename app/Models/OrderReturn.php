@@ -60,10 +60,60 @@ class OrderReturn extends Model
     }
 
     /**
+     * Kiểm tra xem yêu cầu này có phải là hủy đơn online hoàn tiền trực tiếp (không cần gửi hàng & không cần kho QC) hay không
+     */
+    public function isDirectCancelRefund(): bool
+    {
+        // 1. Nếu hình thức là refund_only
+        if ($this->type === 'refund_only') {
+            return true;
+        }
+
+        // 2. Nếu đơn hàng gốc đã bị hủy trước khi hoàn tất giao hàng
+        if ($this->order) {
+            $isOrderCancelled = ($this->order->shipping_status === 'cancelled');
+            $isCancelledByCustomer = in_array($this->order->cancelled_by, ['customer', 'customer_refund']);
+            $isOnlinePaid = in_array(strtolower((string)$this->order->payment_status), ['paid', 'deposit_paid', 'refund_pending', 'refunded'])
+                || in_array($this->order->payment_method, ['momo', 'vnpay', 'online', 'zalopay']);
+
+            if ($isOrderCancelled && ($isCancelledByCustomer || $isOnlinePaid)) {
+                return true;
+            }
+
+            // Đơn chưa giao thành công (chưa delivered/completed) nhưng có yêu cầu hoàn tiền
+            if (!in_array($this->order->shipping_status, ['delivered', 'completed']) && $this->type === 'return_refund') {
+                return true;
+            }
+        }
+
+        // 3. Nếu lý do hoặc cancel_reason thể hiện là hủy đơn
+        if (str_contains(strtolower($this->reason ?? ''), 'hủy đơn') || str_contains(strtolower($this->reason ?? ''), 'đổi ý')) {
+            if ($this->order && $this->order->shipping_status === 'cancelled') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Danh sách ma trận các trạng thái hợp lệ tiếp theo được phép chuyển từ trạng thái hiện tại (State Machine)
      */
     public function getAllowedNextStatuses(): array
     {
+        // TRƯỜNG HỢP 1: Hủy đơn online hoàn tiền trực tiếp (Không có hàng để gửi -> Không qua bước Kho Nhận & QC)
+        if ($this->isDirectCancelRefund()) {
+            $transitions = [
+                'pending'   => ['approved', 'completed', 'rejected'],
+                'approved'  => ['completed', 'rejected'], // Duyệt xong chuyển thẳng sang bước 4: Hoàn Tất Quyết Toán
+                'received'  => ['completed', 'rejected'],
+                'completed' => [], // Trạng thái đóng cuối cùng
+                'rejected'  => [], // Trạng thái đóng cuối cùng
+            ];
+            return $transitions[$this->status] ?? [];
+        }
+
+        // TRƯỜNG HỢP 2: Khách hàng trả hàng hoàn tiền hoặc đổi hàng sau khi đã nhận (Phải qua Bước 3: Kho Nhận & QC)
         $transitions = [
             'pending'   => ['approved', 'rejected'],
             'approved'  => ['received', 'rejected'],
@@ -97,6 +147,10 @@ class OrderReturn extends Model
 
     public function getStatusLabelAttribute(): string
     {
+        if ($this->isDirectCancelRefund() && $this->status === 'approved') {
+            return 'Đã duyệt (Chờ quyết toán hoàn tiền)';
+        }
+
         return match ($this->status) {
             'pending' => 'Chờ duyệt',
             'approved' => 'Đã duyệt (Chờ gửi hàng)',
@@ -109,6 +163,10 @@ class OrderReturn extends Model
 
     public function getStatusBadgeAttribute(): string
     {
+        if ($this->isDirectCancelRefund() && $this->status === 'approved') {
+            return '<span class="badge bg-info text-white fw-bold"><i class="fa-solid fa-clipboard-check me-1"></i> Đã duyệt / Chờ chuyển tiền</span>';
+        }
+
         return match ($this->status) {
             'pending' => '<span class="badge bg-warning text-dark fw-bold"><i class="fa-solid fa-hourglass-half me-1"></i> Chờ duyệt</span>',
             'approved' => '<span class="badge bg-info text-white fw-bold"><i class="fa-solid fa-box me-1"></i> Đã duyệt / Gửi hàng</span>',
@@ -121,6 +179,10 @@ class OrderReturn extends Model
 
     public function getTypeLabelAttribute(): string
     {
+        if ($this->isDirectCancelRefund()) {
+            return 'Hủy đơn hoàn tiền (Online)';
+        }
+
         return match ($this->type) {
             'return_refund' => 'Trả hàng & Hoàn tiền',
             'exchange' => 'Đổi kích cỡ (Size/Màu)',

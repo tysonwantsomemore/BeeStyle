@@ -34,7 +34,11 @@ class ReviewController extends Controller
         }
 
         if ($status) {
-            $query->where('status', $status);
+            if ($status === 'hidden') {
+                $query->whereIn('status', ['hidden', 'rejected']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         $reviews = $query->paginate(15)->withQueryString();
@@ -51,7 +55,7 @@ class ReviewController extends Controller
 
         $totalReviews = Review::count();
         $avgRating = round(Review::where('status', 'approved')->avg('rating'), 1) ?: 5.0;
-        $fiveStarCount = Review::where('rating', 5)->count();
+        $fiveStarCount = Review::where('status', 'approved')->where('rating', 5)->count();
 
         return view('admin.reviews.index', compact(
             'reviews',
@@ -144,30 +148,43 @@ class ReviewController extends Controller
         $review = Review::findOrFail($id);
 
         $validated = $request->validate([
-            'status' => 'required|string|in:approved,rejected,pending',
+            'status' => 'required|string|in:approved,hidden,rejected,pending',
         ]);
 
-        $review->update(['status' => $validated['status']]);
+        $status = $validated['status'] === 'rejected' ? 'hidden' : $validated['status'];
+
+        $review->update(['status' => $status]);
 
         // Cập nhật lại số sao trung bình và số lượt đánh giá của sản phẩm
         if ($review->product_id) {
             $product = Product::find($review->product_id);
             if ($product) {
                 $approvedReviews = Review::where('product_id', $product->id)->where('status', 'approved');
-                $avgRating = $approvedReviews->avg('rating') ?: 5.0;
                 $reviewsCount = $approvedReviews->count();
+                $avgRating = $reviewsCount > 0 ? round($approvedReviews->avg('rating'), 1) : 5.0;
                 $product->update([
-                    'rating' => round($avgRating, 1),
+                    'rating' => $avgRating,
                     'reviews_count' => $reviewsCount,
                 ]);
             }
         }
 
-        $statusText = match ($validated['status']) {
-            'approved' => 'Đã duyệt công khai',
-            'rejected' => 'Đã ẩn khỏi website',
-            default => 'Chờ duyệt',
+        $statusText = match ($status) {
+            'approved' => 'Hiển thị công khai',
+            'hidden'   => 'Đã ẩn khỏi website',
+            'pending'  => 'Chờ duyệt',
+            default    => 'Đã cập nhật',
         };
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Đã thay đổi trạng thái đánh giá #{$review->id} sang \"{$statusText}\" thành công!",
+                'status' => $status,
+                'status_text' => $statusText,
+                'review_id' => $review->id,
+            ]);
+        }
 
         return back()->with('success', "Đã thay đổi trạng thái đánh giá #{$review->id} sang \"{$statusText}\" thành công!");
     }
@@ -185,10 +202,10 @@ class ReviewController extends Controller
             $product = Product::find($productId);
             if ($product) {
                 $approvedReviews = Review::where('product_id', $productId)->where('status', 'approved');
-                $avgRating = $approvedReviews->avg('rating') ?: 5.0;
                 $reviewsCount = $approvedReviews->count();
+                $avgRating = $reviewsCount > 0 ? round($approvedReviews->avg('rating'), 1) : 5.0;
                 $product->update([
-                    'rating' => round($avgRating, 1),
+                    'rating' => $avgRating,
                     'reviews_count' => $reviewsCount,
                 ]);
             }

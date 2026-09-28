@@ -27,6 +27,7 @@
       <p class="text-body-tertiary mb-0 fs-9">
         <i class="fa-regular fa-clock me-1"></i> Thời gian đặt: <strong>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i:s') : 'N/A' }}</strong> 
         • Thanh toán: <strong class="text-body-emphasis">{{ $order->payment_method_name }}</strong>
+        • <span class="text-primary fw-semibold"><i class="fa-solid fa-business-time me-1"></i>{{ $order->estimated_delivery_text }}</span>
       </p>
     </div>
 
@@ -48,9 +49,9 @@
           </button>
         @endif
 
-        <button type="button" class="btn btn-phoenix-primary btn-sm" onclick="window.print()">
-          <i class="fa-solid fa-print me-1"></i> In Phiếu Giao Hàng
-        </button>
+        <a href="{{ route('admin.orders.printSlip', $order->id) }}" target="_blank" class="btn btn-phoenix-primary btn-sm fw-bold">
+          <i class="fa-solid fa-print me-1"></i> In Phiếu Đóng Gói
+        </a>
         <a href="{{ route('admin.orders.index') }}" class="btn btn-phoenix-secondary btn-sm">
           <i class="fa-solid fa-list me-1"></i> Danh Sách Đơn
         </a>
@@ -338,6 +339,33 @@
         </div>
       </div>
     @else
+      @if($order->shipping_status === 'delivered')
+        @php
+          $deliveredDays = (int)($order->delivered_at ? $order->delivered_at->diffInDays(now()) : ($order->updated_at ? $order->updated_at->diffInDays(now()) : 0));
+          $remainingDays = max(0, 7 - $deliveredDays);
+        @endphp
+        <div class="alert alert-subtle-success py-2.5 px-3 rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-circle-check text-success fs-7"></i>
+            <div>
+              <strong class="text-success fs-10">Đơn hàng đã được Bưu tá giao tận tay khách hàng thành công (POD)!</strong>
+              <div class="text-body-secondary fs-11">
+                Thời gian giao: <strong>{{ $order->delivered_at ? $order->delivered_at->format('H:i:s d/m/Y') : 'Vừa xong' }}</strong> (cách đây {{ $deliveredDays }} ngày).
+                Nếu khách hàng không có khiếu nại hay yêu cầu đổi trả, hệ thống sẽ <strong>tự động chuyển sang HOÀN TẤT ĐƠN HÀNG sau {{ $remainingDays }} ngày</strong> nữa.
+              </div>
+            </div>
+          </div>
+          <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline">
+            @csrf
+            <input type="hidden" name="shipping_status" value="completed">
+            <input type="hidden" name="payment_status" value="paid">
+            <button type="submit" class="btn btn-sm btn-success fw-bold px-3 shadow-xs">
+              <i class="fa-solid fa-check-double me-1"></i> Hoàn Tất Ngay (Bỏ Qua Chờ 7 Ngày)
+            </button>
+          </form>
+        </div>
+      @endif
+
       <!-- 6-STEP INTERACTIVE CLICKABLE CARDS -->
       <div class="row g-2.5 text-center my-1">
         @foreach($steps as $sIndex => $sData)
@@ -494,10 +522,13 @@
               </button>
             </form>
           @elseif($order->shipping_status === 'confirmed')
+            <a href="{{ route('admin.orders.printSlip', $order->id) }}" target="_blank" class="btn btn-sm text-white fw-bold shadow-xs px-3" style="background-color: #7c3aed;">
+              <i class="fa-solid fa-print me-1"></i> In Đơn &amp; Chuyển Kho Đóng Gói
+            </a>
             <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" class="d-inline">
               @csrf
               <input type="hidden" name="shipping_status" value="processing">
-              <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold shadow-xs">
+              <button type="submit" class="btn btn-sm btn-outline-warning text-dark fw-bold shadow-xs">
                 <i class="fa-solid fa-box-open me-1"></i> Bước 3: Cho Kho Đóng Gói
               </button>
             </form>
@@ -513,8 +544,11 @@
             </button>
           @elseif($order->shipping_status === 'shipping')
             <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 fw-bold fs-10 d-inline-flex align-items-center gap-1.5">
-              <i class="fa-solid fa-motorcycle text-info"></i> Bưu tá {{ $order->shipper ? $order->shipper->name : 'BeeStyle' }} đang giao (Bưu tá sẽ chụp ảnh POD khi giao xong)
+              <i class="fa-solid fa-motorcycle text-info"></i> Bưu tá {{ $order->shipper ? $order->shipper->name : 'BeeStyle' }} đang giao
             </span>
+            <a href="{{ route('shipper.orders.show', $order->id) }}" target="_blank" class="btn btn-sm btn-phoenix-info fw-bold">
+              <i class="fa-solid fa-mobile-screen me-1"></i> Mở Cổng Bưu Tá
+            </a>
             <button type="button" class="btn btn-xs btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#adminPodDeliveryModal" title="Hỗ trợ tải ảnh POD nếu cần">
               <i class="fa-solid fa-camera me-1"></i> Hỗ trợ tải POD
             </button>
@@ -1534,10 +1568,13 @@
                 </button>
               </form>
             @elseif($sIndex == 3 && $order->shipping_status === 'confirmed')
+              <a href="{{ route('admin.orders.printSlip', $order->id) }}" target="_blank" class="btn btn-sm text-white fw-bold shadow-xs px-3" style="background-color: #7c3aed;">
+                <i class="fa-solid fa-print me-1"></i> In Đơn &amp; Đóng Gói (Bước 3)
+              </a>
               <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
                 @csrf
                 <input type="hidden" name="shipping_status" value="processing">
-                <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark">
+                <button type="submit" class="btn btn-outline-warning btn-sm fw-bold text-dark">
                   <i class="fa-solid fa-box-open me-1"></i> Cho Kho Đóng Gói (Bước 3)
                 </button>
               </form>

@@ -93,12 +93,23 @@
 
   <div class="card-body">
     @php
-      $rmaSteps = [
-        1 => ['code' => 'pending', 'label' => '1. Khách Gửi Yêu Cầu', 'icon' => 'fa-file-lines', 'desc' => $return->created_at ? $return->created_at->format('d/m/Y H:i') : 'Đã gửi'],
-        2 => ['code' => 'approved', 'label' => '2. CSKH Duyệt Phiếu', 'icon' => 'fa-clipboard-check', 'desc' => $return->approved_at ? $return->approved_at->format('d/m/Y H:i') : 'Chờ duyệt'],
-        3 => ['code' => 'received', 'label' => '3. Kho Nhận & QC', 'icon' => 'fa-boxes-packing', 'desc' => $return->received_at ? $return->received_at->format('d/m/Y H:i') : 'Chờ nhận'],
-        4 => ['code' => 'completed', 'label' => '4. Hoàn Tất Quyết Toán', 'icon' => 'fa-circle-check', 'desc' => $return->completed_at ? $return->completed_at->format('d/m/Y H:i') : 'Chờ hoàn tất'],
-      ];
+      $isDirectCancel = $return->isDirectCancelRefund();
+
+      if ($isDirectCancel) {
+        $rmaSteps = [
+          1 => ['code' => 'pending', 'label' => '1. Khách Gửi Yêu Cầu Hủy', 'icon' => 'fa-file-lines', 'desc' => $return->created_at ? $return->created_at->format('d/m/Y H:i') : 'Đã gửi'],
+          2 => ['code' => 'approved', 'label' => '2. CSKH Duyệt Lệnh', 'icon' => 'fa-clipboard-check', 'desc' => $return->approved_at ? $return->approved_at->format('d/m/Y H:i') : 'Chờ duyệt'],
+          3 => ['code' => 'received', 'label' => '3. Kho Nhận & QC (Miễn trừ)', 'icon' => 'fa-forward-step', 'desc' => 'Không cần gửi hàng', 'skipped' => true],
+          4 => ['code' => 'completed', 'label' => '4. Hoàn Tất Quyết Toán', 'icon' => 'fa-circle-check', 'desc' => $return->completed_at ? $return->completed_at->format('d/m/Y H:i') : ($return->status === 'approved' ? 'Chờ chuyển tiền' : 'Chờ hoàn tất')],
+        ];
+      } else {
+        $rmaSteps = [
+          1 => ['code' => 'pending', 'label' => '1. Khách Gửi Yêu Cầu', 'icon' => 'fa-file-lines', 'desc' => $return->created_at ? $return->created_at->format('d/m/Y H:i') : 'Đã gửi'],
+          2 => ['code' => 'approved', 'label' => '2. CSKH Duyệt Phiếu', 'icon' => 'fa-clipboard-check', 'desc' => $return->approved_at ? $return->approved_at->format('d/m/Y H:i') : 'Chờ duyệt'],
+          3 => ['code' => 'received', 'label' => '3. Kho Nhận & QC', 'icon' => 'fa-boxes-packing', 'desc' => $return->received_at ? $return->received_at->format('d/m/Y H:i') : 'Chờ nhận'],
+          4 => ['code' => 'completed', 'label' => '4. Hoàn Tất Quyết Toán', 'icon' => 'fa-circle-check', 'desc' => $return->completed_at ? $return->completed_at->format('d/m/Y H:i') : 'Chờ hoàn tất'],
+        ];
+      }
 
       $stepMap = ['pending' => 1, 'approved' => 2, 'received' => 3, 'completed' => 4, 'rejected' => 0];
       $currentStep = $stepMap[$return->status] ?? 1;
@@ -113,24 +124,78 @@
         </div>
       </div>
     @else
+      @if($isDirectCancel)
+        <div class="alert alert-subtle-info d-flex align-items-center gap-2 py-2 px-3 mb-3 fs-10 rounded">
+          <i class="fa-solid fa-info-circle text-info fs-9"></i>
+          <div>
+            <strong>Đơn Hàng Hủy Thanh Toán Online:</strong> Đơn này được hủy trực tiếp trước khi nhận hàng. 
+            Hệ thống <strong>miễn trừ Bước 3 (Kho Nhận &amp; QC)</strong> do khách không có bưu phẩm để gửi lại. 
+            Sau khi duyệt, phiếu sẽ chuyển thẳng sang <strong>Bước 4: Hoàn Tất Quyết Toán</strong> để chuyển tiền hoàn.
+          </div>
+        </div>
+      @endif
+
       <div class="row g-2 text-center position-relative my-2">
         @foreach($rmaSteps as $sNum => $sData)
           @php
-            $isDone = $currentStep > $sNum;
-            $isCurrent = $currentStep == $sNum;
+            $isSkipped = !empty($sData['skipped']);
+            
+            if ($isDirectCancel) {
+              if ($return->status === 'pending') {
+                $isDone = false;
+                $isCurrent = ($sNum === 1);
+              } elseif ($return->status === 'approved') {
+                $isDone = ($sNum <= 2);
+                $isCurrent = ($sNum === 4); // Chuyển trọng tâm sang bước 4 Quyết toán
+              } elseif ($return->status === 'completed') {
+                $isDone = ($sNum !== 3);
+                $isCurrent = false;
+              } else {
+                $isDone = false;
+                $isCurrent = false;
+              }
+            } else {
+              $isDone = $currentStep > $sNum;
+              $isCurrent = $currentStep == $sNum;
+            }
+
+            $bgColor = 'var(--phoenix-gray-200)';
+            $textColor = 'var(--phoenix-gray-600)';
+            if ($isSkipped) {
+              $bgColor = 'var(--phoenix-gray-300)';
+              $textColor = 'var(--phoenix-gray-500)';
+            } elseif ($isDone) {
+              $bgColor = '#25b003';
+              $textColor = '#ffffff';
+            } elseif ($isCurrent) {
+              $bgColor = ($sNum === 4 && $return->status === 'approved') ? '#e5780b' : '#3874ff';
+              $textColor = '#ffffff';
+            }
           @endphp
           <div class="col-3">
             <div class="d-flex flex-column align-items-center">
               <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm mb-2"
                    style="width: 42px; height: 42px; font-size: 1rem; 
-                          background-color: {{ $isCurrent ? '#3874ff' : ($isDone ? '#25b003' : 'var(--phoenix-gray-200)') }}; 
-                          color: {{ $isDone || $isCurrent ? '#ffffff' : 'var(--phoenix-gray-600)' }};">
-                <i class="fa-solid {{ $isDone ? 'fa-check' : $sData['icon'] }}"></i>
+                          background-color: {{ $bgColor }}; 
+                          color: {{ $textColor }};">
+                @if($isSkipped)
+                  <i class="fa-solid fa-forward-step" title="Miễn trừ bước này"></i>
+                @elseif($isDone)
+                  <i class="fa-solid fa-check"></i>
+                @else
+                  <i class="fa-solid {{ $sData['icon'] }}"></i>
+                @endif
               </div>
-              <span class="fw-bold text-truncate d-block fs-10" style="color: {{ $isCurrent ? '#3874ff' : ($isDone ? '#25b003' : 'var(--phoenix-gray-600)') }};">
+              <span class="fw-bold text-truncate d-block fs-10" style="color: {{ $isSkipped ? 'var(--phoenix-gray-500)' : ($isCurrent ? ($sNum === 4 && $return->status === 'approved' ? '#e5780b' : '#3874ff') : ($isDone ? '#25b003' : 'var(--phoenix-gray-600)')) }};">
                 {{ $sData['label'] }}
               </span>
-              <small class="text-body-tertiary d-none d-md-block fs-11">{{ $sData['desc'] }}</small>
+              <small class="text-body-tertiary d-none d-md-block fs-11">
+                @if($isSkipped)
+                  <span class="badge badge-phoenix badge-phoenix-secondary fs-11">Bỏ qua / Không gửi</span>
+                @else
+                  {{ $sData['desc'] }}
+                @endif
+              </small>
             </div>
           </div>
         @endforeach
@@ -145,13 +210,29 @@
         </div>
         <div class="d-flex gap-2 flex-wrap">
           @if($return->status === 'pending')
-            <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#approveReturnModal">
-              <i class="fa-solid fa-check me-1"></i> Bước 2: Duyệt Phiếu (Gửi Hướng Dẫn)
-            </button>
+            @if($isDirectCancel)
+              <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#approveReturnModal">
+                <i class="fa-solid fa-clipboard-check me-1"></i> Bước 2: Duyệt Lệnh Hoàn Tiền (Chuyển Bước 4)
+              </button>
+              <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#completeReturnModal">
+                <i class="fa-solid fa-money-bill-transfer me-1"></i> Duyệt &amp; Quyết Toán Luôn (Bước 4)
+              </button>
+            @else
+              <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#approveReturnModal">
+                <i class="fa-solid fa-check me-1"></i> Bước 2: Duyệt Phiếu (Gửi Hướng Dẫn)
+              </button>
+            @endif
           @elseif($return->status === 'approved')
-            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#receiveReturnModal">
-              <i class="fa-solid fa-boxes-packing me-1"></i> Bước 3: Kho Nhận &amp; QC Hàng
-            </button>
+            @if($isDirectCancel)
+              <!-- Hủy online chuyển thẳng sang bước 4 hoàn tất quyết toán -->
+              <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#completeReturnModal">
+                <i class="fa-solid fa-money-bill-transfer me-1"></i> Bước 4: Hoàn Tất Quyết Toán &amp; Chuyển Tiền
+              </button>
+            @else
+              <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#receiveReturnModal">
+                <i class="fa-solid fa-boxes-packing me-1"></i> Bước 3: Kho Nhận &amp; QC Hàng
+              </button>
+            @endif
           @elseif($return->status === 'received')
             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#completeReturnModal">
               <i class="fa-solid fa-circle-check me-1"></i> Bước 4: Hoàn Tất Quyết Toán
@@ -360,22 +441,33 @@
           <div class="mb-3">
             <label class="form-label fs-9 fw-semibold">Trạng thái phiếu:</label>
             @php
-              $allReturnStatuses = [
-                'pending'   => '1. Chờ duyệt yêu cầu',
-                'approved'  => '2. Đã duyệt (Chờ khách gửi hàng về kho)',
-                'received'  => '3. Kho đã nhận hàng & kiểm tra QC',
-                'completed' => '4. Hoàn tất xử lý (Hoàn tiền / Đổi size)',
-                'rejected'  => '0. Từ chối yêu cầu',
-              ];
+              if ($isDirectCancel) {
+                $allReturnStatuses = [
+                  'pending'   => '1. Chờ duyệt yêu cầu hủy đơn',
+                  'approved'  => '2. Đã duyệt lệnh hoàn tiền (Sẵn sàng sang Bước 4)',
+                  'received'  => '3. Kho nhận hàng & QC (Miễn trừ - Hàng chưa xuất kho)',
+                  'completed' => '4. Hoàn tất quyết toán & Chuyển tiền hoàn',
+                  'rejected'  => '0. Từ chối yêu cầu',
+                ];
+              } else {
+                $allReturnStatuses = [
+                  'pending'   => '1. Chờ duyệt yêu cầu',
+                  'approved'  => '2. Đã duyệt (Chờ khách gửi hàng về kho)',
+                  'received'  => '3. Kho đã nhận hàng & kiểm tra QC',
+                  'completed' => '4. Hoàn tất xử lý (Hoàn tiền / Đổi size)',
+                  'rejected'  => '0. Từ chối yêu cầu',
+                ];
+              }
             @endphp
             <select name="status" class="form-select" {{ $return->isFinalStatus() ? 'disabled' : '' }}>
               @foreach($allReturnStatuses as $optKey => $optLabel)
                 @php
                   $isCurrent = $return->status === $optKey;
-                  $canSelect = $isCurrent || $return->canTransitionTo($optKey);
+                  // Nếu là đơn hủy online chưa giao hàng thì không được chọn received
+                  $canSelect = ($optKey === 'received' && $isDirectCancel) ? false : ($isCurrent || $return->canTransitionTo($optKey));
                 @endphp
                 <option value="{{ $optKey }}" {{ $isCurrent ? 'selected' : '' }} {{ !$canSelect ? 'disabled class=text-muted' : '' }}>
-                  {{ $optLabel }} {{ !$canSelect ? '(Đã khóa/không hợp lệ)' : ($isCurrent ? '— [Hiện tại]' : '') }}
+                  {{ $optLabel }} {{ !$canSelect ? '(Không hợp lệ/Đã khóa)' : ($isCurrent ? '— [Hiện tại]' : '') }}
                 </option>
               @endforeach
             </select>
@@ -383,18 +475,31 @@
               <input type="hidden" name="status" value="{{ $return->status }}">
             @endif
             <small class="text-body-tertiary fs-11 mt-1 d-block">
-              <i class="fa-solid fa-shield-halved text-primary me-1"></i> Hệ thống tự động khóa các bước trước đó theo quy tắc vận hành TMĐT 1 chiều.
+              <i class="fa-solid fa-shield-halved text-primary me-1"></i>
+              @if($isDirectCancel)
+                Đơn hủy online: Sau khi duyệt ở bước 2 có thể chuyển thẳng sang bước 4 để quyết toán chuyển khoản.
+              @else
+                Hệ thống tự động khóa các bước trước đó theo quy tắc vận hành TMĐT 1 chiều.
+              @endif
             </small>
           </div>
 
           @if(!$return->isFinalStatus())
             <div class="mb-3">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="restock" value="1" id="restockCheck" checked>
-                <label class="form-check-label fs-10 text-body-tertiary" for="restockCheck">
-                  Tự động cộng lại số lượng vào kho hàng khi hoàn tất
-                </label>
-              </div>
+              @if($isDirectCancel)
+                <div class="p-2 bg-success-subtle text-success border border-success-subtle rounded fs-11">
+                  <i class="fa-solid fa-circle-check me-1"></i>
+                  <strong>Tồn kho đã được hoàn lại:</strong> Hệ thống đã tự động khôi phục tồn kho sản phẩm khi khách hàng gửi yêu cầu hủy online.
+                </div>
+                <input type="hidden" name="restock" value="0">
+              @else
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="restock" value="1" id="restockCheck" checked>
+                  <label class="form-check-label fs-10 text-body-tertiary" for="restockCheck">
+                    Tự động cộng lại số lượng vào kho hàng khi hoàn tất
+                  </label>
+                </div>
+              @endif
             </div>
           @endif
 
@@ -421,26 +526,50 @@
         @csrf
         <input type="hidden" name="status" value="approved">
         <div class="modal-header border-bottom border-translucent bg-body-emphasis">
-          <h5 class="modal-title fw-bold text-body-emphasis"><i class="fa-solid fa-check-circle me-2 text-info"></i> Duyệt Yêu Cầu Đổi Trả</h5>
+          <h5 class="modal-title fw-bold text-body-emphasis">
+            @if($isDirectCancel)
+              <i class="fa-solid fa-clipboard-check me-2 text-info"></i> Duyệt Lệnh Hủy &amp; Hoàn Tiền Online
+            @else
+              <i class="fa-solid fa-check-circle me-2 text-info"></i> Duyệt Yêu Cầu Đổi Trả
+            @endif
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-4">
-          <p class="fs-10 text-body-tertiary mb-3">Xác nhận duyệt yêu cầu đổi trả này và gửi thông tin hướng dẫn gửi hàng cho khách:</p>
-          <div class="mb-0">
-            <label class="form-label fs-9 fw-semibold">Hướng dẫn đóng gói &amp; địa chỉ kho:</label>
-            <textarea name="warehouse_instruction" class="form-control" rows="3">Quý khách vui lòng đóng gói sản phẩm còn nguyên tem mác và gửi về: Tổng Kho BeeStyle - Số 123 Cầu Giấy, Hà Nội (Hotline: 1900 8888). Thời hạn gửi trong vòng 3 ngày.</textarea>
-          </div>
+          @if($isDirectCancel)
+            <div class="p-3 bg-info-subtle border border-info-subtle rounded mb-3 text-info-emphasis fs-10">
+              <strong class="d-block mb-1 fs-9"><i class="fa-solid fa-info-circle me-1"></i> Xác nhận duyệt lệnh hủy đơn &amp; hoàn tiền:</strong>
+              Đơn hàng <strong>#{{ $return->order->order_code ?? '' }}</strong> đã được thanh toán online và yêu cầu hủy trước khi giao hàng.
+              Sau khi duyệt, phiếu sẽ chuyển sang <strong>Bước 4: Hoàn Tất Quyết Toán</strong> (bỏ qua bước Kho Nhận &amp; QC vì khách không có hàng để gửi).
+            </div>
+            <div class="p-2.5 bg-body-tertiary rounded border border-translucent fs-10 mb-3">
+              <div>Số tiền hoàn: <strong class="text-danger font-monospace fs-9">{{ number_format($return->refund_amount, 0, ',', '.') }}₫</strong></div>
+              <div>Tài khoản nhận: <strong class="text-body-emphasis">{{ $return->bank_name }} - {{ $return->bank_account_number }} ({{ $return->bank_account_name }})</strong></div>
+            </div>
+          @else
+            <p class="fs-10 text-body-tertiary mb-3">Xác nhận duyệt yêu cầu đổi trả này và gửi thông tin hướng dẫn gửi hàng cho khách:</p>
+            <div class="mb-0">
+              <label class="form-label fs-9 fw-semibold">Hướng dẫn đóng gói &amp; địa chỉ kho:</label>
+              <textarea name="warehouse_instruction" class="form-control" rows="3">Quý khách vui lòng đóng gói sản phẩm còn nguyên tem mác và gửi về: Tổng Kho BeeStyle - Số 123 Cầu Giấy, Hà Nội (Hotline: 1900 8888). Thời hạn gửi trong vòng 3 ngày.</textarea>
+            </div>
+          @endif
         </div>
         <div class="modal-footer border-top border-translucent bg-body-emphasis">
           <button type="button" class="btn btn-phoenix-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-          <button type="submit" class="btn btn-info text-white btn-sm px-3">Xác Nhận Duyệt Phiếu</button>
+          <button type="submit" class="btn btn-info text-white btn-sm px-3">
+            @if($isDirectCancel)
+              Xác Nhận Duyệt (Chuyển Sang Bước 4)
+            @else
+              Xác Nhận Duyệt Phiếu
+            @endif
+          </button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- 2. KHO NHẬN HÀNG -->
+<!-- 2. KHO NHẬN HÀNG (CHỈ ÁP DỤNG CHO ĐỔI TRẢ VẬT LÝ) -->
 <div class="modal fade" id="receiveReturnModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
@@ -471,7 +600,7 @@
   </div>
 </div>
 
-<!-- 3. HOÀN TẤT QUYẾT TOÁN -->
+<!-- 3. HOÀN TẤT QUYẾT TOÁN (BƯỚC 4) -->
 <div class="modal fade" id="completeReturnModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
@@ -479,7 +608,9 @@
         @csrf
         <input type="hidden" name="status" value="completed">
         <div class="modal-header border-bottom border-translucent bg-body-emphasis">
-          <h5 class="modal-title fw-bold text-body-emphasis"><i class="fa-solid fa-circle-check me-2 text-success"></i> Hoàn Tất Quyết Toán RMA</h5>
+          <h5 class="modal-title fw-bold text-body-emphasis">
+            <i class="fa-solid fa-circle-check me-2 text-success"></i> Bước 4: Hoàn Tất Quyết Toán &amp; Chuyển Khoản
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-4">
@@ -494,27 +625,65 @@
               <input type="text" name="exchange_tracking_code" placeholder="VD: GHN-8823910" class="form-control font-monospace" required>
             </div>
           @else
+            <!-- THÔNG TIN TÀI KHOẢN NHẬN TIỀN CỦA KHÁCH -->
+            <div class="p-3 rounded bg-body-tertiary border border-translucent mb-3 fs-10">
+              <div class="fw-bold text-body-emphasis border-bottom border-translucent pb-1 mb-2 d-flex justify-content-between">
+                <span><i class="fa-solid fa-building-columns text-warning me-1"></i> Thông Tin Thụ Hưởng Của Khách:</span>
+                <span class="badge badge-phoenix badge-phoenix-success">NAPAS 24/7</span>
+              </div>
+              <div class="row g-1">
+                <div class="col-5 text-body-tertiary">Ngân hàng:</div>
+                <div class="col-7 fw-bold text-body-emphasis">{{ $return->bank_name ?: 'Chưa cập nhật' }}</div>
+
+                <div class="col-5 text-body-tertiary">Số tài khoản:</div>
+                <div class="col-7 fw-bold text-primary font-monospace fs-9">
+                  {{ $return->bank_account_number ?: 'Chưa có STK' }}
+                  @if($return->bank_account_number)
+                    <button type="button" class="btn btn-link p-0 text-decoration-none ms-1 text-primary" onclick="copyToClipboard('{{ $return->bank_account_number }}', this)">
+                      <i class="fa-regular fa-copy"></i>
+                    </button>
+                  @endif
+                </div>
+
+                <div class="col-5 text-body-tertiary">Chủ tài khoản:</div>
+                <div class="col-7 fw-bold text-uppercase text-body-emphasis">{{ $return->bank_account_name ?: 'Chưa cập nhật' }}</div>
+
+                <div class="col-5 text-body-tertiary">Số tiền hoàn:</div>
+                <div class="col-7 fw-bold text-danger font-monospace fs-9">{{ number_format($return->refund_amount, 0, ',', '.') }}₫</div>
+              </div>
+            </div>
+
             <p class="fs-10 text-body-tertiary mb-3">Xác nhận chuyển khoản hoàn tiền cho khách hàng:</p>
             <div class="mb-3">
               <label class="form-label fs-9 fw-semibold">Số tiền hoàn thực tế (VNĐ):</label>
               <input type="number" name="refund_amount" value="{{ $return->refund_amount }}" class="form-control font-monospace text-danger fw-bold fs-8">
             </div>
             <div class="mb-3">
-              <label class="form-label fs-9 fw-semibold">Mã giao dịch ngân hàng / Trace No:</label>
-              <input type="text" name="bank_ref_code" placeholder="VD: VCB-982341 hoặc MB-0912" class="form-control font-monospace" required>
+              <label class="form-label fs-9 fw-semibold">Mã giao dịch ngân hàng / Trace No <span class="text-danger">*</span>:</label>
+              <input type="text" name="bank_ref_code" placeholder="VD: VCB-982341 hoặc MB-0912 hoặc FT26..." class="form-control font-monospace" required>
+              <small class="text-body-tertiary fs-11 mt-1 d-block">Mã ủy nhiệm chi / chuyển khoản thành công từ Internet Banking.</small>
             </div>
           @endif
 
-          <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" name="restock" value="1" id="modalRestockCheck" checked>
-            <label class="form-check-label fs-10 text-body-tertiary" for="modalRestockCheck">
-              Tự động cập nhật số lượng tồn kho sản phẩm
-            </label>
-          </div>
+          @if($isDirectCancel)
+            <div class="p-2 bg-success-subtle text-success rounded fs-11 mt-3 border border-success-subtle">
+              <i class="fa-solid fa-check me-1"></i> Tồn kho sản phẩm đã được tự động hoàn lại lúc khách hủy đơn (Hệ thống không cộng trùng lặp).
+            </div>
+            <input type="hidden" name="restock" value="0">
+          @else
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox" name="restock" value="1" id="modalRestockCheck" checked>
+              <label class="form-check-label fs-10 text-body-tertiary" for="modalRestockCheck">
+                Tự động cập nhật số lượng tồn kho sản phẩm
+              </label>
+            </div>
+          @endif
         </div>
         <div class="modal-footer border-top border-translucent bg-body-emphasis">
           <button type="button" class="btn btn-phoenix-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-          <button type="submit" class="btn btn-success btn-sm px-3">Xác Nhận Quyết Toán</button>
+          <button type="submit" class="btn btn-success btn-sm px-3">
+            <i class="fa-solid fa-check me-1"></i> Xác Nhận Hoàn Tất Quyết Toán
+          </button>
         </div>
       </form>
     </div>
